@@ -27,7 +27,6 @@ export function HeadShell() {
     <>
       <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
       <link rel="stylesheet" href="https://use.typekit.net/svx1oks.css" />
-      {/* eslint-disable-next-line @next/next/no-sync-scripts */}
       <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
     </>
   );

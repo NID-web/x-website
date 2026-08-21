@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 
 // Dev-only column ruler: --nid-grid-columns translucent bars, positioned by
 // the same shell math as PageGrid so they line up exactly with real content.
-// Toggled by pressing "g". Renders null in production.
-export function GridOverlay() {
-  const [visible, setVisible] = useState(false);
+// Toggled by pressing "g", or pass alwaysOn to skip the toggle (used inline
+// in the swatch page's grid-proof section). Renders null in production.
+export function GridOverlay({ alwaysOn = false }: { alwaysOn?: boolean } = {}) {
+  const [visible, setVisible] = useState(alwaysOn);
   const [columns, setColumns] = useState(4);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ export function GridOverlay() {
     }
 
     function onKeyDown(e: KeyboardEvent) {
+      if (alwaysOn) return;
       if (e.key === "g" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         const target = e.target as HTMLElement | null;
         const typing =
@@ -42,7 +44,7 @@ export function GridOverlay() {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("resize", readColumns);
     };
-  }, []);
+  }, [alwaysOn]);
 
   if (process.env.NODE_ENV === "production" || !visible) return null;
 

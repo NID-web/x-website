@@ -8,24 +8,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { THEMES, APPEARANCES, type Theme, type Appearance } from "@/lib/theme-constants";
 
-export const THEMES = [
-  "peacock",
-  "lotus",
-  "indigo",
-  "henna",
-  "yoga",
-  "tanjore",
-  "khadi",
-  "terracotta",
-  "ikkat",
-  "tiger",
-] as const;
-
-export const APPEARANCES = ["light", "dark"] as const;
-
-export type Theme = (typeof THEMES)[number];
-export type Appearance = (typeof APPEARANCES)[number];
+// Re-exported for existing client call sites; Server Components should
+// import these directly from @/lib/theme-constants (see that file for why).
+export { THEMES, APPEARANCES };
+export type { Theme, Appearance };
 
 type ThemeContextValue = {
   theme: Theme;
@@ -40,14 +28,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("peacock");
   const [appearance, setAppearanceState] = useState<Appearance>("light");
 
-  // Adopt whatever the inline THEME_SCRIPT already set on <html> — never read
-  // localStorage during render, only after mount, so this can't diverge from
-  // what the browser already painted.
+  // Adopt whatever the inline THEME_SCRIPT already set on <html>. This has to
+  // be a useEffect, not a lazy useState initializer: `document` doesn't exist
+  // during the server render of this (still SSR'd) client component, so
+  // reading it can only happen after mount — never localStorage during
+  // render, only after, so this can't diverge from what the browser already
+  // painted. That's the one-time hydration-adopt the set-state-in-effect
+  // rule doesn't have a case for.
   useEffect(() => {
     const root = document.documentElement;
     const currentTheme = root.getAttribute("data-theme");
     const currentAppearance = root.getAttribute("data-appearance");
     if (currentTheme && (THEMES as readonly string[]).includes(currentTheme)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setThemeState(currentTheme as Theme);
     }
     if (currentAppearance === "light" || currentAppearance === "dark") {
