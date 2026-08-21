@@ -193,7 +193,8 @@ export const TYPE_STYLES: TypeStyle[] = [
       size: 12,
       lh: 18,
       tracking: "1%",
-      weight: "400 (Regular Italic) — note: tracking differs from Caption/Regular (1% vs 2%)",
+      weight:
+        "400 (Regular Italic) — note: tracking differs from Caption/Regular (1% vs 2%)",
     },
   },
 ];

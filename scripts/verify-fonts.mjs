@@ -36,7 +36,8 @@ async function main() {
   let browser;
   const OK = [];
   const FAIL = [];
-  const check = (label, cond, detail = "") => (cond ? OK : FAIL).push(label + (detail ? ` — ${detail}` : ""));
+  const check = (label, cond, detail = "") =>
+    (cond ? OK : FAIL).push(label + (detail ? ` — ${detail}` : ""));
 
   try {
     await waitForServer();

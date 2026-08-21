@@ -1,0 +1,9 @@
+.next
+node_modules
+design
+docs/screenshots
+package-lock.json
+
+# copied verbatim from design/ — must stay byte-identical to the source
+src/lib/content-model.ts
+src/styles/themes.css

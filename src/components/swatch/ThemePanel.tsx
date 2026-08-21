@@ -30,7 +30,13 @@ function SurfaceProbe() {
   );
 }
 
-export function ThemePanel({ theme, appearance }: { theme: Theme; appearance: Appearance }) {
+export function ThemePanel({
+  theme,
+  appearance,
+}: {
+  theme: Theme;
+  appearance: Appearance;
+}) {
   return (
     <section
       data-theme={theme}

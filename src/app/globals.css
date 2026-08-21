@@ -13,8 +13,8 @@
   /* Replace Tailwind's sm/md/lg/xl/2xl with the four Figma breakpoint modes.
      There are only four. Anything else is off-spec. */
   --breakpoint-*: initial;
-  --breakpoint-tablet: 768px;   /* 2 columns */
-  --breakpoint-laptop: 1024px;  /* 3 columns */
+  --breakpoint-tablet: 768px; /* 2 columns */
+  --breakpoint-laptop: 1024px; /* 3 columns */
   --breakpoint-desktop: 1280px; /* 4 columns */
 
   /* The design system is specified in px throughout. Pinning the spacing base to
@@ -151,13 +151,13 @@
   --spacing-rowgutter: var(--nid-grid-row-gap);
 
   /* ---- widths ---- */
-  --container-shell: var(--nid-grid-shell-width);   /* content + 2 × margin */
+  --container-shell: var(--nid-grid-shell-width); /* content + 2 × margin */
   --container-content: var(--nid-grid-content-width);
-  --container-measure: 684px;                        /* intro / standfirst cap */
+  --container-measure: 684px; /* intro / standfirst cap */
 
   /* ---- radius ---- */
-  --radius-pill: var(--nid-radius-pill);   /* 24px — Button CTA, Icon Button */
-  --radius-hero: var(--nid-radius-hero);   /* 64px — one corner of one image per page */
+  --radius-pill: var(--nid-radius-pill); /* 24px — Button CTA, Icon Button */
+  --radius-hero: var(--nid-radius-hero); /* 64px — one corner of one image per page */
 
   /* ---- type scale. size / line-height / tracking / weight in one utility. ---- */
   --text-display-serif: var(--nid-type-display-serif-size);
@@ -283,8 +283,12 @@
 }
 
 @layer base {
-  html[data-appearance="light"] { color-scheme: light; }
-  html[data-appearance="dark"]  { color-scheme: dark; }
+  html[data-appearance="light"] {
+    color-scheme: light;
+  }
+  html[data-appearance="dark"] {
+    color-scheme: dark;
+  }
 
   body {
     background-color: var(--nid-surface-page);

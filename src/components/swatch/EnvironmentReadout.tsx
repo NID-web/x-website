@@ -16,7 +16,13 @@ function readEnv(): Env {
   const style = getComputedStyle(document.documentElement);
   const width = window.innerWidth;
   const breakpoint =
-    width >= 1280 ? "desktop" : width >= 1024 ? "laptop" : width >= 768 ? "tablet" : "mobile";
+    width >= 1280
+      ? "desktop"
+      : width >= 1024
+        ? "laptop"
+        : width >= 768
+          ? "tablet"
+          : "mobile";
 
   // --nid-grid-shell-width is a calc() expression. getComputedStyle on a
   // *custom property* returns it unevaluated (custom properties are raw
@@ -25,7 +31,9 @@ function readEnv(): Env {
   // So measure a real [data-nid-shell] element's rendered width instead of
   // parsing the variable's text.
   const shellEl = document.querySelector<HTMLElement>("[data-nid-shell]");
-  const shellWidth = shellEl ? `${Math.round(shellEl.getBoundingClientRect().width)}px` : "—";
+  const shellWidth = shellEl
+    ? `${Math.round(shellEl.getBoundingClientRect().width)}px`
+    : "—";
 
   return {
     columns: style.getPropertyValue("--nid-grid-columns").trim(),
@@ -61,11 +69,20 @@ export function EnvironmentReadout() {
     : [];
 
   return (
-    <dl className="grid grid-cols-1 gap-x-6 gap-y-1 tablet:grid-cols-2" data-nid-environment>
+    <dl
+      className="grid grid-cols-1 gap-x-6 gap-y-1 tablet:grid-cols-2"
+      data-nid-environment
+    >
       {rows.map(([k, v]) => (
-        <div key={k} className="flex justify-between gap-4 border-b border-border-faint py-1">
+        <div
+          key={k}
+          className="flex justify-between gap-4 border-b border-border-faint py-1"
+        >
           <dt className="font-body text-caption text-text-tertiary">{k}</dt>
-          <dd className="font-body text-caption-bold text-text-primary" data-nid-env-value={k}>
+          <dd
+            className="font-body text-caption-bold text-text-primary"
+            data-nid-env-value={k}
+          >
             {v}
           </dd>
         </div>

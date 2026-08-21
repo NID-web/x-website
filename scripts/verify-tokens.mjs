@@ -150,8 +150,16 @@ async function main() {
         );
       }
     }
-    check("540 semantic assertions ran", semanticAssertions === 540, String(semanticAssertions));
-    check("zero UNRESOLVED chips across all 20 panels", unresolvedCount === 0, String(unresolvedCount));
+    check(
+      "540 semantic assertions ran",
+      semanticAssertions === 540,
+      String(semanticAssertions),
+    );
+    check(
+      "zero UNRESOLVED chips across all 20 panels",
+      unresolvedCount === 0,
+      String(unresolvedCount),
+    );
 
     // ---- explicit scoped-theme hard assertion ----
     const htmlTheme = await page.evaluate(() =>
@@ -159,8 +167,12 @@ async function main() {
     );
     check("html defaults to peacock", htmlTheme === "peacock", htmlTheme ?? "null");
 
-    const peacockLight = panelData.find((p) => p.theme === "peacock" && p.appearance === "light");
-    const tanjoreLight = panelData.find((p) => p.theme === "tanjore" && p.appearance === "light");
+    const peacockLight = panelData.find(
+      (p) => p.theme === "peacock" && p.appearance === "light",
+    );
+    const tanjoreLight = panelData.find(
+      (p) => p.theme === "tanjore" && p.appearance === "light",
+    );
     if (peacockLight && tanjoreLight) {
       check(
         "scoped data-theme=tanjore panel differs from <html>'s own peacock theme",
@@ -209,9 +221,21 @@ async function main() {
       });
 
       const bpName = `${bp.width}px`;
-      check(`${bpName} columns = ${bp.columns}`, measured.columns === bp.columns, String(measured.columns));
-      check(`${bpName} page margin = ${bp.margin}`, measured.margin === bp.margin, String(measured.margin));
-      check(`${bpName} column gap = ${bp.gap}`, measured.gap === bp.gap, String(measured.gap));
+      check(
+        `${bpName} columns = ${bp.columns}`,
+        measured.columns === bp.columns,
+        String(measured.columns),
+      );
+      check(
+        `${bpName} page margin = ${bp.margin}`,
+        measured.margin === bp.margin,
+        String(measured.margin),
+      );
+      check(
+        `${bpName} column gap = ${bp.gap}`,
+        measured.gap === bp.gap,
+        String(measured.gap),
+      );
       check(
         `${bpName} content width = ${bp.contentWidth}`,
         measured.contentWidth === bp.contentWidth,
@@ -219,12 +243,25 @@ async function main() {
       );
       check(
         `${bpName} shell measured width ≈ ${bp.shellWidth}`,
-        measured.shellWidth !== null && Math.abs(measured.shellWidth - bp.shellWidth) <= 0.5,
+        measured.shellWidth !== null &&
+          Math.abs(measured.shellWidth - bp.shellWidth) <= 0.5,
         String(measured.shellWidth),
       );
-      check(`${bpName} h1 size = ${bp.h1}`, measured.h1Size === bp.h1, String(measured.h1Size));
-      check(`${bpName} body size = 16px`, measured.bodySize === 16, String(measured.bodySize));
-      check(`${bpName} label size = 14px (labels never scale)`, measured.labelSize === 14, String(measured.labelSize));
+      check(
+        `${bpName} h1 size = ${bp.h1}`,
+        measured.h1Size === bp.h1,
+        String(measured.h1Size),
+      );
+      check(
+        `${bpName} body size = 16px`,
+        measured.bodySize === 16,
+        String(measured.bodySize),
+      );
+      check(
+        `${bpName} label size = 14px (labels never scale)`,
+        measured.labelSize === 14,
+        String(measured.labelSize),
+      );
 
       if (bp.width === 1440) {
         const expectedOrigins = [24, 378, 732, 1086];
@@ -258,7 +295,10 @@ async function main() {
     // paint a wrong frame and self-correct.
     const NO_FLASH_TARGETS = [
       { label: "/en/swatch (locale layout)", url: `${BASE}/en/swatch` },
-      { label: "/en/some-garbage-url (in-locale not-found)", url: `${BASE}/en/some-garbage-url` },
+      {
+        label: "/en/some-garbage-url (in-locale not-found)",
+        url: `${BASE}/en/some-garbage-url`,
+      },
     ];
 
     for (const target of NO_FLASH_TARGETS) {

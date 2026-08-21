@@ -9,7 +9,10 @@ export function TypeSpecimen() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-6">
         {TYPE_STYLES.map((style) => (
-          <div key={style.label} className="flex flex-col gap-1 border-b border-border-faint pb-4">
+          <div
+            key={style.label}
+            className="flex flex-col gap-1 border-b border-border-faint pb-4"
+          >
             <p className="font-body text-caption text-text-tertiary">
               {style.label} — expected desktop {style.desktop.size}/{style.desktop.lh}px ·
               tracking {style.desktop.tracking} · weight {style.desktop.weight}

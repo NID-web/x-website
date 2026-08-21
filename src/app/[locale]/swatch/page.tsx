@@ -55,7 +55,11 @@ export default async function SwatchPage() {
             <div className="grid grid-cols-1 gap-6 laptop:grid-cols-2">
               {THEMES.map((theme) =>
                 APPEARANCES.map((appearance) => (
-                  <ThemePanel key={`${theme}-${appearance}`} theme={theme} appearance={appearance} />
+                  <ThemePanel
+                    key={`${theme}-${appearance}`}
+                    theme={theme}
+                    appearance={appearance}
+                  />
                 )),
               )}
             </div>
