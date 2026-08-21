@@ -1,26 +1,308 @@
+/* NID design system — Tailwind v4 theme layer.
+   Order matters: raw tokens first, then Tailwind, then the mapping. */
+
+@import "../styles/themes.css";
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* The appearance axis. Components should rarely need `dark:` — the token layer
+   already inverts. This exists for the few places that need a real branch. */
+@custom-variant dark (&:where([data-appearance="dark"], [data-appearance="dark"] *));
+
+/* Non-referencing values and namespace resets. */
+@theme {
+  /* Replace Tailwind's sm/md/lg/xl/2xl with the four Figma breakpoint modes.
+     There are only four. Anything else is off-spec. */
+  --breakpoint-*: initial;
+  --breakpoint-tablet: 768px;   /* 2 columns */
+  --breakpoint-laptop: 1024px;  /* 3 columns */
+  --breakpoint-desktop: 1280px; /* 4 columns */
+
+  /* The design system is specified in px throughout. Pinning the spacing base to
+     4px makes p-6 exactly 24px, matching Spacing/24. */
+  --spacing: 4px;
+
+  --font-weight-demi: 600;
+  --font-weight-heavy: 700;
+  --font-weight-futura-bold: 800;
+
+  --radius-none: 0;
 }
 
+/* Everything that references a --nid-* custom property must live here. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ---- families ---- */
+  --font-primary: var(--nid-font-primary);
+  --font-primary-display: var(--nid-font-primary-display);
+  --font-secondary: var(--nid-font-secondary);
+  --font-body: var(--nid-font-body);
+
+  /* ---- layer 0: base ---- */
+  --color-black: var(--nid-black);
+  --color-white: var(--nid-white);
+
+  /* ---- layer 2: semantic. THE ONLY COLOURS A COMPONENT MAY USE ---- */
+  --color-surface-page: var(--nid-surface-page);
+  --color-surface-raised: var(--nid-surface-raised);
+  --color-surface-hover: var(--nid-surface-hover);
+  --color-surface-inverse: var(--nid-surface-inverse);
+
+  --color-text-primary: var(--nid-text-primary);
+  --color-text-secondary: var(--nid-text-secondary);
+  --color-text-tertiary: var(--nid-text-tertiary);
+  --color-text-quaternary: var(--nid-text-quaternary);
+  --color-text-on-accent: var(--nid-text-on-accent);
+
+  --color-icon-primary: var(--nid-icon-primary);
+  --color-icon-secondary: var(--nid-icon-secondary);
+  --color-icon-tertiary: var(--nid-icon-tertiary);
+  --color-icon-quaternary: var(--nid-icon-quaternary);
+  --color-icon-on-accent: var(--nid-icon-on-accent);
+
+  --color-border-faint: var(--nid-border-faint);
+  --color-border-subtle: var(--nid-border-subtle);
+  --color-border-default: var(--nid-border-default);
+  --color-border-strong: var(--nid-border-strong);
+  --color-border-primary: var(--nid-border-primary);
+
+  --color-accent-subtle: var(--nid-accent-subtle);
+  --color-accent-muted: var(--nid-accent-muted);
+  --color-accent-primary: var(--nid-accent-primary);
+  --color-accent-strong: var(--nid-accent-strong);
+  --color-accent-secondary: var(--nid-accent-secondary);
+  --color-accent-tertiary: var(--nid-accent-tertiary);
+  --color-accent-quaternary: var(--nid-accent-quaternary);
+  --color-accent-pentenary: var(--nid-accent-pentenary);
+
+  /* ---- layer 1: primitives. Foundations/documentation pages ONLY. ----
+     If you reach for one of these in a component, the semantic token is missing. */
+  --color-primary-050: var(--nid-primary-050);
+  --color-primary-100: var(--nid-primary-100);
+  --color-primary-150: var(--nid-primary-150);
+  --color-primary-200: var(--nid-primary-200);
+  --color-primary-250: var(--nid-primary-250);
+  --color-primary-300: var(--nid-primary-300);
+  --color-primary-350: var(--nid-primary-350);
+  --color-primary-400: var(--nid-primary-400);
+  --color-primary-450: var(--nid-primary-450);
+  --color-primary-500: var(--nid-primary-500);
+  --color-primary-550: var(--nid-primary-550);
+  --color-primary-600: var(--nid-primary-600);
+  --color-primary-650: var(--nid-primary-650);
+  /* secondary — foundations/documentation pages only */
+  --color-secondary-050: var(--nid-secondary-050);
+  --color-secondary-100: var(--nid-secondary-100);
+  --color-secondary-150: var(--nid-secondary-150);
+  --color-secondary-200: var(--nid-secondary-200);
+  --color-secondary-250: var(--nid-secondary-250);
+  --color-secondary-300: var(--nid-secondary-300);
+  --color-secondary-350: var(--nid-secondary-350);
+  --color-secondary-400: var(--nid-secondary-400);
+  --color-secondary-450: var(--nid-secondary-450);
+  --color-secondary-500: var(--nid-secondary-500);
+  --color-secondary-550: var(--nid-secondary-550);
+  --color-secondary-600: var(--nid-secondary-600);
+  --color-secondary-650: var(--nid-secondary-650);
+  /* tertiary — foundations/documentation pages only */
+  --color-tertiary-050: var(--nid-tertiary-050);
+  --color-tertiary-100: var(--nid-tertiary-100);
+  --color-tertiary-150: var(--nid-tertiary-150);
+  --color-tertiary-200: var(--nid-tertiary-200);
+  --color-tertiary-250: var(--nid-tertiary-250);
+  --color-tertiary-300: var(--nid-tertiary-300);
+  --color-tertiary-350: var(--nid-tertiary-350);
+  --color-tertiary-400: var(--nid-tertiary-400);
+  --color-tertiary-450: var(--nid-tertiary-450);
+  --color-tertiary-500: var(--nid-tertiary-500);
+  --color-tertiary-550: var(--nid-tertiary-550);
+  --color-tertiary-600: var(--nid-tertiary-600);
+  --color-tertiary-650: var(--nid-tertiary-650);
+  /* quaternary — foundations/documentation pages only */
+  --color-quaternary-050: var(--nid-quaternary-050);
+  --color-quaternary-100: var(--nid-quaternary-100);
+  --color-quaternary-150: var(--nid-quaternary-150);
+  --color-quaternary-200: var(--nid-quaternary-200);
+  --color-quaternary-250: var(--nid-quaternary-250);
+  --color-quaternary-300: var(--nid-quaternary-300);
+  --color-quaternary-350: var(--nid-quaternary-350);
+  --color-quaternary-400: var(--nid-quaternary-400);
+  --color-quaternary-450: var(--nid-quaternary-450);
+  --color-quaternary-500: var(--nid-quaternary-500);
+  --color-quaternary-550: var(--nid-quaternary-550);
+  --color-quaternary-600: var(--nid-quaternary-600);
+  --color-quaternary-650: var(--nid-quaternary-650);
+  /* pentenary — foundations/documentation pages only */
+  --color-pentenary-050: var(--nid-pentenary-050);
+  --color-pentenary-100: var(--nid-pentenary-100);
+  --color-pentenary-150: var(--nid-pentenary-150);
+  --color-pentenary-200: var(--nid-pentenary-200);
+  --color-pentenary-250: var(--nid-pentenary-250);
+  --color-pentenary-300: var(--nid-pentenary-300);
+  --color-pentenary-350: var(--nid-pentenary-350);
+  --color-pentenary-400: var(--nid-pentenary-400);
+  --color-pentenary-450: var(--nid-pentenary-450);
+  --color-pentenary-500: var(--nid-pentenary-500);
+  --color-pentenary-550: var(--nid-pentenary-550);
+  --color-pentenary-600: var(--nid-pentenary-600);
+  --color-pentenary-650: var(--nid-pentenary-650);
+
+  /* ---- spacing aliases bound to the grid ---- */
+  --spacing-margin: var(--nid-grid-page-margin);
+  --spacing-gutter: var(--nid-grid-column-gap);
+  --spacing-rowgutter: var(--nid-grid-row-gap);
+
+  /* ---- widths ---- */
+  --container-shell: var(--nid-grid-shell-width);   /* content + 2 × margin */
+  --container-content: var(--nid-grid-content-width);
+  --container-measure: 684px;                        /* intro / standfirst cap */
+
+  /* ---- radius ---- */
+  --radius-pill: var(--nid-radius-pill);   /* 24px — Button CTA, Icon Button */
+  --radius-hero: var(--nid-radius-hero);   /* 64px — one corner of one image per page */
+
+  /* ---- type scale. size / line-height / tracking / weight in one utility. ---- */
+  --text-display-serif: var(--nid-type-display-serif-size);
+  --text-display-serif--line-height: var(--nid-type-display-serif-lh);
+  --text-display-serif--letter-spacing: var(--nid-type-display-serif-tracking);
+  --text-display-serif--font-weight: var(--nid-weight-serif-display);
+
+  --text-display-serif-card: var(--nid-type-display-serif-card-size);
+  --text-display-serif-card--line-height: var(--nid-type-display-serif-card-lh);
+  --text-display-serif-card--letter-spacing: var(--nid-type-display-serif-card-tracking);
+  --text-display-serif-card--font-weight: var(--nid-weight-serif-subhead);
+
+  --text-display-quote: var(--nid-type-display-quote-size);
+  --text-display-quote--line-height: var(--nid-type-display-quote-lh);
+  --text-display-quote--letter-spacing: var(--nid-type-display-quote-tracking);
+  --text-display-quote--font-weight: var(--nid-weight-serif-subhead);
+
+  --text-h1: var(--nid-type-heading-1-size);
+  --text-h1--line-height: var(--nid-type-heading-1-lh);
+  --text-h1--letter-spacing: var(--nid-type-heading-1-tracking);
+  --text-h1--font-weight: var(--nid-weight-heavy);
+
+  --text-h2: var(--nid-type-heading-2-size);
+  --text-h2--line-height: var(--nid-type-heading-2-lh);
+  --text-h2--letter-spacing: var(--nid-type-heading-2-tracking);
+  --text-h2--font-weight: var(--nid-weight-heavy);
+
+  --text-h3: var(--nid-type-heading-3-size);
+  --text-h3--line-height: var(--nid-type-heading-3-lh);
+  --text-h3--letter-spacing: var(--nid-type-heading-3-tracking);
+  --text-h3--font-weight: var(--nid-weight-heavy);
+
+  --text-h4: var(--nid-type-heading-4-size);
+  --text-h4--line-height: var(--nid-type-heading-4-lh);
+  --text-h4--letter-spacing: var(--nid-type-heading-4-tracking);
+  --text-h4--font-weight: var(--nid-weight-heavy);
+
+  --text-h5: var(--nid-type-heading-5-size);
+  --text-h5--line-height: var(--nid-type-heading-5-lh);
+  --text-h5--letter-spacing: var(--nid-type-heading-5-tracking);
+  --text-h5--font-weight: var(--nid-weight-heavy);
+
+  --text-h6: var(--nid-type-heading-6-size);
+  --text-h6--line-height: var(--nid-type-heading-6-lh);
+  --text-h6--letter-spacing: var(--nid-type-heading-6-tracking);
+  --text-h6--font-weight: var(--nid-weight-heavy);
+
+  --text-overline: var(--nid-type-label-overline-size);
+  --text-overline--line-height: var(--nid-type-label-overline-lh);
+  --text-overline--letter-spacing: var(--nid-type-label-overline-tracking);
+  --text-overline--font-weight: var(--nid-weight-heavy);
+
+  --text-meta: var(--nid-type-label-meta-size);
+  --text-meta--line-height: var(--nid-type-label-meta-lh);
+  --text-meta--letter-spacing: var(--nid-type-label-meta-tracking);
+  --text-meta--font-weight: var(--nid-weight-demi);
+
+  --text-label: var(--nid-type-label-small-size);
+  --text-label--line-height: var(--nid-type-label-small-lh);
+  --text-label--letter-spacing: var(--nid-type-label-small-tracking);
+  --text-label--font-weight: var(--nid-weight-medium);
+
+  --text-button: var(--nid-type-label-button-size);
+  --text-button--line-height: var(--nid-type-label-button-lh);
+  --text-button--letter-spacing: var(--nid-type-label-button-tracking);
+  --text-button--font-weight: var(--nid-weight-bold);
+
+  --text-micro: var(--nid-type-label-micro-size);
+  --text-micro--line-height: var(--nid-type-label-micro-lh);
+  --text-micro--letter-spacing: var(--nid-type-label-micro-tracking);
+  --text-micro--font-weight: var(--nid-weight-medium);
+
+  --text-body-lg: var(--nid-type-body-large-regular-size);
+  --text-body-lg--line-height: var(--nid-type-body-large-regular-lh);
+  --text-body-lg--letter-spacing: var(--nid-type-body-large-regular-tracking);
+  --text-body-lg--font-weight: var(--nid-weight-body);
+
+  --text-body-lg-bold: var(--nid-type-body-large-bold-size);
+  --text-body-lg-bold--line-height: var(--nid-type-body-large-bold-lh);
+  --text-body-lg-bold--letter-spacing: var(--nid-type-body-large-bold-tracking);
+  --text-body-lg-bold--font-weight: var(--nid-weight-body-bold);
+
+  --text-body: var(--nid-type-body-base-regular-size);
+  --text-body--line-height: var(--nid-type-body-base-regular-lh);
+  --text-body--letter-spacing: var(--nid-type-body-base-regular-tracking);
+  --text-body--font-weight: var(--nid-weight-body);
+
+  --text-body-bold: var(--nid-type-body-base-bold-size);
+  --text-body-bold--line-height: var(--nid-type-body-base-bold-lh);
+  --text-body-bold--letter-spacing: var(--nid-type-body-base-bold-tracking);
+  --text-body-bold--font-weight: var(--nid-weight-body-bold);
+
+  /* Added — the brief's block maps 20 of the 22 Figma styles and omits the
+     two italic body cuts. Without these, the type specimen would need to
+     fall back to the raw .nid-body-*-italic classes, which are unlayered
+     and out-rank @layer utilities — a silent cascade trap the moment
+     anything else on the same element used a text-* utility. */
+  --text-body-italic: var(--nid-type-body-base-italic-size);
+  --text-body-italic--line-height: var(--nid-type-body-base-italic-lh);
+  --text-body-italic--letter-spacing: var(--nid-type-body-base-italic-tracking);
+  --text-body-italic--font-weight: var(--nid-weight-body);
+
+  --text-caption: var(--nid-type-body-caption-regular-size);
+  --text-caption--line-height: var(--nid-type-body-caption-regular-lh);
+  --text-caption--letter-spacing: var(--nid-type-body-caption-regular-tracking);
+  --text-caption--font-weight: var(--nid-weight-body);
+
+  --text-caption-bold: var(--nid-type-body-caption-bold-size);
+  --text-caption-bold--line-height: var(--nid-type-body-caption-bold-lh);
+  --text-caption-bold--letter-spacing: var(--nid-type-body-caption-bold-tracking);
+  --text-caption-bold--font-weight: var(--nid-weight-body-bold);
+
+  --text-caption-italic: var(--nid-type-body-caption-italic-size);
+  --text-caption-italic--line-height: var(--nid-type-body-caption-italic-lh);
+  --text-caption-italic--letter-spacing: var(--nid-type-body-caption-italic-tracking);
+  --text-caption-italic--font-weight: var(--nid-weight-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* The page grid. `--nid-grid-columns` is 4/3/2/1 by breakpoint, so this one
+   declaration is correct everywhere. */
+@utility grid-cols-page {
+  grid-template-columns: repeat(var(--nid-grid-columns), minmax(0, 1fr));
+}
+
+@layer base {
+  html[data-appearance="light"] { color-scheme: light; }
+  html[data-appearance="dark"]  { color-scheme: dark; }
+
+  body {
+    background-color: var(--nid-surface-page);
+    color: var(--nid-text-primary);
+    font-family: var(--nid-font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  ::selection {
+    background-color: var(--nid-accent-subtle);
+    color: var(--nid-text-primary);
+  }
+
+  /* Focus is the one place we allow an accent to carry meaning; accent/primary
+     is the only accent guaranteed 3:1. */
+  :focus-visible {
+    outline: 2px solid var(--nid-accent-primary);
+    outline-offset: 2px;
+  }
 }
