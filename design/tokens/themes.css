@@ -1,0 +1,1196 @@
+/* ============================================================================
+   NID Design System — design tokens as CSS custom properties
+   Generated from Figma file EAoxODvNK8dNGAeovGI5D7.
+
+   Two independent axes, both set as data-attributes on <html>:
+     data-theme="peacock|lotus|indigo|henna|yoga|tanjore|khadi|terracotta|ikkat|tiger"
+     data-appearance="light|dark"
+
+   Layer 1  --nid-<ramp>-<step>   65 primitives, swapped by data-theme
+   Layer 2  --nid-<semantic>      27 semantic tokens, swapped by data-appearance
+   Components must only ever reference layer 2.
+   ========================================================================== */
+
+:root {
+  /* ---- base ---- */
+  --nid-black: #000000;
+  --nid-white: #FFFFFF;
+
+  /* ---- spacing ---- */
+  --nid-space-0: 0px;
+  --nid-space-2: 2px;
+  --nid-space-4: 4px;
+  --nid-space-8: 8px;
+  --nid-space-12: 12px;
+  --nid-space-16: 16px;
+  --nid-space-24: 24px;
+  --nid-space-32: 32px;
+  --nid-space-48: 48px;
+  --nid-space-56: 56px;
+  --nid-space-64: 64px;
+
+  /* ---- radius ---- */
+  --nid-radius-none: 0;
+  --nid-radius-pill: 24px;      /* Button-type CTA, Icon Button */
+  --nid-radius-circle: 9999px;
+  --nid-radius-hero: 64px;      /* top-left corner of a secondary-page hero only */
+
+  /* ---- font families ---- */
+  --nid-font-primary: "Futura PT", "Futura", "Century Gothic", sans-serif;
+  --nid-font-secondary: "Bodoni PT VF", "Bodoni Moda", "Didot", serif;
+  --nid-font-body: "Tonos", "Merriweather Sans", system-ui, sans-serif;
+
+  /* ---- grid (desktop / 4 col default; overridden in media queries below) ---- */
+  --nid-grid-columns: 4;
+  --nid-grid-page-margin: 24px;
+  --nid-grid-column-gap: 24px;
+  --nid-grid-row-gap: 24px;
+  --nid-grid-content-width: 1392px;
+}
+
+/* ==========================================================================
+   Layer 1 — theme primitives. One block per theme.
+   ========================================================================== */
+
+/* Peacock  (default) */
+:root, [data-theme="peacock"] {
+  --nid-primary-050: #FAFFFF;
+  --nid-primary-100: #CDFCFF;
+  --nid-primary-150: #A6EAF2;
+  --nid-primary-200: #7DDAE5;
+  --nid-primary-250: #53C6D2;
+  --nid-primary-300: #20B1BE;
+  --nid-primary-350: #009AA6;
+  --nid-primary-400: #00828D;
+  --nid-primary-450: #006C75;
+  --nid-primary-500: #005A61;
+  --nid-primary-550: #004B51;
+  --nid-primary-600: #003F45;
+  --nid-primary-650: #00353A;
+
+  --nid-secondary-050: #E5FFFB;
+  --nid-secondary-100: #CAFEF7;
+  --nid-secondary-150: #A0EEE4;
+  --nid-secondary-200: #74DED3;
+  --nid-secondary-250: #43CABE;
+  --nid-secondary-300: #00B5A8;
+  --nid-secondary-350: #009D91;
+  --nid-secondary-400: #00857B;
+  --nid-secondary-450: #006E66;
+  --nid-secondary-500: #005B55;
+  --nid-secondary-550: #004C46;
+  --nid-secondary-600: #00403B;
+  --nid-secondary-650: #003632;
+
+  --nid-tertiary-050: #E8FFF2;
+  --nid-tertiary-100: #D3FEE5;
+  --nid-tertiary-150: #AFEDCB;
+  --nid-tertiary-200: #8ADEB2;
+  --nid-tertiary-250: #66CA98;
+  --nid-tertiary-300: #43B581;
+  --nid-tertiary-350: #319E6D;
+  --nid-tertiary-400: #28865C;
+  --nid-tertiary-450: #206F4C;
+  --nid-tertiary-500: #185C3E;
+  --nid-tertiary-550: #134D33;
+  --nid-tertiary-600: #0F412B;
+  --nid-tertiary-650: #0B3723;
+
+  --nid-quaternary-050: #F9F7FF;
+  --nid-quaternary-100: #F2EFFF;
+  --nid-quaternary-150: #DED6FF;
+  --nid-quaternary-200: #CDBDFF;
+  --nid-quaternary-250: #B9A1FC;
+  --nid-quaternary-300: #A489EB;
+  --nid-quaternary-350: #8E75CF;
+  --nid-quaternary-400: #7963B1;
+  --nid-quaternary-450: #645293;
+  --nid-quaternary-500: #52437B;
+  --nid-quaternary-550: #443767;
+  --nid-quaternary-600: #3A2E57;
+  --nid-quaternary-650: #30264A;
+
+  --nid-pentenary-050: #FFF7ED;
+  --nid-pentenary-100: #FFEFDA;
+  --nid-pentenary-150: #F9D6A7;
+  --nid-pentenary-200: #EDC082;
+  --nid-pentenary-250: #DBA85F;
+  --nid-pentenary-300: #C8913E;
+  --nid-pentenary-350: #AF7D2D;
+  --nid-pentenary-400: #956A25;
+  --nid-pentenary-450: #7C571D;
+  --nid-pentenary-500: #674816;
+  --nid-pentenary-550: #563B12;
+  --nid-pentenary-600: #49320E;
+  --nid-pentenary-650: #3D290A;
+}
+
+/* Lotus */
+[data-theme="lotus"] {
+  --nid-primary-050: #FFFAFC;
+  --nid-primary-100: #FFEBF4;
+  --nid-primary-150: #FFCBE4;
+  --nid-primary-200: #FCADD5;
+  --nid-primary-250: #EB92C0;
+  --nid-primary-300: #D77AAB;
+  --nid-primary-350: #BD6795;
+  --nid-primary-400: #A1577E;
+  --nid-primary-450: #864768;
+  --nid-primary-500: #6F3A56;
+  --nid-primary-550: #5D3048;
+  --nid-primary-600: #4F283D;
+  --nid-primary-650: #432133;
+
+  --nid-secondary-050: #FFF6F6;
+  --nid-secondary-100: #FFECEC;
+  --nid-secondary-150: #FFCECF;
+  --nid-secondary-200: #FFB1B2;
+  --nid-secondary-250: #F39497;
+  --nid-secondary-300: #DF7B7F;
+  --nid-secondary-350: #C4686C;
+  --nid-secondary-400: #A7585C;
+  --nid-secondary-450: #8B484B;
+  --nid-secondary-500: #743B3E;
+  --nid-secondary-550: #613033;
+  --nid-secondary-600: #52282A;
+  --nid-secondary-650: #462123;
+
+  --nid-tertiary-050: #FFF9EF;
+  --nid-tertiary-100: #FFF0D7;
+  --nid-tertiary-150: #FFD68F;
+  --nid-tertiary-200: #FBBD45;
+  --nid-tertiary-250: #E6A500;
+  --nid-tertiary-300: #CB9100;
+  --nid-tertiary-350: #B07D00;
+  --nid-tertiary-400: #966A00;
+  --nid-tertiary-450: #7C5700;
+  --nid-tertiary-500: #674800;
+  --nid-tertiary-550: #563C00;
+  --nid-tertiary-600: #493200;
+  --nid-tertiary-650: #3E2A00;
+
+  --nid-quaternary-050: #EEFFF2;
+  --nid-quaternary-100: #D3FFDF;
+  --nid-quaternary-150: #AFEEC2;
+  --nid-quaternary-200: #8CDFA7;
+  --nid-quaternary-250: #68CB8B;
+  --nid-quaternary-300: #46B672;
+  --nid-quaternary-350: #25A05D;
+  --nid-quaternary-400: #008A4A;
+  --nid-quaternary-450: #00723C;
+  --nid-quaternary-500: #005F31;
+  --nid-quaternary-550: #004F28;
+  --nid-quaternary-600: #004321;
+  --nid-quaternary-650: #00381B;
+
+  --nid-pentenary-050: #FBF8FF;
+  --nid-pentenary-100: #F6EEFF;
+  --nid-pentenary-150: #E8D1FF;
+  --nid-pentenary-200: #DCB6FF;
+  --nid-pentenary-250: #CE95FF;
+  --nid-pentenary-300: #BD78F5;
+  --nid-pentenary-350: #A760DE;
+  --nid-pentenary-400: #924AC7;
+  --nid-pentenary-450: #7C35AE;
+  --nid-pentenary-500: #692597;
+  --nid-pentenary-550: #591982;
+  --nid-pentenary-600: #4C1370;
+  --nid-pentenary-650: #400F60;
+}
+
+/* Indigo */
+[data-theme="indigo"] {
+  --nid-primary-050: #FAFDFF;
+  --nid-primary-100: #E7F3FF;
+  --nid-primary-150: #CADDFF;
+  --nid-primary-200: #ABCAFF;
+  --nid-primary-250: #8FB3F3;
+  --nid-primary-300: #769DE1;
+  --nid-primary-350: #6187CB;
+  --nid-primary-400: #4D72B4;
+  --nid-primary-450: #3A5E9C;
+  --nid-primary-500: #2C4D86;
+  --nid-primary-550: #223F73;
+  --nid-primary-600: #1B3563;
+  --nid-primary-650: #162C54;
+
+  --nid-secondary-050: #EFF6FF;
+  --nid-secondary-100: #DEEDFF;
+  --nid-secondary-150: #C5DFFF;
+  --nid-secondary-200: #A3CCFF;
+  --nid-secondary-250: #7BB6FE;
+  --nid-secondary-300: #60A0EC;
+  --nid-secondary-350: #498AD6;
+  --nid-secondary-400: #3374BF;
+  --nid-secondary-450: #1F5FA6;
+  --nid-secondary-500: #0F4E90;
+  --nid-secondary-550: #05417C;
+  --nid-secondary-600: #02366A;
+  --nid-secondary-650: #012D5B;
+
+  --nid-tertiary-050: #DDFDF9;
+  --nid-tertiary-100: #C9F6F1;
+  --nid-tertiary-150: #AAEBE4;
+  --nid-tertiary-200: #83DBD3;
+  --nid-tertiary-250: #5CC7BE;
+  --nid-tertiary-300: #33B2A9;
+  --nid-tertiary-350: #009C93;
+  --nid-tertiary-400: #00857D;
+  --nid-tertiary-450: #006E67;
+  --nid-tertiary-500: #005B56;
+  --nid-tertiary-550: #004C47;
+  --nid-tertiary-600: #00403C;
+  --nid-tertiary-650: #003632;
+
+  --nid-quaternary-050: #F4F4FF;
+  --nid-quaternary-100: #E9E9FF;
+  --nid-quaternary-150: #D9D8FF;
+  --nid-quaternary-200: #C4C1FF;
+  --nid-quaternary-250: #ADA6FF;
+  --nid-quaternary-300: #978EEE;
+  --nid-quaternary-350: #8378D8;
+  --nid-quaternary-400: #6F63C1;
+  --nid-quaternary-450: #5C4EA8;
+  --nid-quaternary-500: #4C3E92;
+  --nid-quaternary-550: #3F327D;
+  --nid-quaternary-600: #35296C;
+  --nid-quaternary-650: #2C225C;
+
+  --nid-pentenary-050: #E6F9FF;
+  --nid-pentenary-100: #CDF3FF;
+  --nid-pentenary-150: #ABE8FB;
+  --nid-pentenary-200: #86D7F0;
+  --nid-pentenary-250: #60C2DE;
+  --nid-pentenary-300: #3AACCB;
+  --nid-pentenary-350: #0F97B5;
+  --nid-pentenary-400: #00809B;
+  --nid-pentenary-450: #006A81;
+  --nid-pentenary-500: #00586B;
+  --nid-pentenary-550: #00495A;
+  --nid-pentenary-600: #003E4C;
+  --nid-pentenary-650: #003441;
+}
+
+/* Henna */
+[data-theme="henna"] {
+  --nid-primary-050: #FFFCFA;
+  --nid-primary-100: #FDEEE5;
+  --nid-primary-150: #E7D9D2;
+  --nid-primary-200: #D9C4B8;
+  --nid-primary-250: #C9AC9B;
+  --nid-primary-300: #BA947E;
+  --nid-primary-350: #AB7D63;
+  --nid-primary-400: #956950;
+  --nid-primary-450: #7B5742;
+  --nid-primary-500: #654837;
+  --nid-primary-550: #543C2D;
+  --nid-primary-600: #473226;
+  --nid-primary-650: #3B2A20;
+
+  --nid-secondary-050: #F8F2D6;
+  --nid-secondary-100: #EFE7BF;
+  --nid-secondary-150: #E1E29C;
+  --nid-secondary-200: #CFC072;
+  --nid-secondary-250: #BAA749;
+  --nid-secondary-300: #A58D16;
+  --nid-secondary-350: #8F7700;
+  --nid-secondary-400: #796500;
+  --nid-secondary-450: #645400;
+  --nid-secondary-500: #534500;
+  --nid-secondary-550: #453900;
+  --nid-secondary-600: #3A3000;
+  --nid-secondary-650: #312900;
+
+  --nid-tertiary-050: #E1FDEC;
+  --nid-tertiary-100: #CFF7DF;
+  --nid-tertiary-150: #B2ECCB;
+  --nid-tertiary-200: #90DDB2;
+  --nid-tertiary-250: #6EC999;
+  --nid-tertiary-300: #4EB481;
+  --nid-tertiary-350: #319E6C;
+  --nid-tertiary-400: #0D8858;
+  --nid-tertiary-450: #007147;
+  --nid-tertiary-500: #005E3A;
+  --nid-tertiary-550: #004E30;
+  --nid-tertiary-600: #004228;
+  --nid-tertiary-650: #003821;
+
+  --nid-quaternary-050: #FFF3E8;
+  --nid-quaternary-100: #FFE6D1;
+  --nid-quaternary-150: #FED3AE;
+  --nid-quaternary-200: #F3BC8C;
+  --nid-quaternary-250: #E2A46C;
+  --nid-quaternary-300: #CE8C4E;
+  --nid-quaternary-350: #B87736;
+  --nid-quaternary-400: #A2621D;
+  --nid-quaternary-450: #8A4E00;
+  --nid-quaternary-500: #734000;
+  --nid-quaternary-550: #613500;
+  --nid-quaternary-600: #522C00;
+  --nid-quaternary-650: #462400;
+
+  --nid-pentenary-050: #FFF5D8;
+  --nid-pentenary-100: #FEEAB3;
+  --nid-pentenary-150: #F7DA8A;
+  --nid-pentenary-200: #EAC554;
+  --nid-pentenary-250: #D8AD00;
+  --nid-pentenary-300: #BE9800;
+  --nid-pentenary-350: #A58300;
+  --nid-pentenary-400: #8C6F00;
+  --nid-pentenary-450: #745C00;
+  --nid-pentenary-500: #604C00;
+  --nid-pentenary-550: #503F00;
+  --nid-pentenary-600: #443500;
+  --nid-pentenary-650: #3A2C00;
+}
+
+/* Yoga */
+[data-theme="yoga"] {
+  --nid-primary-050: #FCFCFC;
+  --nid-primary-100: #F2F2F2;
+  --nid-primary-150: #DFDFDF;
+  --nid-primary-200: #CCCCCC;
+  --nid-primary-250: #B4B4B4;
+  --nid-primary-300: #9B9B9B;
+  --nid-primary-350: #828282;
+  --nid-primary-400: #696969;
+  --nid-primary-450: #525252;
+  --nid-primary-500: #3E3E3E;
+  --nid-primary-550: #2C2C2C;
+  --nid-primary-600: #1E1E1E;
+  --nid-primary-650: #0F0F0F;
+
+  --nid-secondary-050: #FAFAFA;
+  --nid-secondary-100: #F0F0F0;
+  --nid-secondary-150: #DFDFDF;
+  --nid-secondary-200: #CCCCCC;
+  --nid-secondary-250: #B4B4B4;
+  --nid-secondary-300: #9B9B9B;
+  --nid-secondary-350: #828282;
+  --nid-secondary-400: #696969;
+  --nid-secondary-450: #525252;
+  --nid-secondary-500: #3E3E3E;
+  --nid-secondary-550: #2C2C2C;
+  --nid-secondary-600: #1E1E1E;
+  --nid-secondary-650: #0F0F0F;
+
+  --nid-tertiary-050: #FAFAFA;
+  --nid-tertiary-100: #F0F0F0;
+  --nid-tertiary-150: #DFDFDF;
+  --nid-tertiary-200: #CCCCCC;
+  --nid-tertiary-250: #B4B4B4;
+  --nid-tertiary-300: #9B9B9B;
+  --nid-tertiary-350: #828282;
+  --nid-tertiary-400: #696969;
+  --nid-tertiary-450: #525252;
+  --nid-tertiary-500: #3E3E3E;
+  --nid-tertiary-550: #2C2C2C;
+  --nid-tertiary-600: #1E1E1E;
+  --nid-tertiary-650: #0F0F0F;
+
+  --nid-quaternary-050: #FAFAFA;
+  --nid-quaternary-100: #F0F0F0;
+  --nid-quaternary-150: #DFDFDF;
+  --nid-quaternary-200: #CCCCCC;
+  --nid-quaternary-250: #B4B4B4;
+  --nid-quaternary-300: #9B9B9B;
+  --nid-quaternary-350: #828282;
+  --nid-quaternary-400: #696969;
+  --nid-quaternary-450: #525252;
+  --nid-quaternary-500: #3E3E3E;
+  --nid-quaternary-550: #2C2C2C;
+  --nid-quaternary-600: #1E1E1E;
+  --nid-quaternary-650: #0F0F0F;
+
+  --nid-pentenary-050: #FAFAFA;
+  --nid-pentenary-100: #F0F0F0;
+  --nid-pentenary-150: #DFDFDF;
+  --nid-pentenary-200: #CCCCCC;
+  --nid-pentenary-250: #B4B4B4;
+  --nid-pentenary-300: #9B9B9B;
+  --nid-pentenary-350: #828282;
+  --nid-pentenary-400: #696969;
+  --nid-pentenary-450: #525252;
+  --nid-pentenary-500: #3E3E3E;
+  --nid-pentenary-550: #2C2C2C;
+  --nid-pentenary-600: #1E1E1E;
+  --nid-pentenary-650: #0F0F0F;
+}
+
+/* Tanjore */
+[data-theme="tanjore"] {
+  --nid-primary-050: #FFFDFA;
+  --nid-primary-100: #FFF0D4;
+  --nid-primary-150: #FDD792;
+  --nid-primary-200: #F2C162;
+  --nid-primary-250: #E0A82C;
+  --nid-primary-300: #C99200;
+  --nid-primary-350: #AE7E00;
+  --nid-primary-400: #946B00;
+  --nid-primary-450: #7B5800;
+  --nid-primary-500: #664900;
+  --nid-primary-550: #563C00;
+  --nid-primary-600: #493200;
+  --nid-primary-650: #3D2A00;
+
+  --nid-secondary-050: #FFF6F6;
+  --nid-secondary-100: #FFECEC;
+  --nid-secondary-150: #FFCFCD;
+  --nid-secondary-200: #FFB1B0;
+  --nid-secondary-250: #FE8D8E;
+  --nid-secondary-300: #EB7276;
+  --nid-secondary-350: #CF6063;
+  --nid-secondary-400: #B05154;
+  --nid-secondary-450: #934245;
+  --nid-secondary-500: #7B3638;
+  --nid-secondary-550: #672C2E;
+  --nid-secondary-600: #572426;
+  --nid-secondary-650: #4A1E1F;
+
+  --nid-tertiary-050: #F5F9FF;
+  --nid-tertiary-100: #EAF2FF;
+  --nid-tertiary-150: #CADDFF;
+  --nid-tertiary-200: #ACCAFF;
+  --nid-tertiary-250: #88B2FF;
+  --nid-tertiary-300: #699BF7;
+  --nid-tertiary-350: #5885DB;
+  --nid-tertiary-400: #4A71BB;
+  --nid-tertiary-450: #3C5D9C;
+  --nid-tertiary-500: #314D82;
+  --nid-tertiary-550: #28406D;
+  --nid-tertiary-600: #21365D;
+  --nid-tertiary-650: #1B2D4F;
+
+  --nid-quaternary-050: #EAFFED;
+  --nid-quaternary-100: #D8FDDE;
+  --nid-quaternary-150: #B7ECC1;
+  --nid-quaternary-200: #97DCA5;
+  --nid-quaternary-250: #78C88A;
+  --nid-quaternary-300: #5AB371;
+  --nid-quaternary-350: #499C5F;
+  --nid-quaternary-400: #3D8550;
+  --nid-quaternary-450: #316E41;
+  --nid-quaternary-500: #275B35;
+  --nid-quaternary-550: #204C2B;
+  --nid-quaternary-600: #1A4024;
+  --nid-quaternary-650: #15361D;
+
+  --nid-pentenary-050: #FFF6F3;
+  --nid-pentenary-100: #FFEDE7;
+  --nid-pentenary-150: #FFD0C0;
+  --nid-pentenary-200: #FFB49A;
+  --nid-pentenary-250: #F39877;
+  --nid-pentenary-300: #E07F5C;
+  --nid-pentenary-350: #C56B4C;
+  --nid-pentenary-400: #A85B3F;
+  --nid-pentenary-450: #8C4A33;
+  --nid-pentenary-500: #743D29;
+  --nid-pentenary-550: #613221;
+  --nid-pentenary-600: #532A1B;
+  --nid-pentenary-650: #462316;
+}
+
+/* Khadi */
+[data-theme="khadi"] {
+  --nid-primary-050: #FBFCFE;
+  --nid-primary-100: #EEF2F7;
+  --nid-primary-150: #D8DDE4;
+  --nid-primary-200: #C3CAD2;
+  --nid-primary-250: #ACB3BD;
+  --nid-primary-300: #969EA8;
+  --nid-primary-350: #818892;
+  --nid-primary-400: #6D747C;
+  --nid-primary-450: #5A6067;
+  --nid-primary-500: #4A4F55;
+  --nid-primary-550: #3D4147;
+  --nid-primary-600: #34373B;
+  --nid-primary-650: #2B2E32;
+
+  --nid-secondary-050: #FFF1F1;
+  --nid-secondary-100: #FFE4E4;
+  --nid-secondary-150: #FFCECF;
+  --nid-secondary-200: #FAB4B6;
+  --nid-secondary-250: #E99A9D;
+  --nid-secondary-300: #D58286;
+  --nid-secondary-350: #BF6C71;
+  --nid-secondary-400: #A8575D;
+  --nid-secondary-450: #90444A;
+  --nid-secondary-500: #7B353B;
+  --nid-secondary-550: #69292F;
+  --nid-secondary-600: #5A2227;
+  --nid-secondary-650: #4C1B20;
+
+  --nid-tertiary-050: #ECFAE7;
+  --nid-tertiary-100: #DFF2D7;
+  --nid-tertiary-150: #CBE6BF;
+  --nid-tertiary-200: #B2D5A3;
+  --nid-tertiary-250: #99C088;
+  --nid-tertiary-300: #81AB6E;
+  --nid-tertiary-350: #6B9559;
+  --nid-tertiary-400: #578044;
+  --nid-tertiary-450: #446B32;
+  --nid-tertiary-500: #365A24;
+  --nid-tertiary-550: #2A4B1A;
+  --nid-tertiary-600: #233F14;
+  --nid-tertiary-650: #1C350F;
+
+  --nid-quaternary-050: #F1F5FF;
+  --nid-quaternary-100: #E3EBFF;
+  --nid-quaternary-150: #CFDCFF;
+  --nid-quaternary-200: #B5C7FB;
+  --nid-quaternary-250: #9DB1EA;
+  --nid-quaternary-300: #859AD8;
+  --nid-quaternary-350: #7085C2;
+  --nid-quaternary-400: #5D70AB;
+  --nid-quaternary-450: #4A5C94;
+  --nid-quaternary-500: #3B4B7F;
+  --nid-quaternary-550: #303E6C;
+  --nid-quaternary-600: #27345D;
+  --nid-quaternary-650: #202B4F;
+
+  --nid-pentenary-050: #FFF4DB;
+  --nid-pentenary-100: #FAEAC5;
+  --nid-pentenary-150: #F1DAA5;
+  --nid-pentenary-200: #E3C67F;
+  --nid-pentenary-250: #D0AE5B;
+  --nid-pentenary-300: #BC9837;
+  --nid-pentenary-350: #A78214;
+  --nid-pentenary-400: #8F6E00;
+  --nid-pentenary-450: #775B00;
+  --nid-pentenary-500: #624B00;
+  --nid-pentenary-550: #523E00;
+  --nid-pentenary-600: #463400;
+  --nid-pentenary-650: #3B2B00;
+}
+
+/* Terracotta */
+[data-theme="terracotta"] {
+  --nid-primary-050: #FFFCFA;
+  --nid-primary-100: #FFEBE3;
+  --nid-primary-150: #FFD0C2;
+  --nid-primary-200: #FFB49C;
+  --nid-primary-250: #FF906D;
+  --nid-primary-300: #F27147;
+  --nid-primary-350: #DB592D;
+  --nid-primary-400: #C2420F;
+  --nid-primary-450: #A53200;
+  --nid-primary-500: #892800;
+  --nid-primary-550: #742000;
+  --nid-primary-600: #631A00;
+  --nid-primary-650: #541500;
+
+  --nid-secondary-050: #DBFEFA;
+  --nid-secondary-100: #C5F7F2;
+  --nid-secondary-150: #A3EDE6;
+  --nid-secondary-200: #79DDD6;
+  --nid-secondary-250: #4DC9C1;
+  --nid-secondary-300: #0BB4AC;
+  --nid-secondary-350: #009C95;
+  --nid-secondary-400: #00857F;
+  --nid-secondary-450: #006E69;
+  --nid-secondary-500: #005B57;
+  --nid-secondary-550: #004C48;
+  --nid-secondary-600: #00403D;
+  --nid-secondary-650: #003633;
+
+  --nid-tertiary-050: #FFF4E1;
+  --nid-tertiary-100: #FFE8C1;
+  --nid-tertiary-150: #FFD68E;
+  --nid-tertiary-200: #FABE49;
+  --nid-tertiary-250: #E6A600;
+  --nid-tertiary-300: #CA9100;
+  --nid-tertiary-350: #AF7E00;
+  --nid-tertiary-400: #956A00;
+  --nid-tertiary-450: #7C5800;
+  --nid-tertiary-500: #674800;
+  --nid-tertiary-550: #563C00;
+  --nid-tertiary-600: #493200;
+  --nid-tertiary-650: #3E2A00;
+
+  --nid-quaternary-050: #EFF6FF;
+  --nid-quaternary-100: #E0ECFF;
+  --nid-quaternary-150: #C8DEFF;
+  --nid-quaternary-200: #A9CBFF;
+  --nid-quaternary-250: #83B4FF;
+  --nid-quaternary-300: #5C9CFD;
+  --nid-quaternary-350: #4686E7;
+  --nid-quaternary-400: #3070CF;
+  --nid-quaternary-450: #1C5BB6;
+  --nid-quaternary-500: #0D4A9E;
+  --nid-quaternary-550: #033C89;
+  --nid-quaternary-600: #013276;
+  --nid-quaternary-650: #012A65;
+
+  --nid-pentenary-050: #FFF1F4;
+  --nid-pentenary-100: #FFE3E8;
+  --nid-pentenary-150: #FFCDD7;
+  --nid-pentenary-200: #FFAFC0;
+  --nid-pentenary-250: #FF88A6;
+  --nid-pentenary-300: #FF568B;
+  --nid-pentenary-350: #E83776;
+  --nid-pentenary-400: #CF1462;
+  --nid-pentenary-450: #AF0050;
+  --nid-pentenary-500: #920042;
+  --nid-pentenary-550: #7B0036;
+  --nid-pentenary-600: #69002D;
+  --nid-pentenary-650: #5A0025;
+}
+
+/* Ikkat */
+[data-theme="ikkat"] {
+  --nid-primary-050: #FFFBFA;
+  --nid-primary-100: #FFEDE9;
+  --nid-primary-150: #FFD0C7;
+  --nid-primary-200: #FFB3A6;
+  --nid-primary-250: #FD907E;
+  --nid-primary-300: #EA7664;
+  --nid-primary-350: #CE6353;
+  --nid-primary-400: #B05346;
+  --nid-primary-450: #924439;
+  --nid-primary-500: #7A382E;
+  --nid-primary-550: #662E25;
+  --nid-primary-600: #57261F;
+  --nid-primary-650: #4A1F19;
+
+  --nid-secondary-050: #F6F8FF;
+  --nid-secondary-100: #ECF1FF;
+  --nid-secondary-150: #CFDCFF;
+  --nid-secondary-200: #B4C7FF;
+  --nid-secondary-250: #95AFFF;
+  --nid-secondary-300: #7A96F8;
+  --nid-secondary-350: #6781DB;
+  --nid-secondary-400: #576DBB;
+  --nid-secondary-450: #475A9C;
+  --nid-secondary-500: #3A4A82;
+  --nid-secondary-550: #303E6D;
+  --nid-secondary-600: #28345D;
+  --nid-secondary-650: #212B4F;
+
+  --nid-tertiary-050: #FFF8E9;
+  --nid-tertiary-100: #FFF0D1;
+  --nid-tertiary-150: #F7D99A;
+  --nid-tertiary-200: #EBC36F;
+  --nid-tertiary-250: #D8AB44;
+  --nid-tertiary-300: #C59407;
+  --nid-tertiary-350: #AB8000;
+  --nid-tertiary-400: #916C00;
+  --nid-tertiary-450: #795900;
+  --nid-tertiary-500: #644A00;
+  --nid-tertiary-550: #543D00;
+  --nid-tertiary-600: #473300;
+  --nid-tertiary-650: #3C2B00;
+
+  --nid-quaternary-050: #EAFFED;
+  --nid-quaternary-100: #D7FDDD;
+  --nid-quaternary-150: #B6ECC0;
+  --nid-quaternary-200: #95DDA4;
+  --nid-quaternary-250: #74C988;
+  --nid-quaternary-300: #56B46E;
+  --nid-quaternary-350: #459D5D;
+  --nid-quaternary-400: #39854E;
+  --nid-quaternary-450: #2E6E40;
+  --nid-quaternary-500: #255C34;
+  --nid-quaternary-550: #1E4C2A;
+  --nid-quaternary-600: #184023;
+  --nid-quaternary-650: #13361D;
+
+  --nid-pentenary-050: #FFF6F6;
+  --nid-pentenary-100: #FFECED;
+  --nid-pentenary-150: #FFCED0;
+  --nid-pentenary-200: #FFB1B5;
+  --nid-pentenary-250: #F2949A;
+  --nid-pentenary-300: #DF7B82;
+  --nid-pentenary-350: #C4686F;
+  --nid-pentenary-400: #A7585E;
+  --nid-pentenary-450: #8B484D;
+  --nid-pentenary-500: #743B3F;
+  --nid-pentenary-550: #613034;
+  --nid-pentenary-600: #52282B;
+  --nid-pentenary-650: #462124;
+}
+
+/* Tiger */
+[data-theme="tiger"] {
+  --nid-primary-050: #FFFDFA;
+  --nid-primary-100: #FFF0D4;
+  --nid-primary-150: #FAD896;
+  --nid-primary-200: #EEC269;
+  --nid-primary-250: #DDAA3B;
+  --nid-primary-300: #C89300;
+  --nid-primary-350: #AD7F00;
+  --nid-primary-400: #936B00;
+  --nid-primary-450: #7A5900;
+  --nid-primary-500: #463508;
+  --nid-primary-550: #28200B;
+  --nid-primary-600: #141108;
+  --nid-primary-650: #0B0906;
+
+  --nid-secondary-050: #FFFAE7;
+  --nid-secondary-100: #FFF2C3;
+  --nid-secondary-150: #EFDC98;
+  --nid-secondary-200: #E1C86D;
+  --nid-secondary-250: #CEB140;
+  --nid-secondary-300: #B99A00;
+  --nid-secondary-350: #A18500;
+  --nid-secondary-400: #887100;
+  --nid-secondary-450: #715D00;
+  --nid-secondary-500: #423708;
+  --nid-secondary-550: #26210B;
+  --nid-secondary-600: #141109;
+  --nid-secondary-650: #0B0A06;
+
+  --nid-tertiary-050: #FFF9EF;
+  --nid-tertiary-100: #FFF0D6;
+  --nid-tertiary-150: #F6D8A2;
+  --nid-tertiary-200: #EAC37B;
+  --nid-tertiary-250: #D8AB56;
+  --nid-tertiary-300: #C49430;
+  --nid-tertiary-350: #AE7E02;
+  --nid-tertiary-400: #946B00;
+  --nid-tertiary-450: #7B5800;
+  --nid-tertiary-500: #473408;
+  --nid-tertiary-550: #281F0B;
+  --nid-tertiary-600: #141108;
+  --nid-tertiary-650: #0B0906;
+
+  --nid-quaternary-050: #FEF9F3;
+  --nid-quaternary-100: #F7F1E9;
+  --nid-quaternary-150: #E4DBD0;
+  --nid-quaternary-200: #D3C7B9;
+  --nid-quaternary-250: #BEB0A0;
+  --nid-quaternary-300: #A99A89;
+  --nid-quaternary-350: #948574;
+  --nid-quaternary-400: #7F7060;
+  --nid-quaternary-450: #6A5D4D;
+  --nid-quaternary-500: #3E372E;
+  --nid-quaternary-550: #25211D;
+  --nid-quaternary-600: #131210;
+  --nid-quaternary-650: #0B0A09;
+
+  --nid-pentenary-050: #FFF9F0;
+  --nid-pentenary-100: #FEF0DC;
+  --nid-pentenary-150: #EDD9BD;
+  --nid-pentenary-200: #DFC5A1;
+  --nid-pentenary-250: #CBAE84;
+  --nid-pentenary-300: #B7976B;
+  --nid-pentenary-350: #A18255;
+  --nid-pentenary-400: #8C6D41;
+  --nid-pentenary-450: #76592E;
+  --nid-pentenary-500: #45351C;
+  --nid-pentenary-550: #282013;
+  --nid-pentenary-600: #14110B;
+  --nid-pentenary-650: #0B0907;
+}
+
+/* ==========================================================================
+   Layer 2 — semantic tokens. Identical in every theme; only the
+   appearance axis changes which primitive step each one points at.
+   ========================================================================== */
+
+:root, [data-appearance="light"] {
+  /* surface */
+  --nid-surface-page: var(--nid-primary-050);
+  --nid-surface-raised: var(--nid-primary-100);
+  --nid-surface-hover: var(--nid-primary-150);
+  --nid-surface-inverse: var(--nid-primary-650);
+
+  /* text */
+  --nid-text-primary: var(--nid-primary-650);
+  --nid-text-secondary: var(--nid-primary-550);
+  --nid-text-tertiary: var(--nid-primary-450);
+  --nid-text-quaternary: var(--nid-primary-350);
+  --nid-text-on-accent: var(--nid-primary-050);
+
+  /* icon */
+  --nid-icon-primary: var(--nid-primary-650);
+  --nid-icon-secondary: var(--nid-primary-550);
+  --nid-icon-tertiary: var(--nid-primary-450);
+  --nid-icon-quaternary: var(--nid-primary-350);
+  --nid-icon-on-accent: var(--nid-primary-050);
+
+  /* border */
+  --nid-border-faint: var(--nid-primary-100);
+  --nid-border-subtle: var(--nid-primary-150);
+  --nid-border-default: var(--nid-primary-400);
+  --nid-border-strong: var(--nid-primary-550);
+  --nid-border-primary: var(--nid-primary-450);
+
+  /* accent */
+  --nid-accent-subtle: var(--nid-primary-150);
+  --nid-accent-muted: var(--nid-primary-350);
+  --nid-accent-primary: var(--nid-primary-450);
+  --nid-accent-strong: var(--nid-primary-550);
+  --nid-accent-secondary: var(--nid-secondary-350);
+  --nid-accent-tertiary: var(--nid-tertiary-300);
+  --nid-accent-quaternary: var(--nid-quaternary-250);
+  --nid-accent-pentenary: var(--nid-pentenary-300);
+}
+
+[data-appearance="dark"] {
+  /* surface */
+  --nid-surface-page: var(--nid-primary-650);
+  --nid-surface-raised: var(--nid-primary-600);
+  --nid-surface-hover: var(--nid-primary-550);
+  --nid-surface-inverse: var(--nid-primary-050);
+
+  /* text */
+  --nid-text-primary: var(--nid-primary-050);
+  --nid-text-secondary: var(--nid-primary-150);
+  --nid-text-tertiary: var(--nid-primary-250);
+  --nid-text-quaternary: var(--nid-primary-350);
+  --nid-text-on-accent: var(--nid-primary-650);
+
+  /* icon */
+  --nid-icon-primary: var(--nid-primary-050);
+  --nid-icon-secondary: var(--nid-primary-150);
+  --nid-icon-tertiary: var(--nid-primary-250);
+  --nid-icon-quaternary: var(--nid-primary-350);
+  --nid-icon-on-accent: var(--nid-primary-650);
+
+  /* border */
+  --nid-border-faint: var(--nid-primary-600);
+  --nid-border-subtle: var(--nid-primary-550);
+  --nid-border-default: var(--nid-primary-300);
+  --nid-border-strong: var(--nid-primary-250);
+  --nid-border-primary: var(--nid-primary-300);
+
+  /* accent */
+  --nid-accent-subtle: var(--nid-primary-550);
+  --nid-accent-muted: var(--nid-primary-250);
+  --nid-accent-primary: var(--nid-primary-300);
+  --nid-accent-strong: var(--nid-primary-250);
+  --nid-accent-secondary: var(--nid-secondary-250);
+  --nid-accent-tertiary: var(--nid-tertiary-200);
+  --nid-accent-quaternary: var(--nid-quaternary-150);
+  --nid-accent-pentenary: var(--nid-pentenary-200);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-appearance]) {
+    --nid-surface-page: var(--nid-primary-650);
+    --nid-surface-raised: var(--nid-primary-600);
+    --nid-surface-hover: var(--nid-primary-550);
+    --nid-surface-inverse: var(--nid-primary-050);
+    --nid-text-primary: var(--nid-primary-050);
+    --nid-text-secondary: var(--nid-primary-150);
+    --nid-text-tertiary: var(--nid-primary-250);
+    --nid-text-quaternary: var(--nid-primary-350);
+    --nid-text-on-accent: var(--nid-primary-650);
+    --nid-icon-primary: var(--nid-primary-050);
+    --nid-icon-secondary: var(--nid-primary-150);
+    --nid-icon-tertiary: var(--nid-primary-250);
+    --nid-icon-quaternary: var(--nid-primary-350);
+    --nid-icon-on-accent: var(--nid-primary-650);
+    --nid-border-faint: var(--nid-primary-600);
+    --nid-border-subtle: var(--nid-primary-550);
+    --nid-border-default: var(--nid-primary-300);
+    --nid-border-strong: var(--nid-primary-250);
+    --nid-border-primary: var(--nid-primary-300);
+    --nid-accent-subtle: var(--nid-primary-550);
+    --nid-accent-muted: var(--nid-primary-250);
+    --nid-accent-primary: var(--nid-primary-300);
+    --nid-accent-strong: var(--nid-primary-250);
+    --nid-accent-secondary: var(--nid-secondary-250);
+    --nid-accent-tertiary: var(--nid-tertiary-200);
+    --nid-accent-quaternary: var(--nid-quaternary-150);
+    --nid-accent-pentenary: var(--nid-pentenary-200);
+  }
+}
+
+/* ==========================================================================
+   Type scale. Sizes are the Desktop / 4-col values; the media queries
+   further down re-declare only what actually changes per breakpoint.
+   ========================================================================== */
+:root {
+  --nid-type-display-serif-card-size: 28px;
+  --nid-type-display-serif-card-lh: 29.5px;
+  --nid-type-display-serif-card-tracking: -1%;
+  --nid-type-display-serif-size: 28px;
+  --nid-type-display-serif-lh: 26px;
+  --nid-type-display-serif-tracking: -1%;
+  --nid-type-display-quote-size: 25px;
+  --nid-type-display-quote-lh: 32px;
+  --nid-type-display-quote-tracking: -2%;
+  --nid-type-heading-1-size: 60px;
+  --nid-type-heading-1-lh: 60px;
+  --nid-type-heading-1-tracking: -3%;
+  --nid-type-heading-2-size: 32px;
+  --nid-type-heading-2-lh: 36px;
+  --nid-type-heading-2-tracking: 0;
+  --nid-type-heading-3-size: 27px;
+  --nid-type-heading-3-lh: 35px;
+  --nid-type-heading-3-tracking: 0;
+  --nid-type-heading-4-size: 24px;
+  --nid-type-heading-4-lh: 30px;
+  --nid-type-heading-4-tracking: 0;
+  --nid-type-heading-5-size: 20px;
+  --nid-type-heading-5-lh: 24px;
+  --nid-type-heading-5-tracking: 0;
+  --nid-type-heading-6-size: 16px;
+  --nid-type-heading-6-lh: 20px;
+  --nid-type-heading-6-tracking: 1%;
+  --nid-type-label-overline-size: 12px;
+  --nid-type-label-overline-lh: 12px;
+  --nid-type-label-overline-tracking: 16%;
+  --nid-type-label-meta-size: 14px;
+  --nid-type-label-meta-lh: 18px;
+  --nid-type-label-meta-tracking: 2%;
+  --nid-type-label-small-size: 14px;
+  --nid-type-label-small-lh: 20px;
+  --nid-type-label-small-tracking: 4%;
+  --nid-type-label-button-size: 14px;
+  --nid-type-label-button-lh: 16px;
+  --nid-type-label-button-tracking: 10%;
+  --nid-type-label-micro-size: 12px;
+  --nid-type-label-micro-lh: 15.5px;
+  --nid-type-label-micro-tracking: 4%;
+  --nid-type-body-large-regular-size: 20px;
+  --nid-type-body-large-regular-lh: 30px;
+  --nid-type-body-large-regular-tracking: -1%;
+  --nid-type-body-large-bold-size: 20px;
+  --nid-type-body-large-bold-lh: 30px;
+  --nid-type-body-large-bold-tracking: 2%;
+  --nid-type-body-base-regular-size: 16px;
+  --nid-type-body-base-regular-lh: 28px;
+  --nid-type-body-base-regular-tracking: 1%;
+  --nid-type-body-base-bold-size: 16px;
+  --nid-type-body-base-bold-lh: 26px;
+  --nid-type-body-base-bold-tracking: 1%;
+  --nid-type-body-base-italic-size: 16px;
+  --nid-type-body-base-italic-lh: 26px;
+  --nid-type-body-base-italic-tracking: 1%;
+  --nid-type-body-caption-regular-size: 12px;
+  --nid-type-body-caption-regular-lh: 18px;
+  --nid-type-body-caption-regular-tracking: 2%;
+  --nid-type-body-caption-bold-size: 12px;
+  --nid-type-body-caption-bold-lh: 18px;
+  --nid-type-body-caption-bold-tracking: 1%;
+  --nid-type-body-caption-italic-size: 12px;
+  --nid-type-body-caption-italic-lh: 18px;
+  --nid-type-body-caption-italic-tracking: 1%;
+}
+
+/* --- laptop --- */
+@media (max-width: 1279px) {
+  :root {
+    --nid-grid-columns: 3;
+    --nid-grid-page-margin: 24px;
+    --nid-grid-column-gap: 24px;
+    --nid-grid-row-gap: 24px;
+    --nid-grid-content-width: 976px;
+    --nid-type-display-serif-card-size: 26px;
+    --nid-type-display-serif-card-lh: 28px;
+    --nid-type-display-serif-size: 26px;
+    --nid-type-display-quote-size: 24px;
+    --nid-type-display-quote-lh: 31px;
+    --nid-type-heading-1-size: 52px;
+    --nid-type-heading-1-lh: 54px;
+    --nid-type-heading-2-size: 30px;
+    --nid-type-heading-2-lh: 34px;
+    --nid-type-heading-3-size: 26px;
+    --nid-type-heading-3-lh: 34px;
+    --nid-type-heading-4-size: 23px;
+    --nid-type-heading-4-lh: 29px;
+    --nid-type-body-large-regular-size: 18px;
+    --nid-type-body-large-regular-lh: 27px;
+    --nid-type-body-large-bold-size: 18px;
+    --nid-type-body-large-bold-lh: 27px;
+  }
+}
+
+/* --- tablet --- */
+@media (max-width: 1023px) {
+  :root {
+    --nid-grid-columns: 2;
+    --nid-grid-page-margin: 24px;
+    --nid-grid-column-gap: 20px;
+    --nid-grid-row-gap: 20px;
+    --nid-grid-content-width: 720px;
+    --nid-type-display-serif-card-size: 24px;
+    --nid-type-display-serif-card-lh: 26px;
+    --nid-type-display-serif-size: 24px;
+    --nid-type-display-serif-lh: 24px;
+    --nid-type-display-quote-size: 22px;
+    --nid-type-display-quote-lh: 29px;
+    --nid-type-heading-1-size: 40px;
+    --nid-type-heading-1-lh: 44px;
+    --nid-type-heading-2-size: 26px;
+    --nid-type-heading-2-lh: 30px;
+    --nid-type-heading-3-size: 24px;
+    --nid-type-heading-3-lh: 32px;
+    --nid-type-heading-4-size: 21px;
+    --nid-type-heading-4-lh: 27px;
+    --nid-type-heading-5-size: 19px;
+    --nid-type-body-base-regular-lh: 26px;
+  }
+}
+
+/* --- mobile --- */
+@media (max-width: 767px) {
+  :root {
+    --nid-grid-columns: 1;
+    --nid-grid-page-margin: 16px;
+    --nid-grid-column-gap: 16px;
+    --nid-grid-row-gap: 16px;
+    --nid-grid-content-width: 358px;
+    --nid-type-display-serif-card-size: 22px;
+    --nid-type-display-serif-card-lh: 24px;
+    --nid-type-display-serif-size: 22px;
+    --nid-type-display-serif-lh: 23px;
+    --nid-type-display-quote-size: 20px;
+    --nid-type-display-quote-lh: 27px;
+    --nid-type-heading-1-size: 32px;
+    --nid-type-heading-1-lh: 36px;
+    --nid-type-heading-2-size: 24px;
+    --nid-type-heading-2-lh: 28px;
+    --nid-type-heading-3-size: 22px;
+    --nid-type-heading-3-lh: 30px;
+    --nid-type-heading-4-size: 20px;
+    --nid-type-heading-4-lh: 26px;
+    --nid-type-heading-5-size: 18px;
+    --nid-type-body-large-regular-size: 16px;
+    --nid-type-body-large-regular-lh: 24px;
+    --nid-type-body-large-bold-size: 16px;
+    --nid-type-body-large-bold-lh: 24px;
+  }
+}
+
+/* ==========================================================================
+   One class per Figma text style. These are the only places font-family,
+   size, line-height and tracking should be declared.
+   ========================================================================== */
+.nid-display-serif-card {
+  font-family: var(--nid-font-secondary);
+  font-size: var(--nid-type-display-serif-card-size);
+  line-height: var(--nid-type-display-serif-card-lh);
+  letter-spacing: var(--nid-type-display-serif-card-tracking);
+}
+.nid-display-serif {
+  font-family: var(--nid-font-secondary);
+  font-size: var(--nid-type-display-serif-size);
+  line-height: var(--nid-type-display-serif-lh);
+  letter-spacing: var(--nid-type-display-serif-tracking);
+}
+.nid-display-quote {
+  font-family: var(--nid-font-secondary);
+  font-size: var(--nid-type-display-quote-size);
+  line-height: var(--nid-type-display-quote-lh);
+  letter-spacing: var(--nid-type-display-quote-tracking);
+}
+.nid-heading-1 {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-heading-1-size);
+  line-height: var(--nid-type-heading-1-lh);
+  letter-spacing: var(--nid-type-heading-1-tracking);
+}
+.nid-heading-2 {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-heading-2-size);
+  line-height: var(--nid-type-heading-2-lh);
+  letter-spacing: var(--nid-type-heading-2-tracking);
+}
+.nid-heading-3 {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-heading-3-size);
+  line-height: var(--nid-type-heading-3-lh);
+  letter-spacing: var(--nid-type-heading-3-tracking);
+}
+.nid-heading-4 {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-heading-4-size);
+  line-height: var(--nid-type-heading-4-lh);
+  letter-spacing: var(--nid-type-heading-4-tracking);
+}
+.nid-heading-5 {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-heading-5-size);
+  line-height: var(--nid-type-heading-5-lh);
+  letter-spacing: var(--nid-type-heading-5-tracking);
+}
+.nid-heading-6 {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-heading-6-size);
+  line-height: var(--nid-type-heading-6-lh);
+  letter-spacing: var(--nid-type-heading-6-tracking);
+}
+.nid-label-overline {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-label-overline-size);
+  line-height: var(--nid-type-label-overline-lh);
+  letter-spacing: var(--nid-type-label-overline-tracking);
+  text-transform: uppercase;
+}
+.nid-label-meta {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-label-meta-size);
+  line-height: var(--nid-type-label-meta-lh);
+  letter-spacing: var(--nid-type-label-meta-tracking);
+}
+.nid-label-small {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-label-small-size);
+  line-height: var(--nid-type-label-small-lh);
+  letter-spacing: var(--nid-type-label-small-tracking);
+}
+.nid-label-button {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-label-button-size);
+  line-height: var(--nid-type-label-button-lh);
+  letter-spacing: var(--nid-type-label-button-tracking);
+  text-transform: uppercase;
+}
+.nid-label-micro {
+  font-family: var(--nid-font-primary);
+  font-size: var(--nid-type-label-micro-size);
+  line-height: var(--nid-type-label-micro-lh);
+  letter-spacing: var(--nid-type-label-micro-tracking);
+}
+.nid-body-large-regular {
+  font-family: var(--nid-font-body);
+  font-size: var(--nid-type-body-large-regular-size);
+  line-height: var(--nid-type-body-large-regular-lh);
+  letter-spacing: var(--nid-type-body-large-regular-tracking);
+}
+.nid-body-large-bold {
+  font-family: var(--nid-font-body);
+  font-size: var(--nid-type-body-large-bold-size);
+  line-height: var(--nid-type-body-large-bold-lh);
+  letter-spacing: var(--nid-type-body-large-bold-tracking);
+}
+.nid-body-base-regular {
+  font-family: var(--nid-font-body);
+  font-size: var(--nid-type-body-base-regular-size);
+  line-height: var(--nid-type-body-base-regular-lh);
+  letter-spacing: var(--nid-type-body-base-regular-tracking);
+}
+.nid-body-base-bold {
+  font-family: var(--nid-font-body);
+  font-size: var(--nid-type-body-base-bold-size);
+  line-height: var(--nid-type-body-base-bold-lh);
+  letter-spacing: var(--nid-type-body-base-bold-tracking);
+}
+.nid-body-base-italic {
+  font-family: var(--nid-font-body);
+  font-size: var(--nid-type-body-base-italic-size);
+  line-height: var(--nid-type-body-base-italic-lh);
+  letter-spacing: var(--nid-type-body-base-italic-tracking);
+}
+.nid-body-caption-regular {
+  font-family: var(--nid-font-body);
+  font-size: var(--nid-type-body-caption-regular-size);
+  line-height: var(--nid-type-body-caption-regular-lh);
+  letter-spacing: var(--nid-type-body-caption-regular-tracking);
+}
+.nid-body-caption-bold {
+  font-family: var(--nid-font-body);
+  font-size: var(--nid-type-body-caption-bold-size);
+  line-height: var(--nid-type-body-caption-bold-lh);
+  letter-spacing: var(--nid-type-body-caption-bold-tracking);
+}
+.nid-body-caption-italic {
+  font-family: var(--nid-font-body);
+  font-size: var(--nid-type-body-caption-italic-size);
+  line-height: var(--nid-type-body-caption-italic-lh);
+  letter-spacing: var(--nid-type-body-caption-italic-tracking);
+}
+

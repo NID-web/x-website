@@ -1,0 +1,186 @@
+{
+  "$meta": {
+    "source": "Figma EAoxODvNK8dNGAeovGI5D7 — pages 'Website Pages', 'CMS & Data Model', and the nine main-menu components on Main.",
+    "note": "Paths marked liveLegacy are the current nid.edu URLs and disagree with the architecture; see openDecisions. Routes are derived by walking Page.parent — there is no stored path field.",
+    "counts": { "designedBoards": 44, "totalPagesEstimate": 110, "linksInFile": 971 }
+  },
+  "sections": [
+    {
+      "n": "01", "title": "Home", "path": "/", "liveLegacy": "/home", "template": "primary",
+      "designed": ["01 NID Home — Landing (1440) 28:2175", "· 3 col 1024 4990:368207", "· 2 col 768 4997:381054", "· Mobile 390 4999:393901"],
+      "children": []
+    },
+    {
+      "n": "02", "title": "About NID", "path": "/about", "template": "primary",
+      "menu": ["About NID", "History", "Charter", "Campuses", "News & Events", "Our Themes"],
+      "children": [
+        { "title": "History", "path": "/about/history", "board": "4118:208773", "mobile": "4184:252521" },
+        { "title": "Charter", "path": "/about/charter", "board": "4118:205415", "note": "no live page; the content that answers to it is Mandate" },
+        { "title": "Director's Message", "path": "/about/directors-message", "board": "4393:186283", "note": "live but absent from the architecture" },
+        { "title": "Campuses", "path": "/about/campuses", "board": "4118:212141", "children": [
+          { "title": "Ahmedabad", "path": "/about/campuses/ahmedabad", "board": "4119:224215" },
+          { "title": "Gandhinagar", "path": "/about/campuses/gandhinagar", "board": "4119:227603" },
+          { "title": "Bengaluru", "path": "/about/campuses/bengaluru", "board": "4119:230966" }
+        ]},
+        { "title": "News & Events", "path": "/about/news-events", "board": "4123:240887", "children": [
+          { "title": "Archive", "path": "/about/news-events/archive", "board": "4454:185408", "responsive": ["4491:202427", "4493:205837", "4496:212659"] },
+          { "title": "Article — template", "path": "/about/news-events/[slug]", "board": "4125:240913" },
+          { "title": "Article — North-East Artisans", "path": "/about/news-events/north-east-artisans", "board": "4274:264455" }
+        ]},
+        { "title": "Student Awards Gallery", "path": "/about/student-awards", "board": "4480:195581", "responsive": ["4492:202427", "4494:209249", "4496:349444"] },
+        { "title": "Our Themes", "path": "/about/our-themes", "board": "4800:347502" }
+      ]
+    },
+    {
+      "n": "03", "title": "Programmes", "path": "/programmes", "liveLegacy": "/academics/programmes", "template": "primary",
+      "menu": ["Programmes", "Curriculum Objectives", "Bachelor of Design", "Master of Design", "Ph.D", "Faculty Development Programme", "Industry & Online Programmes", "International and Collaborative Programmes"],
+      "children": [
+        { "title": "Bachelor of Design (B.Des)", "path": "/programmes/bdes", "board": "617:21881", "disciplines": [
+          "Film and Video Communication", "Exhibition Design", "Graphic Design", "Ceramic & Glass Design",
+          "Furniture and Interior Design", "Product Design", "Textile Design", "Animation Film Design", "Photography Design"
+        ]},
+        { "title": "Master of Design (M.Des)", "path": "/programmes/mdes", "disciplines": [
+          "Film and Video Communication", "Graphic Design", "Animation Film Design", "Photography Design",
+          "Ceramic & Glass Design", "Furniture and Interior Design", "Product Design", "Toy & Game Design",
+          "Transportation & Automobile Design", "Universal Design", "Design for Retail Experience",
+          "Strategic Design Management", "Digital Game Design", "Interaction Design", "Information Design",
+          "New Media Design", "Apparel Design", "Lifestyle Accessory Design", "Textile Design"
+        ]},
+        { "title": "Ph.D", "path": "/programmes/phd" },
+        { "title": "Faculty Development Programme", "path": "/programmes/fdp" },
+        { "title": "Curriculum Objectives", "path": "/programmes/curriculum-objectives" },
+        { "title": "Industry & Online Programmes", "path": "/programmes/industry-online", "note": "may be absorbed by Continuing Education Programme" },
+        { "title": "International & Collaborative Programmes", "path": "/programmes/international" }
+      ],
+      "disciplineSlugPattern": "{discipline-slug}-{bdes|mdes}",
+      "counts": { "bdes": 9, "mdes": 19, "total": 28 }
+    },
+    {
+      "n": "04", "title": "Study at NID", "path": "/study", "liveLegacy": "/studyofnid", "template": "primary",
+      "menu": ["Study at NID", "Admission Process", "Life at NID", "Admission Notifications", "PM Vidyalaxmi Scheme", "Young Designers"],
+      "children": [
+        { "title": "Admission Process", "path": "/study/admission", "board": "4113:174204" },
+        { "title": "Life at NID", "path": "/study/life-at-nid", "board": "4115:185346" },
+        { "title": "Academic Notifications", "path": "/study/notifications", "board": "4115:188744", "note": "sits under /academics live; belongs to Study at NID" },
+        { "title": "PM Vidyalaxmi Scheme", "path": "/study/pm-vidyalaxmi", "board": "4113:177859" },
+        { "title": "Young Designers", "path": "/study/young-designers", "board": "4115:192367" }
+      ]
+    },
+    {
+      "n": "05", "title": "Research & Publications", "path": "/research", "liveLegacy": "/research_&_developments", "template": "primary",
+      "menu": ["Research & Publications", "Innovation Center for Natural Fiber", "International Centre for Indian Crafts (ICIC)", "Center for Bamboo Initiatives", "Railway Design Center", "Smart Handloom Innovation Centre", "Design Research & Innovation Centre for Nation Building", "NID Press", "Intellectual Property Rights Cell"],
+      "children": [
+        { "title": "Innovation Center for Natural Fiber", "path": "/research/natural-fiber", "board": "4104:135385" },
+        { "title": "International Centre for Indian Crafts (ICIC)", "path": "/research/icic", "board": "4104:138625" },
+        { "title": "Center for Bamboo Initiatives", "path": "/research/bamboo", "board": "4104:141865" },
+        { "title": "Railway Design Center", "path": "/research/railway", "board": "4093:129842" },
+        { "title": "Smart Handloom Innovation Centre", "path": "/research/handloom", "board": "4105:152014" },
+        { "title": "Design Research & Innovation Centre for Nation Building", "path": "/research/nation-building", "board": "4106:166348" },
+        { "title": "Intellectual Property Rights Cell", "path": "/research/ipr", "board": "4106:163100" },
+        { "title": "NID Press", "path": "/research/nid-press", "board": "4105:155254", "note": "sits under /academics live; belongs to Research & Publications" }
+      ]
+    },
+    {
+      "n": "06", "title": "Consulting & Entrepreneurship", "path": "/consulting", "liveLegacy": "/service", "template": "primary",
+      "menu": ["Consulting & Entrepreneurship", "Integrated Design Services", "Outreach Programmes", "National Design Business Incubator"],
+      "children": [
+        { "title": "Integrated Design Services", "path": "/consulting/ids" },
+        { "title": "Continuing Education", "path": "/consulting/continuing-education", "note": "live but absent from the architecture" },
+        { "title": "National Design Business Incubator", "path": "/consulting/ndbi" },
+        { "title": "Outreach Programmes", "path": "/consulting/outreach" },
+        { "title": "Ongoing Projects", "path": "/consulting/projects" }
+      ]
+    },
+    {
+      "n": "07", "title": "Knowledge Management Centre", "path": "/kmc", "liveLegacy": "/academics/kmc", "template": "primary",
+      "menu": ["Knowledge Management Centre", "Design Classics Collection", "KMC Database", "Services", "e-Resources"],
+      "children": [
+        { "title": "Design Classics Collection", "path": "/kmc/design-classics" },
+        { "title": "KMC Database", "path": "/kmc/database" },
+        { "title": "Services", "path": "/kmc/services" },
+        { "title": "e-Resources", "path": "/kmc/e-resources" },
+        { "title": "Guidelines", "path": "/kmc/guidelines" }
+      ],
+      "note": "sits under /academics live; is a top-level section in the architecture"
+    },
+    {
+      "n": "08", "title": "People", "path": "/people", "template": "primary",
+      "menu": ["People", "Visitor/President of India", "Founding Faculty", "Governing Council", "NID Senate", "Faculty", "Staff", "Notable Alumni"],
+      "children": [
+        { "title": "Faculty", "path": "/people/faculty", "views": [
+          { "title": "by Discipline", "path": "/people/faculty?by=discipline", "board": "3860:106964", "groupBy": "department" },
+          { "title": "A–Z", "path": "/people/faculty?by=name", "board": "3989:100922", "groupBy": "letter" },
+          { "title": "by Campus", "path": "/people/faculty?by=campus", "board": "3994:107400", "groupBy": "campus" },
+          { "title": "by Design Faculty", "path": "/people/faculty?by=faculty", "board": "3996:113878", "groupBy": "faculty" }
+        ]},
+        { "title": "Member — template", "path": "/people/faculty/[slug]", "board": "4043:120597" },
+        { "title": "Governing Council", "path": "/people/governing-council", "groupBy": "none" },
+        { "title": "NID Senate", "path": "/people/senate" },
+        { "title": "Staff", "path": "/people/staff" },
+        { "title": "Notable Alumni", "path": "/people/alumni" },
+        { "title": "Visitor / President of India", "path": "/people/visitor" },
+        { "title": "Faculty Stalwarts", "path": "/people/faculty-stalwarts" },
+        { "title": "Pride of NID", "path": "/people/pride-of-nid" }
+      ],
+      "note": "The four faculty views are ONE Person collection grouped four ways via Section.groupBy — not four datasets and not four templates."
+    },
+    {
+      "n": "09", "title": "Events", "path": "/events", "template": "primary",
+      "menu": ["Events", "Alpavirama", "Drawing Dialogues", "Shifting Paradigms"],
+      "children": [
+        { "title": "Alpavirama", "path": "/events/alpavirama" },
+        { "title": "Drawing Dialogues", "path": "/events/drawing-dialogues", "board": "4612:357286" },
+        { "title": "Shifting Paradigms", "path": "/events/shifting-paradigms" }
+      ],
+      "note": "no landing exists on the live site; currently news-detail pages and external subdomains"
+    },
+    {
+      "n": "10", "title": "Industry Connect", "path": "/industry", "template": "primary",
+      "menu": ["Industry Connect", "Industry MoUs", "Placements", "Shifting Paradigms"],
+      "children": [
+        { "title": "Placements", "path": "/industry/placements", "note": "external subdomain on the live site" },
+        { "title": "Industry MoUs", "path": "/industry/mous" }
+      ]
+    },
+    {
+      "n": "11", "title": "Regulatory", "path": "/regulatory", "template": "primary",
+      "children": [
+        { "title": "NID Act, Rules, Ordinances & Statutes", "path": "/regulatory/nid-act", "sectionType": "files" },
+        { "title": "Annual Reports", "path": "/regulatory/annual-reports", "sectionType": "files" },
+        { "title": "Right To Information", "path": "/regulatory/rti", "sectionType": "files" }
+      ]
+    },
+    {
+      "n": "12", "title": "Miscellaneous", "path": "/", "children": [
+        { "title": "Careers", "path": "/careers" },
+        { "title": "Tenders", "path": "/tenders" },
+        { "title": "Sitemap", "path": "/sitemap" },
+        { "title": "Privacy Policy", "path": "/privacy" },
+        { "title": "Terms & Conditions", "path": "/terms" }
+      ]
+    },
+    { "n": "13", "title": "Contact", "path": "/contact", "children": [] }
+  ],
+  "footer": {
+    "columns": [
+      { "n": 1, "title": "Primary", "links": ["Careers", "Integrated Design Services", "Placements", "Young Designers", "NID Alumni Data Registration", "Tenders", "PM Vidyalaxmi Scheme"] },
+      { "n": 2, "title": "Secondary", "links": ["Right to Information", "Privacy Policy", "Terms & Conditions", "Sitemap"] },
+      { "n": 3, "title": "Contact", "items": ["info@nid.edu", "cmr@nid.edu", "+91 79 2662 9500", "+91 79 2662 9600"] },
+      { "n": 4, "title": "Collaborations", "items": ["partner logo strip"] }
+    ],
+    "responsive": { "4col": "4 across", "3col": "3 across, 4th wraps to its own row", "2col": "2 × 2", "1col": "stacked 1 → 4" }
+  },
+  "openDecisions": [
+    "NID Press sits under /academics on the live site but belongs to Research & Publications.",
+    "Academic Notifications sits under /academics but belongs to Study at NID.",
+    "The Knowledge Management Centre sits under /academics but is a top-level section in the architecture.",
+    "Charter has no live page; the content that answers to it is Mandate. One page or two?",
+    "Director's Message is live but absent from the architecture.",
+    "Continuing Education Programme is live but absent from the architecture, and it absorbs what the architecture calls Industry & Online Programmes.",
+    "Do the four faculty indexes remain four pages, or become one page with a filter? The model supports either; the URLs differ.",
+    "Does the site need Hindi alongside English? The logo is bilingual, nothing else is. Retrofitting localisation after launch is materially harder than allowing for it now."
+  ],
+  "redirects": {
+    "rule": "Store a redirect from the old path whenever a slug changes. The site is old enough that inbound links exist for most of it. Renaming a parent moves its whole subtree."
+  }
+}

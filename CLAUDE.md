@@ -1,0 +1,132 @@
+# NID website — front-end
+
+React/Next.js implementation of the National Institute of Design site. Large, mostly
+editorial: ~110 pages, ~500 sections. A separate developer owns the CMS and APIs.
+
+**Stack:** Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind CSS v4 · next-intl
+
+---
+
+## Source of truth
+
+Design decisions are not in this file. They are in `design/`, and that is what to read:
+
+| Read | When |
+|---|---|
+| `design/NID-CONTEXT.md` | Anything about theming (§3), the grid (§5), type (§6), a component's spec (§7), the content model (§8), or the traps (§14). Start here. |
+| `design/tokens/tokens.json` | You need a token value programmatically. |
+| `design/tokens/content-model.ts` | You are typing a page, section or link. **This is the contract with the backend — never edit it unilaterally.** |
+| `design/tokens/sitemap.json` | Routes, menu tree, footer. |
+
+`design/tokens/tailwind.config.ts` is **superseded** — it is v3 format. The live mapping is
+the `@theme` block in `src/app/globals.css`.
+
+`docs/STAGE-0-NOTES.md` records deliberate deviations from the design file. Read it before
+concluding something is a bug.
+
+---
+
+## Rules that break things silently
+
+These fail without an error. Most have already gone wrong once.
+
+**Colour**
+- A component may only ever name a **layer-2 semantic token** — `text-text-primary`,
+  `bg-surface-raised`, `border-border-subtle`.
+- Never a primitive (`--nid-primary-650`, `bg-primary-650`) — that hard-codes the
+  appearance and inverts wrongly in dark mode. Primitives are for foundations pages only.
+- Never a literal hex in `src/`. It breaks all twenty theme × appearance states at once.
+  `npm run lint` enforces this.
+- Only `accent/primary` clears 3:1. `accent/secondary|tertiary|quaternary|pentenary` are
+  decorative — never use them for an icon or graphic that carries meaning.
+- `text/quaternary` and `icon/quaternary` are **intentionally below WCAG AA**. Same value in
+  light and dark. That is not a bug.
+
+**Type**
+- Font-size and line-height are declared in exactly one place per style. Use the `text-*`
+  utilities (`text-h2`, `text-body`, `text-display-quote`). A component that sets its own
+  `font-size` has opted out of the responsive scale.
+- `letter-spacing` values are `em`, never `%`. Percentages are invalid and get dropped.
+
+**Layout**
+- A page is **one grid**. Use `PageGrid` + `GridItem`. Do not nest per-section flex
+  containers — column 1 is the label rail for the whole page and nesting destroys it.
+- Never `grid-column: span min(2, var(--nid-grid-columns))`. `span` needs an integer
+  literal; `min()` there is dropped and every span becomes 1. `GridItem` handles this.
+- Columns drop right-to-left. Nothing is ever reordered.
+- Four breakpoints only: `tablet` 768 · `laptop` 1024 · `desktop` 1280. There is no `sm`/`md`/`lg`.
+- Below 3 columns, section separators are **omitted entirely**, and the utility slot leaves row 1.
+
+**Content**
+- `Section.type` is a closed set of six: `text` `links` `cards` `files` `rail` `mosaic`.
+  Before adding a seventh, check whether it is a `text` section with a different field filled.
+- The front end **refuses to render a section with no content**. An empty scaffold reads as
+  neglect, not brevity.
+- `Link.label` never contains an arrow character. Arrows are icons in their own slot, so
+  screen readers and the CMS get clean text.
+- A back-nav link names its destination ("About NID"), never "Back".
+- When `groupBy` is set, the data arrives already grouped. Do not sort a flat list into
+  buckets on the client.
+
+**Icons and motion**
+- Icons use `currentColor` and `aria-hidden="true"`. An icon with its own fill ignores its
+  parent — that trap cost a day in Figma.
+- Hover states are colour changes only. Never a transform. `150ms ease`.
+- The theme swap is instant. No cross-fade — 65 custom properties change at once and it judders.
+- Menu titles are **not links**, and nothing in the menu is underlined, in any state.
+- Gate the animated pattern components behind `prefers-reduced-motion`.
+
+**Rendering**
+- Static by default. Do not call `cookies()` or `headers()` in a layout — it opts the whole
+  app out of static rendering. The theme comes from the inline `<head>` script.
+- `src/styles/themes.css` is **generated** by `design/generate.py`. Any edit to it must be
+  folded back into that script or the next regeneration reverts it silently.
+
+---
+
+## Commands
+
+```
+npm run dev              # dev server
+npm run build            # must show [locale] routes as static (○), not dynamic (ƒ)
+npm run lint             # includes the no-literal-hex rule
+npm run verify:tokens    # 540 semantic assertions + grid arithmetic in a real browser
+npm run verify:fonts     # Typekit families actually loaded
+npx tsc --noEmit
+```
+
+Run `verify:tokens` before committing anything that touches `themes.css`, `globals.css`,
+`PageGrid` or `GridItem`.
+
+`/en/swatch` renders all 20 theme × appearance states, the grid proof and the type
+specimen. It is the fastest way to see whether a token change was correct.
+
+---
+
+## Fonts
+
+Adobe Typekit kit `svx1oks`, loaded via `<link>` in the root layout — not `next/font`.
+The kit serves `futura-pt` (300–800), `futura-pt-bold` (700), `bodoni-pt-variable`
+(400–800 variable, roman + italic) and `tonos` (400/700 only).
+
+Tonos has no Light or SemiBold cut, so `Body/Large/Regular` and `Body/Large/Bold` use
+400/700. That is a recorded deviation, not an oversight.
+
+If fonts do not load locally, it is the kit's domain allowlist, not the code. Do not
+substitute a Google font.
+
+---
+
+## Build order
+
+Stage 0 foundations ✅ · **Stage 1 spine** (CTA, Icon Button, Header, Footer, `type=text`,
+`type=links`) · Stage 2 cards · Stage 3 people · Stage 4 documents · Stage 5 news.
+
+`NID-CONTEXT.md` §15 has the reasoning. News and Events go last — they are the only
+collections with continuous editorial churn.
+
+## Locales
+
+`next-intl` with a `[locale]` segment. Currently `["en"]` only. Adding Hindi is one entry
+in `src/i18n/routing.ts` plus `messages/hi.json` — plus a Devanagari fallback in the font
+stacks, since neither Futura PT nor Tonos covers the script.
