@@ -1,0 +1,16 @@
+{
+  "NotFound": {
+    "message": "That page doesn't exist.",
+    "home": "National Institute of Design"
+  },
+  "Swatch": {
+    "title": "Design system swatch",
+    "subtitle": "Stage 0 acceptance surface — every token, every theme, every breakpoint.",
+    "controls": "Theme & appearance",
+    "environment": "Environment",
+    "gridProof": "Grid proof",
+    "states": "Theme × appearance states",
+    "typeSpecimen": "Type specimen",
+    "spacingRadius": "Spacing & radius"
+  }
+}
