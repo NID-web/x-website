@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Generate NID design-token artefacts from the values extracted out of Figma."""
 import json, os, collections
+from pathlib import Path
 
-ROOT = "/root/nid-context"
+ROOT = str(Path(__file__).resolve().parent)
 OUT  = os.path.join(ROOT, "tokens")
 os.makedirs(OUT, exist_ok=True)
 

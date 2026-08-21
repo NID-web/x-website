@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """Verify the emitted token files actually resolve, in all 20 theme x appearance states."""
 import json, re, sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
 
 OK, FAIL = [], []
 def check(label, cond, detail=""):
     (OK if cond else FAIL).append(label + (" — " + detail if detail else ""))
 
-tok = json.load(open("/root/nid-context/tokens/tokens.json"))
-css = open("/root/nid-context/tokens/themes.css").read()
-site = json.load(open("/root/nid-context/tokens/sitemap.json"))
+tok = json.load(open(ROOT / "tokens" / "tokens.json"))
+css = open(ROOT / "tokens" / "themes.css").read()
+site = json.load(open(ROOT / "tokens" / "sitemap.json"))
 
 THEMES = tok["themes"]
 check("tokens.json parses", True)
