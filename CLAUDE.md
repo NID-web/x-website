@@ -3,7 +3,8 @@
 React/Next.js implementation of the National Institute of Design site. Large, mostly
 editorial: ~110 pages, ~500 sections. A separate developer owns the CMS and APIs.
 
-**Stack:** Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind CSS v4 · next-intl
+**Stack:** Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind CSS v4 ·
+next-intl · Node 24 (`.nvmrc` pins `24.19.0`; Node 20 is past EOL)
 
 ---
 
@@ -31,56 +32,39 @@ concluding something is a bug.
 These fail without an error. Most have already gone wrong once.
 
 **Colour**
-- A component may only ever name a **layer-2 semantic token** — `text-text-primary`,
-  `bg-surface-raised`, `border-border-subtle`.
-- Never a primitive (`--nid-primary-650`, `bg-primary-650`) — that hard-codes the
-  appearance and inverts wrongly in dark mode. Primitives are for foundations pages only.
-- Never a literal hex in `src/`. It breaks all twenty theme × appearance states at once.
-  `npm run lint` enforces this.
-- Only `accent/primary` clears 3:1. `accent/secondary|tertiary|quaternary|pentenary` are
-  decorative — never use them for an icon or graphic that carries meaning.
-- `text/quaternary` and `icon/quaternary` are **intentionally below WCAG AA**. Same value in
-  light and dark. That is not a bug.
+- A component may only ever name a **layer-2 semantic token** — `text-text-primary`, `bg-surface-raised`, `border-border-subtle`.
+- Never a primitive (`--nid-primary-650`, `bg-primary-650`) — hard-codes the appearance and inverts wrongly in dark mode. Primitives are foundations-pages only.
+- Never a literal hex in `src/`. Breaks all twenty theme × appearance states at once. `npm run lint` enforces this.
+- Only `accent/primary` clears 3:1. `accent/secondary|tertiary|quaternary|pentenary` are decorative — never for an icon/graphic that carries meaning.
+- `text/quaternary` and `icon/quaternary` are **intentionally below WCAG AA**, same value in light and dark. Not a bug.
 
 **Type**
-- Font-size and line-height are declared in exactly one place per style. Use the `text-*`
-  utilities (`text-h2`, `text-body`, `text-display-quote`). A component that sets its own
-  `font-size` has opted out of the responsive scale.
-- `letter-spacing` values are `em`, never `%`. Percentages are invalid and get dropped.
+- Font-size/line-height declared in exactly one place per style. Use `text-*` utilities (`text-h2`, `text-body`, `text-display-quote`); a component setting its own `font-size` has opted out of the responsive scale.
+- `letter-spacing` values are `em`, never `%` — percentages are invalid and get dropped.
 
 **Layout**
-- A page is **one grid**. Use `PageGrid` + `GridItem`. Do not nest per-section flex
-  containers — column 1 is the label rail for the whole page and nesting destroys it.
-- Never `grid-column: span min(2, var(--nid-grid-columns))`. `span` needs an integer
-  literal; `min()` there is dropped and every span becomes 1. `GridItem` handles this.
-- Columns drop right-to-left. Nothing is ever reordered.
-- Four breakpoints only: `tablet` 768 · `laptop` 1024 · `desktop` 1280. There is no `sm`/`md`/`lg`.
+- A page is **one grid**. Use `PageGrid` + `GridItem`. Do not nest per-section flex containers, or a second `PageGrid` inside a `GridItem` — either doubles the shell margin (caught once by measuring, see STAGE-0-NOTES §6).
+- Never `grid-column: span min(2, var(--nid-grid-columns))` — `span` needs an integer literal, `min()` there is dropped and every span becomes 1. `GridItem` handles this.
+- Columns drop right-to-left; nothing is ever reordered. Four breakpoints only: `tablet` 768 · `laptop` 1024 · `desktop` 1280 — no `sm`/`md`/`lg`.
 - Below 3 columns, section separators are **omitted entirely**, and the utility slot leaves row 1.
+- `--nid-grid-shell-width` is a `calc()` — `getComputedStyle().getPropertyValue()` on it returns the unevaluated expression, not a number. Measure a real `[data-nid-shell]` element's rect instead (STAGE-0-NOTES §5).
 
 **Content**
-- `Section.type` is a closed set of six: `text` `links` `cards` `files` `rail` `mosaic`.
-  Before adding a seventh, check whether it is a `text` section with a different field filled.
-- The front end **refuses to render a section with no content**. An empty scaffold reads as
-  neglect, not brevity.
-- `Link.label` never contains an arrow character. Arrows are icons in their own slot, so
-  screen readers and the CMS get clean text.
+- `Section.type` is a closed set of six: `text` `links` `cards` `files` `rail` `mosaic`. Before adding a seventh, check whether it's `text` with a different field filled.
+- The front end **refuses to render a section with no content** — an empty scaffold reads as neglect, not brevity.
+- `Link.label` never contains an arrow character; arrows are icons in their own slot.
 - A back-nav link names its destination ("About NID"), never "Back".
-- When `groupBy` is set, the data arrives already grouped. Do not sort a flat list into
-  buckets on the client.
+- When `groupBy` is set, the data arrives already grouped — do not sort a flat list into buckets on the client.
 
 **Icons and motion**
-- Icons use `currentColor` and `aria-hidden="true"`. An icon with its own fill ignores its
-  parent — that trap cost a day in Figma.
-- Hover states are colour changes only. Never a transform. `150ms ease`.
-- The theme swap is instant. No cross-fade — 65 custom properties change at once and it judders.
-- Menu titles are **not links**, and nothing in the menu is underlined, in any state.
-- Gate the animated pattern components behind `prefers-reduced-motion`.
+- Icons use `currentColor` and `aria-hidden="true"` — an icon with its own fill ignores its parent (a day in Figma).
+- Hover states are colour changes only, never a transform, `150ms ease`. The theme swap is instant — no cross-fade, 65 custom properties change at once and it judders.
+- Menu titles are **not links**, nothing in the menu is underlined in any state. Gate animated patterns behind `prefers-reduced-motion`.
 
 **Rendering**
-- Static by default. Do not call `cookies()` or `headers()` in a layout — it opts the whole
-  app out of static rendering. The theme comes from the inline `<head>` script.
-- `src/styles/themes.css` is **generated** by `design/generate.py`. Any edit to it must be
-  folded back into that script or the next regeneration reverts it silently.
+- Static by default. Do not call `cookies()`/`headers()` in a layout — opts the whole app out of static rendering. The theme comes from the inline `<head>` script.
+- `src/styles/themes.css` is **generated** by `design/generate.py`. Any edit must be folded back into that script (see STAGE-0-NOTES §1 for exactly what isn't yet) or the next regeneration reverts it silently.
+- **There is no `src/app/layout.tsx`.** `[locale]/layout.tsx` is the real root layout — `next/root-params` stops walking at the first layout module, so a wrapping layout above `[locale]` hides the param. `app/not-found.tsx` needs its own `<html>`; both share `head-shell.tsx`'s `HeadShell`. Exception: the global not-found can't run `THEME_SCRIPT` at all (STAGE-0-NOTES §4).
 
 ---
 
@@ -88,18 +72,19 @@ These fail without an error. Most have already gone wrong once.
 
 ```
 npm run dev              # dev server
-npm run build            # must show [locale] routes as static (○), not dynamic (ƒ)
-npm run lint             # includes the no-literal-hex rule
-npm run verify:tokens    # 540 semantic assertions + grid arithmetic in a real browser
-npm run verify:fonts     # Typekit families actually loaded
+npm run build            # [locale] routes must be ○ or ● (static/SSG), never ƒ (dynamic)
+npm run lint             # eslint + scripts/lint-tokens.mjs (no-literal-hex rule)
+npm run verify:tokens    # 591 assertions: 540 semantic + scoped-theme + grid + type
+npm run verify:fonts     # all 3 Typekit families load + the Bodoni opsz axis
+npm run verify:design    # re-checks design/tokens/ itself (python3 design/verify.py)
+npm run screenshot       # docs/screenshots/swatch-{1440,1024,768,390}.png
 npx tsc --noEmit
 ```
 
-Run `verify:tokens` before committing anything that touches `themes.css`, `globals.css`,
-`PageGrid` or `GridItem`.
-
-`/en/swatch` renders all 20 theme × appearance states, the grid proof and the type
-specimen. It is the fastest way to see whether a token change was correct.
+`/en` and `/en/swatch` build as `●` (SSG via `generateStaticParams`) — the static category
+for a parameterized route, same as `○`. Run `verify:tokens` before committing anything
+that touches `themes.css`, `globals.css`, `PageGrid`, or `GridItem`. `/en/swatch` is the
+fastest way to see whether a token change was correct.
 
 ---
 
@@ -112,8 +97,9 @@ The kit serves `futura-pt` (300–800), `futura-pt-bold` (700), `bodoni-pt-varia
 Tonos has no Light or SemiBold cut, so `Body/Large/Regular` and `Body/Large/Bold` use
 400/700. That is a recorded deviation, not an oversight.
 
-If fonts do not load locally, it is the kit's domain allowlist, not the code. Do not
-substitute a Google font.
+**Confirmed** (`npm run verify:fonts`): Heavy reads 700, Bold reads 800 — not shifted.
+`bodoni-pt-variable` has a working `opsz` axis. Fonts loaded fine here; if they don't
+elsewhere, it's the kit's domain allowlist, not the code. Don't substitute a Google font.
 
 ---
 
