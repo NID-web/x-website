@@ -67,9 +67,12 @@ will change again. It's a single-place edit: change `BODY_FACE` at the top of
 outputs into `src/{styles,lib}/` in one step — don't run `python3 design/generate.py`
 directly, or the copy is easy to forget and `npm run verify:parity` will catch the
 drift). Nothing else needs touching — `src/app/head-shell.tsx` and
-`scripts/verify-fonts.mjs` both read the family/weights/stylesheet URL from
-`font-manifest.json` at runtime, and the preconnect origin is derived from that URL too.
-See `docs/STAGE-0-NOTES.md` §§11–12 for the mapping details and two demonstrated proofs
+`scripts/verify-fonts.mjs` both read the family/weights/stylesheet URL/preconnect list
+from `font-manifest.json` at runtime; `HeadShell` does no URL-parsing of its own, it just
+maps the manifest's `preconnect` array to `<link>` tags. If a provider needs more than
+one preconnect origin (Google Fonts, for instance, splits its CSS host from its
+CORS-fetched font-binary host), declare them explicitly in `BODY_FACE.preconnect` — see
+`docs/STAGE-0-NOTES.md` §§11–12 for the mapping details and three demonstrated proofs
 (a swap-and-back-again, and a deliberate drift caught by `verify:parity`).
 
 ## The one rule that matters most: components only name layer-2 tokens

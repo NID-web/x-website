@@ -208,14 +208,25 @@ Fixed two ways:
   command, so the copy can't be forgotten by hand. `npm run verify:parity` is also
   exposed standalone, for a fast check with no build required.
 
-Also fixed in the same pass: `HeadShell`'s preconnect for the body face was hardcoded to
-`fonts.googleapis.com`/`fonts.gstatic.com`, baking Google-specific knowledge into the one
-file the whole manifest architecture was built to keep provider-agnostic. It now derives
-the preconnect origin from `new URL(fontManifest.body.stylesheetUrl).origin` — correct
-for any provider, verified by curling the rendered page and confirming
-`<link rel="preconnect" href="https://fonts.googleapis.com"/>` (no `crossOrigin`, since
-that's the CSS host, not the CORS-fetched font-file host) appears ahead of the stylesheet
-link. This does give up the Google-specific `fonts.gstatic.com` preconnect: the font
-binaries live at a *second* origin the stylesheet URL doesn't reveal ahead of fetching and
-parsing the CSS, so it isn't derivable generically — a deliberate trade of that one
-optimization for genuine provider-independence.
+Also fixed in the same pass, then corrected once more: `HeadShell`'s preconnect for the
+body face was hardcoded to `fonts.googleapis.com`/`fonts.gstatic.com`, baking
+Google-specific knowledge into the one file the whole manifest architecture was built to
+keep provider-agnostic. The first fix derived a single preconnect from
+`new URL(stylesheetUrl).origin` — generic, but incomplete: Google Fonts serves CSS from
+`googleapis.com` and font *binaries* from `gstatic.com`, so dropping the gstatic
+preconnect delays first paint of body text by a full connection setup — exactly the cost
+`display=swap` exists to avoid. Provider-agnostic and fast are both required, not a
+tradeoff to pick one of.
+
+The actual fix: `BODY_FACE` gained a `preconnect` list of `{origin, crossOrigin}` entries
+(Google Fonts declares both its hosts, gstatic marked `crossOrigin: True` since font
+binaries are CORS-fetched and the CSS host isn't). `resolve_preconnect()` in
+`generate.py` uses that list when present, or falls back to a single same-origin entry
+derived from `stylesheetUrl` when `BODY_FACE` doesn't set one — so a provider with no
+second origin needs zero extra config. The **fully resolved** array — never a bare
+origin — is what lands in `font-manifest.json`; `HeadShell` does nothing but `.map()` it
+into `<link>` tags, with no URL-parsing or provider knowledge of its own. Verified by
+curling the rendered page: `<link rel="preconnect" href="https://fonts.googleapis.com"/>`
+(no `crossorigin`) followed by
+`<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>`, both
+ahead of the stylesheet link.

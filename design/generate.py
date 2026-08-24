@@ -105,11 +105,34 @@ BODY_FACE = {
         "https://fonts.googleapis.com/css2"
         "?family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&display=swap"
     ),
+    # Explicit preconnect origins this provider needs beyond what the
+    # stylesheet URL itself reveals. Google Fonts splits its CSS host
+    # (fonts.googleapis.com — not CORS-fetched) from its font-binary host
+    # (fonts.gstatic.com — is CORS-fetched, needs crossOrigin); dropping the
+    # second preconnect delays first paint of body text by a connection
+    # setup, exactly the cost `display=swap` exists to avoid. Omit this key
+    # entirely for a provider with no such second origin — resolve_preconnect()
+    # below derives a single same-origin entry from stylesheetUrl instead, so
+    # the common case needs no extra config.
+    "preconnect": [
+        {"origin": "https://fonts.googleapis.com", "crossOrigin": False},
+        {"origin": "https://fonts.gstatic.com", "crossOrigin": True},
+    ],
     "weights": {"light": 300, "regular": 400, "semibold": 600, "bold": 700},
 }
 
 def body_font_css():
     return '"%s", %s' % (BODY_FACE["family"], ", ".join(BODY_FACE["fallback"]))
+
+def resolve_preconnect():
+    if BODY_FACE.get("preconnect"):
+        return BODY_FACE["preconnect"]
+    url = BODY_FACE["stylesheetUrl"]
+    if not url:
+        return []
+    scheme, _, rest = url.partition("://")
+    origin = "%s://%s" % (scheme, rest.split("/", 1)[0])
+    return [{"origin": origin, "crossOrigin": False}]
 
 FONTS = {"primary": "Futura PT", "secondary": "Bodoni PT VF", "body": BODY_FACE["family"]}
 
@@ -207,6 +230,9 @@ font_manifest = {
         "family": BODY_FACE["family"],
         "cssFamily": body_font_css(),
         "stylesheetUrl": BODY_FACE["stylesheetUrl"],
+        # Always fully resolved here — HeadShell just maps over this array,
+        # no derivation logic of its own, so it stays provider-agnostic.
+        "preconnect": resolve_preconnect(),
         "weights": BODY_FACE["weights"],
     },
 }
