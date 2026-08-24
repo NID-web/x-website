@@ -88,7 +88,30 @@ GRID = {
  "referenceWidth":[1440, 1024, 768, 390],
 }
 SPACING = [0, 2, 4, 8, 12, 16, 24, 32, 48, 56, 64]
-FONTS = {"primary": "Futura PT", "secondary": "Bodoni PT VF", "body": "Tonos"}
+
+# ---- single source of truth for the body face. Everything about it — the
+# CSS family, the fallback stack, where its stylesheet loads from, and the
+# four weight numbers — flows out of this one dict into themes.css,
+# tokens.json, and tokens/font-manifest.json. To swap the body face: change
+# this, re-run generate.py, and copy tokens/{themes.css,font-manifest.json}
+# into src/{styles,lib}/ — nothing else needs hand-editing.
+BODY_FACE = {
+    "family": "Merriweather Sans",             # CSS font-family display name
+    "fallback": ["system-ui", "sans-serif"],   # after the primary family
+    # Google Fonts css2 URL for the variable range this design needs (roman
+    # + italic, weight 300-800). None means the face is served by the
+    # Typekit kit already linked in HeadShell — no second stylesheet needed.
+    "stylesheetUrl": (
+        "https://fonts.googleapis.com/css2"
+        "?family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+    ),
+    "weights": {"light": 300, "regular": 400, "semibold": 600, "bold": 700},
+}
+
+def body_font_css():
+    return '"%s", %s' % (BODY_FACE["family"], ", ".join(BODY_FACE["fallback"]))
+
+FONTS = {"primary": "Futura PT", "secondary": "Bodoni PT VF", "body": BODY_FACE["family"]}
 
 def slug(name):
     return name.lower().replace("/", "-").replace(" ", "-")
@@ -103,22 +126,29 @@ def tracking_css(pct):
     assert pct.endswith("%"), pct
     return "%gem" % (float(pct[:-1]) / 100)
 
-# The Figma weight name isn't a 1:1 key into --nid-weight-*: Tonos (font
-# "body") only ships two cuts, so every body style collapses onto
-# --nid-weight-body or --nid-weight-body-bold regardless of what the Figma
-# name says (e.g. Body/Large/Regular's "Light" and Body/Base/Regular's
-# "Regular" are both just --nid-weight-body — the kit has no Light cut).
-# Primary and secondary styles map their Figma name directly.
+# The Figma weight name maps directly to --nid-weight-* per font family.
+# Merriweather Sans (font "body") is a 300–800 variable family with true
+# italics, so all four weights are real cuts, not a collapse: "Regular
+# Italic" shares the same numeric weight as "Regular" (italic is a style
+# axis, not a separate weight) — is_italic() below adds font-style
+# separately.
 _PRIMARY_WEIGHT = {"Heavy": "heavy", "Demi": "demi", "Medium": "medium", "Bold": "bold"}
 _SECONDARY_WEIGHT = {
     "Subhead Regular": "serif-subhead",
     "Display Demi": "serif-display",
     "Subhead Italic": "serif-subhead",
 }
+_BODY_WEIGHT = {
+    "Light": "body-light",
+    "Regular": "body",
+    "SemiBold": "body-semibold",
+    "Bold": "body-bold",
+    "Regular Italic": "body",
+}
 
 def weight_var(font, weight_name):
     if font == "body":
-        return "body-bold" if "Bold" in weight_name else "body"
+        return _BODY_WEIGHT[weight_name]
     if font == "primary":
         return _PRIMARY_WEIGHT[weight_name]
     if font == "secondary":
@@ -168,6 +198,21 @@ for s in doc["typography"]["styles"].values():
 with open(os.path.join(OUT, "tokens.json"), "w") as f:
     json.dump(doc, f, indent=2)
 
+# --------------------------------------------------------- font-manifest.json
+# JSON so both TypeScript (src/app/head-shell.tsx) and Node scripts
+# (scripts/verify-fonts.mjs) can read the body face's stylesheet URL and
+# weights without either one hardcoding the family name.
+font_manifest = {
+    "body": {
+        "family": BODY_FACE["family"],
+        "cssFamily": body_font_css(),
+        "stylesheetUrl": BODY_FACE["stylesheetUrl"],
+        "weights": BODY_FACE["weights"],
+    },
+}
+with open(os.path.join(OUT, "font-manifest.json"), "w") as f:
+    json.dump(font_manifest, f, indent=2)
+
 # ------------------------------------------------------------- themes.css
 L = []
 w = L.append
@@ -199,17 +244,23 @@ w("  --nid-radius-pill: 24px;      /* Button-type CTA, Icon Button */")
 w("  --nid-radius-circle: 9999px;")
 w("  --nid-radius-hero: 64px;      /* top-left corner of a secondary-page hero only */")
 w("")
-w("  /* ---- font families (Adobe Typekit kit svx1oks) ---- */")
+w("  /* ---- font families ----")
+w("     primary + secondary: Adobe Typekit kit svx1oks.")
+w("     body: %s, loaded separately — see BODY_FACE in generate.py /" % BODY_FACE["family"])
+w("     tokens/font-manifest.json. Provisional; will change again. */")
 w('  --nid-font-primary: "futura-pt", "Futura", "Century Gothic", sans-serif;')
 w('  --nid-font-primary-display: "futura-pt-bold", "futura-pt", sans-serif;')
 w('  --nid-font-secondary: "bodoni-pt-variable", "Bodoni Moda", Didot, serif;')
-w('  --nid-font-body: "tonos", "Merriweather Sans", system-ui, sans-serif;')
+w("  --nid-font-body: %s;" % body_font_css())
 w("")
-w("  /* ---- font weights, mapped to what kit svx1oks actually serves ----")
-w("     futura-pt         300 400 500 600 700 800")
-w("     futura-pt-bold    700")
-w("     bodoni-pt-variable 400–800 variable, roman + italic")
-w("     tonos             400 700, roman + italic          */")
+w("  /* ---- font weights ----")
+w("     futura-pt          300 400 500 600 700 800  — Adobe Typekit kit svx1oks")
+w("     futura-pt-bold     700                        — Adobe Typekit kit svx1oks")
+w("     bodoni-pt-variable 400–800 variable, roman + italic — Adobe Typekit kit svx1oks")
+w(
+    "     %s %s, roman + italic — Google Fonts */"
+    % (BODY_FACE["family"], " ".join(str(v) for v in BODY_FACE["weights"].values()))
+)
 w("  --nid-weight-light: 300;         /* Futura PT Light  */")
 w("  --nid-weight-book: 400;          /* Futura PT Book   */")
 w("  --nid-weight-medium: 500;        /* Futura PT Medium */")
@@ -218,8 +269,10 @@ w("  --nid-weight-heavy: 700;         /* Futura PT Heavy  */")
 w("  --nid-weight-bold: 800;          /* Futura PT Bold   */")
 w("  --nid-weight-serif-display: 600; /* Bodoni Display Demi   */")
 w("  --nid-weight-serif-subhead: 400; /* Bodoni Subhead        */")
-w("  --nid-weight-body: 400;          /* Tonos Regular — spec asks for Light (300); not in the kit */")
-w("  --nid-weight-body-bold: 700;     /* Tonos Bold  — spec asks for SemiBold (600); not in the kit */")
+w("  --nid-weight-body-light: %d;     /* %s Light    */" % (BODY_FACE["weights"]["light"], BODY_FACE["family"]))
+w("  --nid-weight-body: %d;           /* %s Regular  */" % (BODY_FACE["weights"]["regular"], BODY_FACE["family"]))
+w("  --nid-weight-body-semibold: %d;  /* %s SemiBold */" % (BODY_FACE["weights"]["semibold"], BODY_FACE["family"]))
+w("  --nid-weight-body-bold: %d;      /* %s Bold     */" % (BODY_FACE["weights"]["bold"], BODY_FACE["family"]))
 w("")
 w("  /* ---- grid (desktop / 4 col default; overridden in media queries below) ---- */")
 w("  --nid-grid-columns: 4;")

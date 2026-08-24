@@ -1,10 +1,17 @@
 #!/usr/bin/env node
-// Confirms the three Typekit families actually loaded. If this fails, it is
-// almost certainly the kit svx1oks's domain allowlist missing localhost
-// (CLAUDE.md §2.10) — not the code. Also measures whether bodoni-pt-variable
-// exposes a usable opsz axis (§3 of docs/STAGE-0-PLAN.md, item 2 to report).
+// Confirms all fonts actually loaded: the two Typekit families (primary,
+// secondary) plus whatever the body face currently is — read entirely from
+// design/tokens/font-manifest.json, never hardcoded here. Swapping
+// BODY_FACE in generate.py and re-running it is enough to make this script
+// check a different family without touching a line of it (see the
+// demonstration in docs/STAGE-0-NOTES.md).
+//
+// If a Typekit family fails to load, it is almost certainly the kit
+// svx1oks's domain allowlist missing localhost (CLAUDE.md §2.10) — not the
+// code. Also measures whether bodoni-pt-variable exposes a usable opsz axis.
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,6 +19,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const PORT = 4174;
 const BASE = `http://localhost:${PORT}`;
+
+const fontManifest = JSON.parse(
+  readFileSync(path.join(ROOT, "design/tokens/font-manifest.json"), "utf8"),
+);
+const BODY = fontManifest.body;
 
 function startServer() {
   return spawn("npx", ["next", "start", "-p", String(PORT)], { cwd: ROOT, stdio: "pipe" });
@@ -48,19 +60,34 @@ async function main() {
 
     const families = await page.evaluate(() => ({
       futura: document.fonts.check("700 32px futura-pt"),
-      tonos: document.fonts.check("400 16px tonos"),
       bodoni: document.fonts.check("600 28px bodoni-pt-variable"),
     }));
-
     check("futura-pt loaded (700 32px)", families.futura);
-    check("tonos loaded (400 16px)", families.tonos);
     check("bodoni-pt-variable loaded (600 28px)", families.bodoni);
+
+    // The body face — family name and every weight it comes from the
+    // manifest, so this loop checks whatever BODY_FACE currently says
+    // without needing to be edited when it changes.
+    const bodyChecks = await page.evaluate(
+      ({ family, weights }) =>
+        Object.fromEntries(
+          Object.entries(weights).map(([label, weight]) => [
+            label,
+            document.fonts.check(`${weight} 16px "${family}"`),
+          ]),
+        ),
+      { family: BODY.family, weights: BODY.weights },
+    );
+    for (const [label, weight] of Object.entries(BODY.weights)) {
+      check(`${BODY.family} ${label} loaded (${weight} 16px)`, bodyChecks[label]);
+    }
 
     if (FAIL.length) {
       console.log(
-        "One or more Typekit families failed to load. This is almost certainly kit svx1oks's " +
-          "domain allowlist missing localhost (CLAUDE.md §2.10), not a code defect. " +
-          "Add localhost to the kit's allowed domains in the Adobe Fonts dashboard and re-run.",
+        "One or more fonts failed to load. If it's futura-pt or bodoni-pt-variable, " +
+          "it's almost certainly kit svx1oks's domain allowlist missing localhost " +
+          "(CLAUDE.md §2.10), not a code defect. If it's the body face, confirm " +
+          `${BODY.stylesheetUrl ?? "(no stylesheetUrl set — check BODY_FACE)"} is reachable.`,
       );
     }
 

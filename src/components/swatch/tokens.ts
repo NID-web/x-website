@@ -148,7 +148,7 @@ export const TYPE_STYLES: TypeStyle[] = [
       size: 20,
       lh: 30,
       tracking: "-1%",
-      weight: "400 — spec asks for Light (300); not in the kit",
+      weight: "300 (Light)",
     },
   },
   {
@@ -158,7 +158,7 @@ export const TYPE_STYLES: TypeStyle[] = [
       size: 20,
       lh: 30,
       tracking: "2%",
-      weight: "700 — spec asks for SemiBold (600); not in the kit",
+      weight: "600 (SemiBold)",
     },
   },
   {

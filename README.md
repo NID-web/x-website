@@ -55,8 +55,18 @@ Figma extract; `generate.py` already carries the Stage 0 corrections (STAGE-0-NO
 ### Adding a locale
 
 One entry in `src/i18n/routing.ts`'s `locales` array, plus `messages/<locale>.json`. Hindi
-also needs a Devanagari fallback in the font stacks — neither Futura PT nor Tonos covers
-the script.
+also needs a Devanagari fallback in the font stacks — neither Futura PT nor the current
+body face covers the script.
+
+### Changing the body face
+
+The current body face (Merriweather Sans, loaded from Google Fonts) is provisional and
+will change again. It's a single-place edit: change `BODY_FACE` at the top of
+`design/generate.py`, run it, and copy `design/tokens/{themes.css,font-manifest.json}`
+into `src/{styles,lib}/`. Nothing else needs touching — `src/app/head-shell.tsx` and
+`scripts/verify-fonts.mjs` both read the family/weights/stylesheet URL from
+`font-manifest.json` at runtime. See `docs/STAGE-0-NOTES.md` §11 for the mapping details
+and a demonstrated swap-and-back-again proof.
 
 ## The one rule that matters most: components only name layer-2 tokens
 
@@ -115,10 +125,6 @@ resolves correctly in all 20 theme×appearance states rather than just looking p
 
 ## Known deviations from the Figma spec
 
-- **Tonos has no Light or SemiBold cut.** The kit (`svx1oks`) serves Tonos at 400/700
-  only. `Body/Large/Regular` and `Body/Large/Bold` are mapped to 400/700 rather than the
-  spec's Light (300) / SemiBold (600) — a recorded substitution, not an oversight. Judge
-  it yourself on `/swatch`'s type specimen.
 - **`[locale]` is the app's actual root layout** — there is no `app/layout.tsx`. Required
   for `next/root-params` to detect the locale param at all; see
   `docs/STAGE-0-NOTES.md` §3.

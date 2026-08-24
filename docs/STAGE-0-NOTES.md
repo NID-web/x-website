@@ -13,7 +13,8 @@ scratch copy reproduced `src/styles/themes.css` **byte-identical**; running it f
 against `design/` made `design/tokens/themes.css` byte-identical to `src/styles/themes.css`
 too, so the bundle and the app no longer diverge. `design/tokens/tokens.json` is untouched
 by this (confirmed by diff) — the four edits are CSS-emit-only, as designed. `design/verify.py`
-still passes 25/25, and `npm run verify:tokens` still passes 591/591, after the regeneration.
+still passes 25/25, and `npm run verify:tokens` still passes (593/593 as of §11's body-face
+work), after every regeneration.
 
 The four edits, for reference (all in `design/generate.py`):
 
@@ -30,15 +31,13 @@ The four edits, for reference (all in `design/generate.py`):
 3. **`font-weight` per type class** (the `weight_var()`/`is_italic()` helpers, applied in
    the `.nid-*` class loop): one `font-weight` added to each of the 22 classes, plus
    `font-style: italic` on `.nid-display-quote`, `.nid-body-base-italic`,
-   `.nid-body-caption-italic`. The mapping from Figma's `weight` field isn't a flat 1:1
-   lookup — Tonos (`font: "body"`) only ships two cuts, so *every* body style collapses
-   onto `--nid-weight-body` or `--nid-weight-body-bold` regardless of its Figma name
-   (`Body/Large/Regular`'s `"Light"` and `Body/Base/Regular`'s `"Regular"` are both just
-   `--nid-weight-body`; anything with `"Bold"` in the name, including `"SemiBold"`, is
-   `--nid-weight-body-bold`). Primary and secondary styles map their Figma name directly
+   `.nid-body-caption-italic`. Primary and secondary styles map their Figma name directly
    (`"Heavy"` → `--nid-weight-heavy`, `"Subhead Italic"` → `--nid-weight-serif-subhead` +
-   `font-style: italic`). Verified against the 22 corrected classes in
-   `src/styles/themes.css` before writing the helper, not derived from assumption.
+   `font-style: italic`); body styles map onto the four `--nid-weight-body-*` tokens
+   (§11) — `"Light"` → `-light`, `"Regular"`/`"Regular Italic"` → the base
+   `--nid-weight-body`, `"SemiBold"` → `-semibold`, `"Bold"` → `-bold`. Verified against
+   the corrected classes in `src/styles/themes.css` before writing the helper, not derived
+   from assumption.
 4. **Shell width token** (`generate.py`'s grid block): add
    `--nid-grid-shell-width: calc(var(--nid-grid-content-width) + 2 * var(--nid-grid-page-margin))`
    once, in the base `:root` block — it needs no per-breakpoint override.
@@ -128,11 +127,11 @@ bound).
 
 ## 10. Fonts loaded fine here — still confirm the kit's domain allowlist
 
-`scripts/verify-fonts.mjs` passed all three families (futura-pt, tonos,
-bodoni-pt-variable) and detected a working `opsz` axis on `bodoni-pt-variable` in this
-build/test environment, so kit `svx1oks` was not domain-locked against this machine's
-network. That doesn't guarantee every environment (CI runners, corporate networks) can
-reach `use.typekit.net` the same way — if fonts don't load elsewhere, check the kit's
+`scripts/verify-fonts.mjs` passed both Typekit families (futura-pt, bodoni-pt-variable)
+and detected a working `opsz` axis on `bodoni-pt-variable` in this build/test
+environment, so kit `svx1oks` was not domain-locked against this machine's network. That
+doesn't guarantee every environment (CI runners, corporate networks) can reach
+`use.typekit.net` the same way — if fonts don't load elsewhere, check the kit's
 allowed-domains list before suspecting the code (CLAUDE.md §2.10).
 
 **The `opsz` axis isn't bound anywhere in CSS — it's a one-off measurement, not a token.**
@@ -143,3 +142,44 @@ widths and confirm the axis exists, then discards them. Nothing in `themes.css` 
 `generate.py` — §1 above remains exactly four. Binding `opsz` to something real (e.g. a
 `--nid-type-*-opsz` token switched per style, the way `Display Demi` vs `Subhead Regular`
 are meant to differ optically) is Stage 1+ work, not done here.
+
+## 11. Tonos retired — the body face is now a single-place swap
+
+Tonos is out of scope as of this update (`design/NID-CONTEXT.md` §6.4). The provisional
+replacement, **Merriweather Sans**, is driven entirely by one `BODY_FACE` dict at the top
+of `design/generate.py` — family, fallback stack, Google Fonts stylesheet URL (`None`
+would mean "served by the Typekit kit instead"), and the four weight numbers. Everything
+else derives from it:
+
+- `themes.css`: `--nid-font-body` and four `--nid-weight-body-*` tokens
+  (`-light`/base/`-semibold`/`-bold` = 300/400/600/700 — a real restoration of the spec's
+  four weights, not the old two-cut substitution, since Merriweather Sans is an actual
+  300–800 variable family with true italics).
+- `tokens.json`: `typography.fonts.body`.
+- `design/tokens/font-manifest.json` (new): `{ body: { family, cssFamily,
+  stylesheetUrl, weights } }` — the one JSON both TypeScript and Node scripts read.
+- `src/app/head-shell.tsx` imports the manifest and links the Google Fonts stylesheet
+  (with a `fonts.googleapis.com` + `fonts.gstatic.com` preconnect) only when
+  `stylesheetUrl` isn't null — no literal URL or family name in the component.
+- `scripts/verify-fonts.mjs` reads `design/tokens/font-manifest.json` directly and builds
+  its `document.fonts.check(...)` calls from `BODY.family`/`BODY.weights` — no literal
+  `"tonos"` or `"merriweather-sans"` string anywhere in the file (checked with `grep`).
+
+**Demonstrated, not just designed to work:** swapped `BODY_FACE.family` to a throwaway
+third family (`"Public Sans"`, real Google Font, same weight range), re-ran
+`generate.py`, copied `tokens/{themes.css,font-manifest.json}` into
+`src/{styles,lib}/` — the only two files anyone touched. Hashed `scripts/verify-fonts.mjs`
+and `src/app/head-shell.tsx` before and after: identical. Ran `verify-fonts.mjs`
+unmodified: **6/6 passed against Public Sans** (proof it genuinely re-resolved the new
+family rather than silently still checking the old one — if the family were hardcoded
+anywhere, checking a font that was never loaded would have failed). Swapped `BODY_FACE`
+back to Merriweather Sans, regenerated, recopied, rebuilt: 593/593 (`verify:tokens`), 6/6
+(`verify:fonts`), 25/25 (`verify:design`) all green again.
+
+**Why Google Fonts `<link>` and not `next/font`, for now:** `next/font` would put the
+family name back into TypeScript (a `next/font/google` import call names the family as a
+literal), which breaks the one-place rule this whole architecture exists to enforce while
+the face is still provisional. Once it's final, self-hosting via `next/font/local` is the
+right move — it removes the runtime dependency on Google's CDN and gets font-display
+control without a second stylesheet round-trip. That's a `BODY_FACE`/manifest shape
+change (stylesheetUrl → local file paths) for a later session, not a Stage 0 concern.

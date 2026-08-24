@@ -90,16 +90,21 @@ fastest way to see whether a token change was correct.
 
 ## Fonts
 
-Adobe Typekit kit `svx1oks`, loaded via `<link>` in the root layout — not `next/font`.
-The kit serves `futura-pt` (300–800), `futura-pt-bold` (700), `bodoni-pt-variable`
-(400–800 variable, roman + italic) and `tonos` (400/700 only).
-
-Tonos has no Light or SemiBold cut, so `Body/Large/Regular` and `Body/Large/Bold` use
-400/700. That is a recorded deviation, not an oversight.
+Primary (`futura-pt`, 300–800) and secondary (`bodoni-pt-variable`, 400–800 variable,
+roman + italic) are Adobe Typekit kit `svx1oks`, loaded via `<link>` in `HeadShell` — not
+`next/font`. **The body face is Tonos no longer** — it's out of scope (design/NID-CONTEXT.md
+§6.4). The current one is provisional and swaps in one place: `BODY_FACE` at the top of
+`design/generate.py` drives `themes.css`, `tokens.json`, and the generated
+`design/tokens/font-manifest.json`, which `HeadShell` and `scripts/verify-fonts.mjs` both
+read at runtime — no family name or stylesheet URL hardcoded in either. See
+`docs/STAGE-0-NOTES.md` §11 for the mapping and a demonstrated swap.
 
 **Confirmed** (`npm run verify:fonts`): Heavy reads 700, Bold reads 800 — not shifted.
-`bodoni-pt-variable` has a working `opsz` axis. Fonts loaded fine here; if they don't
-elsewhere, it's the kit's domain allowlist, not the code. Don't substitute a Google font.
+`bodoni-pt-variable` has a working `opsz` axis. Fonts loaded fine here; if the Typekit
+families don't load elsewhere, it's the kit's domain allowlist, not the code — "don't
+substitute a Google font" means *that* (don't silently swap a failing Typekit face for a
+lookalike), not that Google/OFL fonts are banned. The body face is loaded from Google
+Fonts on purpose.
 
 ---
 
@@ -115,7 +120,7 @@ collections with continuous editorial churn.
 
 `next-intl` with a `[locale]` segment. Currently `["en"]` only. Adding Hindi is one entry
 in `src/i18n/routing.ts` plus `messages/hi.json` — plus a Devanagari fallback in the font
-stacks, since neither Futura PT nor Tonos covers the script.
+stacks, since neither Futura PT nor the current body face covers the script.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

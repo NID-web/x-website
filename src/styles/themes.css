@@ -35,17 +35,20 @@
   --nid-radius-circle: 9999px;
   --nid-radius-hero: 64px;      /* top-left corner of a secondary-page hero only */
 
-  /* ---- font families (Adobe Typekit kit svx1oks) ---- */
+  /* ---- font families ----
+     primary + secondary: Adobe Typekit kit svx1oks.
+     body: Merriweather Sans, loaded separately — see BODY_FACE in generate.py /
+     tokens/font-manifest.json. Provisional; will change again. */
   --nid-font-primary: "futura-pt", "Futura", "Century Gothic", sans-serif;
   --nid-font-primary-display: "futura-pt-bold", "futura-pt", sans-serif;
   --nid-font-secondary: "bodoni-pt-variable", "Bodoni Moda", Didot, serif;
-  --nid-font-body: "tonos", "Merriweather Sans", system-ui, sans-serif;
+  --nid-font-body: "Merriweather Sans", system-ui, sans-serif;
 
-  /* ---- font weights, mapped to what kit svx1oks actually serves ----
-     futura-pt         300 400 500 600 700 800
-     futura-pt-bold    700
-     bodoni-pt-variable 400–800 variable, roman + italic
-     tonos             400 700, roman + italic          */
+  /* ---- font weights ----
+     futura-pt          300 400 500 600 700 800  — Adobe Typekit kit svx1oks
+     futura-pt-bold     700                        — Adobe Typekit kit svx1oks
+     bodoni-pt-variable 400–800 variable, roman + italic — Adobe Typekit kit svx1oks
+     Merriweather Sans 300 400 600 700, roman + italic — Google Fonts */
   --nid-weight-light: 300;         /* Futura PT Light  */
   --nid-weight-book: 400;          /* Futura PT Book   */
   --nid-weight-medium: 500;        /* Futura PT Medium */
@@ -54,8 +57,10 @@
   --nid-weight-bold: 800;          /* Futura PT Bold   */
   --nid-weight-serif-display: 600; /* Bodoni Display Demi   */
   --nid-weight-serif-subhead: 400; /* Bodoni Subhead        */
-  --nid-weight-body: 400;          /* Tonos Regular — spec asks for Light (300); not in the kit */
-  --nid-weight-body-bold: 700;     /* Tonos Bold  — spec asks for SemiBold (600); not in the kit */
+  --nid-weight-body-light: 300;     /* Merriweather Sans Light    */
+  --nid-weight-body: 400;           /* Merriweather Sans Regular  */
+  --nid-weight-body-semibold: 600;  /* Merriweather Sans SemiBold */
+  --nid-weight-body-bold: 700;      /* Merriweather Sans Bold     */
 
   /* ---- grid (desktop / 4 col default; overridden in media queries below) ---- */
   --nid-grid-columns: 4;
@@ -1185,14 +1190,14 @@
   font-size: var(--nid-type-body-large-regular-size);
   line-height: var(--nid-type-body-large-regular-lh);
   letter-spacing: var(--nid-type-body-large-regular-tracking);
-  font-weight: var(--nid-weight-body);
+  font-weight: var(--nid-weight-body-light);
 }
 .nid-body-large-bold {
   font-family: var(--nid-font-body);
   font-size: var(--nid-type-body-large-bold-size);
   line-height: var(--nid-type-body-large-bold-lh);
   letter-spacing: var(--nid-type-body-large-bold-tracking);
-  font-weight: var(--nid-weight-body-bold);
+  font-weight: var(--nid-weight-body-semibold);
 }
 .nid-body-base-regular {
   font-family: var(--nid-font-body);

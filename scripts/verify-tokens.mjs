@@ -201,6 +201,8 @@ async function main() {
         const h1 = document.querySelector(".text-h1");
         const body = document.querySelector(".text-body");
         const label = document.querySelector(".text-label");
+        const bodyLg = document.querySelector(".text-body-lg");
+        const bodyLgBold = document.querySelector(".text-body-lg-bold");
         const cols = [1, 2, 3, 4].map((i) => {
           const el = document.querySelector(`[data-nid-col="${i}"]`);
           return el ? el.getBoundingClientRect().left : null;
@@ -216,6 +218,8 @@ async function main() {
           h1FontWeight: h1 ? getComputedStyle(h1).fontWeight : null,
           bodySize: body ? parseFloat(getComputedStyle(body).fontSize) : null,
           labelSize: label ? parseFloat(getComputedStyle(label).fontSize) : null,
+          bodyLgWeight: bodyLg ? getComputedStyle(bodyLg).fontWeight : null,
+          bodyLgBoldWeight: bodyLgBold ? getComputedStyle(bodyLgBold).fontWeight : null,
           cols,
         };
       });
@@ -281,6 +285,20 @@ async function main() {
           "1440px h1 font-weight computes to 700",
           measured.h1FontWeight === "700",
           measured.h1FontWeight ?? "null",
+        );
+        // Proves the four-weight body restoration reaches the DOM, not just
+        // the token file: Body/Large/Regular and Body/Large/Bold are the two
+        // styles that actually changed weight when Tonos was retired for a
+        // real 300–800 variable family (see docs/STAGE-0-NOTES.md).
+        check(
+          "1440px Body/Large/Regular font-weight computes to 300",
+          measured.bodyLgWeight === "300",
+          measured.bodyLgWeight ?? "null",
+        );
+        check(
+          "1440px Body/Large/Bold font-weight computes to 600",
+          measured.bodyLgBoldWeight === "600",
+          measured.bodyLgBoldWeight ?? "null",
         );
       }
     }

@@ -233,12 +233,12 @@
   --text-body-lg: var(--nid-type-body-large-regular-size);
   --text-body-lg--line-height: var(--nid-type-body-large-regular-lh);
   --text-body-lg--letter-spacing: var(--nid-type-body-large-regular-tracking);
-  --text-body-lg--font-weight: var(--nid-weight-body);
+  --text-body-lg--font-weight: var(--nid-weight-body-light);
 
   --text-body-lg-bold: var(--nid-type-body-large-bold-size);
   --text-body-lg-bold--line-height: var(--nid-type-body-large-bold-lh);
   --text-body-lg-bold--letter-spacing: var(--nid-type-body-large-bold-tracking);
-  --text-body-lg-bold--font-weight: var(--nid-weight-body-bold);
+  --text-body-lg-bold--font-weight: var(--nid-weight-body-semibold);
 
   --text-body: var(--nid-type-body-base-regular-size);
   --text-body--line-height: var(--nid-type-body-base-regular-lh);

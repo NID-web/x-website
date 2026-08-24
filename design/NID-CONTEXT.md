@@ -481,14 +481,14 @@ Tracking is in percent, so it scales with the size on its own and needs no varia
 | Label/Small | Futura · Medium | 4% | 14 / 20 | — | — | — | Filters, meta rows, menu links |
 | Label/Button | Futura · Bold | 10% ᴜᴘᴘᴇʀ | 14 / 16 | — | — | — | Buttons and CTAs |
 | Label/Micro | Futura · Medium | 4% | 12 / 15.5 | — | — | — | Captions inside components |
-| Body/Large/Regular | Tonos · Light | −1% | 20 / 30 | 18 / 27 | 18 / 27 | 16 / 24 | Section introduction text |
-| Body/Large/Bold | Tonos · SemiBold | 2% | 20 / 30 | 18 / 27 | 18 / 27 | 16 / 24 | Emphasis within an introduction |
-| Body/Base/Regular | Tonos · Regular | 1% | 16 / 28 | 16 / 28 | 16 / 26 | 16 / 26 | Default running copy |
-| Body/Base/Bold | Tonos · Bold | 1% | 16 / 26 | — | — | — | Emphasis within running copy |
-| Body/Base/Italic | Tonos · Regular Italic | 1% | 16 / 26 | — | — | — | Titles of works, foreign terms |
-| Body/Caption/Regular | Tonos · Regular | 2% | 12 / 18 | — | — | — | Image captions |
-| Body/Caption/Bold | Tonos · Bold | 1% | 12 / 18 | — | — | — | Caption lead-ins |
-| Body/Caption/Italic | Tonos · Regular Italic | 1% | 12 / 18 | — | — | — | Credits |
+| Body/Large/Regular | Merriweather Sans · Light | −1% | 20 / 30 | 18 / 27 | 18 / 27 | 16 / 24 | Section introduction text |
+| Body/Large/Bold | Merriweather Sans · SemiBold | 2% | 20 / 30 | 18 / 27 | 18 / 27 | 16 / 24 | Emphasis within an introduction |
+| Body/Base/Regular | Merriweather Sans · Regular | 1% | 16 / 28 | 16 / 28 | 16 / 26 | 16 / 26 | Default running copy |
+| Body/Base/Bold | Merriweather Sans · Bold | 1% | 16 / 26 | — | — | — | Emphasis within running copy |
+| Body/Base/Italic | Merriweather Sans · Regular Italic | 1% | 16 / 26 | — | — | — | Titles of works, foreign terms |
+| Body/Caption/Regular | Merriweather Sans · Regular | 2% | 12 / 18 | — | — | — | Image captions |
+| Body/Caption/Bold | Merriweather Sans · Bold | 1% | 12 / 18 | — | — | — | Caption lead-ins |
+| Body/Caption/Italic | Merriweather Sans · Regular Italic | 1% | 12 / 18 | — | — | — | Credits |
 
 *(— means the value is identical at every breakpoint.)*
 
@@ -503,6 +503,13 @@ The Figma file's typography *reference page* and its actual *variable values* di
 3. The reference page names Heading/1 "Futura PT Demi" and Heading/2 "Futura PT Medium"; both styles actually carry **Heavy**.
 
 ### 6.4 The Tonos problem — read before you start
+
+**Update, 2026-08-22: Tonos is out of scope.** It is retired from this build. The
+provisional replacement is **Merriweather Sans**, loaded from Google Fonts — provisional
+because the body face will change again, so the swap was built as a single-place edit
+(`BODY_FACE` in `design/generate.py`; see `docs/STAGE-0-NOTES.md` §11) rather than a
+one-off substitution. The rest of this section is kept as the historical record of why
+Tonos was dropped.
 
 All eight `Body/*` styles bind their family to the variable `Font/Body` = **Tonos**. In the Figma environment this font cannot be loaded at all: it is not in the available family list, `loadFontAsync` fails, and as a result no body text can be created or edited programmatically, and no component containing body text can be instanced by script. The design file has been progressing around this limitation.
 
