@@ -63,7 +63,7 @@ These fail without an error. Most have already gone wrong once.
 
 **Rendering**
 - Static by default. Do not call `cookies()`/`headers()` in a layout — opts the whole app out of static rendering. The theme comes from the inline `<head>` script.
-- `src/styles/themes.css` is **generated** by `design/generate.py`. Any edit must be folded back into that script (see STAGE-0-NOTES §1 for exactly what isn't yet) or the next regeneration reverts it silently.
+- `src/styles/themes.css` is **generated** by `design/generate.py`. The four Stage 0 corrections are folded into it (STAGE-0-NOTES §1) — any *new* edit still needs the same treatment, or the next regeneration reverts it silently.
 - **There is no `src/app/layout.tsx`.** `[locale]/layout.tsx` is the real root layout — `next/root-params` stops walking at the first layout module, so a wrapping layout above `[locale]` hides the param. `app/not-found.tsx` needs its own `<html>`; both share `head-shell.tsx`'s `HeadShell`. Exception: the global not-found can't run `THEME_SCRIPT` at all (STAGE-0-NOTES §4).
 
 ---

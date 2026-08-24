@@ -48,8 +48,9 @@ re-themes everything inside it independently of the page's own theme — this is
 ### Adding a theme
 
 Add the theme name to `THEMES` in `src/lib/theme-constants.ts`, and add its 65-primitive
-block to `src/styles/themes.css` (or regenerate from `design/generate.py` once the Figma
-extracts include it — see `docs/STAGE-0-NOTES.md` §1 for what has to be folded in first).
+block to `src/styles/themes.css` — or regenerate both `design/tokens/themes.css` and this
+file from `design/generate.py` once `design/_raw_primitives.txt` has the new theme's
+Figma extract; `generate.py` already carries the Stage 0 corrections (STAGE-0-NOTES §1).
 
 ### Adding a locale
 

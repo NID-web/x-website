@@ -35,10 +35,27 @@
   --nid-radius-circle: 9999px;
   --nid-radius-hero: 64px;      /* top-left corner of a secondary-page hero only */
 
-  /* ---- font families ---- */
-  --nid-font-primary: "Futura PT", "Futura", "Century Gothic", sans-serif;
-  --nid-font-secondary: "Bodoni PT VF", "Bodoni Moda", "Didot", serif;
-  --nid-font-body: "Tonos", "Merriweather Sans", system-ui, sans-serif;
+  /* ---- font families (Adobe Typekit kit svx1oks) ---- */
+  --nid-font-primary: "futura-pt", "Futura", "Century Gothic", sans-serif;
+  --nid-font-primary-display: "futura-pt-bold", "futura-pt", sans-serif;
+  --nid-font-secondary: "bodoni-pt-variable", "Bodoni Moda", Didot, serif;
+  --nid-font-body: "tonos", "Merriweather Sans", system-ui, sans-serif;
+
+  /* ---- font weights, mapped to what kit svx1oks actually serves ----
+     futura-pt         300 400 500 600 700 800
+     futura-pt-bold    700
+     bodoni-pt-variable 400–800 variable, roman + italic
+     tonos             400 700, roman + italic          */
+  --nid-weight-light: 300;         /* Futura PT Light  */
+  --nid-weight-book: 400;          /* Futura PT Book   */
+  --nid-weight-medium: 500;        /* Futura PT Medium */
+  --nid-weight-demi: 600;          /* Futura PT Demi   */
+  --nid-weight-heavy: 700;         /* Futura PT Heavy  */
+  --nid-weight-bold: 800;          /* Futura PT Bold   */
+  --nid-weight-serif-display: 600; /* Bodoni Display Demi   */
+  --nid-weight-serif-subhead: 400; /* Bodoni Subhead        */
+  --nid-weight-body: 400;          /* Tonos Regular — spec asks for Light (300); not in the kit */
+  --nid-weight-body-bold: 700;     /* Tonos Bold  — spec asks for SemiBold (600); not in the kit */
 
   /* ---- grid (desktop / 4 col default; overridden in media queries below) ---- */
   --nid-grid-columns: 4;
@@ -46,6 +63,9 @@
   --nid-grid-column-gap: 24px;
   --nid-grid-row-gap: 24px;
   --nid-grid-content-width: 1392px;
+
+  /* content width plus both page margins = the reference artboard width */
+  --nid-grid-shell-width: calc(var(--nid-grid-content-width) + 2 * var(--nid-grid-page-margin));
 }
 
 /* ==========================================================================
@@ -904,16 +924,16 @@
 :root {
   --nid-type-display-serif-card-size: 28px;
   --nid-type-display-serif-card-lh: 29.5px;
-  --nid-type-display-serif-card-tracking: -1%;
+  --nid-type-display-serif-card-tracking: -0.01em;
   --nid-type-display-serif-size: 28px;
   --nid-type-display-serif-lh: 26px;
-  --nid-type-display-serif-tracking: -1%;
+  --nid-type-display-serif-tracking: -0.01em;
   --nid-type-display-quote-size: 25px;
   --nid-type-display-quote-lh: 32px;
-  --nid-type-display-quote-tracking: -2%;
+  --nid-type-display-quote-tracking: -0.02em;
   --nid-type-heading-1-size: 60px;
   --nid-type-heading-1-lh: 60px;
-  --nid-type-heading-1-tracking: -3%;
+  --nid-type-heading-1-tracking: -0.03em;
   --nid-type-heading-2-size: 32px;
   --nid-type-heading-2-lh: 36px;
   --nid-type-heading-2-tracking: 0;
@@ -928,46 +948,46 @@
   --nid-type-heading-5-tracking: 0;
   --nid-type-heading-6-size: 16px;
   --nid-type-heading-6-lh: 20px;
-  --nid-type-heading-6-tracking: 1%;
+  --nid-type-heading-6-tracking: 0.01em;
   --nid-type-label-overline-size: 12px;
   --nid-type-label-overline-lh: 12px;
-  --nid-type-label-overline-tracking: 16%;
+  --nid-type-label-overline-tracking: 0.16em;
   --nid-type-label-meta-size: 14px;
   --nid-type-label-meta-lh: 18px;
-  --nid-type-label-meta-tracking: 2%;
+  --nid-type-label-meta-tracking: 0.02em;
   --nid-type-label-small-size: 14px;
   --nid-type-label-small-lh: 20px;
-  --nid-type-label-small-tracking: 4%;
+  --nid-type-label-small-tracking: 0.04em;
   --nid-type-label-button-size: 14px;
   --nid-type-label-button-lh: 16px;
-  --nid-type-label-button-tracking: 10%;
+  --nid-type-label-button-tracking: 0.1em;
   --nid-type-label-micro-size: 12px;
   --nid-type-label-micro-lh: 15.5px;
-  --nid-type-label-micro-tracking: 4%;
+  --nid-type-label-micro-tracking: 0.04em;
   --nid-type-body-large-regular-size: 20px;
   --nid-type-body-large-regular-lh: 30px;
-  --nid-type-body-large-regular-tracking: -1%;
+  --nid-type-body-large-regular-tracking: -0.01em;
   --nid-type-body-large-bold-size: 20px;
   --nid-type-body-large-bold-lh: 30px;
-  --nid-type-body-large-bold-tracking: 2%;
+  --nid-type-body-large-bold-tracking: 0.02em;
   --nid-type-body-base-regular-size: 16px;
   --nid-type-body-base-regular-lh: 28px;
-  --nid-type-body-base-regular-tracking: 1%;
+  --nid-type-body-base-regular-tracking: 0.01em;
   --nid-type-body-base-bold-size: 16px;
   --nid-type-body-base-bold-lh: 26px;
-  --nid-type-body-base-bold-tracking: 1%;
+  --nid-type-body-base-bold-tracking: 0.01em;
   --nid-type-body-base-italic-size: 16px;
   --nid-type-body-base-italic-lh: 26px;
-  --nid-type-body-base-italic-tracking: 1%;
+  --nid-type-body-base-italic-tracking: 0.01em;
   --nid-type-body-caption-regular-size: 12px;
   --nid-type-body-caption-regular-lh: 18px;
-  --nid-type-body-caption-regular-tracking: 2%;
+  --nid-type-body-caption-regular-tracking: 0.02em;
   --nid-type-body-caption-bold-size: 12px;
   --nid-type-body-caption-bold-lh: 18px;
-  --nid-type-body-caption-bold-tracking: 1%;
+  --nid-type-body-caption-bold-tracking: 0.01em;
   --nid-type-body-caption-italic-size: 12px;
   --nid-type-body-caption-italic-lh: 18px;
-  --nid-type-body-caption-italic-tracking: 1%;
+  --nid-type-body-caption-italic-tracking: 0.01em;
 }
 
 /* --- laptop --- */
@@ -1064,54 +1084,64 @@
   font-size: var(--nid-type-display-serif-card-size);
   line-height: var(--nid-type-display-serif-card-lh);
   letter-spacing: var(--nid-type-display-serif-card-tracking);
+  font-weight: var(--nid-weight-serif-subhead);
 }
 .nid-display-serif {
   font-family: var(--nid-font-secondary);
   font-size: var(--nid-type-display-serif-size);
   line-height: var(--nid-type-display-serif-lh);
   letter-spacing: var(--nid-type-display-serif-tracking);
+  font-weight: var(--nid-weight-serif-display);
 }
 .nid-display-quote {
   font-family: var(--nid-font-secondary);
   font-size: var(--nid-type-display-quote-size);
   line-height: var(--nid-type-display-quote-lh);
   letter-spacing: var(--nid-type-display-quote-tracking);
+  font-weight: var(--nid-weight-serif-subhead);
+  font-style: italic;
 }
 .nid-heading-1 {
   font-family: var(--nid-font-primary);
   font-size: var(--nid-type-heading-1-size);
   line-height: var(--nid-type-heading-1-lh);
   letter-spacing: var(--nid-type-heading-1-tracking);
+  font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-2 {
   font-family: var(--nid-font-primary);
   font-size: var(--nid-type-heading-2-size);
   line-height: var(--nid-type-heading-2-lh);
   letter-spacing: var(--nid-type-heading-2-tracking);
+  font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-3 {
   font-family: var(--nid-font-primary);
   font-size: var(--nid-type-heading-3-size);
   line-height: var(--nid-type-heading-3-lh);
   letter-spacing: var(--nid-type-heading-3-tracking);
+  font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-4 {
   font-family: var(--nid-font-primary);
   font-size: var(--nid-type-heading-4-size);
   line-height: var(--nid-type-heading-4-lh);
   letter-spacing: var(--nid-type-heading-4-tracking);
+  font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-5 {
   font-family: var(--nid-font-primary);
   font-size: var(--nid-type-heading-5-size);
   line-height: var(--nid-type-heading-5-lh);
   letter-spacing: var(--nid-type-heading-5-tracking);
+  font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-6 {
   font-family: var(--nid-font-primary);
   font-size: var(--nid-type-heading-6-size);
   line-height: var(--nid-type-heading-6-lh);
   letter-spacing: var(--nid-type-heading-6-tracking);
+  font-weight: var(--nid-weight-heavy);
 }
 .nid-label-overline {
   font-family: var(--nid-font-primary);
@@ -1119,18 +1149,21 @@
   line-height: var(--nid-type-label-overline-lh);
   letter-spacing: var(--nid-type-label-overline-tracking);
   text-transform: uppercase;
+  font-weight: var(--nid-weight-heavy);
 }
 .nid-label-meta {
   font-family: var(--nid-font-primary);
   font-size: var(--nid-type-label-meta-size);
   line-height: var(--nid-type-label-meta-lh);
   letter-spacing: var(--nid-type-label-meta-tracking);
+  font-weight: var(--nid-weight-demi);
 }
 .nid-label-small {
   font-family: var(--nid-font-primary);
   font-size: var(--nid-type-label-small-size);
   line-height: var(--nid-type-label-small-lh);
   letter-spacing: var(--nid-type-label-small-tracking);
+  font-weight: var(--nid-weight-medium);
 }
 .nid-label-button {
   font-family: var(--nid-font-primary);
@@ -1138,59 +1171,71 @@
   line-height: var(--nid-type-label-button-lh);
   letter-spacing: var(--nid-type-label-button-tracking);
   text-transform: uppercase;
+  font-weight: var(--nid-weight-bold);
 }
 .nid-label-micro {
   font-family: var(--nid-font-primary);
   font-size: var(--nid-type-label-micro-size);
   line-height: var(--nid-type-label-micro-lh);
   letter-spacing: var(--nid-type-label-micro-tracking);
+  font-weight: var(--nid-weight-medium);
 }
 .nid-body-large-regular {
   font-family: var(--nid-font-body);
   font-size: var(--nid-type-body-large-regular-size);
   line-height: var(--nid-type-body-large-regular-lh);
   letter-spacing: var(--nid-type-body-large-regular-tracking);
+  font-weight: var(--nid-weight-body);
 }
 .nid-body-large-bold {
   font-family: var(--nid-font-body);
   font-size: var(--nid-type-body-large-bold-size);
   line-height: var(--nid-type-body-large-bold-lh);
   letter-spacing: var(--nid-type-body-large-bold-tracking);
+  font-weight: var(--nid-weight-body-bold);
 }
 .nid-body-base-regular {
   font-family: var(--nid-font-body);
   font-size: var(--nid-type-body-base-regular-size);
   line-height: var(--nid-type-body-base-regular-lh);
   letter-spacing: var(--nid-type-body-base-regular-tracking);
+  font-weight: var(--nid-weight-body);
 }
 .nid-body-base-bold {
   font-family: var(--nid-font-body);
   font-size: var(--nid-type-body-base-bold-size);
   line-height: var(--nid-type-body-base-bold-lh);
   letter-spacing: var(--nid-type-body-base-bold-tracking);
+  font-weight: var(--nid-weight-body-bold);
 }
 .nid-body-base-italic {
   font-family: var(--nid-font-body);
   font-size: var(--nid-type-body-base-italic-size);
   line-height: var(--nid-type-body-base-italic-lh);
   letter-spacing: var(--nid-type-body-base-italic-tracking);
+  font-weight: var(--nid-weight-body);
+  font-style: italic;
 }
 .nid-body-caption-regular {
   font-family: var(--nid-font-body);
   font-size: var(--nid-type-body-caption-regular-size);
   line-height: var(--nid-type-body-caption-regular-lh);
   letter-spacing: var(--nid-type-body-caption-regular-tracking);
+  font-weight: var(--nid-weight-body);
 }
 .nid-body-caption-bold {
   font-family: var(--nid-font-body);
   font-size: var(--nid-type-body-caption-bold-size);
   line-height: var(--nid-type-body-caption-bold-lh);
   letter-spacing: var(--nid-type-body-caption-bold-tracking);
+  font-weight: var(--nid-weight-body-bold);
 }
 .nid-body-caption-italic {
   font-family: var(--nid-font-body);
   font-size: var(--nid-type-body-caption-italic-size);
   line-height: var(--nid-type-body-caption-italic-lh);
   letter-spacing: var(--nid-type-body-caption-italic-tracking);
+  font-weight: var(--nid-weight-body);
+  font-style: italic;
 }
 

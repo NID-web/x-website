@@ -3,29 +3,42 @@
 This records what changed and why, so `design/generate.py` isn't run again without
 folding these back in, and so nobody "fixes" a deliberate quirk later.
 
-## 1. The four `themes.css` corrections — must be folded into `generate.py`
+## 1. The four `themes.css` corrections — now folded into `generate.py`
 
-`src/styles/themes.css` is a corrected copy of `design/tokens/themes.css`. **The four
-edits below are not yet in `generate.py`** — if someone re-runs it from fresh Figma
-extracts, `src/styles/themes.css` needs these four edits re-applied by hand, or
-`generate.py` needs to grow them first. Confirmed via diff: these are the *only*
-changes; all 650 primitives and 27 semantic mappings are untouched.
+`src/styles/themes.css` is a corrected copy of `design/tokens/themes.css`. **All four
+edits below are folded into `generate.py`** (as of the commit that added this update) —
+running it from fresh Figma extracts reproduces the correction automatically; nothing
+needs re-applying by hand. Proven, not just asserted: `python3 design/generate.py` in a
+scratch copy reproduced `src/styles/themes.css` **byte-identical**; running it for real
+against `design/` made `design/tokens/themes.css` byte-identical to `src/styles/themes.css`
+too, so the bundle and the app no longer diverge. `design/tokens/tokens.json` is untouched
+by this (confirmed by diff) — the four edits are CSS-emit-only, as designed. `design/verify.py`
+still passes 25/25, and `npm run verify:tokens` still passes 591/591, after the regeneration.
 
-1. **Font families** (`generate.py` ~L166, the `font families` block): swap the display
+The four edits, for reference (all in `design/generate.py`):
+
+1. **Font families** (the `font families` block): swap the display
    names (`"Futura PT"`, `"Bodoni PT VF"`, `"Tonos"`) for the Typekit CSS family names
    (`"futura-pt"`, `"bodoni-pt-variable"`, `"tonos"`), add `--nid-font-primary-display`,
    fix Bodoni's fallback from `sans-serif` to `serif`, and add the ten `--nid-weight-*`
    tokens.
-2. **Tracking `%` → `em`** (`generate.py` ~L232, `s["tracking"]` emission): every
-   `--nid-type-*-tracking` value divided by 100 and suffixed `em`. **`tokens.json`'s own
-   `tracking` field should stay `%`** — it mirrors the Figma source; only the CSS-emit
-   step converts, the same way `generate.py` already treats `size`/`lh` as px-only at
-   emit time.
-3. **`font-weight` per type class** (`generate.py` ~L262, the `.nid-*` class loop): one
-   `font-weight` added to each of the 22 classes, keyed off the Figma `weight` field
-   already present in `tokens.json → typography.styles` (e.g. `"Heavy"` →
-   `var(--nid-weight-heavy)`), plus `font-style: italic` on `.nid-display-quote`,
-   `.nid-body-base-italic`, `.nid-body-caption-italic`.
+2. **Tracking `%` → `em`** (the `tracking_css()` helper, applied at `s["tracking"]`
+   emission): every `--nid-type-*-tracking` value divided by 100 and suffixed `em`.
+   **`tokens.json`'s own `tracking` field stays `%`** — it mirrors the Figma source; only
+   the CSS-emit step converts, the same way `generate.py` already treats `size`/`lh` as
+   px-only at emit time.
+3. **`font-weight` per type class** (the `weight_var()`/`is_italic()` helpers, applied in
+   the `.nid-*` class loop): one `font-weight` added to each of the 22 classes, plus
+   `font-style: italic` on `.nid-display-quote`, `.nid-body-base-italic`,
+   `.nid-body-caption-italic`. The mapping from Figma's `weight` field isn't a flat 1:1
+   lookup — Tonos (`font: "body"`) only ships two cuts, so *every* body style collapses
+   onto `--nid-weight-body` or `--nid-weight-body-bold` regardless of its Figma name
+   (`Body/Large/Regular`'s `"Light"` and `Body/Base/Regular`'s `"Regular"` are both just
+   `--nid-weight-body`; anything with `"Bold"` in the name, including `"SemiBold"`, is
+   `--nid-weight-body-bold`). Primary and secondary styles map their Figma name directly
+   (`"Heavy"` → `--nid-weight-heavy`, `"Subhead Italic"` → `--nid-weight-serif-subhead` +
+   `font-style: italic`). Verified against the 22 corrected classes in
+   `src/styles/themes.css` before writing the helper, not derived from assumption.
 4. **Shell width token** (`generate.py`'s grid block): add
    `--nid-grid-shell-width: calc(var(--nid-grid-content-width) + 2 * var(--nid-grid-page-margin))`
    once, in the base `:root` block — it needs no per-breakpoint override.
@@ -35,10 +48,8 @@ changes; all 650 primitives and 27 semantic mappings are untouched.
 Both `design/verify.py` and `design/generate.py` hardcoded `ROOT = "/root/nid-context"` —
 the environment they were authored in. Both now derive `ROOT` from
 `Path(__file__).resolve().parent`, so they work from any checkout. `generate.py` matters
-more: it's what regenerates `themes.css`, so it has to actually run for the edits above
-to ever be folded in. Verified: `python3 design/verify.py` passes 25/25 from any cwd, and
-running `generate.py` in a scratch copy reproduces `tokens.json`/`themes.css`
-byte-identical to the originals — the path fix changed nothing about the output.
+more: it's what regenerates `themes.css`, so it has to actually run for the §1 corrections
+to ever be folded in — see §1 for the byte-identical proof, now that they are.
 
 ## 3. `[locale]` is the true root layout — there is no `src/app/layout.tsx`
 
@@ -123,3 +134,12 @@ build/test environment, so kit `svx1oks` was not domain-locked against this mach
 network. That doesn't guarantee every environment (CI runners, corporate networks) can
 reach `use.typekit.net` the same way — if fonts don't load elsewhere, check the kit's
 allowed-domains list before suspecting the code (CLAUDE.md §2.10).
+
+**The `opsz` axis isn't bound anywhere in CSS — it's a one-off measurement, not a token.**
+`scripts/verify-fonts.mjs` creates two throwaway `<span>`s with
+`font-variation-settings: 'opsz' 8` and `'opsz' 60` purely to compare rendered glyph
+widths and confirm the axis exists, then discards them. Nothing in `themes.css` or
+`globals.css` sets `opsz`, so this is *not* a fifth edit needing folding into
+`generate.py` — §1 above remains exactly four. Binding `opsz` to something real (e.g. a
+`--nid-type-*-opsz` token switched per style, the way `Display Demi` vs `Subhead Regular`
+are meant to differ optically) is Stage 1+ work, not done here.

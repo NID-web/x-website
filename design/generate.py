@@ -93,6 +93,41 @@ FONTS = {"primary": "Futura PT", "secondary": "Bodoni PT VF", "body": "Tonos"}
 def slug(name):
     return name.lower().replace("/", "-").replace(" ", "-")
 
+# letter-spacing accepts a length or `normal`, never a percentage — every
+# --nid-type-*-tracking value gets converted at CSS-emit time. tokens.json's
+# own `tracking` field stays % (it mirrors the Figma source), same as size/lh
+# staying unitless there and only gaining `px` here.
+def tracking_css(pct):
+    if pct == "0":
+        return "0"
+    assert pct.endswith("%"), pct
+    return "%gem" % (float(pct[:-1]) / 100)
+
+# The Figma weight name isn't a 1:1 key into --nid-weight-*: Tonos (font
+# "body") only ships two cuts, so every body style collapses onto
+# --nid-weight-body or --nid-weight-body-bold regardless of what the Figma
+# name says (e.g. Body/Large/Regular's "Light" and Body/Base/Regular's
+# "Regular" are both just --nid-weight-body — the kit has no Light cut).
+# Primary and secondary styles map their Figma name directly.
+_PRIMARY_WEIGHT = {"Heavy": "heavy", "Demi": "demi", "Medium": "medium", "Bold": "bold"}
+_SECONDARY_WEIGHT = {
+    "Subhead Regular": "serif-subhead",
+    "Display Demi": "serif-display",
+    "Subhead Italic": "serif-subhead",
+}
+
+def weight_var(font, weight_name):
+    if font == "body":
+        return "body-bold" if "Bold" in weight_name else "body"
+    if font == "primary":
+        return _PRIMARY_WEIGHT[weight_name]
+    if font == "secondary":
+        return _SECONDARY_WEIGHT[weight_name]
+    raise ValueError(font)
+
+def is_italic(weight_name):
+    return "Italic" in weight_name
+
 # ------------------------------------------------------------- tokens.json
 doc = {
   "$meta": {
@@ -164,10 +199,27 @@ w("  --nid-radius-pill: 24px;      /* Button-type CTA, Icon Button */")
 w("  --nid-radius-circle: 9999px;")
 w("  --nid-radius-hero: 64px;      /* top-left corner of a secondary-page hero only */")
 w("")
-w("  /* ---- font families ---- */")
-w('  --nid-font-primary: "Futura PT", "Futura", "Century Gothic", sans-serif;')
-w('  --nid-font-secondary: "Bodoni PT VF", "Bodoni Moda", "Didot", serif;')
-w('  --nid-font-body: "Tonos", "Merriweather Sans", system-ui, sans-serif;')
+w("  /* ---- font families (Adobe Typekit kit svx1oks) ---- */")
+w('  --nid-font-primary: "futura-pt", "Futura", "Century Gothic", sans-serif;')
+w('  --nid-font-primary-display: "futura-pt-bold", "futura-pt", sans-serif;')
+w('  --nid-font-secondary: "bodoni-pt-variable", "Bodoni Moda", Didot, serif;')
+w('  --nid-font-body: "tonos", "Merriweather Sans", system-ui, sans-serif;')
+w("")
+w("  /* ---- font weights, mapped to what kit svx1oks actually serves ----")
+w("     futura-pt         300 400 500 600 700 800")
+w("     futura-pt-bold    700")
+w("     bodoni-pt-variable 400–800 variable, roman + italic")
+w("     tonos             400 700, roman + italic          */")
+w("  --nid-weight-light: 300;         /* Futura PT Light  */")
+w("  --nid-weight-book: 400;          /* Futura PT Book   */")
+w("  --nid-weight-medium: 500;        /* Futura PT Medium */")
+w("  --nid-weight-demi: 600;          /* Futura PT Demi   */")
+w("  --nid-weight-heavy: 700;         /* Futura PT Heavy  */")
+w("  --nid-weight-bold: 800;          /* Futura PT Bold   */")
+w("  --nid-weight-serif-display: 600; /* Bodoni Display Demi   */")
+w("  --nid-weight-serif-subhead: 400; /* Bodoni Subhead        */")
+w("  --nid-weight-body: 400;          /* Tonos Regular — spec asks for Light (300); not in the kit */")
+w("  --nid-weight-body-bold: 700;     /* Tonos Bold  — spec asks for SemiBold (600); not in the kit */")
 w("")
 w("  /* ---- grid (desktop / 4 col default; overridden in media queries below) ---- */")
 w("  --nid-grid-columns: 4;")
@@ -175,6 +227,9 @@ w("  --nid-grid-page-margin: 24px;")
 w("  --nid-grid-column-gap: 24px;")
 w("  --nid-grid-row-gap: 24px;")
 w("  --nid-grid-content-width: 1392px;")
+w("")
+w("  /* content width plus both page margins = the reference artboard width */")
+w("  --nid-grid-shell-width: calc(var(--nid-grid-content-width) + 2 * var(--nid-grid-page-margin));")
 w("}")
 w("")
 
@@ -230,7 +285,7 @@ w(":root {")
 for name, s in TYPE.items():
     w("  --nid-type-%s-size: %gpx;" % (slug(name), s["size"][0]))
     w("  --nid-type-%s-lh: %gpx;" % (slug(name), s["lh"][0]))
-    w("  --nid-type-%s-tracking: %s;" % (slug(name), s["tracking"]))
+    w("  --nid-type-%s-tracking: %s;" % (slug(name), tracking_css(s["tracking"])))
 w("}")
 w("")
 
@@ -268,6 +323,9 @@ for name, s in TYPE.items():
     w("  letter-spacing: var(--nid-type-%s-tracking);" % slug(name))
     if s["case"] == "upper":
         w("  text-transform: uppercase;")
+    w("  font-weight: var(--nid-weight-%s);" % weight_var(s["font"], s["weight"]))
+    if is_italic(s["weight"]):
+        w("  font-style: italic;")
     w("}")
 w("")
 
