@@ -74,8 +74,13 @@ These fail without an error. Most have already gone wrong once.
 npm run dev              # dev server
 npm run build            # [locale] routes must be ○ or ● (static/SSG), never ƒ (dynamic)
 npm run lint             # eslint + scripts/lint-tokens.mjs (no-literal-hex rule)
-npm run verify:tokens    # 591 assertions: 540 semantic + scoped-theme + grid + type
-npm run verify:fonts     # all 3 Typekit families load + the Bodoni opsz axis
+npm run generate:tokens  # design/generate.py + copies outputs into src/ — use this,
+                         #   not `python3 design/generate.py` directly, or the src/ copy
+                         #   goes stale and nothing else notices
+npm run verify:parity    # fast, no-browser: design/tokens/* byte-matches its src/ copy
+npm run verify:tokens    # 593 assertions: 540 semantic + scoped-theme + grid + type
+                         #   (runs verify:parity first, fails fast if that drifts)
+npm run verify:fonts     # every font family (Typekit + body face) loads + Bodoni opsz
 npm run verify:design    # re-checks design/tokens/ itself (python3 design/verify.py)
 npm run screenshot       # docs/screenshots/swatch-{1440,1024,768,390}.png
 npx tsc --noEmit

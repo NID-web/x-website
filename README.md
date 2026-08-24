@@ -48,9 +48,10 @@ re-themes everything inside it independently of the page's own theme — this is
 ### Adding a theme
 
 Add the theme name to `THEMES` in `src/lib/theme-constants.ts`, and add its 65-primitive
-block to `src/styles/themes.css` — or regenerate both `design/tokens/themes.css` and this
-file from `design/generate.py` once `design/_raw_primitives.txt` has the new theme's
-Figma extract; `generate.py` already carries the Stage 0 corrections (STAGE-0-NOTES §1).
+block to `src/styles/themes.css` — or, once `design/_raw_primitives.txt` has the new
+theme's Figma extract, run `npm run generate:tokens` to regenerate `themes.css` (which
+already carries the Stage 0 corrections, STAGE-0-NOTES §1) and copy it into `src/` in one
+step.
 
 ### Adding a locale
 
@@ -62,11 +63,14 @@ body face covers the script.
 
 The current body face (Merriweather Sans, loaded from Google Fonts) is provisional and
 will change again. It's a single-place edit: change `BODY_FACE` at the top of
-`design/generate.py`, run it, and copy `design/tokens/{themes.css,font-manifest.json}`
-into `src/{styles,lib}/`. Nothing else needs touching — `src/app/head-shell.tsx` and
+`design/generate.py`, then run `npm run generate:tokens` (regenerates *and* copies the
+outputs into `src/{styles,lib}/` in one step — don't run `python3 design/generate.py`
+directly, or the copy is easy to forget and `npm run verify:parity` will catch the
+drift). Nothing else needs touching — `src/app/head-shell.tsx` and
 `scripts/verify-fonts.mjs` both read the family/weights/stylesheet URL from
-`font-manifest.json` at runtime. See `docs/STAGE-0-NOTES.md` §11 for the mapping details
-and a demonstrated swap-and-back-again proof.
+`font-manifest.json` at runtime, and the preconnect origin is derived from that URL too.
+See `docs/STAGE-0-NOTES.md` §§11–12 for the mapping details and two demonstrated proofs
+(a swap-and-back-again, and a deliberate drift caught by `verify:parity`).
 
 ## The one rule that matters most: components only name layer-2 tokens
 
@@ -112,9 +116,11 @@ change at the four breakpoints — `tablet` 768 · `laptop` 1024 · `desktop` 12
 npx tsc --noEmit          # strict, noUncheckedIndexedAccess
 npm run lint              # eslint + the no-literal-hex rule
 npm run build              # [locale] routes must be ○/● (static), never ƒ (dynamic)
-npm run verify:tokens     # 591 assertions: 540 semantic + scoped-theme + grid + type,
+npm run verify:parity     # design/tokens/* byte-matches its src/ copy — fast, no browser
+npm run verify:tokens     # 593 assertions: 540 semantic + scoped-theme + grid + type,
                           #   in a real (Playwright) browser against a production build
-npm run verify:fonts      # confirms all three Typekit families actually loaded
+                          #   (runs verify:parity first and fails fast if that drifts)
+npm run verify:fonts      # confirms every font family (Typekit + the body face) loaded
 npm run verify:design     # re-checks design/tokens/ itself (python3 design/verify.py)
 npm run screenshot        # docs/screenshots/swatch-{1440,1024,768,390}.png
 ```
@@ -122,6 +128,11 @@ npm run screenshot        # docs/screenshots/swatch-{1440,1024,768,390}.png
 Run `verify:tokens` before committing anything that touches `themes.css`, `globals.css`,
 `PageGrid`, or `GridItem` — it's the only thing that actually proves a token change
 resolves correctly in all 20 theme×appearance states rather than just looking plausible.
+
+After editing `design/generate.py`, run `npm run generate:tokens` rather than
+`python3 design/generate.py` by hand — it regenerates *and* copies the outputs into
+`src/{styles,lib}/` in one step, so the app's copy can't be left stale. Nothing else
+catches that drift: every other check only ever looks at the `src/` copy.
 
 ## Known deviations from the Figma spec
 

@@ -6,8 +6,21 @@ import fontManifest from "@/lib/font-manifest.json";
 
 // The body face's stylesheet URL lives only in font-manifest.json (generated
 // from design/generate.py's BODY_FACE) — never hardcoded here, so swapping
-// the face is a generate.py + copy step, not a HeadShell edit.
+// the face is a generate.py + copy step, not a HeadShell edit. The
+// preconnect origin is derived from that URL rather than hardcoded to
+// fonts.googleapis.com, so a face served from any other host still gets a
+// correct preconnect without touching this file. (Google Fonts specifically
+// splits its CSS host from its font-file host — fonts.googleapis.com vs
+// fonts.gstatic.com — and only the second one needs crossOrigin, since font
+// binaries are CORS-fetched and stylesheets aren't. We can't derive that
+// second, provider-specific origin generically from just the stylesheet
+// URL, so this preconnect targets only the stylesheet's own host — still a
+// real win for the CSS fetch, and correct for any provider, at the cost of
+// the Google-specific gstatic preconnect.)
 const BODY_FONT_STYLESHEET_URL = fontManifest.body.stylesheetUrl;
+const BODY_FONT_ORIGIN = BODY_FONT_STYLESHEET_URL
+  ? new URL(BODY_FONT_STYLESHEET_URL).origin
+  : null;
 
 export const THEME_SCRIPT = `
 (function () {
@@ -39,10 +52,9 @@ export function HeadShell() {
           would put the family name back into TypeScript, breaking the
           one-place rule this face is deliberately kept out of until it's
           final. Swap it via design/generate.py's BODY_FACE, not here. */}
-      {BODY_FONT_STYLESHEET_URL && (
+      {BODY_FONT_STYLESHEET_URL && BODY_FONT_ORIGIN && (
         <>
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href={BODY_FONT_ORIGIN} />
           <link rel="stylesheet" href={BODY_FONT_STYLESHEET_URL} />
         </>
       )}

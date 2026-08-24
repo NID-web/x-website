@@ -9,6 +9,7 @@ import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkParity } from "./verify-parity.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -93,6 +94,19 @@ const BREAKPOINTS = [
 ];
 
 async function main() {
+  // Fail fast, before ever starting a server: a browser-based check only
+  // ever looks at the src/ copy, so it can't tell a fresh regeneration from
+  // a stale one that skipped the copy step. This can — and there is no
+  // point spending a minute on a production build and a full browser suite
+  // for a run that's already known to fail.
+  const parityFailures = checkParity();
+  if (parityFailures.length) {
+    for (const f of parityFailures) check(f, false);
+    console.log(`PASS ${OK.length}`);
+    for (const f of FAIL) console.log("  FAIL:", f);
+    process.exit(1);
+  }
+
   const server = startServer();
   let browser;
   try {

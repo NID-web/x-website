@@ -183,3 +183,39 @@ the face is still provisional. Once it's final, self-hosting via `next/font/loca
 right move — it removes the runtime dependency on Google's CDN and gets font-display
 control without a second stylesheet round-trip. That's a `BODY_FACE`/manifest shape
 change (stylesheetUrl → local file paths) for a later session, not a Stage 0 concern.
+
+## 12. §11 had a hole: nothing enforced that the src/ copies actually got made
+
+`design/generate.py` writes into `design/tokens/`; the app reads its own copies under
+`src/styles/themes.css` and `src/lib/font-manifest.json`. Every check in §11 — build,
+`verify:tokens`, `verify:fonts`, `verify:design` — only ever looks at the `src/` copy, so
+none of them could tell a fresh regeneration from a stale one that skipped the copy step.
+Skip the copy and every script still goes green, on two different sets of values — exactly
+the failure the one-place architecture exists to prevent, undetected by the very suite
+meant to catch drift.
+
+Fixed two ways:
+
+- **`scripts/verify-parity.mjs`**: a fast, no-browser byte-compare of each generated file
+  against its `src/` copy, hard-fails on any difference. Wired into
+  `scripts/verify-tokens.mjs` as the very first thing `main()` does — before starting a
+  server, since there's no point spending a minute on a production build and a full
+  browser suite for a run that's already known to fail. Verified by deliberately
+  appending a stray line to `src/styles/themes.css`: `node scripts/verify-parity.mjs`
+  failed in the same run, and `node scripts/verify-tokens.mjs` failed in 0.17s (0
+  assertions run) instead of going through build+server+browser first.
+- **`npm run generate:tokens`**: `python3 design/generate.py` plus both `cp` steps as one
+  command, so the copy can't be forgotten by hand. `npm run verify:parity` is also
+  exposed standalone, for a fast check with no build required.
+
+Also fixed in the same pass: `HeadShell`'s preconnect for the body face was hardcoded to
+`fonts.googleapis.com`/`fonts.gstatic.com`, baking Google-specific knowledge into the one
+file the whole manifest architecture was built to keep provider-agnostic. It now derives
+the preconnect origin from `new URL(fontManifest.body.stylesheetUrl).origin` — correct
+for any provider, verified by curling the rendered page and confirming
+`<link rel="preconnect" href="https://fonts.googleapis.com"/>` (no `crossOrigin`, since
+that's the CSS host, not the CORS-fetched font-file host) appears ahead of the stylesheet
+link. This does give up the Google-specific `fonts.gstatic.com` preconnect: the font
+binaries live at a *second* origin the stylesheet URL doesn't reveal ahead of fetching and
+parsing the CSS, so it isn't derivable generically — a deliberate trade of that one
+optimization for genuine provider-independence.
