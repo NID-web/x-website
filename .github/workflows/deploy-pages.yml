@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
@@ -38,10 +38,10 @@ jobs:
       # user/org page.
       - name: Setup Pages
         id: setup_pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Restore Next.js cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
@@ -55,7 +55,7 @@ jobs:
           PAGES_BASE_PATH: ${{ steps.setup_pages.outputs.base_path }}
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./out
 
@@ -68,4 +68,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

@@ -308,6 +308,44 @@ global not-found in server mode; static export prerenders the *page content* at 
 time but doesn't change *how* Next assembles that one response, so `THEME_SCRIPT` still
 can't run there. No worse than server mode, not better.
 
+**The first CI run failed, and it was the lockfile, not the workflow.** `npm ci` refused
+to install:
+
+```
+npm ci can only install packages when your package.json and package-lock.json … are in sync
+Missing: @emnapi/runtime@1.11.3 from lock file
+Invalid: lock file's @emnapi/wasi-threads@1.2.1 does not satisfy @emnapi/wasi-threads@1.2.3
+```
+
+`@emnapi/*` are optional, platform-gated transitive deps (WASM fallbacks behind native
+packages like `@swc/core` and `unrs-resolver`). Running `npm install` on macOS arm64
+during this build pruned/rewrote some of those entries, because they aren't needed on this
+platform — the `package-lock.json` diff for the Prettier install actually showed
+`node_modules/@emnapi/core` and `@emnapi/runtime` being *deleted*, and that went
+unremarked at the time. `npm install` tolerates the resulting inconsistency; `npm ci`
+(correctly, by design) refuses it. So the whole local pipeline stayed green while the
+lockfile was quietly unusable for a clean install.
+
+Fixed by regenerating from scratch (`rm -rf node_modules package-lock.json && npm
+install`), which records all four `@emnapi` entries with their `optional: true` flags
+properly. **Verified the way the failure demanded — in a fresh `git clone`, not in the
+working tree**: cloned the pushed repo into a scratch dir, ran `npm ci` (failed,
+reproducing CI exactly), regenerated, ran `npm ci` again (passed), then ran the full
+`GITHUB_PAGES=true … next build` and confirmed `out/` came out complete.
+
+**Lesson for anything that touches `package.json`:** `npm install` succeeding proves
+nothing about CI. Run `npm ci` — ideally in a clean clone — before assuming a dependency
+change is safe. Nothing in `npm run lint`/`verify:*` covers this, because they all run
+against an already-populated `node_modules`.
+
+Also bumped every action in the workflow to current majors (`checkout@v7`,
+`setup-node@v7`, `cache@v6`, `configure-pages@v6`, `upload-pages-artifact@v5`,
+`deploy-pages@v5`) — the versions copied from the upstream Next.js template were old
+enough to trigger GitHub's "Node.js 20 is deprecated … forced to run on Node.js 24"
+warning. Checked the release notes first: these majors are Node-runtime upgrades, not API
+changes, and `configure-pages`' `outputs.base_path` (the one output this workflow depends
+on) is unchanged.
+
 **Two things only the user can do**, neither of which this session has credentials for:
 1. **Enable Pages** in the repo's Settings → Pages, source "GitHub Actions" — one-time,
    required before `.github/workflows/deploy-pages.yml` has anywhere to deploy to.
