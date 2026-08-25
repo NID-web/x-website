@@ -140,6 +140,28 @@ After editing `design/generate.py`, run `npm run generate:tokens` rather than
 `src/{styles,lib}/` in one step, so the app's copy can't be left stale. Nothing else
 catches that drift: every other check only ever looks at the `src/` copy.
 
+## Deploying to GitHub Pages
+
+Push to `main` and `.github/workflows/deploy-pages.yml` builds and deploys automatically.
+**One-time setup, done in the GitHub UI, not from here:** repo Settings → Pages → Source →
+"GitHub Actions". Until that's set, the workflow has nowhere to deploy to.
+
+GitHub Pages is static-only — no Node server, so `src/proxy.ts` can't run there at all
+(Next's static-export docs list Proxy under "Unsupported Features"). `next.config.ts`
+only switches to `output: "export"` when `GITHUB_PAGES=true` is set
+(`npm run build:pages` sets it, with `PAGES_BASE_PATH` defaulting to `/NID-web` for local
+testing) — the default `npm run build` and everything in **Verification** above stay
+exactly as they are, since `next start` (which the verify scripts all spawn) needs a
+normal server build, not a static export. See `docs/STAGE-0-NOTES.md` §13 for what that
+mode changes (the root `/` → `/en` redirect moves from the proxy to a plain
+`public/index.html`, `trailingSlash: true`) and how it was verified — by actually serving
+the exported output from a simulated subpath and clicking through it, not just building
+it.
+
+**Also one-time, in the Adobe Fonts dashboard:** add the live `*.github.io` domain to kit
+`svx1oks`'s allowed domains, or `futura-pt`/`bodoni-pt-variable`/`tonos` will silently
+fall back to system fonts on the deployed site (CLAUDE.md §2.10).
+
 ## Known deviations from the Figma spec
 
 - **`[locale]` is the app's actual root layout** — there is no `app/layout.tsx`. Required

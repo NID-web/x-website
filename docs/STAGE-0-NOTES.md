@@ -246,3 +246,64 @@ handle. `noUncheckedIndexedAccess`/JSON-literal inference makes an empty array i
 `never[]`; `src/app/head-shell.tsx` now asserts an explicit `FontManifest` type over the
 JSON import rather than relying on literal inference, so this doesn't need revisiting the
 next time the array's contents change shape.
+
+## 13. GitHub Pages deployment — a second, opt-in build mode, not a replacement
+
+GitHub Pages serves static files only — no Node.js server, so nothing in `src/proxy.ts`
+can run there. Next's own static-export docs list **Proxy** (and `redirects`/`headers`/
+`rewrites` in `next.config`) explicitly under "Unsupported Features"; confirmed locally —
+building with `output: "export"` while `src/proxy.ts` still exists doesn't error, it just
+warns ("Statically exporting … disables API routes and middleware") and silently drops it.
+
+**This could not become the project's default build mode** — `scripts/verify-{tokens,
+fonts,screenshot}.mjs` all spawn `next start` against the output of `next build`, and
+`output: "export"` doesn't produce anything `next start` can run (no server bundle, only
+`out/`). So `next.config.ts` only sets `output: "export"` when `GITHUB_PAGES=true` is in
+the environment (`isPagesExport` flag) — `npm run build` and the whole verify suite are
+completely unaffected; confirmed by running all of them after adding the flag: still
+593/593, 6/6, 25/25, clean tsc/lint. `npm run build:pages` sets the flag (plus a
+`PAGES_BASE_PATH` default of `/NID-web`, this repo's name) for local testing; the CI
+workflow supplies the repo's real base path instead of the hardcoded fallback.
+
+**The root-redirect problem.** With no proxy to rewrite `/` → `/en`, and no
+`app/page.tsx` at the true root (deliberately — see §3, `[locale]` has to be the actual
+root layout), a static export of `/` alone would just 404. Fixed with a plain
+`public/index.html` — copied into `out/` verbatim, since nothing else in the build
+produces a root `index.html` to conflict with — containing a `<meta http-equiv="refresh"
+content="0; url=en/">` plus a manual fallback link. The URL is relative (`en/`, not
+`/en/`), so it resolves correctly under whatever `basePath` is active without the redirect
+page needing to know it.
+
+**`trailingSlash: true`** (only under the Pages flag) so every route exports as
+`<path>/index.html` rather than `<path>.html` — the form every static host, including
+GitHub Pages, resolves via ordinary directory-index handling, rather than relying on a
+host-specific "serve `X.html` for a request to `X`" rewrite rule GitHub Pages may or may
+not apply consistently.
+
+**Verified end-to-end, not just built.** Ran `npm run build:pages`, copied `out/` into a
+scratch directory nested one level deep (`pages-sim/NID-web/`), served the parent with a
+plain static file server, and browsed to `http://localhost:PORT/NID-web/` — genuinely
+simulating a GitHub Pages project-site subpath rather than trusting `basePath` in theory.
+Confirmed: the root redirects to `/NID-web/en/`, the swatch page renders with full
+theming and the grid intact, clicking through does a real client-side navigation to
+`/NID-web/en/swatch/`, and every asset/link href in the emitted HTML is correctly
+prefixed with `/NID-web` (checked by `grep`, not just eyeballed) — no console errors
+beyond Typekit's routine "slow network, using fallback font while loading" notices.
+
+**Not fixed, same limitation as §4:** `out/404.html` (GitHub Pages' automatic fallback for
+any unmatched path) still embeds `<html>` as a bootstrap shell wrapping the real tree in
+an RSC payload rather than emitting it as literal parsed HTML — confirmed by inspecting
+the file directly. This is the same client-reconciliation issue §4 documents for the
+global not-found in server mode; static export prerenders the *page content* at build
+time but doesn't change *how* Next assembles that one response, so `THEME_SCRIPT` still
+can't run there. No worse than server mode, not better.
+
+**Two things only the user can do**, neither of which this session has credentials for:
+1. **Enable Pages** in the repo's Settings → Pages, source "GitHub Actions" — one-time,
+   required before `.github/workflows/deploy-pages.yml` has anywhere to deploy to.
+2. **Add the live domain to the Typekit kit's allowed-domains list** (Adobe Fonts
+   dashboard) — `localhost` and whatever domain the kit already allows won't cover
+   `*.github.io`; without this, `futura-pt`/`bodoni-pt-variable`/`tonos` will silently
+   fall back to system fonts on the deployed site even though everything works locally
+   (CLAUDE.md §2.10 territory again, this time for a real public URL instead of
+   localhost).

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      There is no root page.tsx by design (see docs/STAGE-0-NOTES.md §3 —
+      [locale] has to be the true root layout for next/root-params to work).
+      In server mode the proxy rewrites "/" to "/en"; static export can't
+      run the proxy at all (Next's own static-export docs list Proxy under
+      "Unsupported Features"), so this plain redirect stands in for it.
+      Relative href/url — works under any basePath without hardcoding it.
+    -->
+    <meta http-equiv="refresh" content="0; url=en/" />
+    <link rel="canonical" href="en/" />
+    <title>National Institute of Design</title>
+  </head>
+  <body>
+    <p><a href="en/">National Institute of Design</a></p>
+  </body>
+</html>

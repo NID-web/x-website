@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:pages": "GITHUB_PAGES=true PAGES_BASE_PATH=${PAGES_BASE_PATH:-/NID-web} next build",
     "start": "next start",
     "lint": "eslint . && node scripts/lint-tokens.mjs",
     "generate:tokens": "python3 design/generate.py && cp design/tokens/themes.css src/styles/themes.css && cp design/tokens/font-manifest.json src/lib/font-manifest.json",
