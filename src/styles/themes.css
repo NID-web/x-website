@@ -37,18 +37,17 @@
 
   /* ---- font families ----
      primary + secondary: Adobe Typekit kit svx1oks.
-     body: Merriweather Sans, loaded separately — see BODY_FACE in generate.py /
-     tokens/font-manifest.json. Provisional; will change again. */
+     body: tonos, from Adobe Typekit kit svx1oks (final — the kit already linked above, no second stylesheet). */
   --nid-font-primary: "futura-pt", "Futura", "Century Gothic", sans-serif;
   --nid-font-primary-display: "futura-pt-bold", "futura-pt", sans-serif;
   --nid-font-secondary: "bodoni-pt-variable", "Bodoni Moda", Didot, serif;
-  --nid-font-body: "Merriweather Sans", system-ui, sans-serif;
+  --nid-font-body: "tonos", "Merriweather Sans", system-ui, sans-serif;
 
   /* ---- font weights ----
      futura-pt          300 400 500 600 700 800  — Adobe Typekit kit svx1oks
      futura-pt-bold     700                        — Adobe Typekit kit svx1oks
      bodoni-pt-variable 400–800 variable, roman + italic — Adobe Typekit kit svx1oks
-     Merriweather Sans 300 400 600 700, roman + italic — Google Fonts */
+     tonos 300 400 600 700, roman + italic — Adobe Typekit kit svx1oks */
   --nid-weight-light: 300;         /* Futura PT Light  */
   --nid-weight-book: 400;          /* Futura PT Book   */
   --nid-weight-medium: 500;        /* Futura PT Medium */
@@ -57,10 +56,10 @@
   --nid-weight-bold: 800;          /* Futura PT Bold   */
   --nid-weight-serif-display: 600; /* Bodoni Display Demi   */
   --nid-weight-serif-subhead: 400; /* Bodoni Subhead        */
-  --nid-weight-body-light: 300;     /* Merriweather Sans Light    */
-  --nid-weight-body: 400;           /* Merriweather Sans Regular  */
-  --nid-weight-body-semibold: 600;  /* Merriweather Sans SemiBold */
-  --nid-weight-body-bold: 700;      /* Merriweather Sans Bold     */
+  --nid-weight-body-light: 300;     /* tonos Light    */
+  --nid-weight-body: 400;           /* tonos Regular  */
+  --nid-weight-body-semibold: 600;  /* tonos SemiBold */
+  --nid-weight-body-bold: 700;      /* tonos Bold     */
 
   /* ---- grid (desktop / 4 col default; overridden in media queries below) ---- */
   --nid-grid-columns: 4;

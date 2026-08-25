@@ -95,21 +95,25 @@ fastest way to see whether a token change was correct.
 
 ## Fonts
 
-Primary (`futura-pt`, 300–800) and secondary (`bodoni-pt-variable`, 400–800 variable,
-roman + italic) are Adobe Typekit kit `svx1oks`, loaded via `<link>` in `HeadShell` — not
-`next/font`. **The body face is Tonos no longer** — it's out of scope (design/NID-CONTEXT.md
-§6.4). The current one is provisional and swaps in one place: `BODY_FACE` at the top of
-`design/generate.py` drives `themes.css`, `tokens.json`, and the generated
+Primary (`futura-pt`, 300–800), secondary (`bodoni-pt-variable`, 400–800 variable, roman +
+italic), and body (`tonos`, **300/400/600/700 with italics — the kit now serves the full
+range**) are all Adobe Typekit kit `svx1oks`, loaded via one `<link>` in `HeadShell` — not
+`next/font`. **Tonos is the body face, final, not provisional** (design/NID-CONTEXT.md
+§6.4, dated note). It's still a single-place swap if that ever changes: `BODY_FACE` at the
+top of `design/generate.py` drives `themes.css`, `tokens.json`, and the generated
 `design/tokens/font-manifest.json`, which `HeadShell` and `scripts/verify-fonts.mjs` both
-read at runtime — no family name or stylesheet URL hardcoded in either. See
-`docs/STAGE-0-NOTES.md` §11 for the mapping and a demonstrated swap.
+read at runtime — no family name, stylesheet URL, or preconnect hardcoded in either. See
+`docs/STAGE-0-NOTES.md` §11 for the mapping and a demonstrated swap (to a throwaway
+family, while Merriweather Sans briefly stood in for Tonos).
 
 **Confirmed** (`npm run verify:fonts`): Heavy reads 700, Bold reads 800 — not shifted.
-`bodoni-pt-variable` has a working `opsz` axis. Fonts loaded fine here; if the Typekit
-families don't load elsewhere, it's the kit's domain allowlist, not the code — "don't
-substitute a Google font" means *that* (don't silently swap a failing Typekit face for a
-lookalike), not that Google/OFL fonts are banned. The body face is loaded from Google
-Fonts on purpose.
+`bodoni-pt-variable` has a working `opsz` axis. All four Tonos weights are real,
+separately-loaded `@font-face` cuts, not a font-matching fallback illusion — verified by
+loading each one explicitly and inspecting `document.fonts`, not `document.fonts.check()`
+(which would report success via nearest-weight substitution even for a missing cut).
+Fonts loaded fine here; if they don't load elsewhere, it's the kit's domain allowlist, not
+the code — "don't substitute a Google font" means don't silently swap a failing Typekit
+face for a lookalike, not that Google/OFL fonts are banned generally.
 
 ---
 

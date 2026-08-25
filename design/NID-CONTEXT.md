@@ -504,12 +504,20 @@ The Figma file's typography *reference page* and its actual *variable values* di
 
 ### 6.4 The Tonos problem — read before you start
 
-**Update, 2026-08-22: Tonos is out of scope.** It is retired from this build. The
-provisional replacement is **Merriweather Sans**, loaded from Google Fonts — provisional
-because the body face will change again, so the swap was built as a single-place edit
-(`BODY_FACE` in `design/generate.py`; see `docs/STAGE-0-NOTES.md` §11) rather than a
-one-off substitution. The rest of this section is kept as the historical record of why
-Tonos was dropped.
+**Update, 2026-08-22: Tonos is back in scope — final decision, not provisional.** It was
+briefly retired in favour of a provisional Merriweather Sans stand-in; that's reversed.
+The Typekit kit now carries the full weight range this spec needs — 300/400/600/700, with
+italics for every one of them — so all four `Body/*` weights are real cuts, not the
+two-cut substitution the rest of this section describes below. Confirmed by loading each
+weight explicitly and inspecting the actual `@font-face` entries `document.fonts` reports
+(`scripts/verify-fonts.mjs`), not just a font-matched `document.fonts.check()`, which
+would report success via nearest-weight fallback even for a missing cut. Tonos ships in
+the same Typekit kit as Futura PT and Bodoni PT VF — one `<link>`, no separate stylesheet.
+Still a single-place edit if that ever needs to change again (`BODY_FACE` in
+`design/generate.py`; see `docs/STAGE-0-NOTES.md` §11). The rest of this section is kept
+as the historical record of the original Figma-authoring-environment problem, which this
+update does not claim to resolve — `loadFontAsync` inside Figma is a separate concern from
+what the kit serves to a browser.
 
 All eight `Body/*` styles bind their family to the variable `Font/Body` = **Tonos**. In the Figma environment this font cannot be loaded at all: it is not in the available family list, `loadFontAsync` fails, and as a result no body text can be created or edited programmatically, and no component containing body text can be instanced by script. The design file has been progressing around this limitation.
 

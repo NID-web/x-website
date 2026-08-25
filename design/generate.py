@@ -96,33 +96,23 @@ SPACING = [0, 2, 4, 8, 12, 16, 24, 32, 48, 56, 64]
 # this, re-run generate.py, and copy tokens/{themes.css,font-manifest.json}
 # into src/{styles,lib}/ — nothing else needs hand-editing.
 BODY_FACE = {
-    "family": "Merriweather Sans",             # CSS font-family display name
-    "fallback": ["system-ui", "sans-serif"],   # after the primary family
-    # Google Fonts css2 URL for the variable range this design needs (roman
-    # + italic, weight 300-800). None means the face is served by the
-    # Typekit kit already linked in HeadShell — no second stylesheet needed.
-    "stylesheetUrl": (
-        "https://fonts.googleapis.com/css2"
-        "?family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&display=swap"
-    ),
-    # Explicit preconnect origins this provider needs beyond what the
-    # stylesheet URL itself reveals. Google Fonts splits its CSS host
-    # (fonts.googleapis.com — not CORS-fetched) from its font-binary host
-    # (fonts.gstatic.com — is CORS-fetched, needs crossOrigin); dropping the
-    # second preconnect delays first paint of body text by a connection
-    # setup, exactly the cost `display=swap` exists to avoid. Omit this key
-    # entirely for a provider with no such second origin — resolve_preconnect()
-    # below derives a single same-origin entry from stylesheetUrl instead, so
-    # the common case needs no extra config.
-    "preconnect": [
-        {"origin": "https://fonts.googleapis.com", "crossOrigin": False},
-        {"origin": "https://fonts.gstatic.com", "crossOrigin": True},
-    ],
+    "family": "tonos",                                     # Typekit CSS family name
+    "fallback": ["Merriweather Sans", "system-ui", "sans-serif"],
+    # Tonos ships in the same Typekit kit (svx1oks) already linked in
+    # HeadShell for futura-pt/bodoni-pt-variable — None means exactly that:
+    # no second stylesheet, no preconnect of its own (resolve_preconnect()
+    # below returns [] when both this and "preconnect" are unset). Final
+    # decision, not provisional — the kit now serves 300/400/600/700 with
+    # italics, so all four spec weights are real cuts, no substitution.
+    "stylesheetUrl": None,
     "weights": {"light": 300, "regular": 400, "semibold": 600, "bold": 700},
 }
 
 def body_font_css():
-    return '"%s", %s' % (BODY_FACE["family"], ", ".join(BODY_FACE["fallback"]))
+    def maybe_quote(name):
+        return '"%s"' % name if " " in name else name
+    parts = ['"%s"' % BODY_FACE["family"]] + [maybe_quote(f) for f in BODY_FACE["fallback"]]
+    return ", ".join(parts)
 
 def resolve_preconnect():
     if BODY_FACE.get("preconnect"):
@@ -270,10 +260,15 @@ w("  --nid-radius-pill: 24px;      /* Button-type CTA, Icon Button */")
 w("  --nid-radius-circle: 9999px;")
 w("  --nid-radius-hero: 64px;      /* top-left corner of a secondary-page hero only */")
 w("")
+if BODY_FACE["stylesheetUrl"] is None:
+    body_source = "Adobe Typekit kit svx1oks"
+    body_note = "final — the kit already linked above, no second stylesheet"
+else:
+    body_source = "an external stylesheet"
+    body_note = "provisional — see BODY_FACE in generate.py / tokens/font-manifest.json"
 w("  /* ---- font families ----")
 w("     primary + secondary: Adobe Typekit kit svx1oks.")
-w("     body: %s, loaded separately — see BODY_FACE in generate.py /" % BODY_FACE["family"])
-w("     tokens/font-manifest.json. Provisional; will change again. */")
+w("     body: %s, from %s (%s). */" % (BODY_FACE["family"], body_source, body_note))
 w('  --nid-font-primary: "futura-pt", "Futura", "Century Gothic", sans-serif;')
 w('  --nid-font-primary-display: "futura-pt-bold", "futura-pt", sans-serif;')
 w('  --nid-font-secondary: "bodoni-pt-variable", "Bodoni Moda", Didot, serif;')
@@ -284,8 +279,12 @@ w("     futura-pt          300 400 500 600 700 800  — Adobe Typekit kit svx1ok
 w("     futura-pt-bold     700                        — Adobe Typekit kit svx1oks")
 w("     bodoni-pt-variable 400–800 variable, roman + italic — Adobe Typekit kit svx1oks")
 w(
-    "     %s %s, roman + italic — Google Fonts */"
-    % (BODY_FACE["family"], " ".join(str(v) for v in BODY_FACE["weights"].values()))
+    "     %s %s, roman + italic — %s */"
+    % (
+        BODY_FACE["family"],
+        " ".join(str(v) for v in BODY_FACE["weights"].values()),
+        body_source,
+    )
 )
 w("  --nid-weight-light: 300;         /* Futura PT Light  */")
 w("  --nid-weight-book: 400;          /* Futura PT Book   */")

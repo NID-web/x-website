@@ -65,21 +65,44 @@ async function main() {
     check("futura-pt loaded (700 32px)", families.futura);
     check("bodoni-pt-variable loaded (600 28px)", families.bodoni);
 
-    // The body face — family name and every weight it comes from the
-    // manifest, so this loop checks whatever BODY_FACE currently says
-    // without needing to be edited when it changes.
+    // The body face — every weight it claims, read from the manifest, so
+    // this checks whatever BODY_FACE currently says without needing to be
+    // edited when it changes. Deliberately NOT document.fonts.check(): that
+    // does font-matching, so it can report success via the browser's
+    // nearest-weight fallback even when the exact cut is missing (e.g. it
+    // would happily "pass" a check for 600 by silently substituting 700).
+    // To prove every spec weight is a real, separately loaded @font-face —
+    // not a fallback standing in for it — load each one explicitly and
+    // inspect the actual entries in document.fonts for one that matches
+    // and has finished loading.
     const bodyChecks = await page.evaluate(
-      ({ family, weights }) =>
-        Object.fromEntries(
-          Object.entries(weights).map(([label, weight]) => [
-            label,
-            document.fonts.check(`${weight} 16px "${family}"`),
-          ]),
-        ),
+      async ({ family, weights }) => {
+        const results = {};
+        for (const [label, weight] of Object.entries(weights)) {
+          await document.fonts.load(`${weight} 16px "${family}"`);
+          let matched = false;
+          document.fonts.forEach((face) => {
+            if (matched || face.status !== "loaded") return;
+            const faceFamily = face.family.replace(/^["']|["']$/g, "").toLowerCase();
+            if (faceFamily !== family.toLowerCase()) return;
+            const parts = face.weight.split(/\s+/).map(Number);
+            const inRange =
+              parts.length === 1
+                ? parts[0] === weight
+                : weight >= parts[0] && weight <= parts[1];
+            if (inRange) matched = true;
+          });
+          results[label] = matched;
+        }
+        return results;
+      },
       { family: BODY.family, weights: BODY.weights },
     );
     for (const [label, weight] of Object.entries(BODY.weights)) {
-      check(`${BODY.family} ${label} loaded (${weight} 16px)`, bodyChecks[label]);
+      check(
+        `${BODY.family} ${label} has a real @font-face cut loaded (${weight} 16px, not a fallback match)`,
+        bodyChecks[label],
+      );
     }
 
     if (FAIL.length) {

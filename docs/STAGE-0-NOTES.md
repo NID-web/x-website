@@ -143,46 +143,52 @@ widths and confirm the axis exists, then discards them. Nothing in `themes.css` 
 `--nid-type-*-opsz` token switched per style, the way `Display Demi` vs `Subhead Regular`
 are meant to differ optically) is Stage 1+ work, not done here.
 
-## 11. Tonos retired — the body face is now a single-place swap
+## 11. The body face is a single-place swap — briefly Merriweather Sans, now Tonos again, final
 
-Tonos is out of scope as of this update (`design/NID-CONTEXT.md` §6.4). The provisional
-replacement, **Merriweather Sans**, is driven entirely by one `BODY_FACE` dict at the top
-of `design/generate.py` — family, fallback stack, Google Fonts stylesheet URL (`None`
-would mean "served by the Typekit kit instead"), and the four weight numbers. Everything
-else derives from it:
+Tonos was retired for a few commits (provisional Merriweather Sans, loaded from Google
+Fonts, while the kit's weight coverage was in question), then reinstated — **final, not
+provisional** (`design/NID-CONTEXT.md` §6.4, dated note). The kit now carries
+300/400/600/700 with italics, so all four spec weights are real cuts, not the historical
+two-cut substitution. Whichever face is active, one `BODY_FACE` dict at the top of
+`design/generate.py` — family, fallback stack, stylesheet URL (`None` means "served by
+the Typekit kit already linked in `HeadShell`"), an optional explicit `preconnect` list,
+and the four weight numbers — drives everything:
 
 - `themes.css`: `--nid-font-body` and four `--nid-weight-body-*` tokens
-  (`-light`/base/`-semibold`/`-bold` = 300/400/600/700 — a real restoration of the spec's
-  four weights, not the old two-cut substitution, since Merriweather Sans is an actual
-  300–800 variable family with true italics).
+  (`-light`/base/`-semibold`/`-bold` = 300/400/600/700).
 - `tokens.json`: `typography.fonts.body`.
-- `design/tokens/font-manifest.json` (new): `{ body: { family, cssFamily,
-  stylesheetUrl, weights } }` — the one JSON both TypeScript and Node scripts read.
-- `src/app/head-shell.tsx` imports the manifest and links the Google Fonts stylesheet
-  (with a `fonts.googleapis.com` + `fonts.gstatic.com` preconnect) only when
-  `stylesheetUrl` isn't null — no literal URL or family name in the component.
-- `scripts/verify-fonts.mjs` reads `design/tokens/font-manifest.json` directly and builds
-  its `document.fonts.check(...)` calls from `BODY.family`/`BODY.weights` — no literal
-  `"tonos"` or `"merriweather-sans"` string anywhere in the file (checked with `grep`).
+- `design/tokens/font-manifest.json`: `{ body: { family, cssFamily, stylesheetUrl,
+  preconnect, weights } }` — the one JSON both TypeScript and Node scripts read. For
+  Tonos, `stylesheetUrl` and `preconnect` are `null`/`[]`: nothing to add beyond the
+  Typekit `<link>` already there.
+- `src/app/head-shell.tsx` imports the manifest and only renders a second stylesheet
+  link (plus whatever `preconnect` entries it declares) when `stylesheetUrl` isn't
+  null — no literal URL, preconnect origin, or family name in the component; with
+  Tonos this block renders nothing at all, exercising exactly that null path.
+- `scripts/verify-fonts.mjs` reads `design/tokens/font-manifest.json` directly and
+  builds its checks from `BODY.family`/`BODY.weights` — no literal `"tonos"` or any
+  other family string anywhere in the file (checked with `grep`).
 
-**Demonstrated, not just designed to work:** swapped `BODY_FACE.family` to a throwaway
-third family (`"Public Sans"`, real Google Font, same weight range), re-ran
-`generate.py`, copied `tokens/{themes.css,font-manifest.json}` into
+**Demonstrated, not just designed to work:** while Merriweather Sans was active, swapped
+`BODY_FACE.family` to a throwaway third family (`"Public Sans"`, real Google Font, same
+weight range), re-ran `generate.py`, copied `tokens/{themes.css,font-manifest.json}` into
 `src/{styles,lib}/` — the only two files anyone touched. Hashed `scripts/verify-fonts.mjs`
 and `src/app/head-shell.tsx` before and after: identical. Ran `verify-fonts.mjs`
 unmodified: **6/6 passed against Public Sans** (proof it genuinely re-resolved the new
 family rather than silently still checking the old one — if the family were hardcoded
-anywhere, checking a font that was never loaded would have failed). Swapped `BODY_FACE`
-back to Merriweather Sans, regenerated, recopied, rebuilt: 593/593 (`verify:tokens`), 6/6
-(`verify:fonts`), 25/25 (`verify:design`) all green again.
+anywhere, checking a font that was never loaded would have failed). Swapped back,
+regenerated, recopied, rebuilt: green again. The Tonos reinstatement is the same
+single-edit-and-regenerate move for real, not a repeat of the throwaway demo.
 
-**Why Google Fonts `<link>` and not `next/font`, for now:** `next/font` would put the
-family name back into TypeScript (a `next/font/google` import call names the family as a
-literal), which breaks the one-place rule this whole architecture exists to enforce while
-the face is still provisional. Once it's final, self-hosting via `next/font/local` is the
-right move — it removes the runtime dependency on Google's CDN and gets font-display
-control without a second stylesheet round-trip. That's a `BODY_FACE`/manifest shape
-change (stylesheetUrl → local file paths) for a later session, not a Stage 0 concern.
+**Why not `next/font`:** a `next/font/google` import call names the family as a literal,
+which would put it back into TypeScript and break the one-place rule — moot for Tonos
+specifically, since it ships in the same Typekit kit as the other two families and was
+never a `next/font/google` candidate anyway, but still the reason a future
+Google-Fonts-hosted face wouldn't use `next/font` either while still provisional. Once a
+body face is both external and final, self-hosting via `next/font/local` is the right
+move — removes the CDN dependency and gets font-display control without a second
+stylesheet round-trip. That's a `BODY_FACE`/manifest shape change (`stylesheetUrl` → local
+file paths) for whenever it's actually needed, not built here.
 
 ## 12. §11 had a hole: nothing enforced that the src/ copies actually got made
 
@@ -225,8 +231,18 @@ binaries are CORS-fetched and the CSS host isn't). `resolve_preconnect()` in
 derived from `stylesheetUrl` when `BODY_FACE` doesn't set one — so a provider with no
 second origin needs zero extra config. The **fully resolved** array — never a bare
 origin — is what lands in `font-manifest.json`; `HeadShell` does nothing but `.map()` it
-into `<link>` tags, with no URL-parsing or provider knowledge of its own. Verified by
-curling the rendered page: `<link rel="preconnect" href="https://fonts.googleapis.com"/>`
-(no `crossorigin`) followed by
-`<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>`, both
-ahead of the stylesheet link.
+into `<link>` tags, with no URL-parsing or provider knowledge of its own. Verified at the
+time (Merriweather Sans active) by curling the rendered page:
+`<link rel="preconnect" href="https://fonts.googleapis.com"/>` (no `crossorigin`)
+followed by `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>`,
+both ahead of the stylesheet link.
+
+Now that the body face is Tonos again (§11) — `stylesheetUrl: None`, no `preconnect` key
+set — `resolve_preconnect()` takes its other branch (`if not url: return []`) and
+`font-manifest.json` carries `"preconnect": []`. `HeadShell`'s map produces no `<link>`
+tags at all, and the whole conditional block is skipped since `stylesheetUrl` is falsy —
+real use of the empty-list path, not just the Google Fonts path this feature was built to
+handle. `noUncheckedIndexedAccess`/JSON-literal inference makes an empty array infer as
+`never[]`; `src/app/head-shell.tsx` now asserts an explicit `FontManifest` type over the
+JSON import rather than relying on literal inference, so this doesn't need revisiting the
+next time the array's contents change shape.

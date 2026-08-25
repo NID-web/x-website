@@ -61,8 +61,10 @@ body face covers the script.
 
 ### Changing the body face
 
-The current body face (Merriweather Sans, loaded from Google Fonts) is provisional and
-will change again. It's a single-place edit: change `BODY_FACE` at the top of
+The current body face is **Tonos** — final, not provisional (`design/NID-CONTEXT.md`
+§6.4). It ships in the same Adobe Typekit kit as Futura PT and Bodoni PT VF, so
+`BODY_FACE.stylesheetUrl` is `null` and no separate `<link>` or preconnect is needed. If
+it ever changes again, it's still a single-place edit: change `BODY_FACE` at the top of
 `design/generate.py`, then run `npm run generate:tokens` (regenerates *and* copies the
 outputs into `src/{styles,lib}/` in one step — don't run `python3 design/generate.py`
 directly, or the copy is easy to forget and `npm run verify:parity` will catch the
@@ -72,8 +74,9 @@ from `font-manifest.json` at runtime; `HeadShell` does no URL-parsing of its own
 maps the manifest's `preconnect` array to `<link>` tags. If a provider needs more than
 one preconnect origin (Google Fonts, for instance, splits its CSS host from its
 CORS-fetched font-binary host), declare them explicitly in `BODY_FACE.preconnect` — see
-`docs/STAGE-0-NOTES.md` §§11–12 for the mapping details and three demonstrated proofs
-(a swap-and-back-again, and a deliberate drift caught by `verify:parity`).
+`docs/STAGE-0-NOTES.md` §§11–12 for the mapping details and the demonstrated proofs (a
+swap-and-back-again to a throwaway family, and a deliberate drift caught by
+`verify:parity`).
 
 ## The one rule that matters most: components only name layer-2 tokens
 
