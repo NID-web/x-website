@@ -34,7 +34,8 @@ jobs:
 
       # Reads the repo's actual Pages configuration (project vs. user/org
       # site) so the base path doesn't have to be hardcoded here — it comes
-      # out as e.g. "/NID-web" for a project page, "" for a user/org page.
+      # out as "/NID-website" for this repo as a project page, "" for a
+      # user/org page.
       - name: Setup Pages
         id: setup_pages
         uses: actions/configure-pages@v5

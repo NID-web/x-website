@@ -142,14 +142,15 @@ catches that drift: every other check only ever looks at the `src/` copy.
 
 ## Deploying to GitHub Pages
 
-Push to `main` and `.github/workflows/deploy-pages.yml` builds and deploys automatically.
+Live at `https://nid-web.github.io/NID-website/` once Pages is enabled (below). Push to
+`main` and `.github/workflows/deploy-pages.yml` builds and deploys automatically.
 **One-time setup, done in the GitHub UI, not from here:** repo Settings → Pages → Source →
 "GitHub Actions". Until that's set, the workflow has nowhere to deploy to.
 
 GitHub Pages is static-only — no Node server, so `src/proxy.ts` can't run there at all
 (Next's static-export docs list Proxy under "Unsupported Features"). `next.config.ts`
 only switches to `output: "export"` when `GITHUB_PAGES=true` is set
-(`npm run build:pages` sets it, with `PAGES_BASE_PATH` defaulting to `/NID-web` for local
+(`npm run build:pages` sets it, with `PAGES_BASE_PATH` defaulting to `/NID-website` for local
 testing) — the default `npm run build` and everything in **Verification** above stay
 exactly as they are, since `next start` (which the verify scripts all spawn) needs a
 normal server build, not a static export. See `docs/STAGE-0-NOTES.md` §13 for what that

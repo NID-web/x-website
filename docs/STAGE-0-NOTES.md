@@ -262,8 +262,14 @@ fonts,screenshot}.mjs` all spawn `next start` against the output of `next build`
 the environment (`isPagesExport` flag) — `npm run build` and the whole verify suite are
 completely unaffected; confirmed by running all of them after adding the flag: still
 593/593, 6/6, 25/25, clean tsc/lint. `npm run build:pages` sets the flag (plus a
-`PAGES_BASE_PATH` default of `/NID-web`, this repo's name) for local testing; the CI
-workflow supplies the repo's real base path instead of the hardcoded fallback.
+`PAGES_BASE_PATH` default for local testing) for local testing; the CI workflow supplies
+the repo's real base path via `actions/configure-pages` instead of the hardcoded fallback,
+so the fallback only has to be *a* valid subpath for local testing to work, not the exact
+one — it does need to be current, though: `git push` mid-session revealed this repo had
+been renamed/transferred to `NID-web/NID-website` (GitHub redirected the push
+transparently), so the fallback is `/NID-website`, not the `/NID-web` originally assumed
+from the old remote URL. Live at `https://nid-web.github.io/NID-website/` once Pages is
+enabled.
 
 **The root-redirect problem.** With no proxy to rewrite `/` → `/en`, and no
 `app/page.tsx` at the true root (deliberately — see §3, `[locale]` has to be the actual
@@ -288,7 +294,11 @@ Confirmed: the root redirects to `/NID-web/en/`, the swatch page renders with fu
 theming and the grid intact, clicking through does a real client-side navigation to
 `/NID-web/en/swatch/`, and every asset/link href in the emitted HTML is correctly
 prefixed with `/NID-web` (checked by `grep`, not just eyeballed) — no console errors
-beyond Typekit's routine "slow network, using fallback font while loading" notices.
+beyond Typekit's routine "slow network, using fallback font while loading" notices. (Ran
+before the repo-rename above was discovered, hence `/NID-web` here instead of the real
+`/NID-website` — doesn't affect what the test proves: `basePath` prefixing is a Next.js
+config mechanism, not a string this codebase hardcodes anywhere, so the specific value
+under test was never the point.)
 
 **Not fixed, same limitation as §4:** `out/404.html` (GitHub Pages' automatic fallback for
 any unmatched path) still embeds `<html>` as a bootstrap shell wrapping the real tree in
