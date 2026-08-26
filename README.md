@@ -142,10 +142,30 @@ catches that drift: every other check only ever looks at the `src/` copy.
 
 ## Deploying to GitHub Pages
 
-Live at `https://nid-web.github.io/NID-website/` once Pages is enabled (below). Push to
-`main` and `.github/workflows/deploy-pages.yml` builds and deploys automatically.
-**One-time setup, done in the GitHub UI, not from here:** repo Settings → Pages → Source →
-"GitHub Actions". Until that's set, the workflow has nowhere to deploy to.
+**Not currently deploying — blocked, and the workflow is dormant on purpose.** This repo
+is private, and GitHub Pages can't publish from a private repo on the **Free** plan
+(Pages is public-repos-only there; private-repo Pages needs Pro/Team/Enterprise). So
+`actions/configure-pages` fails with *"Get Pages site failed…"*, and enabling Pages in
+Settings does **not** fix it — on Free + private, there's nothing to enable.
+
+`.github/workflows/deploy-pages.yml` is therefore `workflow_dispatch`-only (no `push:`
+trigger), so it doesn't put a red X on every push while this is unresolved. **The
+workflow itself is correct** and the static export was verified end-to-end locally
+(`docs/STAGE-0-NOTES.md` §13). Unblocking it is an account decision, not a code change:
+
+- **Make the repo public** — free, works immediately. Also makes `design/NID-CONTEXT.md`
+  (Figma IDs, open IA decisions, incomplete-work notes) public. No credentials in the
+  repo; that's been checked.
+- **Move to a paid plan** (Pro/Team, ~$4/mo) and keep the source private. Note the
+  *published site* is still world-readable either way — access-controlled Pages sites
+  need Enterprise Cloud.
+- **Host elsewhere** (Vercel / Netlify / Cloudflare Pages) if the site itself shouldn't be
+  public — they offer password/SSO protection on free tiers. The static export already
+  works; only the workflow would change.
+
+Once unblocked: enable Settings → Pages → Source → "GitHub Actions" if applicable, re-add
+the `push:` trigger to the workflow, and it goes live at
+`https://nid-web.github.io/NID-website/`.
 
 GitHub Pages is static-only — no Node server, so `src/proxy.ts` can't run there at all
 (Next's static-export docs list Proxy under "Unsupported Features"). `next.config.ts`

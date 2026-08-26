@@ -346,12 +346,41 @@ warning. Checked the release notes first: these majors are Node-runtime upgrades
 changes, and `configure-pages`' `outputs.base_path` (the one output this workflow depends
 on) is unchanged.
 
-**Two things only the user can do**, neither of which this session has credentials for:
-1. **Enable Pages** in the repo's Settings → Pages, source "GitHub Actions" — one-time,
-   required before `.github/workflows/deploy-pages.yml` has anywhere to deploy to.
-2. **Add the live domain to the Typekit kit's allowed-domains list** (Adobe Fonts
-   dashboard) — `localhost` and whatever domain the kit already allows won't cover
-   `*.github.io`; without this, `futura-pt`/`bodoni-pt-variable`/`tonos` will silently
-   fall back to system fonts on the deployed site even though everything works locally
-   (CLAUDE.md §2.10 territory again, this time for a real public URL instead of
-   localhost).
+**Blocked on repo visibility — the workflow is dormant, deliberately.** The second CI run
+got past `npm ci` (so the lockfile fix above held) and failed at *Setup Pages*:
+
+```
+Get Pages site failed. Please verify that the repository has Pages enabled and
+configured to build using GitHub Actions … Error: Not Found
+```
+
+The obvious read is "just enable Pages in Settings" — that was the advice given, and it
+was wrong. **This repo is private, and GitHub Pages is public-repos-only on the Free
+plan** (private-repo Pages requires Pro/Team/Enterprise —
+[GitHub's plans](https://docs.github.com/get-started/learning-about-github/githubs-products)).
+On Free + private there is no Pages setting to enable, so no amount of clicking fixes it.
+
+Worth checking visibility *before* assuming a Pages problem is a settings problem: note
+that `git ls-remote` appeared to succeed unauthenticated here, which briefly suggested the
+repo was public — that was the macOS keychain credential helper answering silently.
+`GIT_TERMINAL_PROMPT=0` blocks *prompting*, not helpers; the real test is
+`git -c credential.helper= ls-remote`, checked against a known-public repo as a control.
+
+`.github/workflows/deploy-pages.yml` is now `workflow_dispatch`-only — the `push:` trigger
+was removed so this stops failing on every push while the question is open. The workflow
+is otherwise correct and verified; **do not re-add the push trigger** until the blocker is
+actually resolved (repo made public, or a paid plan + Pages enabled), or it just restores
+a red X on every push. The trigger comment in the workflow says the same thing, in place.
+
+Three ways out, all of them decisions rather than code: make the repo public (free,
+immediate, but also publishes this file — Figma IDs, open IA decisions, incomplete-work
+notes; no credentials, that was scanned for); a paid plan keeping the source private (the
+*published site* stays world-readable regardless — private Pages sites are Enterprise
+Cloud only); or a host with password/SSO protection (Vercel/Netlify/Cloudflare), where the
+static export works unchanged and only the workflow differs.
+
+**And whenever it does go live:** add the live domain to the Typekit kit's allowed-domains
+list (Adobe Fonts dashboard). `localhost` won't cover `*.github.io`; without it
+`futura-pt`/`bodoni-pt-variable`/`tonos` silently fall back to system fonts on the
+deployed site even though everything works locally (CLAUDE.md §2.10 again, this time for a
+real public URL).

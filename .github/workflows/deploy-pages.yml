@@ -1,9 +1,25 @@
 name: Deploy to GitHub Pages
 
+# DORMANT ON PURPOSE — manual trigger only, no `push:` trigger.
+#
+# This repo is private, and GitHub Pages cannot publish from a private
+# repository on the Free plan (Pages is public-repos-only there; private-repo
+# Pages needs Pro/Team/Enterprise). So `actions/configure-pages` fails with
+# "Get Pages site failed … verify that the repository has Pages enabled",
+# and it cannot be fixed by enabling Pages in Settings — on Free + private,
+# that option isn't available to enable. The workflow itself is correct and
+# was verified end-to-end locally (docs/STAGE-0-NOTES.md §13); the blocker is
+# purely repo visibility / account plan.
+#
+# Left on workflow_dispatch so it stops failing on every push while the
+# visibility question is open. To resume automatic deploys, resolve the
+# blocker first — make the repo public, or move it to a paid plan and enable
+# Settings → Pages → Source → "GitHub Actions" — THEN re-add:
+#   push:
+#     branches:
+#       - main
+# Re-adding the push trigger before that just restores a red X on every push.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
