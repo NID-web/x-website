@@ -65,7 +65,6 @@ These fail without an error. Most have already gone wrong once.
 - Static by default. Do not call `cookies()`/`headers()` in a layout — opts the whole app out of static rendering. The theme comes from the inline `<head>` script.
 - `src/styles/themes.css` is **generated** by `design/generate.py`. The four Stage 0 corrections are folded into it (STAGE-0-NOTES §1) — any *new* edit still needs the same treatment, or the next regeneration reverts it silently.
 - **There is no `src/app/layout.tsx`.** `[locale]/layout.tsx` is the real root layout — `next/root-params` stops walking at the first layout module, so a wrapping layout above `[locale]` hides the param. `app/not-found.tsx` needs its own `<html>`; both share `head-shell.tsx`'s `HeadShell`. Exception: the global not-found can't run `THEME_SCRIPT` at all (STAGE-0-NOTES §4).
-- GitHub Pages (`npm run build:pages`, `GITHUB_PAGES=true`) can't run `src/proxy.ts` or `next.config`'s `redirects`/`headers` at all — static export drops them silently. The `/` → `/en` redirect is `public/index.html`, not the proxy, on that path (STAGE-0-NOTES §13).
 
 ---
 
@@ -84,7 +83,6 @@ npm run verify:tokens    # 593 assertions: 540 semantic + scoped-theme + grid + 
 npm run verify:fonts     # every font family (Typekit + body face) loads + Bodoni opsz
 npm run verify:design    # re-checks design/tokens/ itself (python3 design/verify.py)
 npm run screenshot       # docs/screenshots/swatch-{1440,1024,768,390}.png
-npm run build:pages      # static export for GitHub Pages — separate mode, see README
 npx tsc --noEmit
 ```
 

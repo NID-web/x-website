@@ -247,69 +247,9 @@ handle. `noUncheckedIndexedAccess`/JSON-literal inference makes an empty array i
 JSON import rather than relying on literal inference, so this doesn't need revisiting the
 next time the array's contents change shape.
 
-## 13. GitHub Pages deployment — a second, opt-in build mode, not a replacement
+## 13. `package-lock.json` was out of sync — `npm install` hid it, `npm ci` caught it
 
-GitHub Pages serves static files only — no Node.js server, so nothing in `src/proxy.ts`
-can run there. Next's own static-export docs list **Proxy** (and `redirects`/`headers`/
-`rewrites` in `next.config`) explicitly under "Unsupported Features"; confirmed locally —
-building with `output: "export"` while `src/proxy.ts` still exists doesn't error, it just
-warns ("Statically exporting … disables API routes and middleware") and silently drops it.
-
-**This could not become the project's default build mode** — `scripts/verify-{tokens,
-fonts,screenshot}.mjs` all spawn `next start` against the output of `next build`, and
-`output: "export"` doesn't produce anything `next start` can run (no server bundle, only
-`out/`). So `next.config.ts` only sets `output: "export"` when `GITHUB_PAGES=true` is in
-the environment (`isPagesExport` flag) — `npm run build` and the whole verify suite are
-completely unaffected; confirmed by running all of them after adding the flag: still
-593/593, 6/6, 25/25, clean tsc/lint. `npm run build:pages` sets the flag (plus a
-`PAGES_BASE_PATH` default for local testing) for local testing; the CI workflow supplies
-the repo's real base path via `actions/configure-pages` instead of the hardcoded fallback,
-so the fallback only has to be *a* valid subpath for local testing to work, not the exact
-one — it does need to be current, though: `git push` mid-session revealed this repo had
-been renamed/transferred to `NID-web/NID-website` (GitHub redirected the push
-transparently), so the fallback is `/NID-website`, not the `/NID-web` originally assumed
-from the old remote URL. Live at `https://nid-web.github.io/NID-website/` once Pages is
-enabled.
-
-**The root-redirect problem.** With no proxy to rewrite `/` → `/en`, and no
-`app/page.tsx` at the true root (deliberately — see §3, `[locale]` has to be the actual
-root layout), a static export of `/` alone would just 404. Fixed with a plain
-`public/index.html` — copied into `out/` verbatim, since nothing else in the build
-produces a root `index.html` to conflict with — containing a `<meta http-equiv="refresh"
-content="0; url=en/">` plus a manual fallback link. The URL is relative (`en/`, not
-`/en/`), so it resolves correctly under whatever `basePath` is active without the redirect
-page needing to know it.
-
-**`trailingSlash: true`** (only under the Pages flag) so every route exports as
-`<path>/index.html` rather than `<path>.html` — the form every static host, including
-GitHub Pages, resolves via ordinary directory-index handling, rather than relying on a
-host-specific "serve `X.html` for a request to `X`" rewrite rule GitHub Pages may or may
-not apply consistently.
-
-**Verified end-to-end, not just built.** Ran `npm run build:pages`, copied `out/` into a
-scratch directory nested one level deep (`pages-sim/NID-web/`), served the parent with a
-plain static file server, and browsed to `http://localhost:PORT/NID-web/` — genuinely
-simulating a GitHub Pages project-site subpath rather than trusting `basePath` in theory.
-Confirmed: the root redirects to `/NID-web/en/`, the swatch page renders with full
-theming and the grid intact, clicking through does a real client-side navigation to
-`/NID-web/en/swatch/`, and every asset/link href in the emitted HTML is correctly
-prefixed with `/NID-web` (checked by `grep`, not just eyeballed) — no console errors
-beyond Typekit's routine "slow network, using fallback font while loading" notices. (Ran
-before the repo-rename above was discovered, hence `/NID-web` here instead of the real
-`/NID-website` — doesn't affect what the test proves: `basePath` prefixing is a Next.js
-config mechanism, not a string this codebase hardcodes anywhere, so the specific value
-under test was never the point.)
-
-**Not fixed, same limitation as §4:** `out/404.html` (GitHub Pages' automatic fallback for
-any unmatched path) still embeds `<html>` as a bootstrap shell wrapping the real tree in
-an RSC payload rather than emitting it as literal parsed HTML — confirmed by inspecting
-the file directly. This is the same client-reconciliation issue §4 documents for the
-global not-found in server mode; static export prerenders the *page content* at build
-time but doesn't change *how* Next assembles that one response, so `THEME_SCRIPT` still
-can't run there. No worse than server mode, not better.
-
-**The first CI run failed, and it was the lockfile, not the workflow.** `npm ci` refused
-to install:
+Discovered when a CI job ran `npm ci` and refused to install:
 
 ```
 npm ci can only install packages when your package.json and package-lock.json … are in sync
@@ -324,63 +264,22 @@ platform — the `package-lock.json` diff for the Prettier install actually show
 `node_modules/@emnapi/core` and `@emnapi/runtime` being *deleted*, and that went
 unremarked at the time. `npm install` tolerates the resulting inconsistency; `npm ci`
 (correctly, by design) refuses it. So the whole local pipeline stayed green while the
-lockfile was quietly unusable for a clean install.
+lockfile was quietly unusable for a clean install — by anyone cloning the repo, on a new
+machine, or in CI.
 
 Fixed by regenerating from scratch (`rm -rf node_modules package-lock.json && npm
 install`), which records all four `@emnapi` entries with their `optional: true` flags
-properly. **Verified the way the failure demanded — in a fresh `git clone`, not in the
+properly. **Verified the way the failure demanded — in a fresh `git clone`, not the
 working tree**: cloned the pushed repo into a scratch dir, ran `npm ci` (failed,
-reproducing CI exactly), regenerated, ran `npm ci` again (passed), then ran the full
-`GITHUB_PAGES=true … next build` and confirmed `out/` came out complete.
+reproducing the CI error exactly), regenerated, ran `npm ci` again (passed), then built
+clean. Re-ran the full suite afterwards in the working tree: `verify:parity` 2/2,
+`verify:tokens` 593/593, `verify:fonts` 6/6, `verify:design` 25/25, tsc and lint clean.
 
 **Lesson for anything that touches `package.json`:** `npm install` succeeding proves
-nothing about CI. Run `npm ci` — ideally in a clean clone — before assuming a dependency
-change is safe. Nothing in `npm run lint`/`verify:*` covers this, because they all run
-against an already-populated `node_modules`.
+nothing about a clean install. Run `npm ci` — ideally in a clean clone — before assuming a
+dependency change is safe. Nothing in `npm run lint`/`verify:*` covers this, because they
+all run against an already-populated `node_modules`.
 
-Also bumped every action in the workflow to current majors (`checkout@v7`,
-`setup-node@v7`, `cache@v6`, `configure-pages@v6`, `upload-pages-artifact@v5`,
-`deploy-pages@v5`) — the versions copied from the upstream Next.js template were old
-enough to trigger GitHub's "Node.js 20 is deprecated … forced to run on Node.js 24"
-warning. Checked the release notes first: these majors are Node-runtime upgrades, not API
-changes, and `configure-pages`' `outputs.base_path` (the one output this workflow depends
-on) is unchanged.
-
-**Blocked on repo visibility — the workflow is dormant, deliberately.** The second CI run
-got past `npm ci` (so the lockfile fix above held) and failed at *Setup Pages*:
-
-```
-Get Pages site failed. Please verify that the repository has Pages enabled and
-configured to build using GitHub Actions … Error: Not Found
-```
-
-The obvious read is "just enable Pages in Settings" — that was the advice given, and it
-was wrong. **This repo is private, and GitHub Pages is public-repos-only on the Free
-plan** (private-repo Pages requires Pro/Team/Enterprise —
-[GitHub's plans](https://docs.github.com/get-started/learning-about-github/githubs-products)).
-On Free + private there is no Pages setting to enable, so no amount of clicking fixes it.
-
-Worth checking visibility *before* assuming a Pages problem is a settings problem: note
-that `git ls-remote` appeared to succeed unauthenticated here, which briefly suggested the
-repo was public — that was the macOS keychain credential helper answering silently.
-`GIT_TERMINAL_PROMPT=0` blocks *prompting*, not helpers; the real test is
-`git -c credential.helper= ls-remote`, checked against a known-public repo as a control.
-
-`.github/workflows/deploy-pages.yml` is now `workflow_dispatch`-only — the `push:` trigger
-was removed so this stops failing on every push while the question is open. The workflow
-is otherwise correct and verified; **do not re-add the push trigger** until the blocker is
-actually resolved (repo made public, or a paid plan + Pages enabled), or it just restores
-a red X on every push. The trigger comment in the workflow says the same thing, in place.
-
-Three ways out, all of them decisions rather than code: make the repo public (free,
-immediate, but also publishes this file — Figma IDs, open IA decisions, incomplete-work
-notes; no credentials, that was scanned for); a paid plan keeping the source private (the
-*published site* stays world-readable regardless — private Pages sites are Enterprise
-Cloud only); or a host with password/SSO protection (Vercel/Netlify/Cloudflare), where the
-static export works unchanged and only the workflow differs.
-
-**And whenever it does go live:** add the live domain to the Typekit kit's allowed-domains
-list (Adobe Fonts dashboard). `localhost` won't cover `*.github.io`; without it
-`futura-pt`/`bodoni-pt-variable`/`tonos` silently fall back to system fonts on the
-deployed site even though everything works locally (CLAUDE.md §2.10 again, this time for a
-real public URL).
+*(This fix was originally made while setting up a GitHub Pages deploy, which has since
+been reverted. The lockfile problem was never Pages-specific — that CI run only surfaced
+a bug already sitting in the repo — so the fix stays.)*
