@@ -3,6 +3,97 @@
     "message": "That page doesn't exist.",
     "home": "National Institute of Design"
   },
+  "Home": {
+    "statement": "Curiosity. Craft. Purpose. Design that shapes tomorrow.",
+    "cta": {
+      "allNews": "All news",
+      "readAct": "Read the Act",
+      "learnMore": "Learn more",
+      "directorsNote": "Director's Note"
+    },
+    "study": {
+      "heading": "Study at NID",
+      "bdes": "B.DES",
+      "bdesMeta": "4 years at Ahmedabad",
+      "mdes": "M.DES",
+      "mdesMeta": "2 years at Ahmedabad, Gandhinagar & Bangalore",
+      "phd": "PH.D",
+      "phdMeta": "Ahmedabad",
+      "fdp": "FDP",
+      "fdpMeta": "2 years at Ahmedabad"
+    },
+    "academic": {
+      "overline": "Academic Calendar",
+      "r1": "Placement week",
+      "r2": "Orientation for M.Des & B.Des Batch 2026-2027",
+      "r3": "First Semester Commences",
+      "r4": "Faculty Meetings"
+    },
+    "news": {
+      "overline": "News & Events",
+      "r1": "North-East Artisans Honoured by Hon'ble President of India",
+      "r2": "Inauguration of the Incubation and Innovation Centre at NID",
+      "r3": "NID opens its KMC to the public for membership."
+    },
+    "nationalImportance": {
+      "serif": "Institute of National Importance",
+      "sub": "Passed unanimously by Parliament, a first for Indian design"
+    },
+    "alumni": {
+      "overline": "Notable Alumni",
+      "name": "Sujata Keshavan",
+      "bio": "GD Class of 1984. Pioneered brand design in India, co-founding Ray+Keshavan and shaping identities."
+    },
+    "drawing": {
+      "overline": "Workshop",
+      "title": "Drawing Dialogues"
+    },
+    "pride": {
+      "overline": "Pride of NID",
+      "name": "Dr. Lakshmi Murthy",
+      "bio": "From ceramics to menstrual health — bringing dignity to rural India, one reusable pad at a time."
+    },
+    "campuses": {
+      "title": "Campuses"
+    },
+    "callForPapers": {
+      "overline": "Call for Papers",
+      "title": "Shifting Paradigms"
+    },
+    "director": {
+      "quote": "The World of Indian Design is now in a leadership position to contribute to the Design of the World…"
+    },
+    "faculty": {
+      "heading": "Faculty Stalwarts",
+      "body": "Built by Sarabhais and shaped by Pupul Jayakar, Adit & M P Ranjan, H. Kumar Vyas, Dashrath Patel and Gajanan Upadhyaya, NID has a long legacy…"
+    },
+    "research": {
+      "title": "Research & Publications"
+    },
+    "youngDesigners": {
+      "overline": "Young Designers",
+      "title": "Hybrid Board Game for Business Thinking",
+      "byline": "Manish Yadav"
+    },
+    "kmc": {
+      "heading": "Knowledge Management Centre"
+    },
+    "footer": {
+      "careers": "Careers",
+      "ids": "Integrated Design Services",
+      "placements": "Placements",
+      "youngDesigners": "Young Designers",
+      "alumniReg": "NID Alumni Data Registration",
+      "tenders": "Tenders",
+      "pmVidyalaxmi": "PM Vidyalaxmi Scheme",
+      "rti": "Right to Information",
+      "privacy": "Privacy Policy",
+      "terms": "Terms & Conditions",
+      "sitemap": "Sitemap",
+      "contact": "Contact",
+      "collaborations": "Collaborations"
+    }
+  },
   "Swatch": {
     "title": "Design system swatch",
     "subtitle": "Stage 0 acceptance surface — every token, every theme, every breakpoint.",
