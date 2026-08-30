@@ -83,7 +83,7 @@ export function ThemeMenu({ id }: { id: string }) {
               onClick={() => pick(t)}
               className="flex min-w-0 flex-1 items-center gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
             >
-              <ThemeMotif />
+              <ThemeMotif theme={t} />
               <span className="truncate font-primary text-label text-text-primary">
                 {THEME_LABELS[t]}
               </span>

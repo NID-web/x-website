@@ -79,6 +79,9 @@ export type HomeTile =
       photo: MediaAsset;
       nameKey: CopyKey;
       bioKey?: CopyKey;
+      /** Craft pattern bed behind the portrait. Opt-in: in the design only
+       *  Notable Alumni carries one, Pride of NID does not. */
+      patternBed?: boolean;
     })
   | (Base & { kind: "pattern"; seed?: number })
   | (Base & {
@@ -114,9 +117,16 @@ export interface FooterContent {
   collaborations: MediaAsset;
 }
 
-/** Placeholder media — real Figma exports drop into public/home/ later; only
- *  the file swaps, no code change. Every asset keeps a real alt (the model
- *  requires it) and a square-ish natural size. */
+/** THE single place home imagery resolves. Everything under public/home/ is the
+ *  real design photography (verified image-by-image against the Figma Make
+ *  export's masters — same shots, web-sized), so nothing here is a placeholder
+ *  any more.
+ *
+ *  When the CMS serves media, this helper is the whole migration: change the
+ *  path it builds, or replace its call sites with server-provided MediaAssets,
+ *  and delete public/home/. No tile component references an image path
+ *  directly. Every asset keeps a real alt (the model requires it) and a
+ *  square-ish natural size. */
 function img(file: string, alt: string, w = 800, h = 800): MediaAsset {
   return { id: file, file: `/home/${file}`, alt, width: w, height: h };
 }
@@ -177,6 +187,7 @@ export const HOME_TILES: HomeTile[] = [
     photo: img("alumni-keshavan.jpg", "Portrait of Sujata Keshavan.", 400, 400),
     nameKey: "alumni.name",
     bioKey: "alumni.bio",
+    patternBed: true,
   },
   // ── row 3 ──────────────────────────────────────────────────────────────
   { id: "pattern-1", kind: "pattern", seed: 1 },
@@ -238,6 +249,7 @@ export const HOME_TILES: HomeTile[] = [
       img("faculty-3.jpg", "Faculty portrait.", 160, 160),
       img("faculty-4.jpg", "Faculty portrait.", 160, 160),
       img("faculty-5.jpg", "Faculty portrait.", 160, 160),
+      img("faculty-6.jpg", "Faculty portrait.", 160, 160),
     ],
     cta: { labelKey: "cta.learnMore", href: "/about/history" },
   },

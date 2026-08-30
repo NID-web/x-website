@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import clsx from "clsx";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import { ThemeMotif } from "@/components/header/ThemeMotif";
 import { ThemeMenu } from "@/components/header/ThemeMenu";
 import { Icon } from "@/components/spine/Icon";
@@ -11,6 +12,7 @@ import { Icon } from "@/components/spine/Icon";
 // owns open state, outside-click and Escape. The motif reads the active accent
 // tokens, so it always renders in the current theme without scoping.
 export function ThemeSwitcher() {
+  const { theme } = useTheme();
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -46,7 +48,7 @@ export function ThemeSwitcher() {
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong",
         )}
       >
-        <ThemeMotif />
+        <ThemeMotif theme={theme} />
         <Icon
           name="caret-down"
           className={clsx(

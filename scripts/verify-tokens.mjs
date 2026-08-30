@@ -50,6 +50,31 @@ async function waitForServer(timeoutMs = 30_000) {
 
 const themeCap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 
+// Navigate to the swatch page and wait until it is actually MEASURABLE.
+//
+// These two navigations used to wait for network idle, which never happens
+// here: the Typekit stylesheet keeps the network from ever going quiet, so the
+// run died on a navigation timeout before a single assertion executed. Network
+// silence was never what these checks need anyway — every one of them reads a
+// computed value (custom properties, font-size/weight/letter-spacing, colours)
+// or a rect, all of which come from CSS. None needs the font FILE to arrive.
+//
+// So wait on the real precondition instead: stylesheet applied and page
+// rendered. That is deterministic, independent of the network, and stricter
+// than waiting for silence — an unstyled page fails loudly here rather than
+// being silently measured as zeroes.
+async function gotoSwatch(page) {
+  await page.goto(`${BASE}/en/swatch`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => {
+    const root = getComputedStyle(document.documentElement);
+    return (
+      root.getPropertyValue("--nid-grid-columns").trim() !== "" &&
+      document.querySelector("[data-nid-shell]") !== null &&
+      document.querySelectorAll("[data-nid-token]").length > 0
+    );
+  });
+}
+
 const BREAKPOINTS = [
   {
     width: 1440,
@@ -115,7 +140,7 @@ async function main() {
     browser = await chromium.launch({ args: ["--hide-scrollbars"] });
     const page = await browser.newPage();
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto(`${BASE}/en/swatch`, { waitUntil: "networkidle" });
+    await gotoSwatch(page);
 
     // ---- 540 semantic assertions, read from the already-rendered panels ----
     // This IS the scoped-theme test, not a separate concern bolted on: each
@@ -206,7 +231,7 @@ async function main() {
     // ---- grid + type assertions across the four breakpoints ----
     for (const bp of BREAKPOINTS) {
       await page.setViewportSize({ width: bp.width, height: bp.height });
-      await page.goto(`${BASE}/en/swatch`, { waitUntil: "networkidle" });
+      await gotoSwatch(page);
 
       const measured = await page.evaluate(() => {
         const style = getComputedStyle(document.documentElement);

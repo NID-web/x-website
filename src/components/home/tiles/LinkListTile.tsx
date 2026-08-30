@@ -1,5 +1,5 @@
 import { Tile } from "@/components/home/Tile";
-import { GradientRule, Overline } from "@/components/home/parts";
+import { GradientRule, GradientWash, Overline } from "@/components/home/parts";
 import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
 import type { HomeTile, Translate } from "@/lib/home-content";
@@ -12,11 +12,13 @@ type LinkListTileData = Extract<HomeTile, { kind: "linkList" }>;
 export function LinkListTile({ tile, t }: { tile: LinkListTileData; t: Translate }) {
   return (
     <Tile as="section" surface={tile.gradient ? "raised" : "page"} padding={tile.gradient}>
+      {/* The diagonal wash sits under the content but over the surface. */}
+      {tile.gradient && <GradientWash />}
       {tile.overlineKey && <Overline>{t(tile.overlineKey)}</Overline>}
       {tile.headingKey && (
-        <h3 className="font-primary text-h3 text-text-primary">{t(tile.headingKey)}</h3>
+        <h3 className="relative font-primary text-h3 text-text-primary">{t(tile.headingKey)}</h3>
       )}
-      <ul className="mt-5 flex flex-col gap-4">
+      <ul className="relative mt-5 flex flex-col gap-4">
         {tile.links.map((link) => (
           <li key={link.labelKey}>
             <Link

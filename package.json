@@ -12,7 +12,9 @@
     "verify:tokens": "next build && node scripts/verify-tokens.mjs",
     "verify:fonts": "next build && node scripts/verify-fonts.mjs",
     "verify:design": "python3 design/verify.py",
-    "screenshot": "next build && node scripts/screenshot.mjs"
+    "screenshot": "next build && node scripts/screenshot.mjs",
+    "generate:motifs": "python3 scripts/generate-motifs.py",
+    "generate:patterns": "python3 scripts/generate-patterns.py"
   },
   "dependencies": {
     "clsx": "^2.1.1",

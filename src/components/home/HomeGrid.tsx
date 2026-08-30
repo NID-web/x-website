@@ -14,6 +14,7 @@ import { QuoteTile } from "@/components/home/tiles/QuoteTile";
 import { RosterTile } from "@/components/home/tiles/RosterTile";
 import { SpineTile } from "@/components/home/tiles/SpineTile";
 import { HomeFooter } from "@/components/home/HomeFooter";
+import { BrandStrip } from "@/components/spine/BrandStrip";
 
 function renderTile(tile: HomeTile, t: Translate) {
   switch (tile.kind) {
@@ -53,7 +54,11 @@ export async function HomeGrid() {
   const t: Translate = (key) => raw(key);
 
   return (
-    <main className="min-h-screen bg-surface-page py-12 text-text-primary">
+    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+      {/* Craft band, full-bleed directly under the header — it sits outside the
+          PageGrid shell on purpose: it runs edge to edge, so putting it in a
+          GridItem would inset it by the shell margin. */}
+      <BrandStrip className="mb-12" />
       <PageGrid>
         {HOME_TILES.map((tile) => (
           <GridItem
@@ -66,6 +71,9 @@ export async function HomeGrid() {
         ))}
         <HomeFooter t={t} />
       </PageGrid>
+      {/* The band closes the page as well as opens it (export root: one strip
+          above the grid, one below). */}
+      <BrandStrip className="mt-12" />
     </main>
   );
 }

@@ -283,3 +283,80 @@ all run against an already-populated `node_modules`.
 *(This fix was originally made while setting up a GitHub Pages deploy, which has since
 been reverted. The lockfile problem was never Pages-specific — that CI run only surfaced
 a bug already sitting in the repo — so the fix stays.)*
+
+---
+
+## 14. The ten motifs are generated from PNG, and Tiger names a primitive on purpose
+
+The `Motif/<Theme>` artwork arrived as ten **32×32 PNGs** (now `design/assets/motifs/`,
+the source of record). They are not shipped as images. `npm run generate:motifs`
+(`scripts/generate-motifs.py`) vectorises each one into
+`src/components/header/motifs/<theme>.tsx`; those `.tsx` files are **generated** — edit the
+PNG and regenerate, or the next run reverts a hand edit silently, exactly as with
+`themes.css` (§1).
+
+**Why convert rather than ship the PNGs.** Two reasons, the second decisive:
+
+1. The exports are 1×, so at the 32px they are rendered they would be soft on any retina
+   display. The conversion is *lossless* — the art is pixel art with alpha strictly 0 or
+   255, so the emitted rectangles reproduce it exactly while staying sharp when scaled.
+2. Every colour in every motif is a step of **its own theme's ramp**, and those steps are
+   the **light**-appearance accent semantics (`primary-450`, `secondary-350`,
+   `tertiary-300`, `quaternary-250`, `pentenary-300`). Baked into a raster they would stay
+   light-mode coloured in all ten *dark* themes. Emitted as `var(--nid-accent-*)` they
+   track both axes for free, which is what §3.5 wants ("each row's motif renders in its own
+   theme's colours") and what §13 asks for ("bind the paths to the theme's ramp steps").
+
+Verified, not assumed: each generated SVG was rendered under its own `data-theme` at light
+appearance and compared to its source PNG pixel by pixel — **all ten are exact matches**,
+0 alpha differences and 0 colour differences across all 1024 pixels.
+
+**The one deviation.** `tiger.tsx` fills its stripes with `var(--nid-quaternary-650)` — a
+layer-1 **primitive**, which CLAUDE.md otherwise forbids a component from naming. It is
+deliberate and it is the only one:
+
+- No layer-2 token resolves to that step, so there is nothing correct to name.
+- The rule exists because a primitive "hard-codes the appearance and inverts wrongly in
+  dark mode". Here not inverting is the *requirement*: Tiger's deepest steps are
+  deliberately near-black so the motif reads **black-on-ochre** (§3.3). A semantic token
+  would turn the stripes pale in dark mode and stop it looking like a tiger.
+- Confirmed by rendering Tiger in both appearances: the stripes hold while the ochre
+  correctly brightens from `secondary-350` to `secondary-250`.
+
+`generate-motifs.py` prints any colour it has to fall back to a primitive for, so a future
+re-export that introduces a second such case cannot pass unnoticed.
+
+**Trap.** The token linter greps for literal hex anywhere outside `themes.css`, **including
+in comments** — documenting Tiger's value as a hex string fails `npm run lint`. Name the
+step, not the hex.
+
+---
+
+## 15. `verify:tokens` waited for network idle, which the Typekit link never allows
+
+`scripts/verify-tokens.mjs` navigated to `/en/swatch` twice with
+`waitUntil: "networkidle"`. That never fires: the Typekit stylesheet keeps the network
+from going quiet, so the run died on a 30s navigation timeout **before a single assertion
+executed** — the suite was not failing, it was never running. This is the same trap §11
+records for app screenshots, reached from a different direction.
+
+Network silence was never the right precondition. Every assertion reads a computed value
+(custom properties, `font-size` / `font-weight` / `letter-spacing`, colours) or a
+`getBoundingClientRect()` — all of which come from CSS. **None needs the font file to
+arrive.**
+
+Both navigations now go through one `gotoSwatch(page)` helper: `domcontentloaded`, then a
+`waitForFunction` on the real precondition — `--nid-grid-columns` resolved, `[data-nid-shell]`
+present, and at least one `[data-nid-token]` chip rendered. Deterministic, independent of
+the network, and *stricter* than waiting for silence: an unstyled page now fails loudly
+instead of being silently measured as zeroes.
+
+Measured against the same page: `domcontentloaded` 1.6s, `load` 3.0s, network idle timed
+out at 15s — and all three observed the identical state (540 chips, 20 panels,
+`--nid-grid-columns: 4`, h1 60px), which is what proves the wait was the only problem.
+
+`npm run verify:tokens` now completes in **~7s with PASS 593**.
+
+**Trap for whoever edits this file next:** don't assert `"networkidle" not in source` after
+patching — the explanatory comment names the string it removed, and the check trips on its
+own prose. Assert on the executable form, or word the comment around it.

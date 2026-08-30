@@ -1,25 +1,26 @@
 import clsx from "clsx";
+import type { Theme } from "@/lib/theme-constants";
+import { MOTIFS } from "@/components/header/motifs";
 
-// PLACEHOLDER motif. The real assets are the `Motif/<Theme>` symbols (Figma
-// 3225:*); this is a small decorative emblem drawn from accent tokens instead.
-// It is aria-hidden and purely decorative, so the decorative accent ramp is
-// allowed here (CLAUDE.md § Colour). Because it reads only accent/* tokens, a
-// scoped wrapper re-colours it to another theme while the rest of the page stays
-// in the active theme — which is what the dropdown rows need (§3.5). Scoping
-// needs BOTH data-theme and data-appearance on the wrapper (the semantic layer
-// is keyed by appearance — see ThemePanel), not data-theme alone. Swap this for
-// the real motif with no caller change.
-export function ThemeMotif({ className }: { className?: string }) {
+// The 32×32 theme motif (§3.5) — the real `Motif/<Theme>` craft artwork.
+//
+// `theme` picks the motif; MOTIFS covers all ten, so there is no fallback. The
+// paths bind to accent tokens rather than fixed colours, which is what lets a
+// scoped wrapper render one row's motif in ITS theme while the page stays in the
+// active one. That scoping needs BOTH data-theme AND data-appearance on the
+// wrapper (the semantic layer is keyed by appearance — see ThemePanel), not
+// data-theme alone. ThemeMenu supplies both.
+//
+// Decorative and aria-hidden, so the decorative accent ramp is allowed here
+// (CLAUDE.md § Colour).
+export function ThemeMotif({ theme, className }: { theme: Theme; className?: string }) {
+  const Motif = MOTIFS[theme];
   return (
     <span
       aria-hidden="true"
-      className={clsx(
-        "relative inline-flex size-8 shrink-0 overflow-hidden rounded-md bg-accent-subtle",
-        className,
-      )}
+      className={clsx("inline-flex size-8 shrink-0 items-center justify-center", className)}
     >
-      <span className="absolute inset-0 bg-linear-to-br from-accent-secondary to-accent-primary" />
-      <span className="absolute inset-[30%] rounded-full bg-accent-strong" />
+      <Motif className="size-8" />
     </span>
   );
 }

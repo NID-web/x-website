@@ -48,3 +48,13 @@ next-env.d.ts
 
 # env files, but keep the example
 !.env.example
+
+# Figma Make export — the 22 PNG masters only.
+# They are ~29MB of already-compressed data, so git cannot shrink them and once
+# committed they stay in history forever, even after deletion. They are NOT
+# needed to run or demo the site: public/home/ already holds the same
+# photography, web-sized (~1.8MB) — verified image-by-image against these
+# masters. Keep them on disk for reference; re-export from Figma if lost.
+# Everything else in design/reference IS committed (the design code gzips to
+# 60K and scripts/generate-patterns.py reads it).
+/design/reference/home-figma-make/src/imports/01NidHomeLanding/*.png

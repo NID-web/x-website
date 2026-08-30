@@ -38,9 +38,13 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-surface-page/1">
-      <div className="flex h-[50px] items-center justify-between gap-3 px-4 tablet:h-[60px] tablet:px-6">
-        {/* Left — mark (home link) + theme trigger. */}
-        <div className="flex items-center gap-3">
+      <div className="flex h-[50px] items-center gap-3 px-4 tablet:h-[60px] tablet:px-6">
+        {/* Left — "Frame 256", the mark, home-linked. From tablet up this frame is
+            flex-1 and mirrors the right cluster's flex-1; two equal side frames
+            are what put the theme trigger on the header's exact centre line.
+            Measured in Figma 1:610 at 768 wide: both side frames 319, trigger
+            spans 355–413 for a centre of 384 against a header centre of 384. */}
+        <div className="flex items-center tablet:flex-1">
           <Link
             href="/"
             aria-label="National Institute of Design — home"
@@ -56,17 +60,25 @@ export function Header() {
               <Wordmark variant="compact" />
             </span>
           </Link>
+        </div>
+
+        {/* Theme trigger. Centred at tablet+ by the two flex-1 frames around it.
+            Below tablet the Mobile variant groups it with the mark as the
+            "Brand & Utility" cluster (§7.3), so there it hugs the mark and
+            mr-auto pushes the right cluster to the far edge instead. */}
+        <div className="mr-auto tablet:mr-0">
           <ThemeSwitcher />
         </div>
 
-        {/* Right — Apply CTA (Button · Small), search, menu. */}
-        <div className="flex items-center gap-2">
+        {/* Right — "Frame 101": Apply CTA (Button · Small), search, menu. Right
+            aligned, gap 8. flex-1 to balance the left frame (see above). */}
+        <div className="flex items-center justify-end gap-2 tablet:flex-1">
           <Link
             href={APPLY_HREF}
             className={clsx(
-              "inline-flex h-8 items-center rounded-pill border border-border-subtle bg-surface-page px-3",
+              "inline-flex h-7 items-center rounded-pill bg-surface-page px-3",
               "font-primary text-h6 text-text-secondary no-underline",
-              "transition-colors duration-150 ease-in-out hover:bg-surface-raised hover:text-text-primary",
+              "transition-colors duration-150 ease-in-out hover:bg-surface-raised",
             )}
           >
             Apply
@@ -74,6 +86,7 @@ export function Header() {
           <IconButton
             icon="search"
             label="Search"
+            size="small"
             onClick={() => {
               /* Search index is Stage 5 — the control is present but inert. */
             }}
@@ -81,6 +94,7 @@ export function Header() {
           <IconButton
             icon={menuOpen ? "x" : "menu"}
             label={menuOpen ? "Close menu" : "Main menu"}
+            size="small"
             expanded={menuOpen}
             controls={menuId}
             onClick={() => setMenuOpen((v) => !v)}

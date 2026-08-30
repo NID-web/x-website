@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored Figma Make export of the Home frame — reference material, not
+    // ours to lint. It is 33k lines of generated JSX and is excluded from
+    // tsconfig for the same reason.
+    "design/reference/**",
   ]),
 ]);
 
