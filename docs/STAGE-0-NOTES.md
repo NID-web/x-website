@@ -386,17 +386,40 @@ Pages setup was first written — `/home` and its photography came later, so bot
 2. **`NEXT_PUBLIC_BASE_PATH`.** This is the subtle one. `basePath` prefixes `_next/*`
    assets and `<Link>` hrefs, but a raw `src` pointing into `public/` is passed through
    **untouched**. The first export produced `src="/home/faculty-6.jpg"` while the
-   stylesheet was correctly `/NID-website/_next/...` — so under the project-page subpath
+   stylesheet was correctly `/x-website/_next/...` — so under the project-page subpath
    every one of the 20 photos would have 404'd, on a build that exits 0 and looks fine
    locally at `/`. Fixed in `img()` in `src/lib/home-content.ts`, the single place every
    home asset path is built; the workflow passes the same
    `steps.setup_pages.outputs.base_path` to both variables.
 
 **Verified by simulating Pages, not by reading the output.** A tiny static server serves
-`out/` under `/NID-website/`, then Playwright loads `/NID-website/en/home/` and records
-failed requests: **20 images, 0 broken**, and `/NID-website/` meta-refreshes to
-`/NID-website/en/`. The only 404s are Next prefetching `<Link>` targets for pages that do
+`out/` under `/x-website/`, then Playwright loads `/x-website/en/home/` and records
+failed requests: **20 images, 0 broken**, and `/x-website/` meta-refreshes to
+`/x-website/en/`. The only 404s are Next prefetching `<Link>` targets for pages that do
 not exist yet (`/en/study/bdes/` etc., Stage 2+) — those 404 in server mode too.
 
 **Still a manual step:** Settings → Pages → Source → **GitHub Actions**. `configure-pages`
 fails without it even on a public repo.
+
+**Two things the first CI run exposed (2026-08-30).**
+
+1. **The repo was renamed again** — `NID-web/NID-website` → **`NID-web/x-website`**. The
+   GitHub API 301s the old path, so `git push` and the browser still work and the rename is
+   easy to miss. It matters because the project-page subpath moves with the name: the
+   `build:pages` default is now `/x-website`. CI itself was never at risk — the workflow
+   passes `steps.setup_pages.outputs.base_path`, read from the repo's live Pages config —
+   but the local default and every doc reference were stale. Verify with
+   `curl -sL https://api.github.com/repos/<owner>/<name>` and read `full_name`, not the
+   redirect.
+
+2. **`configure-pages` cannot succeed until a Pages site exists.** The run failed with
+   "Get Pages site failed … Not Found", which reads like a visibility problem but was not:
+   the API reports `private: false, visibility: public, has_pages: false`. The site simply
+   had never been created. The step now passes `enablement: true`, which creates it (needs
+   the `pages: write` permission the workflow already grants). Enabling it by hand under
+   Settings → Pages → Source → "GitHub Actions" is the fallback if an org policy blocks the
+   API call.
+
+Re-verified end to end at the new subpath: 20 images, 0 broken, `/x-website/` redirects to
+`/x-website/en/`.
+

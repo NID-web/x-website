@@ -14,8 +14,10 @@ name: Deploy to GitHub Pages
 # Features"), so "/" is served by public/index.html, a plain meta-refresh to
 # "en/". See docs/STAGE-0-NOTES.md §13.
 #
-# One-time setup in the repo: Settings → Pages → Source → "GitHub Actions".
-# Without that, configure-pages still fails even on a public repo.
+# The first run needs a Pages site to exist. `enablement: true` on the Setup
+# Pages step below creates one, so no manual step is normally required; if an
+# org policy blocks that API call, enable it by hand under
+# Settings → Pages → Source → "GitHub Actions".
 on:
   push:
     branches:
@@ -50,11 +52,19 @@ jobs:
 
       # Reads the repo's actual Pages configuration (project vs. user/org
       # site) so the base path doesn't have to be hardcoded here — it comes
-      # out as "/NID-website" for this repo as a project page, "" for a
+      # out as "/x-website" for this repo as a project page, "" for a
       # user/org page.
       - name: Setup Pages
         id: setup_pages
         uses: actions/configure-pages@v6
+        with:
+          # Create the Pages site if it does not exist yet, instead of failing
+          # with "Get Pages site failed … Not Found". Without this the very
+          # first run always fails, because the site cannot exist before
+          # something creates it. Needs the `pages: write` permission above.
+          # If an org policy blocks the API call, fall back to enabling it by
+          # hand: Settings → Pages → Source → "GitHub Actions".
+          enablement: true
 
       - name: Restore Next.js cache
         uses: actions/cache@v6
