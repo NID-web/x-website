@@ -360,3 +360,43 @@ out at 15s — and all three observed the identical state (540 chips, 20 panels,
 **Trap for whoever edits this file next:** don't assert `"networkidle" not in source` after
 patching — the explanatory comment names the string it removed, and the check trips on its
 own prose. Assert on the executable form, or word the comment around it.
+
+---
+
+## 16. GitHub Pages: `basePath` does not reach `public/` assets
+
+The Pages deploy is back (it was reverted in b97b89f while the repo was private —
+Pages is public-repos-only on the Free plan). Four pieces:
+`.github/workflows/deploy-pages.yml`, the `GITHUB_PAGES` branch in `next.config.ts`,
+`npm run build:pages`, and `public/index.html`.
+
+`output: "export"` applies **only** under `GITHUB_PAGES=true`. `npm run build` stays a
+server build, which `verify-{tokens,fonts,screenshot}.mjs` all need — they spawn
+`next start`. Confirmed both ways after this change: the server build still emits
+`ƒ Proxy (Middleware)`, still serves `/` → `/en`, still routes images through
+`/_next/image`, and writes no `out/`.
+
+**Two things the export needs that the server build does not.** Neither existed when the
+Pages setup was first written — `/home` and its photography came later, so both are new:
+
+1. **`images: { unoptimized: true }`.** next/image's default loader optimises per request
+   and has no server to do it in a static export; the build fails outright without this.
+   `TileImage` — every home photo — goes through next/image, so it is load-bearing.
+
+2. **`NEXT_PUBLIC_BASE_PATH`.** This is the subtle one. `basePath` prefixes `_next/*`
+   assets and `<Link>` hrefs, but a raw `src` pointing into `public/` is passed through
+   **untouched**. The first export produced `src="/home/faculty-6.jpg"` while the
+   stylesheet was correctly `/NID-website/_next/...` — so under the project-page subpath
+   every one of the 20 photos would have 404'd, on a build that exits 0 and looks fine
+   locally at `/`. Fixed in `img()` in `src/lib/home-content.ts`, the single place every
+   home asset path is built; the workflow passes the same
+   `steps.setup_pages.outputs.base_path` to both variables.
+
+**Verified by simulating Pages, not by reading the output.** A tiny static server serves
+`out/` under `/NID-website/`, then Playwright loads `/NID-website/en/home/` and records
+failed requests: **20 images, 0 broken**, and `/NID-website/` meta-refreshes to
+`/NID-website/en/`. The only 404s are Next prefetching `<Link>` targets for pages that do
+not exist yet (`/en/study/bdes/` etc., Stage 2+) — those 404 in server mode too.
+
+**Still a manual step:** Settings → Pages → Source → **GitHub Actions**. `configure-pages`
+fails without it even on a public repo.

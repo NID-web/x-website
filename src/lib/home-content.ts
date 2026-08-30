@@ -127,8 +127,15 @@ export interface FooterContent {
  *  and delete public/home/. No tile component references an image path
  *  directly. Every asset keeps a real alt (the model requires it) and a
  *  square-ish natural size. */
+// basePath does NOT reach these. Next prefixes _next/* assets and <Link> hrefs
+// with it, but a raw src pointing into public/ is passed through untouched — so
+// under GitHub Pages (site served from /NID-website/) every photo would resolve
+// against the domain root and 404. Set for the export build only; empty on a
+// normal build and in dev, where the site is served from /.
+const ASSET_BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 function img(file: string, alt: string, w = 800, h = 800): MediaAsset {
-  return { id: file, file: `/home/${file}`, alt, width: w, height: h };
+  return { id: file, file: `${ASSET_BASE}/home/${file}`, alt, width: w, height: h };
 }
 
 // Source order = the Figma bento, row by row, left → right (see get_metadata).

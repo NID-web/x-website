@@ -1,0 +1,92 @@
+name: Deploy to GitHub Pages
+
+# Publishes the site as a static export.
+#
+# This was dormant for a while: Pages cannot publish from a private repository
+# on the Free plan, so `actions/configure-pages` failed with "Get Pages site
+# failed … verify that the repository has Pages enabled" — and on Free+private
+# there is no Pages setting to enable, so it was not fixable in Settings. The
+# repo is public now (verified anonymously, with the credential helper disabled
+# so a cached macOS keychain credential cannot answer for it), so the push
+# trigger is back on.
+#
+# Static export cannot run src/proxy.ts (Next lists Proxy under "Unsupported
+# Features"), so "/" is served by public/index.html, a plain meta-refresh to
+# "en/". See docs/STAGE-0-NOTES.md §13.
+#
+# One-time setup in the repo: Settings → Pages → Source → "GitHub Actions".
+# Without that, configure-pages still fails even on a public repo.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; don't cancel one that's already running.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Reads the repo's actual Pages configuration (project vs. user/org
+      # site) so the base path doesn't have to be hardcoded here — it comes
+      # out as "/NID-website" for this repo as a project page, "" for a
+      # user/org page.
+      - name: Setup Pages
+        id: setup_pages
+        uses: actions/configure-pages@v6
+
+      - name: Restore Next.js cache
+        uses: actions/cache@v6
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+
+      - name: Build (static export)
+        run: npm run build:pages
+        env:
+          GITHUB_PAGES: "true"
+          PAGES_BASE_PATH: ${{ steps.setup_pages.outputs.base_path }}
+          # Same value, but reachable from application code. basePath covers
+          # _next/* and <Link>, NOT a raw src into public/ — without this every
+          # photo 404s under the project-page subpath. See img() in
+          # src/lib/home-content.ts.
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.setup_pages.outputs.base_path }}
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
