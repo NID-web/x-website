@@ -21,7 +21,9 @@ export function ListTile({ tile, t }: { tile: ListTileData; t: Translate }) {
       surface="page"
       padding={false}
       footer={
-        cta ? <Cta label={t(cta.labelKey)} href={cta.href} external={cta.external} /> : undefined
+        cta ? (
+          <Cta label={t(cta.labelKey)} href={cta.href} external={cta.external} />
+        ) : undefined
       }
     >
       <Overline>{t(tile.overlineKey)}</Overline>
@@ -30,8 +32,12 @@ export function ListTile({ tile, t }: { tile: ListTileData; t: Translate }) {
         {tile.kind === "calendar"
           ? tile.rows.map((row, i) => (
               <li key={row.labelKey} className={i > 0 ? rowSeparator : undefined}>
-                <p className="font-primary text-label text-text-primary">{t(row.labelKey)}</p>
-                <p className="mt-0.5 font-body text-caption text-text-tertiary">{row.date}</p>
+                <p className="font-primary text-label text-text-primary">
+                  {t(row.labelKey)}
+                </p>
+                <p className="mt-0.5 font-primary text-label text-text-tertiary">
+                  {row.date}
+                </p>
               </li>
             ))
           : tile.rows.map((row, i) => (
@@ -51,7 +57,9 @@ export function ListTile({ tile, t }: { tile: ListTileData; t: Translate }) {
                   >
                     {t(row.headlineKey)}
                   </Link>
-                  <p className="mt-0.5 font-body text-caption text-text-tertiary">{row.date}</p>
+                  <p className="mt-0.5 font-primary text-micro text-text-tertiary">
+                    {row.date}
+                  </p>
                 </div>
               </li>
             ))}

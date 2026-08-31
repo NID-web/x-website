@@ -143,7 +143,11 @@ function img(file: string, alt: string, w = 800, h = 800): MediaAsset {
 export const HOME_TILES: HomeTile[] = [
   // ── row 1 ──────────────────────────────────────────────────────────────
   { id: "statement", kind: "statement", textKey: "statement" },
-  { id: "hero", kind: "hero", media: img("hero-forest.jpg", "Sunlight through trees at an NID campus.", 1400, 660) },
+  {
+    id: "hero",
+    kind: "hero",
+    media: img("hero-forest.jpg", "Sunlight through trees at an NID campus.", 1400, 660),
+  },
   {
     id: "study",
     kind: "linkList",
@@ -174,9 +178,24 @@ export const HOME_TILES: HomeTile[] = [
     kind: "news",
     overlineKey: "news.overline",
     rows: [
-      { headlineKey: "news.r1", date: "July 23 2026", href: "/news/artisans-honoured", thumbnail: img("news-1.jpg", "Artisans at the ceremony.", 200, 200) },
-      { headlineKey: "news.r2", date: "July 23 2026", href: "/news/incubation-centre", thumbnail: img("news-2.jpg", "The new innovation centre.", 200, 200) },
-      { headlineKey: "news.r3", date: "July 23 2026", href: "/news/kmc-membership", thumbnail: img("news-3.jpg", "Inside the Knowledge Management Centre.", 200, 200) },
+      {
+        headlineKey: "news.r1",
+        date: "July 23 2026",
+        href: "/news/artisans-honoured",
+        thumbnail: img("news-1.jpg", "Artisans at the ceremony.", 200, 200),
+      },
+      {
+        headlineKey: "news.r2",
+        date: "July 23 2026",
+        href: "/news/incubation-centre",
+        thumbnail: img("news-2.jpg", "The new innovation centre.", 200, 200),
+      },
+      {
+        headlineKey: "news.r3",
+        date: "July 23 2026",
+        href: "/news/kmc-membership",
+        thumbnail: img("news-3.jpg", "Inside the Knowledge Management Centre.", 200, 200),
+      },
     ],
     cta: { labelKey: "cta.allNews", href: "/news" },
   },
