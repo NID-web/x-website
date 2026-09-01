@@ -26,6 +26,11 @@
   --font-weight-futura-bold: 800;
 
   --radius-none: 0;
+  /* The Campuses tile's right edge. 176px on a 330px tile is more than half
+     its height, so the browser clamps it to a true semicircle — which is what
+     the design draws. Kept at the design's literal value so a wider tile
+     curves by the same amount rather than by half of whatever it is. */
+  --radius-arch: 176px;
 }
 
 /* Everything that references a --nid-* custom property must live here. */

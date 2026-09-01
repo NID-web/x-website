@@ -94,6 +94,11 @@ export type HomeTile =
       titleKey: CopyKey;
       date?: string;
       labelPlacement?: "overlay" | "below";
+      /** Campuses curves its right edge into a half-round arch. */
+      shape?: "arch";
+      /** Overlay cards darken the photo under the label. Campuses does not —
+       *  the design gives it a 2px backdrop blur and nothing else. */
+      scrim?: boolean;
       bylineKey?: CopyKey;
       bylineAvatar?: MediaAsset;
       href?: string;
@@ -243,19 +248,22 @@ export const HOME_TILES: HomeTile[] = [
     media: img("campuses.jpg", "The NID campus courtyard.", 700, 700),
     titleKey: "campuses.title",
     labelPlacement: "overlay",
+    shape: "arch",
+    scrim: false,
     href: "/campuses",
   },
   // ── row 4 ──────────────────────────────────────────────────────────────
   {
     id: "shifting-paradigms",
     kind: "mediaCard",
-    // The maroon "Call for Papers" surface is a background IMAGE, not a colour —
-    // an overlay card, label over a scrim (user-confirmed).
+    // The maroon "Call for Papers" surface is a background IMAGE, not a colour.
+    // It is NOT an overlay card: the export builds it exactly like Drawing
+    // Dialogues — image on the top half, label beneath on the page surface.
     media: img("shifting-paradigms.jpg", "Shifting Paradigms — call for papers.", 700, 700),
     overlineKey: "callForPapers.overline",
     titleKey: "callForPapers.title",
     date: "Feb 23 – 25 2027",
-    labelPlacement: "overlay",
+    labelPlacement: "below",
     href: "/events/shifting-paradigms",
   },
   {

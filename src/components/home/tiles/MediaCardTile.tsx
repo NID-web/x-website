@@ -16,6 +16,11 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
   const isInverse = tile.surface === "inverse";
   const isOverlay = tile.labelPlacement === "overlay";
   const onDark = isInverse || isOverlay;
+  // A photograph does not invert with appearance, so label text over one is
+  // plain white — `text/on-accent` flips to near-black in dark, which would
+  // have put dark text on an unchanged photo. surface/inverse DOES invert, so
+  // the Call-for-Papers style card keeps the semantic token.
+  const onPhoto = isOverlay && tile.media;
 
   const label = (
     <div className="flex flex-col gap-1 p-6">
@@ -23,7 +28,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         <span
           className={clsx(
             "font-primary text-overline uppercase",
-            onDark ? "text-text-on-accent" : "text-text-tertiary",
+            onPhoto ? "text-white" : onDark ? "text-text-on-accent" : "text-text-tertiary",
           )}
         >
           {t(tile.overlineKey)}
@@ -31,8 +36,9 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
       )}
       <h4
         className={clsx(
-          "font-primary text-h5",
-          onDark ? "text-text-on-accent" : "text-text-primary",
+          // Overlay titles are Heading/3 (27/35) in the design, not Heading/5.
+          isOverlay ? "font-primary text-h3" : "font-primary text-h5",
+          onPhoto ? "text-white" : onDark ? "text-text-on-accent" : "text-text-primary",
         )}
       >
         {t(tile.titleKey)}
@@ -41,7 +47,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         <p
           className={clsx(
             "font-body text-caption",
-            onDark ? "text-text-on-accent" : "text-text-tertiary",
+            onPhoto ? "text-white" : onDark ? "text-text-on-accent" : "text-text-tertiary",
           )}
         >
           {tile.date}
@@ -65,14 +71,29 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
   );
 
   if (isOverlay && tile.media) {
+    const isArch = tile.shape === "arch";
+    const scrim = tile.scrim ?? true;
     return (
-      <Tile as="article" surface="raised" padding={false} interactive>
+      <Tile
+        as="article"
+        surface="raised"
+        padding={false}
+        radius={!isArch}
+        className={isArch ? "rounded-r-arch" : undefined}
+        interactive
+      >
         <TileImage media={tile.media} className="absolute inset-0 h-full w-full" />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-linear-to-t from-text-primary/80 to-transparent"
-        />
-        <div className="relative mt-auto">{label}</div>
+        {scrim && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-linear-to-t from-text-primary/80 to-transparent"
+          />
+        )}
+        {/* Without a scrim the design floats the label on a 2px backdrop blur —
+            just enough to settle the type on the photograph. */}
+        <div className={clsx("relative mt-auto", !scrim && "backdrop-blur-[2px]")}>
+          {label}
+        </div>
       </Tile>
     );
   }
