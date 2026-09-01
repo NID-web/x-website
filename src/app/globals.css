@@ -41,6 +41,10 @@
   --font-secondary: var(--nid-font-secondary);
   --font-body: var(--nid-font-body);
 
+  /* The roster avatars' lift. The export writes rgba(0,0,0,0.08) directly; as a
+     token it stays out of component classes and can be tuned in one place. */
+  --shadow-avatar: 0 0 8px 2px color-mix(in oklab, var(--nid-black) 8%, transparent);
+
   /* ---- layer 0: base ---- */
   --color-black: var(--nid-black);
   --color-white: var(--nid-white);

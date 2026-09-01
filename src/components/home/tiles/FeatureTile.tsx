@@ -35,7 +35,7 @@ export function FeatureTile({ tile, t }: { tile: FeatureTileData; t: Translate }
         )}
         {tile.cta && (
           <Cta
-            className="min-h-8 border-b-2 border-surface-page px-2 py-1 font-heavy"
+            className="min-h-8 border-b-2 border-surface-page px-2 py-1"
             label={t(tile.cta.labelKey)}
             href={tile.cta.href}
             external={tile.cta.external}

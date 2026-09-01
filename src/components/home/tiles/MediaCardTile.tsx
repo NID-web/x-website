@@ -78,7 +78,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         as="article"
         surface="raised"
         padding={false}
-        radius={!isArch}
+        radius={false}
         className={isArch ? "rounded-r-arch" : undefined}
         interactive
       >
@@ -86,14 +86,10 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         {scrim && (
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-linear-to-t from-text-primary/80 to-transparent"
+            className="absolute inset-0 bg-linear-to-b from-transparent from-45% to-text-primary/70"
           />
         )}
-        {/* Without a scrim the design floats the label on a 2px backdrop blur —
-            just enough to settle the type on the photograph. */}
-        <div className={clsx("relative mt-auto", !scrim && "backdrop-blur-[2px]")}>
-          {label}
-        </div>
+        <div className="relative mt-auto backdrop-blur-[2px]">{label}</div>
       </Tile>
     );
   }
