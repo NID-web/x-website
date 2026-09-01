@@ -215,7 +215,7 @@ export const HOME_TILES: HomeTile[] = [
     patternBed: true,
   },
   // ── row 3 ──────────────────────────────────────────────────────────────
-  { id: "pattern-1", kind: "pattern", seed: 1 },
+  { id: "pattern-3", kind: "pattern", seed: 3 },
   {
     id: "drawing-dialogues",
     kind: "mediaCard",
@@ -262,7 +262,7 @@ export const HOME_TILES: HomeTile[] = [
     avatar: img("director.jpg", "Portrait of the Director.", 200, 200),
     attribution: { labelKey: "cta.directorsNote", href: "/about/director" },
   },
-  { id: "pattern-2", kind: "pattern", seed: 2 },
+  { id: "pattern-1", kind: "pattern", seed: 1 },
   {
     id: "faculty",
     kind: "roster",
@@ -287,7 +287,7 @@ export const HOME_TILES: HomeTile[] = [
     labelPlacement: "overlay",
     href: "/research",
   },
-  { id: "pattern-3", kind: "pattern", seed: 3 },
+  { id: "pattern-2", kind: "pattern", seed: 2 },
   {
     id: "young-designers",
     kind: "mediaCard",
