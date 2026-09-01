@@ -1,40 +1,49 @@
+import clsx from "clsx";
 import { Tile } from "@/components/home/Tile";
 import { Overline } from "@/components/home/parts";
-import { PatternFieldAlumni } from "@/components/home/patterns";
+import { PatternFieldAlumni, PatternScatterAlumni } from "@/components/home/patterns";
 import { TileImage } from "@/components/home/TileImage";
 import type { HomeTile, Translate } from "@/lib/home-content";
 
 type PortraitTileData = Extract<HomeTile, { kind: "portrait" }>;
 
-// "Notable Alumni" / "Pride of NID" — overline, a circular portrait, then name
-// and bio. Tiles with `patternBed` get the craft field behind the portrait: in
-// the design it runs across the portrait row and the portrait sits over its
-// right-hand end.
 export function PortraitTile({ tile, t }: { tile: PortraitTileData; t: Translate }) {
   return (
     <Tile as="section" surface="page" padding={false}>
-      {tile.overlineKey && <Overline>{t(tile.overlineKey)}</Overline>}
-      <div className="relative mt-3 flex justify-end">
-        {tile.patternBed && (
-          // The field needs a sized box: an <svg> is a replaced element, so
-          // absolute insets alone do NOT stretch it — left to itself it falls
-          // back to the intrinsic 300×150 and spills past the row.
-          <div className="pointer-events-none absolute inset-y-0 left-0 right-10">
-            <PatternFieldAlumni className="block size-full" />
+      <div className="flex flex-1 items-center">
+        {tile.patternBed && <PatternFieldAlumni className="aspect-square w-1/2 shrink-0" />}
+        <div
+          className={clsx(
+            "relative flex aspect-square w-1/2 shrink-0 items-center justify-center",
+            !tile.patternBed && "ml-auto",
+          )}
+        >
+          {tile.patternBed && (
+            <PatternScatterAlumni className="absolute inset-0 size-full" />
+          )}
+          <TileImage
+            media={tile.photo}
+            className="relative aspect-square w-4/5 rounded-full"
+            sizes="(min-width: 1280px) 132px, 25vw"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-between">
+        {tile.overlineKey && (
+          <div className="pt-2">
+            <Overline>{t(tile.overlineKey)}</Overline>
           </div>
         )}
-        <TileImage
-          media={tile.photo}
-          className="relative size-28 shrink-0 rounded-full"
-          sizes="112px"
-        />
+        <div className="flex flex-col gap-2">
+          <h4 className="font-primary text-h5 text-text-primary">{t(tile.nameKey)}</h4>
+          {tile.bioKey && (
+            <p className="font-primary text-label text-text-tertiary">{t(tile.bioKey)}</p>
+          )}
+        </div>
+        {/* The tile closes on a rule, as the list tiles do. */}
+        <span aria-hidden="true" className="block h-2 border-b-2 border-border-subtle" />
       </div>
-      <h4 className="mt-3 font-primary text-h6 uppercase text-text-primary">
-        {t(tile.nameKey)}
-      </h4>
-      {tile.bioKey && (
-        <p className="mt-1.5 font-body text-caption text-text-secondary">{t(tile.bioKey)}</p>
-      )}
     </Tile>
   );
 }

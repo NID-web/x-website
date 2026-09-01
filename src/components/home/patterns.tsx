@@ -10,6 +10,9 @@
 // identical, so one unit is enough. Emitting them as <pattern> also makes the
 // field fluid rather than a fixed 4x4 of 81px units.
 //
+// Scatter fields (PatternScatter*) are the exception: loose cells with no
+// repeating unit, read one-for-one and emitted at their design size.
+//
 // Fills are semantic accent tokens, so the fields re-theme with the page and
 // invert with appearance - a thing the export's baked hexes cannot do. They are
 // decorative and aria-hidden, so the decorative ramp is allowed (CLAUDE.md
@@ -83,6 +86,21 @@ export function PatternFieldAlumni({ className }: PatternFieldProps) {
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#nid-patternfieldalumni)" />
+    </svg>
+  );
+}
+
+export function PatternScatterAlumni({ className }: PatternFieldProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 162 162"
+      preserveAspectRatio="xMidYMid meet"
+      className={className}
+    >
+      <path fill="var(--nid-accent-quaternary)" d="M27 0h3.375v3.375h-3.375zM30.38 0h3.375v3.375h-3.375zM128.25 0h3.375v3.375h-3.375zM131.63 0h3.375v3.375h-3.375zM27 3.37h3.375v3.375h-3.375zM131.63 3.37h3.375v3.375h-3.375zM27 6.75h3.375v3.375h-3.375zM33.75 6.75h3.375v3.375h-3.375zM124.88 6.75h3.375v3.375h-3.375zM131.63 6.75h3.375v3.375h-3.375zM0 27h3.375v3.375h-3.375zM3.38 27h3.375v3.375h-3.375zM6.75 27h3.375v3.375h-3.375zM151.88 27h3.375v3.375h-3.375zM155.25 27h3.375v3.375h-3.375zM158.62 27h3.375v3.375h-3.375zM0 30.38h3.375v3.375h-3.375zM158.62 30.38h3.375v3.375h-3.375zM6.75 33.75h3.375v3.375h-3.375zM151.88 33.75h3.375v3.375h-3.375zM6.75 124.87h3.375v3.375h-3.375zM151.88 124.87h3.375v3.375h-3.375zM0 128.25h3.375v3.375h-3.375zM158.62 128.25h3.375v3.375h-3.375zM0 131.63h3.375v3.375h-3.375zM3.38 131.63h3.375v3.375h-3.375zM6.75 131.63h3.375v3.375h-3.375zM151.88 131.63h3.375v3.375h-3.375zM155.25 131.63h3.375v3.375h-3.375zM158.62 131.63h3.375v3.375h-3.375zM27 151.88h3.375v3.375h-3.375zM33.75 151.88h3.375v3.375h-3.375zM124.88 151.88h3.375v3.375h-3.375zM131.63 151.88h3.375v3.375h-3.375zM27 155.25h3.375v3.375h-3.375zM131.63 155.25h3.375v3.375h-3.375zM27 158.63h3.375v3.375h-3.375zM30.38 158.63h3.375v3.375h-3.375zM128.25 158.63h3.375v3.375h-3.375zM131.63 158.63h3.375v3.375h-3.375z" />
+      <path fill="var(--nid-accent-secondary)" d="M43.88 6.75h3.375v3.375h-3.375zM47.25 6.75h3.375v3.375h-3.375zM111.38 6.75h3.375v3.375h-3.375zM114.75 6.75h3.375v3.375h-3.375zM43.88 10.13h3.375v3.375h-3.375zM114.75 10.13h3.375v3.375h-3.375zM6.75 43.88h3.375v3.375h-3.375zM10.13 43.88h3.375v3.375h-3.375zM148.5 43.88h3.375v3.375h-3.375zM151.88 43.88h3.375v3.375h-3.375zM6.75 47.25h3.375v3.375h-3.375zM151.88 47.25h3.375v3.375h-3.375zM6.75 111.38h3.375v3.375h-3.375zM151.88 111.38h3.375v3.375h-3.375zM6.75 114.75h3.375v3.375h-3.375zM10.13 114.75h3.375v3.375h-3.375zM148.5 114.75h3.375v3.375h-3.375zM151.88 114.75h3.375v3.375h-3.375zM43.88 148.5h3.375v3.375h-3.375zM114.75 148.5h3.375v3.375h-3.375zM43.88 151.88h3.375v3.375h-3.375zM47.25 151.88h3.375v3.375h-3.375zM111.38 151.88h3.375v3.375h-3.375zM114.75 151.88h3.375v3.375h-3.375z" />
+      <path fill="var(--nid-accent-tertiary)" d="M27 13.5h3.375v3.375h-3.375zM33.75 13.5h3.375v3.375h-3.375zM124.88 13.5h3.375v3.375h-3.375zM131.63 13.5h3.375v3.375h-3.375zM13.5 27h3.375v3.375h-3.375zM145.13 27h3.375v3.375h-3.375zM13.5 33.75h3.375v3.375h-3.375zM145.13 33.75h3.375v3.375h-3.375zM13.5 124.87h3.375v3.375h-3.375zM145.13 124.87h3.375v3.375h-3.375zM13.5 131.63h3.375v3.375h-3.375zM145.13 131.63h3.375v3.375h-3.375zM27 145.13h3.375v3.375h-3.375zM33.75 145.13h3.375v3.375h-3.375zM124.88 145.13h3.375v3.375h-3.375zM131.63 145.13h3.375v3.375h-3.375z" />
     </svg>
   );
 }
