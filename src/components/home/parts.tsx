@@ -1,25 +1,10 @@
 import clsx from "clsx";
 
-// The recurring gradient hairline motif — a thin rule that fades along the
-// brand accent ramp. Purely decorative (aria-hidden), so decorative accent
-// tokens are fine here; nothing meaningful rides on it (CLAUDE.md § Colour).
-export function GradientRule({
-  className,
-  tone = "brand",
-}: {
-  className?: string;
-  tone?: "brand" | "fade";
-}) {
+export function GradientRule({ className }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={clsx(
-        "block h-px w-full",
-        tone === "brand"
-          ? "bg-linear-to-r from-accent-secondary via-accent-quaternary to-accent-pentenary"
-          : "bg-linear-to-r from-accent-primary to-transparent",
-        className,
-      )}
+      className={clsx("block w-full min-w-0 bg-overline-rule opacity-45", className)}
     />
   );
 }
@@ -34,11 +19,11 @@ export function Overline({
   withRule?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="whitespace-nowrap font-primary text-overline uppercase text-text-tertiary">
+    <div className="flex items-stretch gap-2">
+      <span className="whitespace-nowrap font-primary text-overline uppercase text-text-quaternary">
         {children}
       </span>
-      {withRule && <GradientRule className="shrink" />}
+      {withRule && <GradientRule className="flex-1" />}
     </div>
   );
 }
@@ -46,13 +31,7 @@ export function Overline({
 // Neutral stand-in for a photograph until the real Figma export lands under
 // public/home/. Carries the alt text so the intended content is legible in
 // layout review; swapped for <img>/next-image in the assets pass.
-export function ImagePlaceholder({
-  alt,
-  className,
-}: {
-  alt: string;
-  className?: string;
-}) {
+export function ImagePlaceholder({ alt, className }: { alt: string; className?: string }) {
   return (
     <div
       role="img"
@@ -69,16 +48,6 @@ export function ImagePlaceholder({
   );
 }
 
-// The diagonal gradient wash on the "Study at NID" tile.
-//
-// From the Figma Make export (design/reference/home-figma-make/): a triangle
-// covering the top-right half of a 330×330 tile — `M330 0H0L330 330V0Z` — filled
-// with a 7-stop linear gradient at 20% opacity. The export bakes the stops as
-// hexes; every one of them resolves to a semantic accent token, so they are
-// named here instead and the wash re-themes with the page.
-//
-// preserveAspectRatio="none" lets the triangle stretch with the tile rather than
-// staying square. Decorative, so aria-hidden and the decorative ramp is fine.
 export function GradientWash({ className }: { className?: string }) {
   return (
     <svg

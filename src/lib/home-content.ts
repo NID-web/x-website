@@ -171,7 +171,6 @@ export const HOME_TILES: HomeTile[] = [
       { labelKey: "academic.r3", date: "Mon, July 13 2026" },
       { labelKey: "academic.r4", date: "Fri, Aug 7 2026  &  Fri, Oct 16 2026" },
     ],
-    cta: { labelKey: "cta.allNews", href: "/news" },
   },
   {
     id: "news",
