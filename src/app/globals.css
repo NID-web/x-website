@@ -180,6 +180,17 @@
   --text-h1--letter-spacing: var(--nid-type-heading-1-tracking);
   --text-h1--font-weight: var(--nid-weight-heavy);
 
+  /* Added — Home's position statement. NID-CONTEXT.md §14 flags the desktop
+     Home hero as 50px against Heading/1's 60 and says to bind Heading/1
+     throughout; that guidance is overridden here on the design owner's call.
+     Kept as its own style rather than a local font-size so the responsive
+     ramp still comes from one place. Below 1024 it rejoins Heading/1's
+     values, so the scale never grows as the viewport shrinks. */
+  --text-statement: var(--nid-type-home-statement-size);
+  --text-statement--line-height: var(--nid-type-home-statement-lh);
+  --text-statement--letter-spacing: var(--nid-type-home-statement-tracking);
+  --text-statement--font-weight: var(--nid-weight-heavy);
+
   --text-h2: var(--nid-type-heading-2-size);
   --text-h2--line-height: var(--nid-type-heading-2-lh);
   --text-h2--letter-spacing: var(--nid-type-heading-2-tracking);
@@ -274,6 +285,29 @@
   --text-caption-italic--line-height: var(--nid-type-body-caption-italic-lh);
   --text-caption-italic--letter-spacing: var(--nid-type-body-caption-italic-tracking);
   --text-caption-italic--font-weight: var(--nid-weight-body);
+}
+
+/* The one type style that is not in the generated scale — see --text-statement
+   above. Declared here, not in themes.css, which design/generate.py rewrites.
+   Desktop and laptop share 50/50; tablet and mobile are Heading/1's own steps. */
+:root {
+  --nid-type-home-statement-size: 55px;
+  --nid-type-home-statement-lh: 55px;
+  --nid-type-home-statement-tracking: -0.03em;
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --nid-type-home-statement-size: 40px;
+    --nid-type-home-statement-lh: 44px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --nid-type-home-statement-size: 32px;
+    --nid-type-home-statement-lh: 36px;
+  }
 }
 
 /* The page grid. `--nid-grid-columns` is 4/3/2/1 by breakpoint, so this one

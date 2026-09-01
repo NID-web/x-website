@@ -423,3 +423,75 @@ fails without it even on a public repo.
 Re-verified end to end at the new subpath: 20 images, 0 broken, `/x-website/` redirects to
 `/x-website/en/`.
 
+
+---
+
+## 17. The Home position statement is 50px, against NID-CONTEXT.md §14's instruction
+
+`NID-CONTEXT.md` line 1043 flags the desktop Home hero as "hardcoded at 50px" while
+`Type/Heading 1` says 60, and concludes: *"In code, bind all four — use Heading/1
+throughout."* The tile did exactly that. The design owner has since called it the other
+way: the statement is 50px.
+
+That instruction was not arbitrary, and ignoring it naively reintroduces the problem it was
+written to prevent. Only the **desktop** board carries 50; the three responsive boards are
+bound to the token (52 / 40 / 32). Taking 50 at desktop and leaving the rest on Heading/1
+makes the type *grow* as the viewport shrinks — 50px at 1280, 52px at 1279.
+
+So the statement is now its own text style rather than a local `font-size` override on
+`text-h1` (which would have opted the element out of the responsive scale entirely — see
+CLAUDE.md § Type):
+
+| | desktop | laptop | tablet | mobile |
+|---|---|---|---|---|
+| `text-statement` | **50 / 50** | **50 / 50** | 40 / 44 | 32 / 36 |
+| `text-h1` | 60 / 60 | 52 / 54 | 40 / 44 | 32 / 36 |
+
+Laptop holds at 50 instead of dropping to Heading/1's 52 — that is the one invented value,
+and it exists solely so the ramp stays monotonic. Below 1024 the two scales are identical,
+so the statement rejoins Heading/1 exactly where the boards already agreed.
+
+Two things deliberately did **not** change. Tracking stays `-0.03em`, which is what the
+export's `-1.5px` at 50px works out to. Weight stays **Heavy (700)** even though the export
+names the layer `Futura_PT:Demi` — NID-CONTEXT.md §6 note 3 already records that the
+reference page mislabels Heading/1 as Demi when the style carries Heavy, and this is the
+same mislabel, not a second data point.
+
+`--nid-type-home-statement-*` lives in `src/app/globals.css`, **not** `themes.css`, which
+`design/generate.py` rewrites. It is the only type style outside the generated scale; if it
+ever becomes a real Figma style, move it into the generator and delete the block.
+
+Verified across all four breakpoints on `/en/home` (computed `font-size`/`line-height`:
+50/50 · 50/50 · 40/44 · 32/36) with `PASS 593`.
+
+---
+
+## 18. Home row 1 was 3px taller than every other row, and the cause was 4px of padding
+
+The home grid's rows are auto-height. Every tile is `tablet:aspect-square` in a 330px
+column, so each row lands on exactly 330 — *unless* one tile in it is taller, in which case
+that tile silently sets the row. Two rows were off:
+
+- **Row 1 → 333px.** `LinkListTile` ("Study at NID") is `square={false} stretch`, so it has
+  no 1:1 box to be constrained by; its content height is its height. Content is
+  `h3` 35 + `mt-5` 20 + `ul` 258 = **313**, which leaves **17px** of headroom inside a 330
+  cell. The `pt-5` (20px) added for top padding spent 20 of those 17, so the row grew to
+  333 and the hero image beside it grew with it. Proven by zeroing `padding-top` in the
+  browser: the row snapped back to 330. The tile now carries `justify-center` and no
+  padding — the design's own treatment — which splits the 17px as 8.5 above and below.
+- **Row 6 → 343px.** `SpineTile`'s nav is 7 links × 49px. Nothing to fix — the row is that
+  tall because the content is. Hiding the tile drops the row to 198.
+
+The trap is that `stretch` reads like "follow the row" but is `h-full`, which resolves
+against a content-sized row — so a stretch tile is a *driver*, not a follower, the moment
+its content exceeds its neighbours. Padding on it is therefore not free: it is spent out of
+a 17px budget shared with the whole row. Centring has no such budget, which is why the
+design uses it and why a fifth link or a wrapped heading is now survivable.
+
+Laptop is a separate matter that centring only softens: at 3 columns the square is 309px
+while the content is 313 before any padding at all, so the tile still sets that row — but
+at 312 rather than the 328 it reached with `pt-5`. Closing the last 3px needs the content
+to shrink, not the spacing.
+
+Measured after the change (`section` height, then the gap above the heading and below the
+list): 1440 → 330, 8.5 / 8.5 · 1024 → 312, 0 / 0 · 768 → 350, 20 / 20 · 390 → 308, 0 / 0.

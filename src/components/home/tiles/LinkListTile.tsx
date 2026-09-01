@@ -17,7 +17,7 @@ export function LinkListTile({ tile, t }: { tile: LinkListTileData; t: Translate
       padding={false}
       square={false}
       stretch
-      className="pt-5"
+      className="justify-center"
     >
       {tile.gradient && <GradientWash />}
       {tile.overlineKey && <Overline>{t(tile.overlineKey)}</Overline>}
@@ -26,7 +26,7 @@ export function LinkListTile({ tile, t }: { tile: LinkListTileData; t: Translate
           {t(tile.headingKey)}
         </h3>
       )}
-      <ul className="relative mt-5 flex flex-col gap-4">
+      <ul className="relative mt-3 flex flex-col gap-3">
         {tile.links.map((link) => (
           <li key={link.labelKey}>
             <Link

@@ -21,7 +21,7 @@ function withAccentPeriods(text: string) {
 export function StatementTile({ tile, t }: { tile: StatementTileData; t: Translate }) {
   return (
     <Tile as="section" surface="page" square={false} padding={false}>
-      <p className="font-primary text-h1 text-text-primary text-balance">
+      <p className="font-primary text-statement text-text-primary text-balance">
         {withAccentPeriods(t(tile.textKey))}
       </p>
     </Tile>
