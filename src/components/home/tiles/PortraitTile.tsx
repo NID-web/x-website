@@ -1,26 +1,37 @@
 import clsx from "clsx";
 import { Tile } from "@/components/home/Tile";
 import { Overline } from "@/components/home/parts";
-import { PatternFieldAlumni, PatternScatterAlumni } from "@/components/home/patterns";
+import {
+  PatternFieldAlumni,
+  PatternScatterAlumni,
+  PatternScatterPride,
+} from "@/components/home/patterns";
 import { TileImage } from "@/components/home/TileImage";
 import type { HomeTile, Translate } from "@/lib/home-content";
 
 type PortraitTileData = Extract<HomeTile, { kind: "portrait" }>;
 
+// Both portrait tiles share the left-hand motif; only the scatter under the
+// portrait differs. Pride's is denser (64 cells to Alumni's 80, but packed into
+// a ring) and drawn on a different three accents.
+const SCATTER = {
+  alumni: PatternScatterAlumni,
+  pride: PatternScatterPride,
+} as const;
+
 export function PortraitTile({ tile, t }: { tile: PortraitTileData; t: Translate }) {
+  const Scatter = tile.bed ? SCATTER[tile.bed] : null;
   return (
     <Tile as="section" surface="page" padding={false}>
       <div className="flex flex-1 items-center">
-        {tile.patternBed && <PatternFieldAlumni className="aspect-square w-1/2 shrink-0" />}
+        {tile.bed && <PatternFieldAlumni className="aspect-square w-1/2 shrink-0" />}
         <div
           className={clsx(
             "relative flex aspect-square w-1/2 shrink-0 items-center justify-center",
-            !tile.patternBed && "ml-auto",
+            !tile.bed && "ml-auto",
           )}
         >
-          {tile.patternBed && (
-            <PatternScatterAlumni className="absolute inset-0 size-full" />
-          )}
+          {Scatter && <Scatter className="absolute inset-0 size-full" />}
           <TileImage
             media={tile.photo}
             className="relative aspect-square w-4/5 rounded-full"
@@ -32,7 +43,7 @@ export function PortraitTile({ tile, t }: { tile: PortraitTileData; t: Translate
       <div className="flex flex-1 flex-col justify-between">
         {tile.overlineKey && (
           <div className="pt-2">
-            <Overline>{t(tile.overlineKey)}</Overline>
+            <Overline shortRule>{t(tile.overlineKey)}</Overline>
           </div>
         )}
         <div className="flex flex-col gap-2">

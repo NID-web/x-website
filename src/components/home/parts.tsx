@@ -14,16 +14,22 @@ export function GradientRule({ className }: { className?: string }) {
 export function Overline({
   children,
   withRule = true,
+  shortRule = false,
 }: {
   children: React.ReactNode;
   withRule?: boolean;
+  /** Trim 2px off the top of the rule — the portrait and media-card tiles sit
+   *  it slightly below the label's cap height rather than flush with it. A top
+   *  margin rather than a height, so the rule stays bottom-aligned with the
+   *  label and still tracks its height (see GradientRule). */
+  shortRule?: boolean;
 }) {
   return (
     <div className="flex items-stretch gap-2">
       <span className="whitespace-nowrap font-primary text-overline uppercase text-text-quaternary">
         {children}
       </span>
-      {withRule && <GradientRule className="flex-1" />}
+      {withRule && <GradientRule className={clsx("flex-1", shortRule && "mt-0.5")} />}
     </div>
   );
 }

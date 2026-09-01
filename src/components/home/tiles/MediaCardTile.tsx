@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { Tile } from "@/components/home/Tile";
+import { Overline } from "@/components/home/parts";
 import { TileImage } from "@/components/home/TileImage";
 import type { HomeTile, Translate } from "@/lib/home-content";
 
@@ -7,7 +8,8 @@ type MediaCardTileData = Extract<HomeTile, { kind: "mediaCard" }>;
 
 // Three shapes over one structure:
 //  • overlay  — photo fills the tile, label sits over a scrim at the bottom
-//  • below    — photo on top, label beneath (Drawing Dialogues, Young Designers)
+//  • below    — photo on the top half, overline / title / closing rule beneath
+//               (Drawing Dialogues, Young Designers)
 //  • inverse  — no photo; the Call-for-Papers surface (surface/inverse is the
 //               only sanctioned dark pairing and inverts correctly, CLAUDE.md).
 export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Translate }) {
@@ -83,12 +85,44 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
     );
   }
 
+  // `below` is the portrait tile's skeleton with a photo where the craft band
+  // goes (export: `DrawingDialogues`, `YoungDesigners`): two equal halves, the
+  // lower one spread overline / text / closing rule with justify-between. Page
+  // surface and no padding — the photo is full-bleed and the text aligns to the
+  // grid column, so there is no card to give a radius or an inset to.
   return (
-    <Tile as="article" surface="raised" padding={false} interactive>
+    <Tile as="article" surface="page" padding={false}>
       {tile.media && (
-        <TileImage media={tile.media} className="relative h-40 w-full shrink-0" />
+        <TileImage media={tile.media} className="relative min-h-40 w-full flex-1" />
       )}
-      {label}
+      <div className="flex flex-1 flex-col justify-between">
+        {tile.overlineKey && (
+          <div className="pt-2">
+            <Overline shortRule>{t(tile.overlineKey)}</Overline>
+          </div>
+        )}
+        <div className="flex flex-col gap-0.5">
+          <h4 className="font-primary text-h5 text-text-primary">{t(tile.titleKey)}</h4>
+          {tile.date && (
+            <p className="font-primary text-label text-text-tertiary">{tile.date}</p>
+          )}
+          {tile.bylineKey && (
+            <div className="mt-2 flex items-center gap-2">
+              {tile.bylineAvatar && (
+                <TileImage
+                  media={tile.bylineAvatar}
+                  className="relative size-6 shrink-0 rounded-full"
+                  sizes="24px"
+                />
+              )}
+              <span className="font-primary text-label text-text-secondary">
+                {t(tile.bylineKey)}
+              </span>
+            </div>
+          )}
+        </div>
+        <span aria-hidden="true" className="block h-2 border-b-2 border-border-subtle" />
+      </div>
     </Tile>
   );
 }

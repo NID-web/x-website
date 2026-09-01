@@ -79,9 +79,11 @@ export type HomeTile =
       photo: MediaAsset;
       nameKey: CopyKey;
       bioKey?: CopyKey;
-      /** Craft pattern bed behind the portrait. Opt-in: in the design only
-       *  Notable Alumni carries one, Pride of NID does not. */
-      patternBed?: boolean;
+      /** Craft bed behind the portrait: the shared motif on the left, and the
+       *  named bandhani scatter on the right. Both portrait tiles carry one in
+       *  the design, but the two scatters differ — Pride's is denser and on a
+       *  different three colours. */
+      bed?: "alumni" | "pride";
     })
   | (Base & { kind: "pattern"; seed?: number })
   | (Base & {
@@ -212,7 +214,7 @@ export const HOME_TILES: HomeTile[] = [
     photo: img("alumni-keshavan.jpg", "Portrait of Sujata Keshavan.", 400, 400),
     nameKey: "alumni.name",
     bioKey: "alumni.bio",
-    patternBed: true,
+    bed: "alumni",
   },
   // ── row 3 ──────────────────────────────────────────────────────────────
   { id: "pattern-3", kind: "pattern", seed: 3 },
@@ -233,6 +235,7 @@ export const HOME_TILES: HomeTile[] = [
     photo: img("pride-murthy.jpg", "Portrait of Dr. Lakshmi Murthy.", 400, 400),
     nameKey: "pride.name",
     bioKey: "pride.bio",
+    bed: "pride",
   },
   {
     id: "campuses",

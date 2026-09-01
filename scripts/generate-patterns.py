@@ -77,6 +77,11 @@ FRACTIONS = {"0": 0.0, "1/2": 0.5, "1/4": 0.25, "3/4": 0.75,
 SCATTERS = [
     ("PatternScatterAlumni", "function BandhaniScatter4Fold()",
      "function Frame20()", 162),
+    # Pride of NID carries its own scatter under the same Figma layer name -
+    # denser than the alumni one and on a different three colours. Its cells
+    # appear twice, once per component variant, hence the dedupe below.
+    ("PatternScatterPride", "function PrideOfNid(",
+     "function DrawingDialogues(", 162),
 ]
 
 
@@ -314,6 +319,7 @@ export function {label}({{ className }}: PatternFieldProps) {{
     for label, start, end, edge in SCATTERS:
         seg = src[src.index(start): src.index(end)]
         by_colour = {}
+        seen = set()
         for cls in re.findall(r'className="([^"]*)"', seg):
             if "absolute" not in cls or "bg-[#" not in cls:
                 continue
@@ -325,7 +331,13 @@ export function {label}({{ className }}: PatternFieldProps) {{
             if x is None or y is None:
                 continue
             hexv = re.search(r"bg-\[(#[0-9a-fA-F]{6})\]", cls).group(1).lower()
-            by_colour.setdefault(hexv, []).append((x, y, float(size.group(1))))
+            cell = (x, y, float(size.group(1)))
+            # A component with variants spells its scatter out once per variant.
+            # The cells are identical, so keep first sight of each.
+            if cell in seen:
+                continue
+            seen.add(cell)
+            by_colour.setdefault(hexv, []).append(cell)
 
         if not by_colour:
             raise SystemExit(f"{label}: no scatter cells parsed")
