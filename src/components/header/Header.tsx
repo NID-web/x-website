@@ -17,9 +17,25 @@ import { APPLY_HREF } from "@/lib/nav-content";
 // 60px from tablet up (1024 and 768 keep the desktop header — §5/§7.3). The only
 // responsive swap is the mark: the full bilingual wordmark on desktop, the
 // compact "NID" mark below tablet. The Apply / search / menu cluster is shared.
+//
+// At the top of the page the wash is all there is. Once the page scrolls, a
+// 16px backdrop blur turns it into frosted glass so content passing underneath
+// stays legible behind the 1% background rather than colliding with the nav.
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const menuId = useId();
+
+  // Blur only once the page has actually moved. Read on mount as well as on
+  // scroll: a restored scroll position or a #hash landing starts part-way down
+  // the page and fires no scroll event, which would leave the nav unblurred
+  // over content. `passive` because this never calls preventDefault.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 0);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Escape closes the menu; lock body scroll while the full-screen menu is open.
   useEffect(() => {
@@ -37,7 +53,17 @@ export function Header() {
   }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-surface-page/1">
+    <header
+      className={clsx(
+        "sticky top-0 z-40 w-full bg-surface-page/1",
+        // backdrop-blur-lg is Tailwind's 16px step (--blur-lg). Applied on the
+        // header itself, not a pseudo-element: backdrop-filter samples what is
+        // painted behind the element, so it needs the element that spans the
+        // band. No transition — same reasoning as the theme swap, a filter
+        // fading in on every scroll start judders more than it smooths.
+        scrolled && "backdrop-blur-lg",
+      )}
+    >
       <div className="flex h-[50px] items-center gap-3 px-4 tablet:h-[60px] tablet:px-6">
         {/* Left — "Frame 256", the mark, home-linked. From tablet up this frame is
             flex-1 and mirrors the right cluster's flex-1; two equal side frames

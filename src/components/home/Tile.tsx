@@ -29,6 +29,10 @@ export interface TileProps {
   /** 24px inset (`--spacing` is 4px). Flush text tiles sitting on the page pass
    *  `padding={false}` and align to the grid column. */
   padding?: boolean;
+  /** Card tiles carry the 24px pill radius. The row-1 hero passes `false` — its
+   *  Figma card sets `border-radius: inherit` with nothing to inherit from, i.e.
+   *  square corners. No effect on a `page` surface, which has no visible card. */
+  radius?: boolean;
   interactive?: boolean;
   /** Bottom-pinned slot (e.g. a CTA), pushed down with `mt-auto`. */
   footer?: ReactNode;
@@ -42,6 +46,7 @@ export function Tile({
   square = true,
   stretch = false,
   padding = true,
+  radius = true,
   interactive = false,
   footer,
   className,
@@ -53,15 +58,17 @@ export function Tile({
         "relative flex flex-col",
         // A page-surface tile has no visible card — no radius, and no clipping
         // (its content, e.g. the tall statement, may exceed the square cell).
-        surface !== "page" && "overflow-hidden rounded-pill",
+        // `rounded-pill` and `rounded-none` are the same utility family, so
+        // which one wins would come down to Tailwind's emit order, not class
+        // order — hence a branch here rather than an override from the caller.
+        surface !== "page" && (radius ? "overflow-hidden rounded-pill" : "overflow-hidden"),
         padding && "p-6",
         SURFACE[surface],
         // Square tiles get their height from their width at tablet+. A stretch
         // tile (the span-2 hero) fills the row height set by its neighbours;
         // everything else takes its natural height.
         square ? "tablet:aspect-square" : stretch ? "h-full" : undefined,
-        interactive &&
-          "transition-colors duration-150 ease-in-out hover:bg-surface-hover",
+        interactive && "transition-colors duration-150 ease-in-out hover:bg-surface-hover",
         className,
       )}
     >

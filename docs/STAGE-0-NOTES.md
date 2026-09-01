@@ -495,3 +495,4 @@ to shrink, not the spacing.
 
 Measured after the change (`section` height, then the gap above the heading and below the
 list): 1440 → 330, 8.5 / 8.5 · 1024 → 312, 0 / 0 · 768 → 350, 20 / 20 · 390 → 308, 0 / 0.
+
