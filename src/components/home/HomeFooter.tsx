@@ -54,13 +54,15 @@ export function HomeFooter({ t }: { t: Translate }) {
       </GridItem>
 
       <GridItem span={1}>
-        <Overline withRule={false}>{t(HOME_FOOTER.contactOverlineKey)}</Overline>
+        <Overline withRule={false} dark={true}>
+          {t(HOME_FOOTER.contactOverlineKey)}
+        </Overline>
         <ul className="mt-4 flex flex-col gap-1.5">
           {HOME_FOOTER.contacts.map((contact) => (
             <li key={contact.href}>
               <a
                 href={contact.href}
-                className="font-body text-body text-text-secondary no-underline transition-colors duration-150 ease-in-out hover:text-accent-primary"
+                className="font-primary font-medium text-micro text-text-secondary no-underline transition-colors duration-150 ease-in-out hover:text-accent-primary"
               >
                 {contact.label}
               </a>

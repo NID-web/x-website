@@ -15,6 +15,7 @@ export function Overline({
   children,
   withRule = true,
   shortRule = false,
+  dark = false,
 }: {
   children: React.ReactNode;
   withRule?: boolean;
@@ -23,10 +24,16 @@ export function Overline({
    *  margin rather than a height, so the rule stays bottom-aligned with the
    *  label and still tracks its height (see GradientRule). */
   shortRule?: boolean;
+  dark?: boolean;
 }) {
   return (
     <div className="flex items-stretch gap-2">
-      <span className="whitespace-nowrap font-primary text-overline uppercase text-text-quaternary">
+      <span
+        className={clsx(
+          "whitespace-nowrap font-primary text-overline uppercase",
+          dark ? "text-text-tertiary" : "text-text-quaternary",
+        )}
+      >
         {children}
       </span>
       {withRule && <GradientRule className={clsx("flex-1", shortRule && "mt-0.5")} />}
