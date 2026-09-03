@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import Image from "next/image";
 import { GridItem } from "@/components/layout/GridItem";
 import { Overline } from "@/components/home/parts";
@@ -9,14 +10,29 @@ import { HOME_FOOTER, type HomeLink, type Translate } from "@/lib/home-content";
 // PageGrid (never a nested grid — CLAUDE.md § Layout). Footer tiles are not
 // square; they take their natural height.
 
-function LinkColumn({ links, t }: { links: HomeLink[]; t: Translate }) {
+function LinkColumn({
+  links,
+  t,
+  /** Primary column is Heavy, secondary is Medium (the export's
+   *  `Futura_PT:Medium` = 500). text-h6 carries Heavy in its own token, so this
+   *  must override it — which only works because Tailwind emits font-weight
+   *  utilities after text-* ones, not because of class order in the string. */
+  weight = "heavy",
+}: {
+  links: HomeLink[];
+  t: Translate;
+  weight?: "heavy" | "medium";
+}) {
   return (
     <ul className="flex flex-col">
       {links.map((link) => (
         <li key={link.labelKey}>
           <Link
             href={link.href}
-            className="block border-b border-border-faint py-2.5 font-body text-body text-text-primary no-underline transition-colors duration-150 ease-in-out hover:text-accent-primary"
+            className={clsx(
+              "block border-b-2 border-border-subtle py-3 font-primary text-h6 text-text-secondary no-underline transition-colors duration-150 ease-in-out hover:border-border-default",
+              weight === "medium" && "font-medium",
+            )}
           >
             {t(link.labelKey)}
           </Link>
@@ -34,11 +50,11 @@ export function HomeFooter({ t }: { t: Translate }) {
       </GridItem>
 
       <GridItem span={1} as="nav">
-        <LinkColumn links={HOME_FOOTER.secondaryLinks} t={t} />
+        <LinkColumn links={HOME_FOOTER.secondaryLinks} t={t} weight="medium" />
       </GridItem>
 
       <GridItem span={1}>
-        <Overline>{t(HOME_FOOTER.contactOverlineKey)}</Overline>
+        <Overline withRule={false}>{t(HOME_FOOTER.contactOverlineKey)}</Overline>
         <ul className="mt-4 flex flex-col gap-1.5">
           {HOME_FOOTER.contacts.map((contact) => (
             <li key={contact.href}>
