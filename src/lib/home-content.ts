@@ -96,8 +96,6 @@ export type HomeTile =
       labelPlacement?: "overlay" | "below";
       /** Campuses curves its right edge into a half-round arch. */
       shape?: "arch";
-      /** Overlay cards darken the photo under the label. Campuses does not —
-       *  the design gives it a 2px backdrop blur and nothing else. */
       scrim?: boolean;
       bylineKey?: CopyKey;
       bylineAvatar?: MediaAsset;

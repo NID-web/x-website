@@ -86,10 +86,10 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         {scrim && (
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-linear-to-b from-transparent from-45% to-text-primary/70"
+            className="absolute inset-0 bg-linear-to-b from-transparent from-45% to-[color-mix(in_srgb,var(--nid-white)_17%,var(--nid-black))]/70"
           />
         )}
-        <div className="relative mt-auto backdrop-blur-[2px]">{label}</div>
+        <div className="relative mt-auto backdrop-blur-[1px]">{label}</div>
       </Tile>
     );
   }
