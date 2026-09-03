@@ -118,27 +118,44 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
             <Overline shortRule>{t(tile.overlineKey)}</Overline>
           </div>
         )}
-        <div className="flex flex-col gap-0.5">
-          <h4 className="font-primary text-h5 text-text-primary">{t(tile.titleKey)}</h4>
-          {tile.date && (
-            <p className="font-primary text-label text-text-tertiary">{tile.date}</p>
-          )}
-          {tile.bylineKey && (
-            <div className="mt-2 flex items-center gap-2">
-              {tile.bylineAvatar && (
-                <TileImage
-                  media={tile.bylineAvatar}
-                  className="relative size-6 shrink-0 rounded-full"
-                  sizes="24px"
-                />
-              )}
-              <span className="font-primary text-label text-text-secondary">
+        {/* Title block and portrait sit side by side (export: Frame23 — the text
+            column is flex-1 min-w-0, the portrait a fixed 56px). The portrait is
+            what narrows the column, so the title wraps as the design does. */}
+        <div className="flex w-full items-start gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <h4 className="font-primary text-h5 text-text-primary">{t(tile.titleKey)}</h4>
+            {tile.date && (
+              <p className="font-primary text-label text-text-tertiary">{tile.date}</p>
+            )}
+            {/* text/quaternary, not secondary: the export puts the date on the
+                tertiary step but the byline one step lighter, on quaternary —
+                the same teal as the overline. That step is below AA by design
+                (CLAUDE.md § Colour), which is fine for a decorative overline
+                but worth a second look here, since a person's name is content. */}
+            {tile.bylineKey && (
+              <p className="font-primary text-label text-text-quaternary">
                 {t(tile.bylineKey)}
-              </span>
-            </div>
+              </p>
+            )}
+          </div>
+          {tile.bylineAvatar && (
+            <TileImage
+              media={tile.bylineAvatar}
+              className="relative size-14 shrink-0 rounded-full border border-border-strong"
+              sizes="56px"
+            />
           )}
         </div>
-        <span aria-hidden="true" className="block h-2 border-b-2 border-border-subtle" />
+        {/* The closing rule's box is 32px on the portrait card and 8px on the
+            date-only ones (export: Frame16 vs Frame15) — the taller portrait row
+            is given more air beneath it by `justify-between`. */}
+        <span
+          aria-hidden="true"
+          className={clsx(
+            "block border-b-2 border-border-subtle",
+            tile.bylineAvatar ? "h-8" : "h-2",
+          )}
+        />
       </div>
     </Tile>
   );

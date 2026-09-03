@@ -72,8 +72,10 @@ export async function HomeGrid() {
         <HomeFooter t={t} />
       </PageGrid>
       {/* The band closes the page as well as opens it (export root: one strip
-          above the grid, one below). */}
-      <BrandStrip className="mt-12" />
+          above the grid, one below) — but not identically: the opening strip is
+          the export's "Only Pattern" variant, the closing one leads with the
+          NID wordmark. */}
+      <BrandStrip className="mt-12" logo />
     </main>
   );
 }

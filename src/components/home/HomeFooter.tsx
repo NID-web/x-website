@@ -1,6 +1,6 @@
+import Image from "next/image";
 import { GridItem } from "@/components/layout/GridItem";
 import { Overline } from "@/components/home/parts";
-import { TileImage } from "@/components/home/TileImage";
 import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
 import { HOME_FOOTER, type HomeLink, type Translate } from "@/lib/home-content";
@@ -69,14 +69,38 @@ export function HomeFooter({ t }: { t: Translate }) {
       </GridItem>
 
       <GridItem span={1}>
-        {/* One pre-composed strip — its own baked heading + partner logos. */}
-        <TileImage
-          media={HOME_FOOTER.collaborations}
-          className="relative aspect-[330/161] w-full max-w-[330px]"
-          sizes="(min-width: 768px) 24vw, 96vw"
-          fit="contain"
-          backer={false}
-        />
+        {/* Six individual marks in a 4-column grid (export: FooterQuaternary),
+            not one baked strip — so the heading is real text and every logo
+            carries the organisation's name as its alt.
+
+            No background of its own. The export's frame carries bg-white, but
+            the design page is white too, so that fill is invisible there — it
+            is a Figma frame fill, not a card. Painting it for real turns it
+            into a white slab the moment the surface is dark, so the block sits
+            on the page surface and aligns flush with the other footer columns,
+            like every other block here. */}
+        <div className="grid grid-cols-4 gap-4">
+          <h2 className="col-span-4 font-primary text-overline uppercase text-text-tertiary">
+            {t(HOME_FOOTER.collaborationsOverlineKey)}
+          </h2>
+          {HOME_FOOTER.collaborations.map((partner) => (
+            <span key={partner.name} className="flex items-center justify-center">
+              <Image
+                src={partner.logo.file}
+                alt={partner.name}
+                width={partner.logo.width}
+                height={partner.logo.height}
+                // Vectors have nothing to optimise, and the image endpoint
+                // refuses SVG unless dangerouslyAllowSVG is set.
+                unoptimized={partner.logo.file.endsWith(".svg")}
+                // Height drives the size and the width follows the mark's own
+                // aspect; max-w keeps a wide mark inside its column.
+                style={{ maxHeight: partner.height }}
+                className="h-auto w-auto max-w-full object-contain"
+              />
+            </span>
+          ))}
+        </div>
       </GridItem>
     </>
   );
