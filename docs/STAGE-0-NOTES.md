@@ -718,7 +718,7 @@ This is a deliberate departure from both design sources, recorded as such:
 
 - The **768 board** (`4997:381054`) draws `Card` at `x=24 width=350 height=350` — one
   column, square, beside `Study at NID` at `x=394`.
-- The **Figma Make export** (`design/reference/`) only covers the 4-column frame, where
+- The **Figma Make export** (`design/reference/`, since removed — see the last section) only covers the 4-column frame, where
   `Card` is `col-[2/span_2] row-1 self-stretch` — which is what §20 already implemented and
   is unchanged here.
 
@@ -1185,3 +1185,76 @@ correct when the token moves; the same value written as a literal does not.** `m
 right when it was written and silently stopped being right at two of the four breakpoints.
 The grid gap, page margin and column count all step per breakpoint — anything meant to sit
 in that rhythm should be derived from them rather than measured off one artboard.
+
+## 31. The Figma Make export is gone; the pattern generator reads a frozen JSON instead
+
+`design/reference/home-figma-make/` was the Home frame exported from Figma Make — 33k
+lines of generated JSX plus 22 photo masters (~30MB on disk) — vendored only because the
+Figma MCP was quota-blocked on a Starter seat. That constraint is gone (full seat), so the
+export has been removed, along with its `tsconfig` / `eslint` exclusions and the
+`.gitignore` block for the masters. `public/home/` already held the same photography,
+web-sized, so the site loses nothing. The one untracked asset the masters held that the
+build did not use — a sixth faculty portrait — can be re-exported from Figma if it is ever
+wanted.
+
+The only code that read the export was `scripts/generate-patterns.py`, which parsed the
+three pattern tiles, the alumni pattern and the two scatter fields out of it on every run.
+Its parse half was run one last time and the result frozen as
+`design/assets/patterns/home-patterns.json` (24KB): each tiled field as one 24×24-cell
+unit already merged into rectangles per design hex, each scatter as loose cells at design
+size. The script now reads that file and still maps hexes to semantic accent tokens through
+`themes.css`, so re-theming is unchanged. Regenerating from the JSON reproduces the previous
+`patterns.tsx` byte-for-byte below the header comment.
+
+If a pattern changes in Figma, the path is now: read the tile with the Figma MCP, update the
+JSON, `npm run generate:patterns`. Not: edit `patterns.tsx`.
+
+## 31. The overline rule was never the wrong colour — it was held at 45%
+
+The gradient hairline beside every tile overline (ACADEMIC CALENDAR, NEWS & EVENTS, …) now
+goes to full strength while its tile is hovered.
+
+**The first attempt got the diagnosis backwards.** Asked to change the gradient's colour on
+hover, and unable to open the reference board (Foundations — Colour node `771:43963` returns
+*"you don't have edit access to this file"* from both `get_metadata` and `get_screenshot`;
+the Figma MCP needs editor rights, not the view access available here), it invented a second
+gradient: `accent/strong` in place of the `surface/page` lead-in, on the strength of §3
+naming `accent/strong` for *"Button hover fill; gradient stops"* and Appendix B calling the
+`surface/page` opening *"unfinished work"*. Both citations are real. The conclusion was still
+wrong, and it looked it — muddy grey where the board is saturated teal.
+
+Put side by side with a screenshot of the board, the answer was immediate: **the stops were
+already exactly right.** The rule's ramp is
+
+| token | light | on the board |
+|---|---|---|
+| `surface/page` | `#FAFFFF` | the white lead-in |
+| `accent/primary` | `#006C75` | dark teal |
+| `accent/secondary` | `#009D91` | teal |
+| `accent/tertiary` | `#43B581` | green |
+| `accent/quaternary` | `#B9A1FC` | lavender |
+| `accent/pentenary` | `#C8913E` | the orange at the right |
+
+Every hue matches. What did not match was `opacity-45` on the rule, which greys the teals and
+turns the pentenary stop from orange into pale tan — which is why the rendered line looked
+washed out and, at a glance, like the wrong colours.
+
+So tile hover changes no colour at all. It stops muting the colours that are already there:
+`opacity-45` at rest, `opacity-100` on `group-hover/tile:`.
+
+Two things fall out of that.
+
+**It transitions properly.** `background-image` cannot be animated, so the two-gradient
+version swapped instantly. Opacity animates, so this gets the sanctioned 150ms ease with no
+extra machinery — no stacked layers, no `@property`-registered colour stops.
+
+**The group still has to be named.** `Tile` carries `group/tile` and `GradientRule` responds
+to `group-hover/tile:`. An unnamed `group` on the tile would be matched by every
+`group-hover:` *inside* it — `Cta` sets one for its arrow and label, `ListTile` sets one per
+row — so hovering anywhere on a tile would light every CTA and reveal every row arrow at
+once. Verified: hovering the News tile leaves the CTA underline at border/subtle and reveals
+only the arrow of the row actually under the pointer (`0,1,0` across the three, not `1,1,1`).
+
+The lesson worth keeping: **when a colour looks wrong, check what is multiplying it before
+changing what it is.** Opacity, blend modes and a scrim all present as "the wrong hue", and
+the token was innocent here.

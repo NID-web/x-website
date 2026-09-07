@@ -35,7 +35,12 @@ export function FeatureTile({ tile, t }: { tile: FeatureTileData; t: Translate }
         )}
         {tile.cta && (
           <Cta
-            className="min-h-8 border-b-2 border-surface-page px-2 py-1"
+            // Resting underline is surface/page — a near-white rule reading out
+            // of the gradient disc. Hover takes it to border/default, the same
+            // step "Study at NID" moves its CTA underline to, so every CTA
+            // underline on the page lands on the same token. Colour only, and
+            // Cta's own `transition-colors` carries it at the sanctioned 150ms.
+            className="min-h-8 border-b-2 border-surface-page px-2 py-1 hover:border-border-default"
             label={t(tile.cta.labelKey)}
             href={tile.cta.href}
             external={tile.cta.external}

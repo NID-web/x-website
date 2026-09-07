@@ -1,6 +1,6 @@
 // The NID wordmark: the mark plus "राष्ट्रीय डिज़ाइन संस्थान / NATIONAL
-// INSTITUTE OF DESIGN", lifted from the Figma Make export's BrandStrip
-// (`Layer_3`, 66 paths). The export paints every path with one literal
+// INSTITUTE OF DESIGN", lifted from the Figma BrandStrip (`Layer_3`, 66
+// paths). Figma paints every path with one literal
 // teal, which is semantic accent/secondary, so the fills are currentColor
 // here and the caller names the token — the mark then re-themes with the page
 // and inverts with appearance like everything else.

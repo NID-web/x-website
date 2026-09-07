@@ -82,7 +82,12 @@ export function Tile({
       // steps (docs/STAGE-0-NOTES.md §24).
       data-nid-tile
       className={clsx(
-        "relative flex flex-col",
+        // `group/tile`, NAMED. An unnamed group here would be matched by every
+        // `group-hover:` inside the tile — Cta sets its own group for the arrow,
+        // and ListTile sets one per row — so hovering anywhere on a tile would
+        // light up every CTA and reveal every row arrow at once. A named group
+        // is only matched by `group-hover/tile:`.
+        "group/tile relative flex flex-col",
         // A page-surface tile has no visible card — no radius, and no clipping
         // (its content, e.g. the tall statement, may exceed the square cell).
         // `rounded-pill` and `rounded-none` are the same utility family, so

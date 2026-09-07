@@ -4,7 +4,22 @@ export function GradientRule({ className }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={clsx("block w-full min-w-0 bg-overline-rule opacity-45", className)}
+      className={clsx(
+        "block w-full min-w-0 bg-overline-rule",
+        // The gradient is the full accent ramp — surface/page into primary,
+        // secondary, tertiary, quaternary, pentenary — and those hues are
+        // already exactly the Foundations board's. What the board does NOT do is
+        // hold it at 45%: that is what greys the teal and turns the pentenary
+        // stop from orange into pale tan. So tile hover changes no colour at
+        // all, it just stops muting the ones that are there.
+        //
+        // Opacity, unlike background-image, transitions — so this also gets the
+        // sanctioned 150ms rather than the instant swap a second gradient
+        // needed (docs/STAGE-0-NOTES.md §31).
+        "opacity-45 transition-opacity duration-150 ease-in-out",
+        "group-hover/tile:opacity-100",
+        className,
+      )}
     />
   );
 }

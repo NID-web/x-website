@@ -2,11 +2,9 @@ import clsx from "clsx";
 
 // The NID bilingual wordmark (design/NID-CONTEXT.md §7.3, 213×29.5834).
 //
-// The 66 paths are the real Figma vectors, lifted from the Figma Make export of
-// the Home frame at design/reference/home-figma-make/ (its `Layer_3`, flattened
-// — the <g> wrappers there carry no transform, opacity or stroke, so nesting
-// them would add nothing). They replace the typographic stand-in used while the
-// real asset was unavailable.
+// The 66 paths are the real Figma vectors (Home frame 3031:50673, layer
+// `Layer_3`, flattened — the <g> wrappers there carry no transform, opacity or
+// stroke, so nesting them would add nothing).
 //
 // Every path is `currentColor`, never its own fill (CLAUDE.md § Icons), so the
 // caller's text colour governs it. The export confirms both bindings §7.3

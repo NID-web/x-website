@@ -36,6 +36,11 @@ export interface HomeLink {
 export interface CalendarRow {
   labelKey: CopyKey;
   date: string; // pre-formatted, editorial ranges — data, not translated
+  /** Optional destination. A row with one becomes a link and takes the hover
+   *  treatment — rule to border/default, arrow revealed at the right. Without
+   *  one the row is plain text and shows no affordance, because an arrow that
+   *  goes nowhere is a lie about what a click will do. */
+  href?: string;
 }
 
 export interface NewsRow {
@@ -134,9 +139,7 @@ export interface Collaborator {
 }
 
 /** THE single place home imagery resolves. Everything under public/home/ is the
- *  real design photography (verified image-by-image against the Figma Make
- *  export's masters — same shots, web-sized), so nothing here is a placeholder
- *  any more.
+ *  real design photography, web-sized, so nothing here is a placeholder.
  *
  *  When the CMS serves media, this helper is the whole migration: change the
  *  path it builds, or replace its call sites with server-provided MediaAssets,
@@ -187,6 +190,7 @@ export const HOME_TILES: HomeTile[] = [
       { labelKey: "academic.r3", date: "Mon, July 13 2026" },
       { labelKey: "academic.r4", date: "Fri, Aug 7 2026  &  Fri, Oct 16 2026" },
     ],
+    cta: { labelKey: "cta.allEvents", href: "/events" },
   },
   {
     id: "news",
