@@ -5,8 +5,10 @@
  * CMS (design/NID-CONTEXT.md §7.4 — "there is no menu table"). Until that API
  * exists this mirrors the nine main-menu sets from the design file, with hrefs
  * from design/tokens/sitemap.json. Section TITLES are not links — only the
- * nested page links navigate (§7.4) — so a section carries a label, never an
- * href. Labels are page titles / proper nouns = data, so they live here rather
+ * nested page links navigate (§7.4) — so a section carries a label, and an
+ * `href` only where the design owner has asked for one (see NavSection.href
+ * and docs/STAGE-0-NOTES.md §33). Labels are page titles / proper nouns = data,
+ * so they live here rather
  * than in messages/en.json (unlike prose, which stays translatable).
  *
  * CMS-adoptable later: swap MENU_SECTIONS for the recursive parent query.
@@ -21,6 +23,15 @@ export interface NavLink {
 export interface NavSection {
   id: string;
   title: string;
+  /**
+   * The section's own landing page, when it has one. §7.4 says menu titles are
+   * NOT links, and eight of the nine still aren't — but About NID has a real
+   * landing page and the design owner asked for the title to reach it
+   * (docs/STAGE-0-NOTES.md §33). Where this is set the row splits: the title
+   * navigates and the plus/minus alone works the disclosure. Add an entry here
+   * as each remaining landing page is built.
+   */
+  href?: string;
   links: NavLink[];
 }
 
@@ -30,6 +41,7 @@ export const MENU_SECTIONS: NavSection[] = [
   {
     id: "about",
     title: "About NID",
+    href: "/about",
     links: [
       { label: "History", href: "/about/history" },
       { label: "Charter", href: "/about/charter" },

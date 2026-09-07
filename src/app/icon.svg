@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="National Institute of Design">
+  <!--
+    The NID monogram — the first three paths of the bilingual wordmark
+    (src/components/spine/Wordmark.tsx: the V triangle, the D bowl, the dot),
+    which measure 37.4513 x 29.5834. Scaled into a 44-unit content box and
+    centred in a 48 square so the mark fills a browser tab rather than
+    letterboxing: 44 / 37.4513 = 1.17486, leaving a 2-unit side margin. A
+    favicon is read at 16px, so the margin is deliberately tight.
+
+    A favicon is painted by the browser chrome, not the page, so it cannot read
+    the site's custom properties and has to name its colours. These are Peacock
+    (the default theme) icon/primary: primary-650 in light, primary-050 in dark.
+    That is why this file is exempt from the no-literal-hex rule rather than in
+    breach of it — lint-tokens scans .ts/.tsx/.js/.jsx/.css, not .svg.
+  -->
+  <style>
+    :root { fill: #00353A; }
+    @media (prefers-color-scheme: dark) { :root { fill: #FAFFFF; } }
+  </style>
+  <g transform="translate(2 6.6220) scale(1.17486)">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 8.15448H17.7786V29.5834L0 8.15448Z"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M23.4294 8.14777H27.4625C31.4236 8.14777 37.4513 11.6091 37.4513 18.6927C37.4513 26.0881 31.4236 29.162 27.4625 29.162H23.4294V8.14777Z"/>
+    <path d="M20.625 7.4448C22.7119 7.4448 24.4036 5.77823 24.4036 3.72241C24.4036 1.66659 22.7119 2.2051e-05 20.625 2.2051e-05C18.5382 2.2051e-05 16.8465 1.66659 16.8465 3.72241C16.8465 5.77823 18.5382 7.4448 20.625 7.4448Z"/>
+  </g>
+</svg>

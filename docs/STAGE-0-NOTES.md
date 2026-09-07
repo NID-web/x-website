@@ -1376,3 +1376,129 @@ is 24 + 24 + 24.
   42 per row the six-link stack was 372 tall, not 360, and pushed the 1024 hero row down.
 - **The news list row on the phone** measures 73px against the board's 72: the 1px rule is
   under the 72px thumbnail rather than inside it.
+
+## 33. The main menu is a drawer, and one of its nine titles is a link
+
+Two corrections to the primary menu (`src/components/header/MainMenu.tsx`), both against
+`NID-CONTEXT.md` §7.4.
+
+### It was built from the prose, and the prose left out the shape
+
+§7.4 gives the tree and the interaction — nine sets, collapsed by default, instant, titles
+not clickable, nothing underlined — and says the menu is "656px tall". None of that says
+where the menu *is*, so it went in as a full-screen overlay under the header. The Figma
+frame `1:178` is **400 × 900**: a right-hand drawer over the page. Measured off the frame
+and reproduced to the pixel (verified in a browser at 1440):
+
+| | |
+|---|---|
+| panel | 400 wide, full viewport height, `px-6` → a 352 content column |
+| "Frame 44" | 56 tall — close IconButton 32 · gap 8 · Brand Strip 48, both centred on y=32 |
+| sub-menus | 40 tall (`py-2` over a Heading/5 line-height of 24), gap 16 |
+| expanded | header row + links list at gap 4, each link `py-2` over a Label/Small line-height of 20 |
+
+About NID's five links make the expanded set 40 + 5×36 + 4×4 = **236**, which is exactly
+what the Expanded variant reports — the check that the whole geometry is right.
+
+Three details the prose also omits: the disclosure glyph is **plus / minus**, not a caret;
+the nested links carry **no arrow** (only the section row does); and there is **no rule**
+between sections. The close button is an `icon/primary` instance, not §7.2's default
+`icon/quaternary` — which is why `IconButton` grew a `tone` prop rather than taking a
+`className`: two colour utilities tie on specificity, and stylesheet order decides (and
+`icon-quaternary` is emitted after `icon-primary`, so a `className` override loses).
+
+Below 400 the panel is full-bleed (`w-full max-w-[400px]`). It slides in over a
+`bg-surface-inverse/40` scrim, 300ms, gated on `prefers-reduced-motion`; it stays mounted
+so it can animate out as well as in, and is `inert` while closed.
+
+**Trap — the drawer is a SIBLING of `<header>`, not a child.** Scrolled, the header carries
+`backdrop-blur`, and `backdrop-filter` makes an element a containing block for its
+fixed-position descendants. Nested, the panel anchored to the 50/60px header band instead
+of the viewport. This was already latent in the full-screen version.
+
+**Trap — `Icon`'s `x` is the X/Twitter brand mark**, owned by the footer's social row
+(`SocialPlatform`). Both the header toggle and the drawer's close button reused it, so the
+drawer shut with a logo. The dismiss glyph is `close`.
+
+### About NID's title navigates — a deliberate break with "titles are not links"
+
+§7.4 is explicit that a menu title is not clickable, and eight of the nine still aren't.
+About NID has a real landing page and the design owner asked for the title to reach it, so
+`NavSection` gained an optional `href` and the "about" section sets `/about`.
+
+Where an `href` is present the row **splits**: the title is a `Link`, and the plus/minus
+alone works the disclosure — clicking the title navigates, it does not expand. The two
+forms are separate branches rather than one row with two behaviours, and splitting has a
+second benefit: the glyph becomes a real `IconButton`. In the single-control form it has to
+stay a `<span>`, because the row itself is the `<button>` and a `<button>` cannot nest.
+
+Geometry is identical either way (the link measures 24 tall inside the same 40 row, and
+Programmes still starts at y=128). Nothing is underlined in either form. Add an `href` per
+section as the remaining landing pages are built.
+
+## 34. The home page moved to `/`; it was at `/home` and the wordmark never reached it
+
+The header wordmark has always linked to `/` (§7.3 — the mark is the home link). `/` held
+the Stage-0 placeholder — "foundations only", plus a link to the swatch — and the tile grid
+sat at `/home`, so clicking the mark landed on the placeholder.
+
+`design/tokens/sitemap.json` settles which of the two is wrong: Home's `path` is `/`.
+`/home` on that entry is `liveLegacy` — the CURRENT nid.edu URL, which `$meta` explicitly
+flags as disagreeing with the architecture. So the page moved rather than the link:
+`[locale]/home/page.tsx` → `[locale]/page.tsx`, and the placeholder is gone. `/en/swatch`
+is unaffected and is still the Stage-0 acceptance surface.
+
+`[locale]/home/` is **deleted, not redirected.** Nothing in `src/` linked to it, and the
+two mechanisms for keeping it alive both cost more than they are worth here: a
+`next.config` redirect does not run in the GitHub Pages static export (see the comment in
+`next.config.ts`), and a route that re-renders `HomeGrid` would just duplicate the page.
+Real `liveLegacy` redirects are a launch task — the sitemap has a `redirects` rule and no
+entries, and no redirect infrastructure exists in the repo yet.
+
+One consumer needed updating: `scripts/screenshot.mjs` shot `/en/home`, now `/en`. If
+`npm run screenshot` output looks unchanged, that is correct — same page, new path.
+
+Watch for a stale `.next/types/validator.ts` after deleting a route: `npx tsc --noEmit`
+fails on the removed module until a build regenerates it. Build first, then typecheck.
+
+## 35. The favicon was still Vercel's; it is now the NID monogram
+
+`src/app/favicon.ico` was the 25KB Next scaffold icon from `create-next-app`, untouched
+since 21 Aug. Replaced with the NID monogram — the **first three paths** of the bilingual
+wordmark (`src/components/spine/Wordmark.tsx`: the V triangle, the D bowl, the dot), which
+between them measure 37.4513 × 29.5834. No new artwork: the same vectors the header draws.
+
+Three files, all Next metadata-file conventions in `src/app/`, so no `<link>` is
+hand-written anywhere:
+
+| file | what it is |
+|---|---|
+| `icon.svg` | the source of record — what every modern browser actually uses (`sizes="any"`) |
+| `favicon.ico` | 16 + 32 + 48 PNG-payload entries, for `/favicon.ico` requests and old clients |
+| `apple-icon.png` | 180×180, opaque, for iOS home screens |
+
+The mark is scaled into a **44**-unit content box centred in a 48 square
+(44 / 37.4513 = 1.17486, a 2-unit margin). The first attempt used 40 and read too small at
+16px — a favicon's real size is 16, so the margin is deliberately tight.
+
+**A favicon cannot read the site's tokens.** It is painted by the browser chrome, not the
+page, so no custom property resolves and the colours have to be literal. They are Peacock
+(the default theme) `icon/primary`: primary-650 in light, primary-050 in dark, swapped
+inside the SVG with `@media (prefers-color-scheme: dark)` on `:root` — which in an SVG
+document is the `<svg>` element, and `fill` inherits from there. This is exempt from the
+no-literal-hex rule rather than in breach of it: `scripts/lint-tokens.mjs` walks
+`.ts/.tsx/.js/.jsx/.css`, not `.svg`.
+
+That media query keys off the **browser's** scheme, not the site's theme switcher, and not
+the element the icon sits in — a proof sheet that emulates one scheme for the whole page
+shows both halves identical, which is the expected result, not a bug. `apple-icon.png`
+does not swap at all, which is why it gets an opaque `surface/page` plate: iOS composites
+a touch icon on a ground it does not tell you about.
+
+The two raster files are generated, not drawn: `npm run generate:icons`
+(`scripts/make-icons.mjs`) renders `icon.svg` with Playwright and packs the PNGs into an
+ICO container by hand (6-byte header, 16 bytes per directory entry). Re-run it after
+editing the SVG — nothing checks that the three files agree.
+
+`public/index.html` (the Pages redirect stub, §13) also got the icon, relatively — without
+it the stub flashes the browser default on the way to `/en/`.

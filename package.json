@@ -15,7 +15,8 @@
     "verify:design": "python3 design/verify.py",
     "screenshot": "next build && node scripts/screenshot.mjs",
     "generate:motifs": "python3 scripts/generate-motifs.py",
-    "generate:patterns": "python3 scripts/generate-patterns.py"
+    "generate:patterns": "python3 scripts/generate-patterns.py",
+    "generate:icons": "node scripts/make-icons.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

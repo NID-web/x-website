@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Screenshots /en/swatch, /en/home and /en/about at the four reference
+// Screenshots /en/swatch, /en (the home grid) and /en/about at the four reference
 // breakpoints into docs/screenshots/, per docs/STAGE-0-PLAN.md's acceptance
 // checklist. Home is here because its whole layout is a per-breakpoint reshape
 // (STAGE-0-NOTES.md §20); About because it is the template every editorial
@@ -26,7 +26,7 @@ const VIEWPORTS = [
 // name → path. The name is the screenshot's filename prefix.
 const PAGES = [
   { name: "swatch", path: "/en/swatch" },
-  { name: "home", path: "/en/home" },
+  { name: "home", path: "/en" },
   { name: "about", path: "/en/about" },
 ];
 
