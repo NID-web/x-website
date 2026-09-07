@@ -15,12 +15,22 @@ import type { ElementType, ReactNode } from "react";
 //
 // col-span-full is `grid-column: 1 / -1`, so it is always exactly the row.
 // A 3-span needs no laptop: class because full width *is* three columns there.
+//
+// `full-then-1` is Home's position statement, the one shape the numbers cannot
+// express: it runs the full row below 1024 and shrinks to ONE column at 3
+// columns and up — a reshape, not a clamp. Written as a base utility plus one
+// breakpoint-scoped override, the same shape as SPAN[2], so the winner is
+// decided by media range and never by the emit order of two unscoped utilities
+// from the same family.
 const SPAN = {
   1: "col-span-1",
   2: "col-span-full tablet:col-span-2",
   3: "col-span-full desktop:col-span-3",
   4: "col-span-full",
+  "full-then-1": "col-span-full laptop:col-span-1",
 } as const;
+
+export type GridSpan = keyof typeof SPAN;
 
 export function GridItem({
   span = 1,
@@ -28,7 +38,7 @@ export function GridItem({
   as: Tag = "div",
   children,
 }: {
-  span?: 1 | 2 | 3 | 4;
+  span?: GridSpan;
   className?: string;
   as?: ElementType;
   children?: ReactNode;

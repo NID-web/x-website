@@ -84,7 +84,15 @@ GRID = {
  "columnWidth":   [330, 309, 350, 358],          # as printed in the Figma spec
  # exact: contentWidth minus gaps, divided by columns. Only the 3-col case is fractional.
  "columnWidthExact": [330.0, round((976 - 2*24)/3, 4), 350.0, 358.0],
- "minViewport":   [1280, 1024, 768, 0],
+ # Where each range STARTS. Not the same thing as its artboard width: desktop
+ # has always begun at 1280 while being drawn at 1440, and tablet begins at 668
+ # while still being drawn at 768. The 1-column layout is for phones — the
+ # widest phone in portrait is ~430 — so it must not claim the whole 668-767
+ # band, where two columns still read as a layout. 668 rather than something
+ # nearer the phones is set by content, not by devices: the narrowest 2-column
+ # tile is (viewport - 68) / 2, and the Faculty portrait row needs 256px of it
+ # (STAGE-0-NOTES.md §21).
+ "minViewport":   [1280, 1024, 668, 0],
  "referenceWidth":[1440, 1024, 768, 390],
 }
 SPACING = [0, 2, 4, 8, 12, 16, 24, 32, 48, 56, 64]
@@ -304,10 +312,17 @@ w("  --nid-grid-columns: 4;")
 w("  --nid-grid-page-margin: 24px;")
 w("  --nid-grid-column-gap: 24px;")
 w("  --nid-grid-row-gap: 24px;")
+w("  /* The 4-column artboard's content width. A REFERENCE value (max-w-content")
+w("     maps to it), re-declared per breakpoint below — never a cap on the page")
+w("     shell: below 1440 the shell is fluid and its content box is narrower or")
+w("     wider than this. */")
 w("  --nid-grid-content-width: 1392px;")
 w("")
-w("  /* content width plus both page margins = the reference artboard width */")
-w("  --nid-grid-shell-width: calc(var(--nid-grid-content-width) + 2 * var(--nid-grid-page-margin));")
+w("  /* The ONE cap on the page shell, and the only place it is declared — no")
+w("     media query overrides it. Below 1440 the shell is fluid: 100% of the")
+w("     viewport minus the page margin, with no dead space at either side. At")
+w("     and above 1440 it stops growing and centres. */")
+w("  --nid-grid-shell-width: %dpx;" % GRID["referenceWidth"][0])
 w("}")
 w("")
 
@@ -367,9 +382,11 @@ for name, s in TYPE.items():
 w("}")
 w("")
 
-MQ = [("laptop", 1, "@media (max-width: 1279px)"),
-      ("tablet", 2, "@media (max-width: 1023px)"),
-      ("mobile", 3, "@media (max-width: 767px)")]
+# Each range's media query is the width just below the NEXT range up, derived
+# from minViewport rather than typed — a hand-typed 767 here is exactly how the
+# grid boundary and the Tailwind `tablet:` variant would drift apart.
+MQ = [(label, idx, "@media (max-width: %dpx)" % (GRID["minViewport"][idx - 1] - 1))
+      for label, idx in (("laptop", 1), ("tablet", 2), ("mobile", 3))]
 for label, idx, mq in MQ:
     w("/* --- %s --- */" % label)
     w("%s {" % mq)

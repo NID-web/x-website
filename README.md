@@ -109,9 +109,23 @@ page — nesting a second one inside a `GridItem` doubles the margin (see
 
 `GridItem`'s `span` (`1 | 2 | 3 | 4`, default `1`) clamps itself as columns disappear at
 narrower breakpoints — `span={3}` becomes full-width at tablet and mobile, without a
-`min()` hack (which doesn't work in `grid-column: span`; see `CLAUDE.md` §2.1). Column
-counts, margins, and gaps come entirely from the `--nid-grid-*` custom properties, which
-change at the four breakpoints — `tablet` 768 · `laptop` 1024 · `desktop` 1280.
+`min()` hack (which doesn't work in `grid-column: span`; see `CLAUDE.md` §2.1). One named
+span, `"full-then-1"`, covers the shape the numbers can't: Home's position statement, which
+is *reshaped* at laptop rather than clamped — full row below, one column above
+(`docs/STAGE-0-NOTES.md` §20, §22). Column counts, margins, and gaps come entirely from the
+`--nid-grid-*` custom properties, which change at the four breakpoints — `tablet` **668** ·
+`laptop` 1024 · `desktop` 1280. A range's *start* is not its *artboard width*: `tablet`
+begins at 668 and is drawn at 768, exactly as `desktop` begins at 1280 and is drawn at
+1440 (`docs/STAGE-0-NOTES.md` §21).
+
+**The shell is fluid below 1440 and capped there.** `max-w-shell` resolves to
+`--nid-grid-shell-width`, which is a flat `1440px` declared once in `:root` and never
+overridden per breakpoint. So at any viewport under 1440 the content fills it, minus the
+page margin (24px, or 16px below 668); at 1440 and above the shell stops growing and
+centres. `--nid-grid-content-width` (1392 / 976 / 720 / 358) is the *artboard reference*
+width behind `max-w-content` — it is not a second cap, and off an artboard the rendered
+content box deliberately does not equal it. See `docs/STAGE-0-NOTES.md` §19 for the bug
+that came of confusing the two.
 
 `src/components/dev/GridOverlay.tsx` is a translucent column ruler for local dev — press
 `g` to toggle it. It renders `null` in production.
@@ -123,12 +137,12 @@ npx tsc --noEmit          # strict, noUncheckedIndexedAccess
 npm run lint              # eslint + the no-literal-hex rule
 npm run build              # [locale] routes must be ○/● (static), never ƒ (dynamic)
 npm run verify:parity     # design/tokens/* byte-matches its src/ copy — fast, no browser
-npm run verify:tokens     # 593 assertions: 540 semantic + scoped-theme + grid + type,
+npm run verify:tokens     # 609 assertions: 540 semantic + scoped-theme + grid + type,
                           #   in a real (Playwright) browser against a production build
                           #   (runs verify:parity first and fails fast if that drifts)
 npm run verify:fonts      # confirms every font family (Typekit + the body face) loaded
 npm run verify:design     # re-checks design/tokens/ itself (python3 design/verify.py)
-npm run screenshot        # docs/screenshots/swatch-{1440,1024,768,390}.png
+npm run screenshot        # docs/screenshots/{swatch,home}-{1440,1024,768,390}.png
 ```
 
 Run `verify:tokens` before committing anything that touches `themes.css`, `globals.css`,

@@ -17,15 +17,36 @@ const SURFACE: Record<TileSurface, string> = {
   accent: "bg-accent-subtle text-text-primary",
 };
 
+// `square` and `stretch` each name a media range, and a tile is never both in
+// the same range, so both classes can be emitted together (the hero is square
+// below laptop and a stretch follower at laptop and up). `true` means "every
+// breakpoint" — pairing `square` and `stretch` at that width would be a
+// contradiction, so don't.
+const SQUARE: Record<string, string> = {
+  always: "aspect-square",
+  laptop: "laptop:aspect-square",
+  "max-laptop": "max-laptop:aspect-square",
+  "max-tablet": "max-tablet:aspect-square",
+};
+const STRETCH: Record<string, string> = {
+  always: "h-full",
+  laptop: "laptop:h-full",
+};
+const range = (v: boolean | "laptop" | "max-laptop" | "max-tablet" | undefined) =>
+  v === true ? "always" : v === false || v === undefined ? undefined : v;
+
 export interface TileProps {
   as?: ElementType;
   surface?: TileSurface;
-  /** Keep the 1:1 box at tablet and up; relax to natural height at 1 column so a
-   *  full-bleed square text tile doesn't swallow the phone fold. */
-  square?: boolean;
-  /** Non-square tiles that should fill the row height set by their square
-   *  neighbours (the span-2 hero). Ignored when `square`. */
-  stretch?: boolean;
+  /** The 1:1 box, at EVERY breakpoint including phones — all four Figma boards
+   *  draw every tile square, the 390 one included (docs/STAGE-0-NOTES.md §20).
+   *  `"laptop"` / `"max-laptop"` / `"max-tablet"` narrow it to one side of a
+   *  breakpoint: the position statement is square only at 3 columns and up, the
+   *  hero only at 1 column (it is a 2-wide banner at every wider count). */
+  square?: boolean | "laptop" | "max-laptop" | "max-tablet";
+  /** Tiles that should fill the row height set by their square neighbours
+   *  rather than set it (the span-2 hero, at laptop and up). */
+  stretch?: boolean | "laptop";
   /** 24px inset (`--spacing` is 4px). Flush text tiles sitting on the page pass
    *  `padding={false}` and align to the grid column. */
   padding?: boolean;
@@ -52,6 +73,8 @@ export function Tile({
   className,
   children,
 }: TileProps) {
+  const squareRange = range(square);
+  const stretchRange = range(stretch);
   return (
     <Tag
       className={clsx(
@@ -64,10 +87,12 @@ export function Tile({
         surface !== "page" && (radius ? "overflow-hidden rounded-pill" : "overflow-hidden"),
         padding && "p-6",
         SURFACE[surface],
-        // Square tiles get their height from their width at tablet+. A stretch
-        // tile (the span-2 hero) fills the row height set by its neighbours;
-        // everything else takes its natural height.
-        square ? "tablet:aspect-square" : stretch ? "h-full" : undefined,
+        // A square tile gets its height from its width — and, on a page
+        // surface (overflow visible), grows past it when its content is taller,
+        // which is what sets the row. A stretch tile fills the row height its
+        // neighbours set instead of setting it.
+        squareRange && SQUARE[squareRange],
+        stretchRange && STRETCH[stretchRange],
         interactive && "transition-colors duration-150 ease-in-out hover:bg-surface-hover",
         className,
       )}

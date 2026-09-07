@@ -12,7 +12,7 @@ import type { MediaAsset } from "@/lib/content-model";
 export function TileImage({
   media,
   className,
-  sizes = "(min-width: 1280px) 24vw, (min-width: 768px) 48vw, 96vw",
+  sizes = "(min-width: 1280px) 24vw, (min-width: 668px) 48vw, 96vw",
   fit = "cover",
   priority = false,
   backer = true,

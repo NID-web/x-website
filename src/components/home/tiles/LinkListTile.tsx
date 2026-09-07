@@ -11,14 +11,11 @@ type LinkListTileData = Extract<HomeTile, { kind: "linkList" }>;
 // subtle underline, and a teal meta line.
 export function LinkListTile({ tile, t }: { tile: LinkListTileData; t: Translate }) {
   return (
-    <Tile
-      as="section"
-      surface="page"
-      padding={false}
-      square={false}
-      stretch
-      className="justify-center"
-    >
+    // A square like every other tile. It keeps `justify-center` and no padding:
+    // on the page surface the square is a floor the content can exceed, and
+    // padding would be spent out of whatever headroom is left inside it
+    // (docs/STAGE-0-NOTES.md §18) — centring costs nothing.
+    <Tile as="section" surface="page" padding={false} className="justify-center">
       {tile.gradient && <GradientWash />}
       {tile.overlineKey && <Overline>{t(tile.overlineKey)}</Overline>}
       {tile.headingKey && (

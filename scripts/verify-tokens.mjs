@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Verifies the token layer end-to-end in a real browser: 540 semantic
 // assertions, the scoped-theme hard assertion, grid arithmetic at the four
-// breakpoints, and the letter-spacing/font-weight regression guards from
-// docs/STAGE-0-PLAN.md §8. Run against a production build (`next build &&
-// next start`), not the dev server, so it matches what actually ships.
+// artboard breakpoints PLUS four deliberately off-artboard viewports, and the
+// letter-spacing/font-weight regression guards from docs/STAGE-0-PLAN.md §8.
+// Run against a production build (`next build && next start`), not the dev
+// server, so it matches what actually ships.
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -116,6 +117,32 @@ const BREAKPOINTS = [
     shellWidth: 390,
     h1: 32,
   },
+];
+
+// Off-artboard viewports. The four widths above are exactly the four artboard
+// reference widths, which is precisely why they missed the shell-cap bug
+// (STAGE-0-NOTES.md §19): every one of them sat ON a cap, so a per-breakpoint
+// cap and a single 1440 cap measured identically. These four sit strictly
+// BETWEEN the artboards, where the shell must be fluid — the shell is the
+// viewport at 1200/900/430 and only clamps to 1440 at 1600.
+//
+// Only columns, page margin and measured shell width are asserted here.
+// Content width and the type scale stay bound to the artboard widths above:
+// --nid-grid-content-width is an artboard reference value, and off an artboard
+// the rendered content box deliberately does not equal it.
+//
+// 668/667 are the mobile boundary itself, pinned from both sides: the 1-column
+// layout is for phones only, and the widest phone in portrait is ~430, so it
+// must not reach up into the 668-767 band (STAGE-0-NOTES.md §21). Nothing else
+// in the suite would notice that boundary moving.
+const OFF_ARTBOARD = [
+  { width: 1600, height: 900, columns: 4, margin: 24, shellWidth: 1440 },
+  { width: 1200, height: 900, columns: 3, margin: 24, shellWidth: 1200 },
+  { width: 900, height: 900, columns: 2, margin: 24, shellWidth: 900 },
+  { width: 700, height: 900, columns: 2, margin: 24, shellWidth: 700 },
+  { width: 668, height: 900, columns: 2, margin: 24, shellWidth: 668 },
+  { width: 667, height: 900, columns: 1, margin: 16, shellWidth: 667 },
+  { width: 430, height: 900, columns: 1, margin: 16, shellWidth: 430 },
 ];
 
 async function main() {
@@ -340,6 +367,48 @@ async function main() {
           measured.bodyLgBoldWeight ?? "null",
         );
       }
+    }
+
+    // ---- off-artboard viewports: the shell is fluid below 1440 ----
+    for (const vp of OFF_ARTBOARD) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await gotoSwatch(page);
+
+      const measured = await page.evaluate(() => {
+        const style = getComputedStyle(document.documentElement);
+        const num = (n) => parseFloat(style.getPropertyValue(n));
+        const shell = document.querySelector("[data-nid-shell]");
+        return {
+          columns: num("--nid-grid-columns"),
+          margin: num("--nid-grid-page-margin"),
+          shellWidth: shell ? shell.getBoundingClientRect().width : null,
+          overflow: document.documentElement.scrollWidth,
+          innerWidth: window.innerWidth,
+        };
+      });
+
+      const name = `${vp.width}px (off-artboard)`;
+      check(
+        `${name} columns = ${vp.columns}`,
+        measured.columns === vp.columns,
+        String(measured.columns),
+      );
+      check(
+        `${name} page margin = ${vp.margin}`,
+        measured.margin === vp.margin,
+        String(measured.margin),
+      );
+      check(
+        `${name} shell measured width ≈ ${vp.shellWidth} (min(viewport, 1440))`,
+        measured.shellWidth !== null &&
+          Math.abs(measured.shellWidth - vp.shellWidth) <= 0.5,
+        String(measured.shellWidth),
+      );
+      check(
+        `${name} no horizontal overflow`,
+        measured.overflow === measured.innerWidth,
+        `scrollWidth ${measured.overflow} vs innerWidth ${measured.innerWidth}`,
+      );
     }
 
     // ---- no-flash: the inline THEME_SCRIPT must set both attributes before

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Screenshots /en/swatch at the four reference breakpoints into
-// docs/screenshots/, per docs/STAGE-0-PLAN.md's acceptance checklist.
+// Screenshots /en/swatch and /en/home at the four reference breakpoints into
+// docs/screenshots/, per docs/STAGE-0-PLAN.md's acceptance checklist. Home is
+// here because its whole layout is a per-breakpoint reshape (STAGE-0-NOTES.md
+// §20) — the four boards are the only way to review it.
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
@@ -18,6 +20,12 @@ const VIEWPORTS = [
   { width: 1024, height: 900 },
   { width: 768, height: 1024 },
   { width: 390, height: 844 },
+];
+
+// name → path. The name is the screenshot's filename prefix.
+const PAGES = [
+  { name: "swatch", path: "/en/swatch" },
+  { name: "home", path: "/en/home" },
 ];
 
 function startServer() {
@@ -47,12 +55,26 @@ async function main() {
     browser = await chromium.launch({ args: ["--hide-scrollbars"] });
     const page = await browser.newPage();
 
-    for (const vp of VIEWPORTS) {
-      await page.setViewportSize(vp);
-      await page.goto(`${BASE}/en/swatch`, { waitUntil: "networkidle" });
-      const file = path.join(OUT_DIR, `swatch-${vp.width}.png`);
-      await page.screenshot({ path: file, fullPage: true });
-      console.log(`saved ${path.relative(ROOT, file)}`);
+    for (const target of PAGES) {
+      for (const vp of VIEWPORTS) {
+        await page.setViewportSize(vp);
+        // Not networkidle: the Typekit stylesheet never lets the network go
+        // quiet, so that wait only ever times out (STAGE-0-NOTES.md §15). Wait
+        // on the real precondition instead — stylesheet applied, grid rendered,
+        // web fonts resolved — which is both deterministic and stricter.
+        await page.goto(`${BASE}${target.path}`, { waitUntil: "domcontentloaded" });
+        await page.waitForFunction(
+          () =>
+            getComputedStyle(document.documentElement)
+              .getPropertyValue("--nid-grid-columns")
+              .trim() !== "" && document.querySelector("[data-nid-shell]") !== null,
+        );
+        await page.evaluate(() => document.fonts.ready);
+        await page.waitForTimeout(300);
+        const file = path.join(OUT_DIR, `${target.name}-${vp.width}.png`);
+        await page.screenshot({ path: file, fullPage: true });
+        console.log(`saved ${path.relative(ROOT, file)}`);
+      }
     }
 
     await browser.close();

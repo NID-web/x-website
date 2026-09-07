@@ -13,10 +13,9 @@ type Check = { label: string; actual: number; expected: number; ok: boolean };
 //
 // shellLeft AND the actual content width both come from measuring the real
 // [data-nid-shell] element, not from CSS tokens:
-//   - --nid-grid-shell-width is a calc() expression, and getComputedStyle on
-//     a *custom property* returns it unevaluated (custom properties are raw
-//     token streams — calc() only gets reduced to a number when a real
-//     layout property uses the var()).
+//   - --nid-grid-shell-width is the 1440px cap, not the rendered width — the
+//     shell only reaches it at and above 1440 and is fluid below, so the token
+//     over-reports the shell at every narrower viewport.
 //   - --nid-grid-content-width (1392 at desktop) is only the width at the
 //     reference viewport (1440) where the shell has hit its max-width and
 //     centers. Below that — say a 1280px window, still "desktop" by column

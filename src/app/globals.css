@@ -13,7 +13,8 @@
   /* Replace Tailwind's sm/md/lg/xl/2xl with the four Figma breakpoint modes.
      There are only four. Anything else is off-spec. */
   --breakpoint-*: initial;
-  --breakpoint-tablet: 768px; /* 2 columns */
+  --breakpoint-tablet: 668px; /* 2 columns — where the range STARTS, not the
+                                 768 artboard it is drawn at (STAGE-0-NOTES §21) */
   --breakpoint-laptop: 1024px; /* 3 columns */
   --breakpoint-desktop: 1280px; /* 4 columns */
 
@@ -160,7 +161,7 @@
   --spacing-rowgutter: var(--nid-grid-row-gap);
 
   /* ---- widths ---- */
-  --container-shell: var(--nid-grid-shell-width); /* content + 2 × margin */
+  --container-shell: var(--nid-grid-shell-width); /* the 1440 cap; fluid below */
   --container-content: var(--nid-grid-content-width);
   --container-measure: 684px; /* intro / standfirst cap */
 
@@ -312,11 +313,22 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 667px) {
   :root {
     --nid-type-home-statement-size: 32px;
     --nid-type-home-statement-lh: 36px;
   }
+}
+
+/* A tile that spans two columns but must stand exactly ONE grid row tall — the
+   same height as the single squares above and below it, so the row rhythm
+   survives (the 2-column hero). Its own width is two columns PLUS one gutter,
+   so one column is (100cqw − gutter) / 2, read from the GridItem it sits in
+   (which carries `@container`). Not `aspect-[2/1]`: that is half a gutter too
+   tall, because the gutter is inside the width. Not `100vw` either — that
+   counts the scrollbar and would overshoot wherever one is present. */
+@utility h-grid-row-2 {
+  height: calc((100cqw - var(--nid-grid-column-gap)) / 2);
 }
 
 @utility bg-overline-rule {

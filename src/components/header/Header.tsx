@@ -14,7 +14,10 @@ import { APPLY_HREF } from "@/lib/nav-content";
 // opaque band (STAGE-0-NOTES trap #2 — do not "fix" it to opacity 1).
 //
 // One row, justify-between, at two heights: 50px below tablet (Mobile variant),
-// 60px from tablet up (1024 and 768 keep the desktop header — §5/§7.3). The only
+// 60px from tablet up (1024 and 768 keep the desktop header — §5/§7.3). "Below
+// tablet" is now below 668, not below 768 (STAGE-0-NOTES §21): a 700px-wide
+// window is a narrow desktop, not a phone, and takes the full-height header.
+// The only
 // responsive swap is the mark: the full bilingual wordmark on desktop, the
 // compact "NID" mark below tablet. The Apply / search / menu cluster is shared.
 //

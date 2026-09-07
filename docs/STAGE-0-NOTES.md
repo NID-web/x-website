@@ -13,7 +13,7 @@ scratch copy reproduced `src/styles/themes.css` **byte-identical**; running it f
 against `design/` made `design/tokens/themes.css` byte-identical to `src/styles/themes.css`
 too, so the bundle and the app no longer diverge. `design/tokens/tokens.json` is untouched
 by this (confirmed by diff) — the four edits are CSS-emit-only, as designed. `design/verify.py`
-still passes 25/25, and `npm run verify:tokens` still passes (593/593 as of §11's body-face
+still passes 25/25, and `npm run verify:tokens` still passes (609/609 as of §11's body-face
 work), after every regeneration.
 
 The four edits, for reference (all in `design/generate.py`):
@@ -38,9 +38,10 @@ The four edits, for reference (all in `design/generate.py`):
    `--nid-weight-body`, `"SemiBold"` → `-semibold`, `"Bold"` → `-bold`. Verified against
    the corrected classes in `src/styles/themes.css` before writing the helper, not derived
    from assumption.
-4. **Shell width token** (`generate.py`'s grid block): add
-   `--nid-grid-shell-width: calc(var(--nid-grid-content-width) + 2 * var(--nid-grid-page-margin))`
-   once, in the base `:root` block — it needs no per-breakpoint override.
+4. **Shell width token** (`generate.py`'s grid block): add `--nid-grid-shell-width`
+   once, in the base `:root` block — it needs no per-breakpoint override. (It was first
+   written as `calc(content-width + 2 * page-margin)`, which turned out to re-derive a
+   *different* cap in every media query; it is now the flat `1440px` — see §19.)
 
 ## 2. Two hardcoded path fixes in `design/`
 
@@ -84,19 +85,25 @@ a real architectural tension, not an oversight. Revisit only if this path proves
 in normal (non-malicious, non-crawler) traffic; it requires a request that never comes
 through valid locale-prefixed navigation.
 
-## 5. `--nid-grid-shell-width` is a `calc()` — don't read it with `getPropertyValue`
+## 5. Never read the shell's width from the token — measure the element
 
+**Corrected in §19.** `--nid-grid-shell-width` used to be a `calc()`; it is now the plain
+length `1440px`. The original wording of this note explained the `calc()` trap:
 `getComputedStyle(el).getPropertyValue('--custom-prop')` returns a custom property's
 *specified* value verbatim — custom properties are raw token streams, not resolved
-values, so `calc()` is never reduced to a number there. Only when a real layout property
-(`max-width: var(--nid-grid-shell-width)`, as `PageGrid` does via `--container-shell`)
-consumes the `var()` does the browser actually evaluate the `calc()`. Both
-`EnvironmentReadout` and `GridProof` measure a real `[data-nid-shell]` element's rendered
-`getBoundingClientRect()` instead of parsing the variable's text. The same applies to
-deriving the actual column width below the 1440px reference viewport: at, say, 1280px,
-the shell has not yet hit its `max-width` cap, so the real content box is narrower than
-the `--nid-grid-content-width` token (which only equals the *rendered* width exactly at
-the breakpoint's reference viewport). `GridProof` derives content width from the measured
+values, so a `calc()` there is never reduced to a number. That is still true of custom
+properties generally, so it is worth knowing; it is just no longer true of this token.
+
+The conclusion is unchanged, and now rests on a simpler fact: **the token is the cap, not
+the rendered width.** The shell only reaches 1440 at and above a 1440px viewport; below
+that it is fluid, so reading the token over-reports the shell at every narrower viewport.
+`EnvironmentReadout` and `GridProof` both measure a real `[data-nid-shell]` element's
+`getBoundingClientRect()` instead.
+
+The same applies to deriving the actual column width below 1440: at, say, 1280px the
+shell has not hit its cap, so the real content box is narrower than the
+`--nid-grid-content-width` token (which equals the *rendered* width only at the
+breakpoint's reference viewport). `GridProof` derives content width from the measured
 shell rect, not from the token.
 
 ## 6. A page is one grid — don't nest `PageGrid`
@@ -273,7 +280,7 @@ properly. **Verified the way the failure demanded — in a fresh `git clone`, no
 working tree**: cloned the pushed repo into a scratch dir, ran `npm ci` (failed,
 reproducing the CI error exactly), regenerated, ran `npm ci` again (passed), then built
 clean. Re-ran the full suite afterwards in the working tree: `verify:parity` 2/2,
-`verify:tokens` 593/593, `verify:fonts` 6/6, `verify:design` 25/25, tsc and lint clean.
+`verify:tokens` 609/609, `verify:fonts` 6/6, `verify:design` 25/25, tsc and lint clean.
 
 **Lesson for anything that touches `package.json`:** `npm install` succeeding proves
 nothing about a clean install. Run `npm ci` — ideally in a clean clone — before assuming a
@@ -355,7 +362,7 @@ Measured against the same page: `domcontentloaded` 1.6s, `load` 3.0s, network id
 out at 15s — and all three observed the identical state (540 chips, 20 panels,
 `--nid-grid-columns: 4`, h1 60px), which is what proves the wait was the only problem.
 
-`npm run verify:tokens` now completes in **~7s with PASS 593**.
+`npm run verify:tokens` now completes in **~7s with PASS 609**.
 
 **Trap for whoever edits this file next:** don't assert `"networkidle" not in source` after
 patching — the explanatory comment names the string it removed, and the check trips on its
@@ -462,7 +469,7 @@ same mislabel, not a second data point.
 ever becomes a real Figma style, move it into the generator and delete the block.
 
 Verified across all four breakpoints on `/en/home` (computed `font-size`/`line-height`:
-50/50 · 50/50 · 40/44 · 32/36) with `PASS 593`.
+50/50 · 50/50 · 40/44 · 32/36) with `PASS 609`.
 
 ---
 
@@ -496,3 +503,316 @@ to shrink, not the spacing.
 Measured after the change (`section` height, then the gap above the heading and below the
 list): 1440 → 330, 8.5 / 8.5 · 1024 → 312, 0 / 0 · 768 → 350, 20 / 20 · 390 → 308, 0 / 0.
 
+**Superseded in part by §20**, which is the same mechanism taken to its conclusion: "Study
+at NID" is no longer `square={false} stretch` but a plain square like every other tile, and
+`tablet:aspect-square` is now `aspect-square`. The reasoning above — that a `stretch` tile
+is a driver rather than a follower, and that padding on one is spent out of the row's
+headroom — is exactly why. It keeps `justify-center` and no padding for the same reason.
+
+
+---
+
+## 19. The page shell was capped at every breakpoint, not just at 1440
+
+The shell is meant to be **fluid up to 1440 and capped there**: below 1440 the content
+fills the viewport minus the page margin, at and above 1440 it stops growing and centres.
+It wasn't. `generate.py` emitted
+
+```css
+--nid-grid-shell-width: calc(var(--nid-grid-content-width) + 2 * var(--nid-grid-page-margin));
+```
+
+once, in `:root` — which *looks* like a single declaration but isn't. `calc()` in a custom
+property is re-evaluated wherever it is used, against whatever the referenced properties
+resolve to there, and `--nid-grid-content-width` is re-declared in every media query
+(1392 / 976 / 720 / 358). So the one declaration silently became four different caps:
+1440 / 1024 / 768 / 390 — the *artboard width of each range*.
+
+The effect was dead space at every off-artboard width. At a 1200px window the content
+froze at 1024 and centred with 88px of unused margin on each side; at 900 it froze at 768;
+on a 430px phone at 390, with 20px wasted on a screen that has none to spare.
+
+Two things had to be true for this to survive as long as it did:
+
+1. **The token read like a derivation, not a cap.** "Content width plus both page margins
+   = the reference artboard width" is a true sentence about the *reference* viewport and a
+   false one everywhere else. `--nid-grid-content-width` is an artboard reference value
+   (it is what `max-w-content` maps to); the shell's cap is a single number. Deriving one
+   from the other tied the cap to a value that legitimately changes per breakpoint.
+2. **Every test viewport sat exactly on a cap.** `verify-tokens.mjs` measured the shell at
+   1440 / 1024 / 768 / 390 — the four artboard widths, which are precisely the four widths
+   at which a per-breakpoint cap and a single 1440 cap are indistinguishable. A four-line
+   table of four passing assertions, none of which could ever fail.
+
+**The fix.** `generate.py` now emits `--nid-grid-shell-width: 1440px` (from
+`GRID["referenceWidth"][0]`, not hand-typed) once in `:root`, and no media query overrides
+it. `--nid-grid-content-width` stays per breakpoint, with its comment reworded so it is not
+read as a cap again. The regenerated `themes.css` differs by exactly that one declaration.
+
+**The guard.** `verify-tokens.mjs` now also measures four deliberately *off*-artboard
+viewports — 1600 (shell 1440, 4 columns), 1200 (shell 1200, 3 columns), 900 (shell 900,
+2 columns) and 430 (shell 430, 1 column) — asserting columns, page margin, measured shell
+width and absence of horizontal overflow. Content width and the type scale stay bound to
+the four artboard widths, since off an artboard the rendered content box is *supposed* to
+differ from the token. `PASS 593` → `PASS 609`.
+
+Reverting the fix fails all four new shell assertions and none of the old ones, which is
+the point.
+
+## 20. Home's rows are square at every breakpoint, and row 1 reshapes at 1024
+
+Two behaviours in the Home grid were built as explicitly-flagged "Figma-verify
+assumptions". The four boards (file `EAoxODvNK8dNGAeovGI5D7`: 1440 `28:2175`, 1024
+`4990:368207`, 768 `4997:381054`, 390 `4999:393901`) have now been checked and **both
+assumptions were wrong**:
+
+- *"Tiles relax to natural height on phones so a full-bleed square text tile doesn't
+  swallow the fold."* The 390 board draws every tile as a 358 square. `Tile` and
+  `PatternTile` now carry `aspect-square`, not `tablet:aspect-square`.
+- *"Pattern tiles drop below laptop."* All four boards show them. The `hidden laptop:block`
+  on their `GridItem` is gone.
+
+The rule the boards actually describe is simple: **within a viewport, every tile row is the
+column width** — every tile is a square, and row height follows the column rather than any
+fixed pixel value. The exceptions are exactly three: the position statement below 1024, the
+hero, and the footer tiles.
+
+| | ≥ 1024 | < 1024 |
+|---|---|---|
+| Position statement | 1-column square | **full width, natural height** |
+| Hero | 2 columns, `h-full` — a row *follower* | 1-column square *(superseded — see §22)* |
+| "Study at NID" | square, like every other tile | square |
+| Pattern tiles | shown | shown |
+| Footer tiles | natural height | natural height |
+
+Row 1 is therefore not a clamp but a **reshape**, and it is the one shape `GridItem`'s
+`SPAN` table could not express: the statement goes full → 1 and the hero 1 → 2, both in the
+same direction at the same breakpoint. Two named spans now carry it —
+`"full-then-1"` (`col-span-full laptop:col-span-1`) and `"1-then-2"`
+(`col-span-1 laptop:col-span-2`) — keeping `GridItem` the only place a column class is
+written. Both are a base utility plus one breakpoint-scoped override, the shape `SPAN[2]`
+already used, so the winner is decided by media range and never by the emit order of two
+unscoped utilities from the same family (the same trap `Tile`'s `rounded-pill` /
+`rounded-none` comment describes). Source order is untouched — statement, hero, study, … —
+so at 768 the statement takes its own full-width row and the hero lands beside "Study at
+NID" exactly as the board draws it, by dropping columns rather than reordering.
+
+`Tile`'s `square` and `stretch` props became media *ranges* rather than booleans
+(`"laptop"`, `"max-laptop"`) so the hero can be a square below 1024 and a follower above
+it. That also let `min-h-56` go: one of the two always gives the hero a height, so the
+floor was never load-bearing.
+
+**§18 is the mechanism behind all of this** and still holds: a square page-surface tile's
+box is a *floor*, not a cap — `overflow: visible` makes the automatic minimum size
+content-based, so content taller than the square grows the tile and with it the row, while
+a `stretch` tile in that row follows. Making "Study at NID" a plain square rather than
+`square={false} stretch` is the same fact applied: at 1440 its content is 313 in a 330
+column and it now simply *is* 330.
+
+**Measured after the change** (production build, every direct child of `[data-nid-grid]`
+grouped into rows by `offsetTop`, 11 viewports from 1600 to 390): shell = `min(viewport,
+1440)` everywhere, no horizontal overflow at any width, and every tile row equal to the
+column width — 330 at 1440, 394.33 at 1279, 368 at 1200, 309.34 at 1024, 477.5 at 1023,
+416 at 900, 350 at 768, 735 at 767, 398 at 430, 358 at 390. Nothing is clipped at any
+width, including the phone widths that used to be natural-height.
+
+**One tile still exceeds its square, and it needs a design decision.** Between 1024 and
+1086 the position statement wraps to 6 lines of `text-statement`, which is **55/55** in
+`globals.css`. 6 × 55 = **330** in a 309.33 column at 1024 — +20.7px — so the statement
+drives row 1 to 330 and the hero follows it there. (The 1024 board itself draws row 1 at
+324 rather than 309, so it is inconsistent in the same direction.) It is self-correcting
+above 1086, where the column reaches 330. The fix is not a layout one: §17 documents
+`text-statement` as **50/50** at desktop and laptop, and at 50/50 the paragraph measures
+300 and the tile snaps to 309.33 exactly — verified by overriding the two custom properties
+in the browser. Either the token drifted from §17 or §17 is stale; resolving that is the
+design owner's call, not a layout change, so it is left as measured.
+
+## 21. The 1-column layout is for phones — it was claiming everything below 768
+
+The mobile range is the phone layout: one column, 16px margins, the compact 50px header,
+the "NID" mark instead of the full bilingual wordmark. It began at **767px and down**,
+which is not a phone. A 700px-wide browser window got a single 700px-wide column of
+700px-square tiles.
+
+This only became visible once §19 made the shell fluid. Before that, a 767px viewport was
+*also* capped at 390 — the same bug, hidden behind 188px of dead space on each side. Fixing
+the cap surfaced what the 1-column range actually looked like at full width.
+
+**A range's start is not its artboard width.** That distinction already existed and was
+simply not being used: `desktop` has always begun at 1280 while being drawn at 1440. So
+`GRID["minViewport"]` moves and `GRID["referenceWidth"]` does not — the tablet range now
+begins at **668** and is still drawn at 768, and `design/verify.py`'s grid arithmetic
+(which asserts against `referenceWidth`) is untouched. The media-query boundaries in
+`generate.py` are now *derived* from `minViewport` rather than hand-typed, because a
+literal `767` in the generator and a `--breakpoint-tablet: 768px` in `globals.css` are
+exactly the two halves that drift apart.
+
+The Tailwind `tablet:` variant moves with it, deliberately. It carries more than the grid —
+the header's 50/60px height and mark swap, `MainMenu`'s column count — and all of it means
+"is this a phone?", not "is this narrower than the 768 artboard".
+
+**668 is set by content, not by devices.** The device argument only gives a floor: the
+widest phone in portrait is ~430, so anything above ~468 would do. The ceiling comes from
+what a 2-column tile can hold, since the narrowest one is `(viewport − 68) / 2`:
+
+| | needs a column of | so the boundary can't go below |
+|---|---|---|
+| Every text tile's own content (Study at NID, Academic, News, Young Designers) | ~300px | **668** |
+| Faculty portrait row (6 × 76px, −40px overlap) | 256px | 580 |
+| …the same row *while hovered* (overlap −26px) | 326px | 720 |
+| KMC book shelf (11 spines × 28px pitch) | 330px | 728 |
+
+At 468 — the first value considered — the column is 200px: the shelf loses 4 of its 11
+spines and the faculty row pushes 4px of horizontal page scroll (63px hovered). At 600 the
+column is 266px, which clears the faculty row but is still short for four text tiles, whose
+content then grows the row past the square (§20's sanctioned behaviour, but it means those
+rows are no longer square).
+
+**668 gives a 300px column, which is the first width at which every row is square again.**
+That is the number that matters: below it the layout still *works* — nothing clips, nothing
+overflows — but it stops being the uniform grid §20 describes. It also caps the 1-column
+phone layout at a 635px tile instead of 735.
+
+**Measured after the change** (production build, 16 viewports from 1600 to 390): shell =
+`min(viewport, 1440)` everywhere, **no horizontal page overflow at any width, hover states
+included**, header 60px down to 668 and 50px below it, and **every tile row equal to the
+column at every width measured** — 1600 / 1440 / 1279 / 1200 / 1024 / 1023 / 900 / 768 /
+700 / 669 / 668 and every 1-column width.
+
+Two things are knowingly left, both much smaller at 668 than they were at 600:
+
+1. **The KMC shelf crops by 8px at 668.** It wants a 330px column and gets 300, so it loses
+   the tail of its eleventh spine — under a third of one 28px pitch, against the 2 whole
+   spines it lost at 600. Clear by 700. It is the one tile that clips rather than grows:
+   its shelf is `overflow-hidden` by design and the spines truncate the way the Figma frame
+   draws them. It also takes a 2px nick at 1024, where the column is 309.33 — that predates
+   all of this and is what a 330px shelf in a 309px column has always done.
+2. **The faculty row's hover spread exceeds its tile at 1024 and in the 2-column band.**
+   Dropping the overlap from 40px to 26px widens the row from 256 to 326, and only the
+   desktop column (330) is wide enough. Measured spill into the gutter: 8px each side at
+   1024 (which predates this change), 13px at 668, none at 768 or 1440. It never reaches
+   the page edge at any width, so there is no horizontal scroll — at 600 there was 6px of
+   it, and 668 removes that. Fixing the spill itself means dropping the hover spread or
+   making the row's geometry relative to its container — a design decision, so it is
+   recorded rather than guessed at.
+
+## 22. The hero spans two tiles at every column count, and the 2-column one is a banner
+
+§20 gave the hero two shapes: a 1-column square below 1024, two columns above. The design
+owner has called it the other way — the hero should occupy **two tiles at every column
+count**, so at 2 columns it runs the full row rather than sitting beside "Study at NID".
+
+This is a deliberate departure from both design sources, recorded as such:
+
+- The **768 board** (`4997:381054`) draws `Card` at `x=24 width=350 height=350` — one
+  column, square, beside `Study at NID` at `x=394`.
+- The **Figma Make export** (`design/reference/`) only covers the 4-column frame, where
+  `Card` is `col-[2/span_2] row-1 self-stretch` — which is what §20 already implemented and
+  is unchanged here.
+
+So the hero is back to a plain `SPAN[2]` (`col-span-full tablet:col-span-2`), which is
+exactly right at all four counts: the whole row at 1 and 2 columns, two of three or four
+above. `GridItem`'s `"1-then-2"` entry is gone with it; only `"full-then-1"` (the position
+statement) still needs a named span.
+
+**The height is the interesting part.** At 3 and 4 columns the hero is a row *follower* —
+square neighbours in row 1 set the height. At 2 columns nothing shares its row, so nothing
+can set it, and §18's trap applies in full: `h-full` against a content-sized row collapses.
+It has to state its own height, and "one grid row" is the only height that keeps the
+rhythm — the hero should read as the two tiles it replaces.
+
+That height cannot be written as a constant `aspect-ratio`. The hero's width is two columns
+**plus one gutter**, so one column is `(width − gutter) / 2` — a ratio that moves with the
+gutter. `aspect-[2/1]` would be half a gutter (10px) too tall at every 2-column width, which
+is precisely the kind of near-miss §20 spent its time eliminating. `100vw` is no good
+either: it counts the scrollbar, so it overshoots wherever one is present.
+
+What works is a container query. The hero's `GridItem` carries `@container`, and the tile
+carries `h-grid-row-2` (`src/app/globals.css`):
+
+```css
+height: calc((100cqw - var(--nid-grid-column-gap)) / 2);
+```
+
+`100cqw` is the GridItem's own content width — scrollbar-safe, exact, and derived entirely
+from the grid tokens, so it is not a fixed pixel row height. `@container` is a containment
+context rather than a column class, which is why it is passed as a `className` and stays out
+of `GridItem`'s `SPAN` table.
+
+**Measured** (production build): hero width × height, against the column —
+
+| viewport | columns | column | hero | one row tall? |
+|---|---|---|---|---|
+| 1440 | 4 | 330 | 684 × 330 | yes (follower) |
+| 1279 | 3 | 394.3 | 812.7 × 394.3 | yes (follower) |
+| 1023 | 2 | 477.5 | 975 × 477.5 | **yes (banner)** |
+| 768 | 2 | 350 | 720 × 350 | **yes (banner)** |
+| 668 | 2 | 300 | 620 × 300 | **yes (banner)** |
+| 390 | 1 | 358 | 358 × 358 | yes (square) |
+
+All nine tile rows still equal the column at every 2-column width, and there is no
+horizontal overflow at any width.
+
+**The knock-on, which is unavoidable.** The hero now costs 2 cells instead of 1 at two
+columns, so the grid holds **25 cells rather than 24** there — an odd number. Every pair
+below row 2 shifts by one against what the 768 board draws (`study` now sits with
+`academic` rather than with the hero, and so on down), and `footer-4` ends up alone on row
+13. That is arithmetic, not a bug: an odd cell count in a 2-column grid has to leave one
+slot empty somewhere, and source order is never reordered to hide it (CLAUDE.md § Layout).
+
+## 23. The collaborations block takes the full row below 1024
+
+Six partner marks in a 4-column grid do not fit a 2-column layout's single column: at 768
+that is a 350px block holding four marks across at ~78px each, then two more on a second
+row. It reads as cramped, which is what it is.
+
+The block now runs the **full row below 1024** and stays one column at 3 and 4 columns. No
+new API was needed — that is exactly the reshape `GridItem`'s `"full-then-1"` already
+describes for the position statement (§20), so the same named span carries it.
+
+**Widening it alone made it worse, not better.** At 720px with the internal grid still at
+4 columns, the six marks became four across at 168px and then two stranded beside a
+half-empty row — a bigger hole than the one being fixed. So the internal grid follows the
+block: `grid-cols-4 tablet:grid-cols-6 laptop:grid-cols-4`. Six across on the two-column
+layout's full row is one clean line; the phone keeps four, because its full row is only
+358–635px wide and six marks there would be ~46px each. Base plus two breakpoint-scoped
+overrides, so the winner is the media range rather than the emit order of three
+`grid-cols-*` utilities from the same family. The heading moved from `col-span-4` to
+`col-span-full` so it stops naming a count it no longer always has.
+
+Measured — the block, and its internal column count:
+
+| viewport | columns | collaborations block | internal grid |
+|---|---|---|---|
+| 1440 | 4 | 330 × 322, one column | 4 across |
+| 1024 | 3 | 309 × 184, one column | 4 across |
+| 768 | 2 | **720 × 73, full row** | **6 across** |
+| 668 | 2 | **620 × 73, full row** | **6 across** |
+| 390 | 1 | 358 × 128, full row | 4 across |
+
+### The logos need their own light plate in dark appearance
+
+The partner marks are full-colour artwork with dark ink baked in, so on a dark surface they
+all but vanish. The block's own comment already rules out the obvious fix — the export's
+frame carries `bg-white`, but painting that for real turns the whole block into a white
+slab the moment the surface is dark.
+
+So the plate goes on each **logo cell** instead: `dark:bg-surface-inverse`. That is a
+layer-2 semantic token, not a primitive or a hex — `surface/inverse` is the one sanctioned
+dark pairing (the same token `Tile`'s `inverse` surface uses), and in dark appearance it
+resolves to a theme-tinted near-white: `#FAFFFF` in Peacock, `#FFFDFA` in Tanjore. In light
+appearance the cell stays transparent and nothing changes. The `dark` variant it hangs off
+already existed at the top of `globals.css`.
+
+The `rounded-lg` and `p-2` are applied in **both** appearances even though only dark paints
+the plate. Dark-only padding would resize every logo the instant the appearance toggled,
+and that swap is meant to be instant and judder-free (CLAUDE.md § Icons and motion) —
+costing light a few px of logo is the cheaper half. Verified: the cell measures 107 × 61 in
+both appearances at 768, identical, with `background-color` `rgb(250, 255, 255)` in
+Peacock/dark and `rgba(0, 0, 0, 0)` in Peacock/light.
+
+**It also closes §22's loose end.** The full-row hero made the 2-column grid 25 cells — an
+odd number, which left `footer-4` alone on row 13. Widening this block to 2 cells brings it
+to **26 cells in exactly 13 rows**, with nothing stranded. That is luck rather than design,
+but it is worth knowing that the two changes cancel: reverting either one on its own puts
+the half-empty row back.

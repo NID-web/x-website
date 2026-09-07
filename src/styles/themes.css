@@ -66,10 +66,17 @@
   --nid-grid-page-margin: 24px;
   --nid-grid-column-gap: 24px;
   --nid-grid-row-gap: 24px;
+  /* The 4-column artboard's content width. A REFERENCE value (max-w-content
+     maps to it), re-declared per breakpoint below — never a cap on the page
+     shell: below 1440 the shell is fluid and its content box is narrower or
+     wider than this. */
   --nid-grid-content-width: 1392px;
 
-  /* content width plus both page margins = the reference artboard width */
-  --nid-grid-shell-width: calc(var(--nid-grid-content-width) + 2 * var(--nid-grid-page-margin));
+  /* The ONE cap on the page shell, and the only place it is declared — no
+     media query overrides it. Below 1440 the shell is fluid: 100% of the
+     viewport minus the page margin, with no dead space at either side. At
+     and above 1440 it stops growing and centres. */
+  --nid-grid-shell-width: 1440px;
 }
 
 /* ==========================================================================
@@ -1050,7 +1057,7 @@
 }
 
 /* --- mobile --- */
-@media (max-width: 767px) {
+@media (max-width: 667px) {
   :root {
     --nid-grid-columns: 1;
     --nid-grid-page-margin: 16px;

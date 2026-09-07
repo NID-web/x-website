@@ -20,16 +20,14 @@ function readEnv(): Env {
       ? "desktop"
       : width >= 1024
         ? "laptop"
-        : width >= 768
+        : width >= 668
           ? "tablet"
           : "mobile";
 
-  // --nid-grid-shell-width is a calc() expression. getComputedStyle on a
-  // *custom property* returns it unevaluated (custom properties are raw
-  // token streams, not resolved values) — only when the browser lays out an
-  // element using that var() does calc() actually get reduced to a number.
-  // So measure a real [data-nid-shell] element's rendered width instead of
-  // parsing the variable's text.
+  // --nid-grid-shell-width is the 1440px CAP, not the rendered width: below
+  // 1440 the shell is fluid, so reading the token would over-report the shell
+  // at every off-artboard viewport. Measure a real [data-nid-shell] element's
+  // rendered width instead (docs/STAGE-0-NOTES.md §5, §19).
   const shellEl = document.querySelector<HTMLElement>("[data-nid-shell]");
   const shellWidth = shellEl
     ? `${Math.round(shellEl.getBoundingClientRect().width)}px`
