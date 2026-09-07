@@ -21,12 +21,17 @@ export function SpineTile({ tile, t }: { tile: SpineTileData; t: Translate }) {
           // its sides and the shelf collapses to half width.
           <span
             key={spine}
-            // w-7 (28px) is the export's column pitch: a 12px text box plus its
-            // 8px sides. Left intrinsic, the column would take the 15.5px LINE
-            // box instead of the 12px font size and run ~32px, which pushes the
+            // 28px is the export's column pitch: a 12px text box plus its 8px
+            // sides. Left intrinsic, the column would take the 15.5px LINE box
+            // instead of the 12px font size and run ~32px, which pushes the
             // eleventh spine off the tile. Fixed width + items-center gets the
             // pitch right and centres the label in it.
-            className="flex w-7 shrink-0 flex-col items-center border-l border-border-subtle pt-1"
+            //
+            // Scaled with the tile, because the pitch is DERIVED from the 12px
+            // text box and that text has scaled since §24 — leaving the pitch at
+            // a flat 28 cropped the shelf wherever the column fell under 11 × 28
+            // = 308px, i.e. 1280-1344 and 668-680 (§27).
+            className="flex w-[calc(28px*var(--nid-tile-scale))] shrink-0 flex-col items-center border-l border-border-subtle pt-1"
           >
             <span
               // text-micro is 12/15.5/0.04em medium — the export's spine

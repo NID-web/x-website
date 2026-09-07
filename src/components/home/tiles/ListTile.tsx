@@ -69,10 +69,15 @@ export function ListTile({ tile, t }: { tile: ListTileData; t: Translate }) {
                   i === tile.rows.length - 1 && lastRowRule,
                 )}
               >
+                {/* 64px at the artboard, scaled with the tile like everything
+                    else in it (docs/STAGE-0-NOTES.md §27). Fixed, these three
+                    thumbnails gave the tile a 293.5px floor that overflowed its
+                    own column between 1280 and 1292. `sizes` names the upper
+                    end of the range rather than the artboard value. */}
                 <TileImage
                   media={row.thumbnail}
-                  className="relative size-16 shrink-0"
-                  sizes="64px"
+                  className="relative size-[calc(64px*var(--nid-tile-scale))] shrink-0"
+                  sizes="90px"
                 />
                 <div className="min-w-0">
                   <Link

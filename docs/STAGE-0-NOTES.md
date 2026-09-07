@@ -451,12 +451,17 @@ CLAUDE.md § Type):
 
 | | desktop | laptop | tablet | mobile |
 |---|---|---|---|---|
-| `text-statement` | **50 / 50** | **50 / 50** | 40 / 44 | 32 / 36 |
+| `text-statement` | **55 / 55** *(§25)* | **50 / 50** | 40 / 44 | 32 / 36 |
 | `text-h1` | 60 / 60 | 52 / 54 | 40 / 44 | 32 / 36 |
 
 Laptop holds at 50 instead of dropping to Heading/1's 52 — that is the one invented value,
 and it exists solely so the ramp stays monotonic. Below 1024 the two scales are identical,
 so the statement rejoins Heading/1 exactly where the boards already agreed.
+
+**Desktop has since moved to 55** — this table originally read 50 / 50 across the top two
+steps. §25 has the reason and the measurements; the short version is that 6 × 55 = 330 is
+the 4-column square exactly, and that the monotonicity argument above was superseded by
+§24, which retired absolute type size as the invariant in favour of type-to-tile ratio.
 
 Two things deliberately did **not** change. Tracking stays `-0.03em`, which is what the
 export's `-1.5px` at 50px works out to. Weight stays **Heavy (700)** even though the export
@@ -660,7 +665,13 @@ what a 2-column tile can hold, since the narrowest one is `(viewport − 68) / 2
 | Every text tile's own content (Study at NID, Academic, News, Young Designers) | ~300px | **668** |
 | Faculty portrait row (6 × 76px, −40px overlap) | 256px | 580 |
 | …the same row *while hovered* (overlap −26px) | 326px | 720 |
-| KMC book shelf (11 spines × 28px pitch) | 330px | 728 |
+| KMC book shelf (11 spines × 28px pitch) | ~~330px~~ **308px** | ~~728~~ **684** |
+
+**Correction:** the shelf row above read 330px for several revisions of this note. 11 × 28 =
+**308**, and 330 was a misread of `scrollWidth`, which reports the *container* width
+whenever the content fits. The boundary it implies is 684, not 728 — so 668 was 16px short
+of clearing the shelf, not 60. It is moot either way now: §27 scales the pitch with the
+tile, so the shelf fits at every width.
 
 At 468 — the first value considered — the column is 200px: the shelf loses 4 of its 11
 spines and the faculty row pushes 4px of horizontal page scroll (63px hovered). At 600 the
@@ -681,13 +692,14 @@ column at every width measured** — 1600 / 1440 / 1279 / 1200 / 1024 / 1023 / 9
 
 Two things are knowingly left, both much smaller at 668 than they were at 600:
 
-1. **The KMC shelf crops by 8px at 668.** It wants a 330px column and gets 300, so it loses
+1. **The KMC shelf crops by 8px at 668** *(fixed in §27)*. It wants a 308px column and gets 300, so it loses
    the tail of its eleventh spine — under a third of one 28px pitch, against the 2 whole
    spines it lost at 600. Clear by 700. It is the one tile that clips rather than grows:
    its shelf is `overflow-hidden` by design and the spines truncate the way the Figma frame
    draws them. It also takes a 2px nick at 1024, where the column is 309.33 — that predates
    all of this and is what a 330px shelf in a 309px column has always done.
-2. **The faculty row's hover spread exceeds its tile at 1024 and in the 2-column band.**
+2. **The faculty row's hover spread exceeds its tile at 1024 and in the 2-column band**
+   *(fixed in §27)*.
    Dropping the overlap from 40px to 26px widens the row from 256 to 326, and only the
    desktop column (330) is wide enough. Measured spill into the gutter: 8px each side at
    1024 (which predates this change), 13px at 668, none at 768 or 1440. It never reaches
@@ -816,3 +828,291 @@ odd number, which left `footer-4` alone on row 13. Widening this block to 2 cell
 to **26 cells in exactly 13 rows**, with nothing stranded. That is luck rather than design,
 but it is worth knowing that the two changes cancel: reverting either one on its own puts
 the half-empty row back.
+
+## 24. Tile text is scaled to the column, because the column is fluid and the type isn't
+
+§19 made the shell fluid. The type scale did not follow, and the two came apart: **the
+column runs 290 → 635px across the breakpoints (119%), the type steps 27 → 22 (23%), and
+the label styles never move at all** — 16px links and 12px meta at every width, by design
+("labels never scale"). So at the top of every range a tile outgrew its own text. Measured
+as `h3 ÷ column`, indexed against each range's own artboard:
+
+| viewport | cols | column | h3 | before | after |
+|---|---|---|---|---|---|
+| 1440 | 4 | 330 | 27 | 0% | **0%** |
+| 1280 | 4 | 290 | 27 | +14% | +14% |
+| 1279 | 3 | 394.3 | 26 → 33.1 | −22% | **0%** |
+| 1024 | 3 | 309.3 | 26 | 0% | **0%** |
+| 1023 | 2 | 477.5 | 24 → 32.7 | −27% | **0%** |
+| 900 | 2 | 416 | 24 → 28.5 | −16% | **0%** |
+| 768 | 2 | 350 | 24 | 0% | **0%** |
+| 667 | 1 | 635 | 22 → 30.8 | −44% | −21% |
+| 500 | 1 | 468 | 22 → 28.8 | −24% | **0%** |
+| 390 | 1 | 358 | 22 | 0% | **0%** |
+
+**Viewport-fluid type could not have fixed this.** At every breakpoint the column jumps
+*down* as the count goes up (394 → 290 at 1280) while the type jumps *up*. The ratio lands
+at +14% on one side and −22% on the other; nothing keyed to the viewport tracks that. Only
+the column does.
+
+So `--nid-type-scale` is the ratio of the **rendered column track** to the track that
+breakpoint's board was drawn at:
+
+```css
+--nid-type-scale: clamp(1, tan(atan2(<rendered track>, var(--nid-grid-track-ref))), 1.4);
+```
+
+Four things about that line are deliberate:
+
+- **The track, not one column.** `--nid-grid-track-ref` is the content width minus the
+  gutters — 1320 / 928 / 700 / 358, whole integers at all four breakpoints, where a single
+  column is 309.3333…. The ratio therefore lands on *exactly* 1 at each artboard rather
+  than 1.000001, and 1440 / 1024 / 768 / 390 render bit-identically. All 621 assertions
+  pass untouched.
+- **`tan(atan2(a, b))`** is the CSS Values 4 idiom for dividing one length by another;
+  `calc()` cannot do length ÷ length. Not a hack, but worth recognising on sight.
+- **The floor is 1, not 0.9.** The scale only ever *grows* type. A tile narrower than its
+  artboard (1280, and 668–700) keeps the designed size rather than shrinking below it —
+  which is why +14% at 1280 is still there, deliberately.
+- **The cap is 1.4**, which the 1-column range needs: at 667 the column is 1.77× its
+  artboard, so that one lands at −21% rather than 0%.
+
+### Three traps, all silent
+
+**Tracking must NOT be multiplied.** The first cut of the `@theme inline` rewrite wrapped
+every `--text-*` value it found, letter-spacing included. Every tracking value in this
+system is in `em` (CLAUDE.md § Type), so it already scales with the font-size it sits on —
+multiplying it again applied the scale twice and tightened display type by up to 36% at the
+wide end. Only `--text-*` and `--text-*--line-height` carry the multiplier; tracking holds
+at a measured −0.0300em at every scale.
+
+
+**Custom properties resolve their `var()`s where they are DECLARED.** The first attempt put
+the multiplier in themes.css — `--nid-type-heading-3-size: calc(26px * var(--nid-type-scale, 1))`.
+It changed nothing at all: that token is declared on `:root`, where the scale is the `1`
+fallback, and the tile inherits an already-computed `26px`. The multiplication has to
+happen at the point of *use*, so it lives in the generated `.nid-*` classes and in
+globals.css's `@theme inline` mapping — which Tailwind inlines into the utility itself, so
+the calc lands on the element and picks up the inherited scale.
+
+**Container query units are relative to the writing mode of the element resolving them.**
+With the scale left unregistered, its `100cqi` was resolved per-element at substitution
+time — and KMC's book spines are `writing-mode: vertical-rl`. There `cqi` flipped to the
+block axis, found no block-size container, and fell back to the viewport: the spine labels
+computed to **15.09px instead of 12** (880/700 — the viewport *height* standing in for the
+grid width). Registering the property with `@property … syntax: "<number>"` fixes it by
+computing the value at the declaring element (the tile, horizontal) and inheriting a plain
+number. `--nid-grid-column-width` is registered for the same reason.
+
+A third, related one: **an element is never its own container.** `--nid-grid-column-width`
+declared on `[data-nid-grid]` found no container ancestor and fell back to the viewport —
+374px instead of 350 at 768, which showed up as the hero's row being the one row out of
+nine that did not equal the column. It is declared on `[data-nid-grid] > *` instead.
+
+### What it did not fix
+
+- **1280 is still +14%**, by choice: there the column (290) is *smaller* than its artboard
+  (330), so the text is relatively large rather than small. Shrinking text below its
+  designed size to correct that is the wrong trade. It is also why `kmc` clips (−18px) and
+  `news` grows 5px past its square at exactly 1280 — the 330px-wide book shelf does not fit
+  a 290px column. Pre-existing, and unrelated to the scale, which is clamped to 1 there.
+- **The position statement overflowed row 1 across the whole 3-column range**, not just at
+  1024 — §20's unresolved 55-vs-50 question propagating, exactly as it should: the scale
+  makes every width behave like its artboard, and that artboard was wrong. **Resolved in
+  §25**, which gives laptop its own 50 and leaves desktop at 55.
+
+## 25. The position statement is 55 at desktop and 50 at laptop, because the two squares differ
+
+Raised three times before it was settled — in the first overflow report, again in §20, and
+again in §24 once the type scale spread it across a whole range. Each time it looked like
+drift from §17's documented 50, and each time "just set it back to 50" was the obvious fix.
+It was the wrong diagnosis.
+
+**55 is deliberate.** At 1440 the statement sits in a 330px column and wraps to **6 lines**.
+6 × 55 = **330**. It fills its square exactly. That is tuned, not drifted.
+
+**And it is wrong one step down.** The same 330 overflows the 3-column square (309.33 at
+1024). The statement is a page-surface tile, so it grows rather than clips, drives row 1,
+and the hero — a row follower — is dragged up with it. §24 then made the misfit
+proportional across the whole laptop range: at 1279 the scale is 1.2748, so 55 → 70.1px and
+6 × 70.1 = 420.7 in a 394.3 column.
+
+So one token was serving two squares that want different numbers. It now has a laptop step
+of its own (`globals.css`, `@media (max-width: 1279px)`), and the ramp reads **55 / 50 / 40
+/ 32**.
+
+The objection §17 raised against splitting these — that the ramp must stay monotonic in
+absolute px, or type *grows* as the viewport shrinks — no longer applies, because §24
+already retired that invariant. Under a column-relative scale the rendered size jumps up at
+every breakpoint where the column widens: `h3` goes 27 → 33.1 across 1280 → 1279, and the
+tile widens with it. The invariant now is type-to-tile ratio, and by that measure the split
+is an improvement: the statement steps 55 → 63.7 across that boundary, where a flat 50
+would have stepped 50 → 63.7, a *larger* jump.
+
+**Measured after the change** — row 1 against the column:
+
+| viewport | cols | column | scale | statement | lines | row 1 | |
+|---|---|---|---|---|---|---|---|
+| 1600 | 4 | 330 | 1.000 | 55px | 6 | 330 | exact fill |
+| 1440 | 4 | 330 | 1.000 | 55px | 6 | 330 | exact fill |
+| 1279 | 3 | 394.3 | 1.275 | 63.7px | 6 | 394.3 | square ✔ |
+| 1200 | 3 | 368 | 1.190 | 59.5px | 6 | 368 | square ✔ |
+| 1100 | 3 | 334.7 | 1.082 | 54.1px | 6 | 334.7 | square ✔ |
+| 1024 | 3 | 309.3 | 1.000 | 50px | 6 | 309.3 | square ✔ |
+
+The laptop range goes from 5 of 6 rows square to **6 of 6**, and desktop is untouched.
+
+**What it did not fix: the whole of 1280–1439** — not "1280–~1300", which is what this note
+first claimed on the strength of two measured points. The 4-column column is 290–325 there
+against a 330 artboard, and §24's scale floor of 1 meant text never shrank to follow it, so
+6 × 55 = 330 overflowed every one of those columns. A flat 50 would not have helped either
+(6 × 50 = 300 > 290). **Resolved in §26** by dropping that floor. The `kmc` shelf still
+clips in that range for an unrelated and purely geometric reason — its 330px book shelf
+does not fit a 290px column at any type size.
+
+## 26. The type scale had a floor of 1, and that stranded 1280–1439
+
+§24 clamped `--nid-type-scale` to `clamp(1, …, 1.4)`. The floor of 1 was chosen on the
+instinct that text should never be smaller than its designed size. That was wrong, and a
+sweep of 69 viewports from 380 to 1600 showed exactly how wrong: **every content row equals
+its column at every width except 1280–1439**, where row 1 stayed 330 while the grid around
+it shrank to 290–325.
+
+The cause is the floor, not the statement. A scale that only grows leaves every width whose
+column is *narrower* than its artboard carrying artboard-sized text — the same mismatch §24
+exists to remove, mirrored. The position statement made it visible because it is exactly 6
+lines of 55px = 330 and therefore needs a 330 column, which in the 4-column range exists
+only at 1440 and above.
+
+The floor is now **0.85**. Both bounds are deliberately outside what the grid can produce:
+the column reaches 1.77× its artboard at the top of the 1-column range and never falls below
+0.857× (668, a 300px column drawn at 350). So the scale tracks the column in both
+directions and the clamp never actually engages — it is a guard rail, not a shaper.
+
+Nothing at the artboards changes: the ratio is exactly 1 at 1440 / 1024 / 768 / 390, so
+`clamp(0.85, 1, 1.4)` is 1 and `verify:tokens` still passes 621.
+
+| | before | after |
+|---|---|---|
+| widths swept (380–1600) with a non-square content row | **8** | **1** |
+| 1280 row 1 (column 290) | 330 | **290** |
+| 1440 row 1 (column 330) | 330 | 330 |
+
+**The one width still out is 1280, by 3.5px, and it is not type** — *resolved in §27 by
+scaling the thumbnails too*. The News tile's list is
+219px at every viewport because it holds three 64px thumbnails — `size-16`, a spacing
+utility, which the type scale does not touch. With the overline, the gap and the CTA that
+gives the tile a hard floor of ~293.5px, so it clears a 290px column by 3.5 (1.2%), fading
+out by about 1292 where the column catches up. Same family as the `kmc` book shelf's fixed
+28px spine pitch: a scale for *type* cannot move geometry that is expressed in spacing.
+Closing it would mean either shrinking the thumbnails at every width or introducing a
+spacing scale alongside the type one — neither justified by 3.5px.
+
+### On "every tile the same height"
+
+Worth stating plainly, because it is easy to read the sweep as saying otherwise. Within any
+one viewport, **all nineteen content tiles are the same height** — the column width — and
+that is now true at every width swept but 1280. Three things are deliberately *not* that
+height, and all three come from the Figma boards rather than from drift:
+
+- **The footer tiles** take their natural height (308 / 176 / 172 / 161 on the 1440 board).
+  All four boards draw them that way; they are not square tiles.
+- **The position statement below 1024** is a full-width band of natural height (176 on the
+  768 board, 180 on 390), not a square.
+- **The hero**, which is always two tiles wide, and therefore one row tall rather than one
+  tile wide (§22).
+
+## 27. Fixed geometry inside a tile now scales with the tile, like the type does
+
+§24 made type follow the rendered column. Four pieces of *fixed pixel geometry* did not come
+with it, and every remaining defect on the page traced back to that one omission:
+
+| tile | dimension | what it caused |
+|---|---|---|
+| News & Events | three `size-16` thumbnails (64px) | a 293.5px floor, 3.5px over its own column at 1280–1292 |
+| Knowledge Management Centre | `w-7` spine pitch (28px × 11 = 308) | shelf cropped up to 18px at 1280–1344 and 8px at 668–680 |
+| Faculty Stalwarts | `size-19` portraits (76px) and their −40/−26 overlaps | hovered row spilled into the gutter at 1280, 1024, 700, 668 |
+
+All three now multiply by `--nid-tile-scale`, which is the same value §24 introduced — hence
+the rename from `--nid-type-scale`, which had become a misnomer the moment it drove
+anything but type.
+
+**The spine pitch is the clearest case that this is a correction rather than a workaround.**
+`SpineTile`'s own comment records that 28px is "a 12px text box plus its 8px sides" — the
+pitch is *derived from* the type size. That type started scaling in §24; leaving the pitch
+flat is what broke the derivation. Scaling it restores the relationship the comment
+describes.
+
+**The Faculty hover needed one design change on top.** Scaling alone fixed 1280, 700 and
+668, but not 1024, because at 1024 the design does not fit its own artboard: hovered, the
+row is 6 × 76 − 5 × 26 = 326px in a 309.33px column. The hover overlap is now **−30px**
+rather than the export's −26, which puts the hovered row at 306 and clears every column at
+every width. The spread is 50px of travel instead of 70 — still plainly a spread. This is a
+deliberate departure from the export, on the design owner's call.
+
+**Measured after the change** (real hover, not simulated):
+
+| viewport | column | News tile | shelf cropped | hovered row | spill |
+|---|---|---|---|---|---|
+| 1440 | 330 | 330 | 0px | 306 | 0 |
+| 1344 | 306 | 306 | 0px | 284 | 0 |
+| 1280 | 290 | 290 | 0px | 269 | 0 |
+| 1024 | 309.3 | 309.3 | 0px | 306 | 0 |
+| 1023 | 477.5 | 477.5 | 0px | 417 | 0 |
+| 768 | 350 | 350 | 0px | 306 | 0 |
+| 668 | 300 | 300 | 0px | 262 | 0 |
+| 390 | 358 | 358 | 0px | 306 | 0 |
+
+And the sweep that has been tracking this since §26, now over **71 viewports from 380 to
+1600**: *every content row equals its column at every width, with no horizontal overflow at
+any of them.* One 2px vertical nick remains on the KMC shelf at 1024 — that is the spine
+labels' designed ellipsis engaging, not a layout fault.
+
+The `sizes` hints on the two scaled images moved with them (64px → 90px, 76px → 105px):
+they now name the top of the range each image can reach rather than its artboard value.
+
+## 28. The Campuses arch was a literal 176px, and only the browser's clamp made it an arch
+
+`--radius-arch` was the design's literal **176px**, with a comment defending the choice:
+*"Kept at the design's literal value so a wider tile curves by the same amount rather than
+by half of whatever it is."* The reasoning was backwards, and the value was never what
+reached the screen.
+
+`border-radius` has a rule that decides this: when the radii along one side sum to more than
+that side's length, the browser scales **every** radius down by the same factor until they
+fit. The arch sets both right-hand corners, so the sum is 176 + 176 = **352px** — larger
+than the tile at every artboard (330 / 309.33 / 350). At all three the clamp fires and the
+radius lands on exactly half the side: **a true semicircle**. The literal 176 was inert; the
+clamp was drawing the shape.
+
+Above 352px the clamp stops engaging, the radius stays at a flat 176, and a straight edge
+opens up between the two corners:
+
+| tile | effective radius | as % of tile | straight edge |
+|---|---|---|---|
+| 330 (1440) | 165 | 50% | 0 |
+| 309.3 (1024) | 154.7 | 50% | 0 |
+| 350 (768) | 175 | 50% | 0 |
+| 416 (900) | 176 | 42.3% | 64px |
+| 477.5 (1023) | 176 | 36.9% | 125px |
+| 568 (600) | 176 | 31% | 216px |
+| **635 (667)** | 176 | **27.7%** | **283px** |
+
+At 667 the tile is 635px tall with 283px of flat edge — it has stopped reading as an arch at
+all. Which is the same failure as §27, in a different property: **a fixed pixel value inside
+a tile whose size is fluid.**
+
+`--radius-arch` is now **50%**, which is precisely what the three artboards were already
+computing, written so it holds at any size. Verified: the computed value reads `50%` at
+every width, and the rendered tile at 667 (635 × 635) is a semicircle indistinguishable in
+shape from the 1440 one (330 × 330). Nothing changes at 1440, 1024 or 768 — the numbers
+there were already 50% — and 390 gains 3px of radius, moving from 49.2% to a true half.
+
+Worth keeping in mind generally: **a percentage radius is scale-free, a px radius is not.**
+Where a shape is meant to be a proportion of its box, say so; do not rely on the clamp to
+turn a px value into a proportion, because it only does that while the box stays small.
+
+Not scaled with `--nid-tile-scale`, though that would also have worked. The scale keeps a
+value at a constant fraction of *its artboard column*, and those fractions differ by
+breakpoint (176/330 = 53%, 176/309.33 = 57%, 176/350 = 50%, 176/358 = 49%). A percentage is
+the stronger statement: the same shape everywhere, not four shapes each held steady.

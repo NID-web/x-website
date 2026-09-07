@@ -72,6 +72,15 @@
      wider than this. */
   --nid-grid-content-width: 1392px;
 
+  /* Total COLUMN TRACK this breakpoint's board was drawn at: its content
+     width minus the gutters, i.e. every column added together. globals.css
+     divides the rendered track by it to learn how far the layout has
+     outgrown its artboard (§24). Deliberately the track and not one column:
+     it is a whole integer at all four breakpoints (1320 / 928 / 700 / 358)
+     where a single column is 309.3333…, so the ratio lands on exactly 1 at
+     the artboard instead of 1.000001, and the type there is bit-identical. */
+  --nid-grid-track-ref: 1320px;
+
   /* The ONE cap on the page shell, and the only place it is declared — no
      media query overrides it. Below 1440 the shell is fluid: 100% of the
      viewport minus the page margin, with no dead space at either side. At
@@ -931,6 +940,13 @@
 /* ==========================================================================
    Type scale. Sizes are the Desktop / 4-col values; the media queries
    further down re-declare only what actually changes per breakpoint.
+
+   These are the DESIGNED sizes. They are multiplied by --nid-tile-scale at
+   the point of use — in the .nid-* classes below and in globals.css's
+   @theme inline mapping — never here: a custom property resolves its var()s
+   where it is DECLARED, so a multiplier written into a :root token would
+   read the scale at :root (always 1) and never at the element that set it.
+   See docs/STAGE-0-NOTES.md §24.
    ========================================================================== */
 :root {
   --nid-type-display-serif-card-size: 28px;
@@ -1009,6 +1025,7 @@
     --nid-grid-column-gap: 24px;
     --nid-grid-row-gap: 24px;
     --nid-grid-content-width: 976px;
+    --nid-grid-track-ref: 928px;
     --nid-type-display-serif-card-size: 26px;
     --nid-type-display-serif-card-lh: 28px;
     --nid-type-display-serif-size: 26px;
@@ -1037,6 +1054,7 @@
     --nid-grid-column-gap: 20px;
     --nid-grid-row-gap: 20px;
     --nid-grid-content-width: 720px;
+    --nid-grid-track-ref: 700px;
     --nid-type-display-serif-card-size: 24px;
     --nid-type-display-serif-card-lh: 26px;
     --nid-type-display-serif-size: 24px;
@@ -1064,6 +1082,7 @@
     --nid-grid-column-gap: 16px;
     --nid-grid-row-gap: 16px;
     --nid-grid-content-width: 358px;
+    --nid-grid-track-ref: 358px;
     --nid-type-display-serif-card-size: 22px;
     --nid-type-display-serif-card-lh: 24px;
     --nid-type-display-serif-size: 22px;
@@ -1092,159 +1111,159 @@
    ========================================================================== */
 .nid-display-serif-card {
   font-family: var(--nid-font-secondary);
-  font-size: var(--nid-type-display-serif-card-size);
-  line-height: var(--nid-type-display-serif-card-lh);
+  font-size: calc(var(--nid-type-display-serif-card-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-display-serif-card-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-display-serif-card-tracking);
   font-weight: var(--nid-weight-serif-subhead);
 }
 .nid-display-serif {
   font-family: var(--nid-font-secondary);
-  font-size: var(--nid-type-display-serif-size);
-  line-height: var(--nid-type-display-serif-lh);
+  font-size: calc(var(--nid-type-display-serif-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-display-serif-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-display-serif-tracking);
   font-weight: var(--nid-weight-serif-display);
 }
 .nid-display-quote {
   font-family: var(--nid-font-secondary);
-  font-size: var(--nid-type-display-quote-size);
-  line-height: var(--nid-type-display-quote-lh);
+  font-size: calc(var(--nid-type-display-quote-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-display-quote-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-display-quote-tracking);
   font-weight: var(--nid-weight-serif-subhead);
   font-style: italic;
 }
 .nid-heading-1 {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-heading-1-size);
-  line-height: var(--nid-type-heading-1-lh);
+  font-size: calc(var(--nid-type-heading-1-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-heading-1-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-heading-1-tracking);
   font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-2 {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-heading-2-size);
-  line-height: var(--nid-type-heading-2-lh);
+  font-size: calc(var(--nid-type-heading-2-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-heading-2-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-heading-2-tracking);
   font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-3 {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-heading-3-size);
-  line-height: var(--nid-type-heading-3-lh);
+  font-size: calc(var(--nid-type-heading-3-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-heading-3-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-heading-3-tracking);
   font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-4 {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-heading-4-size);
-  line-height: var(--nid-type-heading-4-lh);
+  font-size: calc(var(--nid-type-heading-4-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-heading-4-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-heading-4-tracking);
   font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-5 {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-heading-5-size);
-  line-height: var(--nid-type-heading-5-lh);
+  font-size: calc(var(--nid-type-heading-5-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-heading-5-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-heading-5-tracking);
   font-weight: var(--nid-weight-heavy);
 }
 .nid-heading-6 {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-heading-6-size);
-  line-height: var(--nid-type-heading-6-lh);
+  font-size: calc(var(--nid-type-heading-6-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-heading-6-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-heading-6-tracking);
   font-weight: var(--nid-weight-heavy);
 }
 .nid-label-overline {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-label-overline-size);
-  line-height: var(--nid-type-label-overline-lh);
+  font-size: calc(var(--nid-type-label-overline-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-label-overline-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-label-overline-tracking);
   text-transform: uppercase;
   font-weight: var(--nid-weight-heavy);
 }
 .nid-label-meta {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-label-meta-size);
-  line-height: var(--nid-type-label-meta-lh);
+  font-size: calc(var(--nid-type-label-meta-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-label-meta-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-label-meta-tracking);
   font-weight: var(--nid-weight-demi);
 }
 .nid-label-small {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-label-small-size);
-  line-height: var(--nid-type-label-small-lh);
+  font-size: calc(var(--nid-type-label-small-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-label-small-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-label-small-tracking);
   font-weight: var(--nid-weight-medium);
 }
 .nid-label-button {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-label-button-size);
-  line-height: var(--nid-type-label-button-lh);
+  font-size: calc(var(--nid-type-label-button-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-label-button-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-label-button-tracking);
   text-transform: uppercase;
   font-weight: var(--nid-weight-bold);
 }
 .nid-label-micro {
   font-family: var(--nid-font-primary);
-  font-size: var(--nid-type-label-micro-size);
-  line-height: var(--nid-type-label-micro-lh);
+  font-size: calc(var(--nid-type-label-micro-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-label-micro-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-label-micro-tracking);
   font-weight: var(--nid-weight-medium);
 }
 .nid-body-large-regular {
   font-family: var(--nid-font-body);
-  font-size: var(--nid-type-body-large-regular-size);
-  line-height: var(--nid-type-body-large-regular-lh);
+  font-size: calc(var(--nid-type-body-large-regular-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-body-large-regular-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-body-large-regular-tracking);
   font-weight: var(--nid-weight-body-light);
 }
 .nid-body-large-bold {
   font-family: var(--nid-font-body);
-  font-size: var(--nid-type-body-large-bold-size);
-  line-height: var(--nid-type-body-large-bold-lh);
+  font-size: calc(var(--nid-type-body-large-bold-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-body-large-bold-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-body-large-bold-tracking);
   font-weight: var(--nid-weight-body-semibold);
 }
 .nid-body-base-regular {
   font-family: var(--nid-font-body);
-  font-size: var(--nid-type-body-base-regular-size);
-  line-height: var(--nid-type-body-base-regular-lh);
+  font-size: calc(var(--nid-type-body-base-regular-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-body-base-regular-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-body-base-regular-tracking);
   font-weight: var(--nid-weight-body);
 }
 .nid-body-base-bold {
   font-family: var(--nid-font-body);
-  font-size: var(--nid-type-body-base-bold-size);
-  line-height: var(--nid-type-body-base-bold-lh);
+  font-size: calc(var(--nid-type-body-base-bold-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-body-base-bold-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-body-base-bold-tracking);
   font-weight: var(--nid-weight-body-bold);
 }
 .nid-body-base-italic {
   font-family: var(--nid-font-body);
-  font-size: var(--nid-type-body-base-italic-size);
-  line-height: var(--nid-type-body-base-italic-lh);
+  font-size: calc(var(--nid-type-body-base-italic-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-body-base-italic-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-body-base-italic-tracking);
   font-weight: var(--nid-weight-body);
   font-style: italic;
 }
 .nid-body-caption-regular {
   font-family: var(--nid-font-body);
-  font-size: var(--nid-type-body-caption-regular-size);
-  line-height: var(--nid-type-body-caption-regular-lh);
+  font-size: calc(var(--nid-type-body-caption-regular-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-body-caption-regular-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-body-caption-regular-tracking);
   font-weight: var(--nid-weight-body);
 }
 .nid-body-caption-bold {
   font-family: var(--nid-font-body);
-  font-size: var(--nid-type-body-caption-bold-size);
-  line-height: var(--nid-type-body-caption-bold-lh);
+  font-size: calc(var(--nid-type-body-caption-bold-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-body-caption-bold-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-body-caption-bold-tracking);
   font-weight: var(--nid-weight-body-bold);
 }
 .nid-body-caption-italic {
   font-family: var(--nid-font-body);
-  font-size: var(--nid-type-body-caption-italic-size);
-  line-height: var(--nid-type-body-caption-italic-lh);
+  font-size: calc(var(--nid-type-body-caption-italic-size) * var(--nid-tile-scale, 1));
+  line-height: calc(var(--nid-type-body-caption-italic-lh) * var(--nid-tile-scale, 1));
   letter-spacing: var(--nid-type-body-caption-italic-tracking);
   font-weight: var(--nid-weight-body);
   font-style: italic;

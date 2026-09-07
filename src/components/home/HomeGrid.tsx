@@ -58,13 +58,7 @@ const SPAN_BY_KIND: Partial<Record<HomeTile["kind"], GridSpan>> = {
   hero: 2,
 };
 
-// The hero is alone in its row at 2 columns, so nothing else can set its height
-// there. `@container` makes its GridItem the reference `h-grid-row-2` measures
-// against — it is a containment context, not a column class, so it stays out of
-// GridItem's SPAN table.
-const CLASS_BY_KIND: Partial<Record<HomeTile["kind"], string>> = {
-  hero: "@container",
-};
+
 export async function HomeGrid() {
   const raw = await getTranslations("Home");
   const t: Translate = (key) => raw(key);
@@ -77,11 +71,7 @@ export async function HomeGrid() {
       <BrandStrip className="mb-12" />
       <PageGrid>
         {HOME_TILES.map((tile) => (
-          <GridItem
-            key={tile.id}
-            span={SPAN_BY_KIND[tile.kind] ?? 1}
-            className={CLASS_BY_KIND[tile.kind]}
-          >
+          <GridItem key={tile.id} span={SPAN_BY_KIND[tile.kind] ?? 1}>
             {renderTile(tile, t)}
           </GridItem>
         ))}

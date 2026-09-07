@@ -27,14 +27,36 @@
   --font-weight-futura-bold: 800;
 
   --radius-none: 0;
-  /* The Campuses tile's right edge. 176px on a 330px tile is more than half
-     its height, so the browser clamps it to a true semicircle — which is what
-     the design draws. Kept at the design's literal value so a wider tile
-     curves by the same amount rather than by half of whatever it is. */
-  --radius-arch: 176px;
+  /* The Campuses tile's right edge: a true semicircle at every size.
+     
+     This was the design's literal 176px, on the reasoning that a wider tile
+     should "curve by the same amount". It does not work, because 176px is not
+     what the artboards actually render. 176 + 176 = 352 exceeds the height of
+     every artboard tile (330 / 309.33 / 350 / 358 minus a hair), so the browser
+     scales both radii down to exactly half the side — a semicircle. The literal
+     value was never reaching the screen; the clamp was drawing the shape.
+     
+     Above 352px the clamp stops engaging and the arch flattens into a straight
+     edge with two corners: 125px of straight edge at 1023, 283px at 667, where
+     it stops reading as an arch at all. 50% is what the artboards were already
+     computing, expressed so it holds at any size. See docs/STAGE-0-NOTES.md
+     §28. */
+  --radius-arch: 50%;
 }
 
-/* Everything that references a --nid-* custom property must live here. */
+/* Everything that references a --nid-* custom property must live here.
+
+   Sizes and line-heights are multiplied by --nid-tile-scale HERE rather than in
+   themes.css, and the difference matters: a custom property resolves its var()s
+   at the element where it is DECLARED. Written into a :root token the multiplier
+   would read the scale at :root — always the 1 fallback — and the tile that set
+   it would inherit an already-computed px value. `@theme inline` instead inlines
+   these into the utility itself, so the calc lands on the element and picks up
+   the inherited scale. See docs/STAGE-0-NOTES.md §24.
+
+   Only size and line-height are multiplied. Tracking is NOT: every value is in
+   em (CLAUDE.md § Type), so it already scales with the font-size it sits on —
+   multiplying it here would apply the scale twice. */
 @theme inline {
   /* ---- families ---- */
   --font-primary: var(--nid-font-primary);
@@ -170,23 +192,23 @@
   --radius-hero: var(--nid-radius-hero); /* 64px — one corner of one image per page */
 
   /* ---- type scale. size / line-height / tracking / weight in one utility. ---- */
-  --text-display-serif: var(--nid-type-display-serif-size);
-  --text-display-serif--line-height: var(--nid-type-display-serif-lh);
+  --text-display-serif: calc(var(--nid-type-display-serif-size) * var(--nid-tile-scale, 1));
+  --text-display-serif--line-height: calc(var(--nid-type-display-serif-lh) * var(--nid-tile-scale, 1));
   --text-display-serif--letter-spacing: var(--nid-type-display-serif-tracking);
   --text-display-serif--font-weight: var(--nid-weight-serif-display);
 
-  --text-display-serif-card: var(--nid-type-display-serif-card-size);
-  --text-display-serif-card--line-height: var(--nid-type-display-serif-card-lh);
+  --text-display-serif-card: calc(var(--nid-type-display-serif-card-size) * var(--nid-tile-scale, 1));
+  --text-display-serif-card--line-height: calc(var(--nid-type-display-serif-card-lh) * var(--nid-tile-scale, 1));
   --text-display-serif-card--letter-spacing: var(--nid-type-display-serif-card-tracking);
   --text-display-serif-card--font-weight: var(--nid-weight-serif-subhead);
 
-  --text-display-quote: var(--nid-type-display-quote-size);
-  --text-display-quote--line-height: var(--nid-type-display-quote-lh);
+  --text-display-quote: calc(var(--nid-type-display-quote-size) * var(--nid-tile-scale, 1));
+  --text-display-quote--line-height: calc(var(--nid-type-display-quote-lh) * var(--nid-tile-scale, 1));
   --text-display-quote--letter-spacing: var(--nid-type-display-quote-tracking);
   --text-display-quote--font-weight: var(--nid-weight-serif-subhead);
 
-  --text-h1: var(--nid-type-heading-1-size);
-  --text-h1--line-height: var(--nid-type-heading-1-lh);
+  --text-h1: calc(var(--nid-type-heading-1-size) * var(--nid-tile-scale, 1));
+  --text-h1--line-height: calc(var(--nid-type-heading-1-lh) * var(--nid-tile-scale, 1));
   --text-h1--letter-spacing: var(--nid-type-heading-1-tracking);
   --text-h1--font-weight: var(--nid-weight-heavy);
 
@@ -196,78 +218,78 @@
      Kept as its own style rather than a local font-size so the responsive
      ramp still comes from one place. Below 1024 it rejoins Heading/1's
      values, so the scale never grows as the viewport shrinks. */
-  --text-statement: var(--nid-type-home-statement-size);
-  --text-statement--line-height: var(--nid-type-home-statement-lh);
+  --text-statement: calc(var(--nid-type-home-statement-size) * var(--nid-tile-scale, 1));
+  --text-statement--line-height: calc(var(--nid-type-home-statement-lh) * var(--nid-tile-scale, 1));
   --text-statement--letter-spacing: var(--nid-type-home-statement-tracking);
   --text-statement--font-weight: var(--nid-weight-heavy);
 
-  --text-h2: var(--nid-type-heading-2-size);
-  --text-h2--line-height: var(--nid-type-heading-2-lh);
+  --text-h2: calc(var(--nid-type-heading-2-size) * var(--nid-tile-scale, 1));
+  --text-h2--line-height: calc(var(--nid-type-heading-2-lh) * var(--nid-tile-scale, 1));
   --text-h2--letter-spacing: var(--nid-type-heading-2-tracking);
   --text-h2--font-weight: var(--nid-weight-heavy);
 
-  --text-h3: var(--nid-type-heading-3-size);
-  --text-h3--line-height: var(--nid-type-heading-3-lh);
+  --text-h3: calc(var(--nid-type-heading-3-size) * var(--nid-tile-scale, 1));
+  --text-h3--line-height: calc(var(--nid-type-heading-3-lh) * var(--nid-tile-scale, 1));
   --text-h3--letter-spacing: var(--nid-type-heading-3-tracking);
   --text-h3--font-weight: var(--nid-weight-heavy);
 
-  --text-h4: var(--nid-type-heading-4-size);
-  --text-h4--line-height: var(--nid-type-heading-4-lh);
+  --text-h4: calc(var(--nid-type-heading-4-size) * var(--nid-tile-scale, 1));
+  --text-h4--line-height: calc(var(--nid-type-heading-4-lh) * var(--nid-tile-scale, 1));
   --text-h4--letter-spacing: var(--nid-type-heading-4-tracking);
   --text-h4--font-weight: var(--nid-weight-heavy);
 
-  --text-h5: var(--nid-type-heading-5-size);
-  --text-h5--line-height: var(--nid-type-heading-5-lh);
+  --text-h5: calc(var(--nid-type-heading-5-size) * var(--nid-tile-scale, 1));
+  --text-h5--line-height: calc(var(--nid-type-heading-5-lh) * var(--nid-tile-scale, 1));
   --text-h5--letter-spacing: var(--nid-type-heading-5-tracking);
   --text-h5--font-weight: var(--nid-weight-heavy);
 
-  --text-h6: var(--nid-type-heading-6-size);
-  --text-h6--line-height: var(--nid-type-heading-6-lh);
+  --text-h6: calc(var(--nid-type-heading-6-size) * var(--nid-tile-scale, 1));
+  --text-h6--line-height: calc(var(--nid-type-heading-6-lh) * var(--nid-tile-scale, 1));
   --text-h6--letter-spacing: var(--nid-type-heading-6-tracking);
   --text-h6--font-weight: var(--nid-weight-heavy);
 
-  --text-overline: var(--nid-type-label-overline-size);
-  --text-overline--line-height: var(--nid-type-label-overline-lh);
+  --text-overline: calc(var(--nid-type-label-overline-size) * var(--nid-tile-scale, 1));
+  --text-overline--line-height: calc(var(--nid-type-label-overline-lh) * var(--nid-tile-scale, 1));
   --text-overline--letter-spacing: var(--nid-type-label-overline-tracking);
   --text-overline--font-weight: var(--nid-weight-heavy);
 
-  --text-meta: var(--nid-type-label-meta-size);
-  --text-meta--line-height: var(--nid-type-label-meta-lh);
+  --text-meta: calc(var(--nid-type-label-meta-size) * var(--nid-tile-scale, 1));
+  --text-meta--line-height: calc(var(--nid-type-label-meta-lh) * var(--nid-tile-scale, 1));
   --text-meta--letter-spacing: var(--nid-type-label-meta-tracking);
   --text-meta--font-weight: var(--nid-weight-demi);
 
-  --text-label: var(--nid-type-label-small-size);
-  --text-label--line-height: var(--nid-type-label-small-lh);
+  --text-label: calc(var(--nid-type-label-small-size) * var(--nid-tile-scale, 1));
+  --text-label--line-height: calc(var(--nid-type-label-small-lh) * var(--nid-tile-scale, 1));
   --text-label--letter-spacing: var(--nid-type-label-small-tracking);
   --text-label--font-weight: var(--nid-weight-medium);
 
-  --text-button: var(--nid-type-label-button-size);
-  --text-button--line-height: var(--nid-type-label-button-lh);
+  --text-button: calc(var(--nid-type-label-button-size) * var(--nid-tile-scale, 1));
+  --text-button--line-height: calc(var(--nid-type-label-button-lh) * var(--nid-tile-scale, 1));
   --text-button--letter-spacing: var(--nid-type-label-button-tracking);
   --text-button--font-weight: var(--nid-weight-bold);
 
-  --text-micro: var(--nid-type-label-micro-size);
-  --text-micro--line-height: var(--nid-type-label-micro-lh);
+  --text-micro: calc(var(--nid-type-label-micro-size) * var(--nid-tile-scale, 1));
+  --text-micro--line-height: calc(var(--nid-type-label-micro-lh) * var(--nid-tile-scale, 1));
   --text-micro--letter-spacing: var(--nid-type-label-micro-tracking);
   --text-micro--font-weight: var(--nid-weight-medium);
 
-  --text-body-lg: var(--nid-type-body-large-regular-size);
-  --text-body-lg--line-height: var(--nid-type-body-large-regular-lh);
+  --text-body-lg: calc(var(--nid-type-body-large-regular-size) * var(--nid-tile-scale, 1));
+  --text-body-lg--line-height: calc(var(--nid-type-body-large-regular-lh) * var(--nid-tile-scale, 1));
   --text-body-lg--letter-spacing: var(--nid-type-body-large-regular-tracking);
   --text-body-lg--font-weight: var(--nid-weight-body-light);
 
-  --text-body-lg-bold: var(--nid-type-body-large-bold-size);
-  --text-body-lg-bold--line-height: var(--nid-type-body-large-bold-lh);
+  --text-body-lg-bold: calc(var(--nid-type-body-large-bold-size) * var(--nid-tile-scale, 1));
+  --text-body-lg-bold--line-height: calc(var(--nid-type-body-large-bold-lh) * var(--nid-tile-scale, 1));
   --text-body-lg-bold--letter-spacing: var(--nid-type-body-large-bold-tracking);
   --text-body-lg-bold--font-weight: var(--nid-weight-body-semibold);
 
-  --text-body: var(--nid-type-body-base-regular-size);
-  --text-body--line-height: var(--nid-type-body-base-regular-lh);
+  --text-body: calc(var(--nid-type-body-base-regular-size) * var(--nid-tile-scale, 1));
+  --text-body--line-height: calc(var(--nid-type-body-base-regular-lh) * var(--nid-tile-scale, 1));
   --text-body--letter-spacing: var(--nid-type-body-base-regular-tracking);
   --text-body--font-weight: var(--nid-weight-body);
 
-  --text-body-bold: var(--nid-type-body-base-bold-size);
-  --text-body-bold--line-height: var(--nid-type-body-base-bold-lh);
+  --text-body-bold: calc(var(--nid-type-body-base-bold-size) * var(--nid-tile-scale, 1));
+  --text-body-bold--line-height: calc(var(--nid-type-body-base-bold-lh) * var(--nid-tile-scale, 1));
   --text-body-bold--letter-spacing: var(--nid-type-body-base-bold-tracking);
   --text-body-bold--font-weight: var(--nid-weight-body-bold);
 
@@ -276,34 +298,53 @@
      fall back to the raw .nid-body-*-italic classes, which are unlayered
      and out-rank @layer utilities — a silent cascade trap the moment
      anything else on the same element used a text-* utility. */
-  --text-body-italic: var(--nid-type-body-base-italic-size);
-  --text-body-italic--line-height: var(--nid-type-body-base-italic-lh);
+  --text-body-italic: calc(var(--nid-type-body-base-italic-size) * var(--nid-tile-scale, 1));
+  --text-body-italic--line-height: calc(var(--nid-type-body-base-italic-lh) * var(--nid-tile-scale, 1));
   --text-body-italic--letter-spacing: var(--nid-type-body-base-italic-tracking);
   --text-body-italic--font-weight: var(--nid-weight-body);
 
-  --text-caption: var(--nid-type-body-caption-regular-size);
-  --text-caption--line-height: var(--nid-type-body-caption-regular-lh);
+  --text-caption: calc(var(--nid-type-body-caption-regular-size) * var(--nid-tile-scale, 1));
+  --text-caption--line-height: calc(var(--nid-type-body-caption-regular-lh) * var(--nid-tile-scale, 1));
   --text-caption--letter-spacing: var(--nid-type-body-caption-regular-tracking);
   --text-caption--font-weight: var(--nid-weight-body);
 
-  --text-caption-bold: var(--nid-type-body-caption-bold-size);
-  --text-caption-bold--line-height: var(--nid-type-body-caption-bold-lh);
+  --text-caption-bold: calc(var(--nid-type-body-caption-bold-size) * var(--nid-tile-scale, 1));
+  --text-caption-bold--line-height: calc(var(--nid-type-body-caption-bold-lh) * var(--nid-tile-scale, 1));
   --text-caption-bold--letter-spacing: var(--nid-type-body-caption-bold-tracking);
   --text-caption-bold--font-weight: var(--nid-weight-body-bold);
 
-  --text-caption-italic: var(--nid-type-body-caption-italic-size);
-  --text-caption-italic--line-height: var(--nid-type-body-caption-italic-lh);
+  --text-caption-italic: calc(var(--nid-type-body-caption-italic-size) * var(--nid-tile-scale, 1));
+  --text-caption-italic--line-height: calc(var(--nid-type-body-caption-italic-lh) * var(--nid-tile-scale, 1));
   --text-caption-italic--letter-spacing: var(--nid-type-body-caption-italic-tracking);
   --text-caption-italic--font-weight: var(--nid-weight-body);
 }
 
 /* The one type style that is not in the generated scale — see --text-statement
    above. Declared here, not in themes.css, which design/generate.py rewrites.
-   Desktop and laptop share 50/50; tablet and mobile are Heading/1's own steps. */
+   Four steps: 55 desktop, 50 laptop, then Heading/1's own tablet and mobile.
+   
+   The breakpoint boundaries below are hand-written, because this block is
+   hand-written. They must stay in step with GRID["minViewport"] in
+   design/generate.py — 1280 / 1024 / 668 today. */
 :root {
+  /* 55, not Heading/1's 60 and not the 50 that §17 first recorded: the
+     statement wraps to 6 lines in the 4-column column, and 6 × 55 = 330 fills
+     that square exactly. See docs/STAGE-0-NOTES.md §25. */
   --nid-type-home-statement-size: 55px;
   --nid-type-home-statement-lh: 55px;
   --nid-type-home-statement-tracking: -0.03em;
+}
+
+/* Laptop drops to 50 rather than carrying 55 down. The two squares want
+   different numbers: the same 330 that fills the 4-column square exactly
+   overflows the 3-column one (309.33), where it would drive row 1 and drag the
+   hero up with it. At 50 the whole laptop range squares — 309.3 / 334.7 / 368 /
+   394.3 at 1024 / 1100 / 1200 / 1279 — and desktop keeps its exact fill. */
+@media (max-width: 1279px) {
+  :root {
+    --nid-type-home-statement-size: 50px;
+    --nid-type-home-statement-lh: 50px;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -320,15 +361,100 @@
   }
 }
 
+/* The page grid is a size container, so anything inside it can be measured
+   against the grid's own content box — scrollbar-safe, unlike 100vw, and
+   correct at every width, unlike the artboard tokens. Two things read it. */
+[data-nid-grid] {
+  container-type: inline-size;
+}
+
+/* Both of the properties below are REGISTERED, and that is load-bearing, not
+   tidiness. An unregistered custom property is a raw token stream: its `100cqi`
+   is not resolved where it is declared but where it is finally substituted into
+   a real property — and container query units are relative to the WRITING MODE
+   of the element resolving them. KMC's book spines are `writing-mode:
+   vertical-rl`, so `cqi` flipped axis there, found no block-size container, and
+   fell back to the viewport height: the spine labels came out at 15.09px
+   instead of 12 (880/700 = 1.257, the viewport height in place of the grid
+   width). Registering makes each one compute to a real number/length at the
+   element that declares it — the grid and the tile, both horizontal — and
+   inherit as that. See docs/STAGE-0-NOTES.md §24. */
+@property --nid-grid-column-width {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --nid-tile-scale {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+/* The rendered width of ONE column, right now. Not --nid-grid-content-width /
+   columns: that token is the artboard reference, and below 1440 the shell is
+   fluid, so the two only agree at the artboard viewport (STAGE-0-NOTES §5).
+   
+   Declared on the grid's CHILDREN, not on the grid: an element is never its own
+   container, so `100cqi` written on [data-nid-grid] finds no container ancestor
+   and silently falls back to the viewport — 374px instead of 350 at 768. */
+[data-nid-grid] > * {
+  --nid-grid-column-width: calc(
+    (100cqi - (var(--nid-grid-columns) - 1) * var(--nid-grid-column-gap)) /
+      var(--nid-grid-columns)
+  );
+}
+
 /* A tile that spans two columns but must stand exactly ONE grid row tall — the
-   same height as the single squares above and below it, so the row rhythm
-   survives (the 2-column hero). Its own width is two columns PLUS one gutter,
-   so one column is (100cqw − gutter) / 2, read from the GridItem it sits in
-   (which carries `@container`). Not `aspect-[2/1]`: that is half a gutter too
-   tall, because the gutter is inside the width. Not `100vw` either — that
-   counts the scrollbar and would overshoot wherever one is present. */
-@utility h-grid-row-2 {
-  height: calc((100cqw - var(--nid-grid-column-gap)) / 2);
+   same height as the single squares above and below it (the 2-column hero).
+   Not `aspect-[2/1]`: the gutter sits inside that width, so a flat 2:1 is half
+   a gutter too tall. */
+@utility h-grid-column {
+  height: var(--nid-grid-column-width);
+}
+
+/* Tile-local scale — the fix for content that shrank away from its box.
+   Column width is fluid (it runs 290 → 635px across the breakpoints) while the
+   type scale has four fixed steps and the label styles have none at all, so at
+   the top of every range a tile outgrew its own text: −27% at 1023, −44% at
+   667. See docs/STAGE-0-NOTES.md §24 for the measurements.
+   
+   --nid-tile-scale multiplies every size and line-height in themes.css, and the
+   handful of fixed pixel dimensions inside tiles that are content rather than
+   chrome: the News thumbnails, the KMC spine pitch, the Faculty portraits and
+   their overlaps (§27). It is
+   the ratio of the rendered column track to the one this breakpoint's board was
+   drawn at, so it is exactly 1 at 1440 / 1024 / 768 / 390 and the artboards
+   render bit-identically. The bounds are asymmetric only because the ranges
+   are: a column reaches 1.77× its artboard at the top of the 1-column range but
+   never falls below 0.857× (668, where a 300px column is drawn at 350), so 0.85
+   and 1.4 both sit just outside what the grid can actually produce — the scale
+   tracks the column in BOTH directions and only the bounds are inert.
+
+   The floor was 1 at first, on the instinct that text should never shrink below
+   its designed size. That was wrong: it left every width whose column is
+   NARROWER than its artboard carrying artboard-sized text, which is the same
+   mismatch this mechanism exists to remove, only mirrored. Concretely it
+   stranded 1280-1439 — the position statement is 6 lines of 55px = 330, it
+   needs a 330 column, and the 4-column range below 1440 has 290-325, so row 1
+   stayed 330 while every other row shrank with the grid (§26).
+   
+   `tan(atan2(a, b))` is the sanctioned way to divide one length by another —
+   calc() cannot do length ÷ length, and this is the CSS Values 4 idiom for it,
+   not a hack. */
+[data-nid-tile] {
+  --nid-tile-scale: clamp(
+    0.85,
+    tan(
+      atan2(
+        calc(
+          100cqi - (var(--nid-grid-columns) - 1) * var(--nid-grid-column-gap)
+        ),
+        var(--nid-grid-track-ref)
+      )
+    ),
+    1.4
+  );
 }
 
 @utility bg-overline-rule {

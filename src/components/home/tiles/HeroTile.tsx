@@ -11,8 +11,8 @@ type HeroTileData = Extract<HomeTile, { kind: "hero" }>;
 //   1 column  — the whole row, and a square (the 390 board's 358 square).
 //   2 columns — the whole row, exactly ONE row tall, so it reads as the two
 //               tiles it replaces. Nothing shares its row, so nothing else can
-//               set that height: `h-grid-row-2` derives it from the GridItem's
-//               own width (see globals.css). A design decision, not the board —
+//               set that height: `h-grid-column` takes it from the grid's own
+//               rendered column width (see globals.css). Not the board —
 //               the 768 board draws a 350 square in one column.
 //   3-4 cols  — two columns wide and a row FOLLOWER (h-full), taking the height
 //               its square neighbours in row 1 set.
@@ -25,7 +25,7 @@ export function HeroTile({ tile }: { tile: HeroTileData }) {
       surface="raised"
       square="max-tablet"
       stretch="laptop"
-      className="tablet:max-laptop:h-grid-row-2"
+      className="tablet:max-laptop:h-grid-column"
       padding={false}
       radius={false}
     >

@@ -95,6 +95,12 @@ GRID = {
  "minViewport":   [1280, 1024, 668, 0],
  "referenceWidth":[1440, 1024, 768, 390],
 }
+def track_ref(i):
+    """Content width minus the gutters — every column of the artboard added up.
+    An integer at all four breakpoints, which is what makes the type scale in
+    globals.css land on exactly 1.0 at each artboard viewport."""
+    return GRID["contentWidth"][i] - (GRID["columns"][i] - 1) * GRID["columnGap"][i]
+
 SPACING = [0, 2, 4, 8, 12, 16, 24, 32, 48, 56, 64]
 
 # ---- single source of truth for the body face. Everything about it — the
@@ -318,6 +324,15 @@ w("     shell: below 1440 the shell is fluid and its content box is narrower or"
 w("     wider than this. */")
 w("  --nid-grid-content-width: 1392px;")
 w("")
+w("  /* Total COLUMN TRACK this breakpoint's board was drawn at: its content")
+w("     width minus the gutters, i.e. every column added together. globals.css")
+w("     divides the rendered track by it to learn how far the layout has")
+w("     outgrown its artboard (§24). Deliberately the track and not one column:")
+w("     it is a whole integer at all four breakpoints (1320 / 928 / 700 / 358)")
+w("     where a single column is 309.3333…, so the ratio lands on exactly 1 at")
+w("     the artboard instead of 1.000001, and the type there is bit-identical. */")
+w("  --nid-grid-track-ref: %dpx;" % track_ref(0))
+w("")
 w("  /* The ONE cap on the page shell, and the only place it is declared — no")
 w("     media query overrides it. Below 1440 the shell is fluid: 100% of the")
 w("     viewport minus the page margin, with no dead space at either side. At")
@@ -373,6 +388,13 @@ w("")
 w("/* ==========================================================================")
 w("   Type scale. Sizes are the Desktop / 4-col values; the media queries")
 w("   further down re-declare only what actually changes per breakpoint.")
+w("")
+w("   These are the DESIGNED sizes. They are multiplied by --nid-tile-scale at")
+w("   the point of use — in the .nid-* classes below and in globals.css's")
+w("   @theme inline mapping — never here: a custom property resolves its var()s")
+w("   where it is DECLARED, so a multiplier written into a :root token would")
+w("   read the scale at :root (always 1) and never at the element that set it.")
+w("   See docs/STAGE-0-NOTES.md §24.")
 w("   ========================================================================== */")
 w(":root {")
 for name, s in TYPE.items():
@@ -396,6 +418,7 @@ for label, idx, mq in MQ:
     w("    --nid-grid-column-gap: %dpx;" % GRID["columnGap"][idx])
     w("    --nid-grid-row-gap: %dpx;" % GRID["rowGap"][idx])
     w("    --nid-grid-content-width: %dpx;" % GRID["contentWidth"][idx])
+    w("    --nid-grid-track-ref: %dpx;" % track_ref(idx))
     for name, s in TYPE.items():
         if s["size"][idx] != s["size"][idx-1]:
             w("    --nid-type-%s-size: %gpx;" % (slug(name), s["size"][idx]))
@@ -413,8 +436,8 @@ w("   ==========================================================================
 for name, s in TYPE.items():
     w(".nid-%s {" % slug(name))
     w("  font-family: var(--nid-font-%s);" % s["font"])
-    w("  font-size: var(--nid-type-%s-size);" % slug(name))
-    w("  line-height: var(--nid-type-%s-lh);" % slug(name))
+    w("  font-size: calc(var(--nid-type-%s-size) * var(--nid-tile-scale, 1));" % slug(name))
+    w("  line-height: calc(var(--nid-type-%s-lh) * var(--nid-tile-scale, 1));" % slug(name))
     w("  letter-spacing: var(--nid-type-%s-tracking);" % slug(name))
     if s["case"] == "upper":
         w("  text-transform: uppercase;")

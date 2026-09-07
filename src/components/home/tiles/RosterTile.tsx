@@ -23,13 +23,19 @@ export function RosterTile({ tile, t }: { tile: RosterTileData; t: Translate }) 
             400ms on a decelerating curve rather than the 150ms ease-in-out used
             for colour: 70px of travel done in 150ms reads as a jump, and an
             ease-in start makes it worse by front-loading the movement. */}
-        <div className="pointer-events-none flex -space-x-10 motion-safe:group-hover:-space-x-[26px]">
+        {/* Portraits and their overlap both scale with the tile (§27). The
+            hover overlap is 30px, not the export's 26: at 26 the hovered row is
+            326px, which does not fit the 1024 board's own 309.33px column, so
+            the design overflowed at its own artboard. 30 puts the hovered row
+            at 306 and it clears every column at every width; the spread is 50px
+            of travel rather than 70. */}
+        <div className="pointer-events-none flex -space-x-[calc(40px*var(--nid-tile-scale))] motion-safe:group-hover:-space-x-[calc(30px*var(--nid-tile-scale))]">
           {tile.avatars.map((avatar) => (
             <TileImage
               key={avatar.id}
               media={avatar}
-              className="relative size-19 shrink-0 rounded-full shadow-avatar ring-[1.5px] ring-surface-page motion-safe:transition-[margin] motion-safe:duration-400 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)]"
-              sizes="76px"
+              className="relative size-[calc(76px*var(--nid-tile-scale))] shrink-0 rounded-full shadow-avatar ring-[1.5px] ring-surface-page motion-safe:transition-[margin] motion-safe:duration-400 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)]"
+              sizes="105px"
             />
           ))}
         </div>

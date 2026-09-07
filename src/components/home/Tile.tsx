@@ -77,6 +77,10 @@ export function Tile({
   const stretchRange = range(stretch);
   return (
     <Tag
+      // The hook src/app/globals.css hangs --nid-type-scale off: inside a tile,
+      // type follows the rendered column rather than the four fixed breakpoint
+      // steps (docs/STAGE-0-NOTES.md §24).
+      data-nid-tile
       className={clsx(
         "relative flex flex-col",
         // A page-surface tile has no visible card — no radius, and no clipping
