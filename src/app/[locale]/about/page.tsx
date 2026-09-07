@@ -46,15 +46,7 @@ export default async function AboutPage() {
 
         {derived.subPageLinks.length > 0 && (
           <GridItem span="full-then-1" start={1} as="nav" aria-label={t("subPages")}>
-            <LinkStack
-              links={derived.subPageLinks.map((link) => ({
-                id: link.href,
-                label: link.label,
-                targetType: "external" as const,
-                url: link.href,
-              }))}
-              twoUpAtTablet
-            />
+            <LinkStack links={derived.subPageLinks} twoUpAtTablet />
           </GridItem>
         )}
 

@@ -1296,8 +1296,9 @@ GitHub Pages prefix (§16) is applied in one place for every fixture.
 ### Grid additions
 
 `GridItem` gained a `hero` span (`col-span-full laptop:col-span-2 desktop:col-span-3` —
-§5.3's "columns 2–4, then 2–3, then full") and a `start` prop, the first time a column is
-*named* rather than reached by flow:
+§5.3's "columns 2–4, then 2–3, then full"), a `subgrid` flag and a `place` slot (both under
+*A section's links are its utility slot* below), and a `start` prop, the first time a
+column is *named* rather than reached by flow:
 
 | `start` | class | why |
 |---|---|---|
@@ -1337,13 +1338,18 @@ is 24 + 24 + 24.
   which page an item is a child of (`cardKind` in `src/lib/content/pages.ts`). Three
   `TODO(review)`s in the fixture name the gaps: NewsArticle, Campus and Person are not in
   the union. The same table builds card hrefs, because the response gives items no path.
-- **The links cell cannot match every board by flow.** The model places a section's links
-  in column 4 at 4 columns, the rail at 3, and after the body below — and source order does
-  exactly that for the intro, campus and student-awards rows. The news section is the
-  exception: its links sit beside the lead card at 1440 and 1024, but the 768 and 390 boards
-  draw them *after* the two square cards. No source order satisfies both, and nothing is
-  ever reordered, so the DOM follows the two boards the page is designed on; at 2 and 1
-  columns "All News & Events" precedes the two squares. Flagged for a look.
+- **A section's links are its utility slot.** The model places them in column 4 at 4
+  columns, the rail at 3, and after the body below — and the boards agree: beside the lead
+  news card at 1440 and 1024, *after* the two square cards at 768 and 390. Flow alone cannot
+  do both (the first draft put the link before the squares on the phone), and nothing is ever
+  reordered, so the rule CLAUDE.md gives the page's utility slot is applied to the section's:
+  the links come last in source order and `GridItem place="utility"` pins them to the title
+  row's last column at 4 columns and the rail's second row at 3, with no pin below that. A
+  row can only be named inside a grid whose rows are its own, so `CardsSection` is a
+  `GridItem subgrid` — a full-row `<section>` on `grid-template-columns: subgrid`. It shares
+  the page's column tracks exactly, adds no margin and no gutter, and restates only the row
+  gap (a subgrid inherits the gap of the subgridded axis alone). Measured: the link's x and
+  row are unchanged at 1440 and 1024, and it now follows the squares at 768 and 390.
 - **Pattern tiles are 4-column only.** Neither "Just a tile" appears on the 1024, 768 or
   390 boards: the news one is `hidden desktop:block`, and the student-awards one is
   `PatternTile` with a `cta` slot whose pattern rows are desktop-only, so below 1280 it is

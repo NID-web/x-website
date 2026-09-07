@@ -49,3 +49,5 @@ next-env.d.ts
 # env files, but keep the example
 !.env.example
 
+# working notes kept beside the repo
+/Claude outputs/

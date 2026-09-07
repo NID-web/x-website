@@ -141,7 +141,7 @@ npx tsc --noEmit          # strict, noUncheckedIndexedAccess
 npm run lint              # eslint + the no-literal-hex and no-fixture-import rules
 npm run build              # [locale] routes must be ○/● (static), never ƒ (dynamic)
 npm run verify:parity     # design/tokens/* byte-matches its src/ copy — fast, no browser
-npm run verify:tokens     # 609 assertions: 540 semantic + scoped-theme + grid + type,
+npm run verify:tokens     # 621 assertions: 540 semantic + scoped-theme + grid + type,
                           #   in a real (Playwright) browser against a production build
                           #   (runs verify:parity first and fails fast if that drifts)
 npm run verify:fonts      # confirms every font family (Typekit + the body face) loaded

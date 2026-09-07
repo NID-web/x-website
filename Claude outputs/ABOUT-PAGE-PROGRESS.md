@@ -2,7 +2,7 @@
 
 Built 7 Sep 2026 by Claude Code (Fable 5.1, high effort) from `PROMPT-about-nid.md`,
 against Figma `QoVWmyMWLysnbyHZk1NLqn`, board `3754:240099` (1440) and its three
-sibling boards. Left **uncommitted** for review. `/en/about` builds as ● (SSG);
+sibling boards. Fix pass completed the same day. Left **uncommitted** for review. `/en/about` builds as ● (SSG);
 `tsc`, `lint` (incl. the new fixture rule) and `verify:tokens` (621) pass.
 Screenshots: `docs/screenshots/about-{1440,1024,768,390}.png`.
 
@@ -39,34 +39,38 @@ of one `PageGrid`. This is the shape every primary page takes from here.
 | `PatternTile cta` | `PatternTile.tsx` | Pattern row above and below a centred CTA. Decoupled from `HomeTile` typing. |
 | `public/about/` | 9 photos, 2.0 MB total, 33–392 KB each | Web-sized. |
 
-## Defects found in review (7 Sep, Cowork session)
+## Defects found in review (7 Sep, Cowork session) — all fixed in the fix pass
 
-1. **Sub-page links open in a new tab and lack the locale prefix.** `about/page.tsx`
-   maps `derived.subPageLinks` (`{label, href}`, internal, already resolved) into a
-   content-model `Link` with `targetType: "external"`. `ctaProps` then derives
-   `external: true` → `Cta` renders a plain `<a target="_blank">` to `/about/charter`
-   with no `/en`. `LinkStack` should accept plain internal `{label, href}` links and
-   render them through the localised `Link`. Same check for `ContactList`'s
-   "Read full mandate".
-2. **`CLAUDE.md` line 50 contradicts `Separator.tsx`.** The doc still says separators
-   are omitted below 3 columns; the component shows them at 2 (`hidden tablet:block`),
-   and Claude Code's summary claimed the doc was corrected — it was not. Confirm
-   against the 768 board (`get_metadata` — does it contain `Separator` instances?),
-   then fix whichever is wrong.
-3. **Stale assertion count.** `README.md`, `CLAUDE.md` and three places in
-   `STAGE-0-NOTES.md` say `verify:tokens` has 609 assertions; it reports 621
-   (predates this work — §§ 870/993 of the notes already say 621).
-4. **`Claude outputs/` is sitting untracked in the repo root** (it holds the prompt
-   file). Add it to `.gitignore` or move it out before committing.
+1. **Sub-page links opened in a new tab without the locale prefix.** `about/page.tsx`
+   had wrapped `derived.subPageLinks` as `targetType: "external"`. Fixed: `LinkStack`
+   accepts `ResolvedLink` (`{label, href}`) alongside model `Link`s and renders resolved
+   ones through the localised `Link`. Measured: 18 internal links, all `/en/…`, no `target`.
+2. **`CLAUDE.md` contradicted `Separator.tsx`.** The 768 board (`4334:185219`) draws all
+   four separators, so the component (shown at 2 columns, hidden on phones) was right and
+   the doc was wrong. `CLAUDE.md` now reads "omitted on phones (1 column) only" and states
+   the utility-slot rule for pages *and* sections on the same line.
+3. Assertion count 609 → 621 in `README.md` and `CLAUDE.md`.
+4. `/Claude outputs/` added to `.gitignore`.
+5. **News CTA now follows the boards at every width** via the section utility slot (below).
+
+## The section utility slot (decided and built in the fix pass)
+
+A section's row-1 CTA — "All News & Events", "Visit Student Awards Gallery" — is source-
+**last** and pinned to the title row's last column at 4 columns, the rail's second row at
+3, and flows last at 1–2. Two new `GridItem` props, never a `className`:
+
+- `subgrid` — a full-row item on `grid-template-columns: subgrid`, sharing the page's
+  tracks (no margin, no gutter of its own; restates only the row gap). Needed because the
+  page grid's rows are implicit, so a row can only be named inside a section-level grid.
+  `CardsSection` is one. The label rail still aligns — measured.
+- `place="utility"` — `laptop:col-start-1 laptop:row-start-2 desktop:-col-start-2
+  desktop:row-start-1`.
+
+`CLAUDE.md`'s one-grid rule gained a sentence allowing exactly this; STAGE-0-NOTES §32
+records it.
 
 ## Design decisions still open (need the boards / the designer)
 
-- **"All News & Events" position at 1–2 columns.** Boards put it after the two square
-  cards; the build puts it before them (no-reorder rule). Recommended: treat a
-  section's row-1 CTA as the section's *utility slot* — the same mechanism
-  `CLAUDE.md` already sanctions for the page utility slot ("leaves row 1 below 3
-  columns"): source-last, pinned to the title row's last column at ≥ 3 columns via
-  `GridItem` placement, natural flow below. That matches all four boards.
 - **Phone standfirst style.** 390 board draws Body/Large/**Bold** in `text/primary`;
   1440 draws Regular in `text/secondary`. Built as drawn. Ask the designer whether the
   phone board is intentional.
@@ -97,7 +101,7 @@ editing `content-model.ts`.
 
 ## Commit plan
 
-Two commits on top of `a7ad9a4`, after the fix pass: (1) the spine/grid extensions
+Fix pass done; ready to commit. Two commits on top of `a7ad9a4`: (1) the spine/grid extensions
 (`GridItem`, `Cta`, `Icon`, `Tile`, `parts`, `PatternTile`, `Footer` promotion,
 `media.ts`, `footer-content.ts`, Home import updates) — (2) the About page, the
 content seam, the lint rule, the fixture, the photos, the docs. Discard the

@@ -4,13 +4,20 @@ import { Overline } from "@/components/home/parts";
 import type { LabelValue, Link } from "@/lib/content-model";
 import { ctaProps } from "@/lib/content/links";
 
+/** A link the server has already resolved to a site path — `derived.subPageLinks`,
+ *  breadcrumb and sibling entries — as opposed to an authored `Link`. */
+export interface ResolvedLink {
+  label: string;
+  href: string;
+}
+
 // A group of links: a vertical stack on the 24px pitch (NID-CONTEXT.md §7.1),
 // two-up across the row at 2 columns (the 768 board's sub-page links).
 export function LinkStack({
   links,
   twoUpAtTablet = false,
 }: {
-  links: Array<Pick<Link, "id" | "label" | "targetType" | "page" | "url" | "address">>;
+  links: Array<Link | ResolvedLink>;
   twoUpAtTablet?: boolean;
 }) {
   return (
@@ -21,11 +28,13 @@ export function LinkStack({
       )}
     >
       {links.map((link) => {
-        const cta = ctaProps({ id: link.id, label: link.label, targetType: link.targetType, page: link.page, url: link.url, address: link.address });
-        return cta && (
-          <li key={link.id}>
-            <Cta variant="primary" {...cta} />
-          </li>
+        const cta = "href" in link ? link : ctaProps(link);
+        return (
+          cta && (
+            <li key={"id" in link ? link.id : link.href}>
+              <Cta variant="primary" {...cta} />
+            </li>
+          )
         );
       })}
     </ul>

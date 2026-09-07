@@ -50,23 +50,51 @@ const START = {
   "2-desktop": "desktop:col-start-2",
 } as const;
 
+// A section's utility slot — its links, placed the way CLAUDE.md places the
+// page's: the last column of the title row at 4 columns, the rail on the row
+// beneath at 3 (the title row's last column is the lead card's there), and
+// flow — last, after the cards — below that. A row can only be named inside a
+// `subgrid` item, whose rows are its own.
+const PLACE = {
+  utility: "laptop:col-start-1 laptop:row-start-2 desktop:-col-start-2 desktop:row-start-1",
+} as const;
+
 export type GridSpan = keyof typeof SPAN;
 export type GridStart = keyof typeof START;
+export type GridPlace = keyof typeof PLACE;
 
 export function GridItem({
   span = 1,
   start,
+  place,
+  subgrid = false,
   className,
   as: Tag = "div",
   children,
 }: {
   span?: GridSpan;
   start?: GridStart;
+  place?: GridPlace;
+  /** A full-row item whose children are laid on the page's own column tracks
+   *  (`grid-template-columns: subgrid`) but on rows of its own — so a cell can
+   *  be pinned to "row 1" of the section. Still the one grid: no margin, no
+   *  gutter, no second column definition. Only the column axis is subgridded,
+   *  so the row gap is restated. */
+  subgrid?: boolean;
   className?: string;
   as?: ElementType;
   children?: ReactNode;
 }) {
   return (
-    <Tag className={clsx(SPAN[span], start && START[start], className)}>{children}</Tag>
+    <Tag
+      className={clsx(
+        subgrid ? "col-span-full grid grid-cols-subgrid gap-y-rowgutter" : SPAN[span],
+        start && START[start],
+        place && PLACE[place],
+        className,
+      )}
+    >
+      {children}
+    </Tag>
   );
 }

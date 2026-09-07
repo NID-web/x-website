@@ -29,9 +29,10 @@ function startOf(index: number): GridStart | undefined {
 // children of (cardKind). Items arrive in the order the response gives them and
 // are never re-sorted here — grouping is the server's (CLAUDE.md § Content).
 //
-// The links cell follows the model's placement rule — column 4 at 4 columns,
-// the rail at 3, stacked below — by source order alone. On the About board the
-// news links sit beside the lead card and the student-awards links sit inside
+// The section is a subgrid so its links can be its utility slot: last in source
+// order, pinned to the title row's last column at 4 columns and the rail at 3
+// (GridItem `place`), and simply last below that — which is where the 768 and
+// 390 boards draw them. On the About board the student-awards links sit inside
 // a pattern tile (4912:367990); below 4 columns that tile is just its link.
 export function CardsSection({ section }: { section: CardsSectionData }) {
   const items = section.items.filter((item): item is Page => "parent" in item);
@@ -39,38 +40,29 @@ export function CardsSection({ section }: { section: CardsSectionData }) {
   // is Stage 2; until then a cards section of those renders its title only.
   const kind = items[0] ? cardKind(items[0]) : undefined;
   const links = section.links.length > 0 && <LinkStack links={section.links} />;
+  const lead = kind === "news" ? items[0] : undefined;
+  const rest = kind === "news" ? items.slice(1) : items;
 
-  if (kind === "news") {
-    const [lead, ...rest] = items;
-    return (
-      <>
-        <Title variant="section">{section.title}</Title>
-        {lead && (
-          <GridItem span={2}>
-            <NewsCard item={lead} variant="wide" />
-          </GridItem>
-        )}
-        {links && <GridItem span={1}>{links}</GridItem>}
-        {/* The rail's decorative tile on the second row (4912:366884) — the
-            1024 board puts the links there instead, so it is 4-column only. */}
+  return (
+    <GridItem as="section" subgrid>
+      <Title variant="section">{section.title}</Title>
+      {lead && (
+        <GridItem span={2}>
+          <NewsCard item={lead} variant="wide" />
+        </GridItem>
+      )}
+      {kind === "news" && (
+        // The rail's decorative tile on the second row (4912:366884) — the
+        // 1024 board puts the links there instead, so it is 4-column only.
         <GridItem span={1} className="hidden desktop:block">
           <PatternTile seed={0} />
         </GridItem>
-        {rest.map((item) => (
-          <GridItem key={item.id} span={1}>
+      )}
+      {rest.map((item, i) => (
+        <GridItem key={item.id} span={1} start={kind === "news" ? undefined : startOf(i)}>
+          {kind === "news" ? (
             <NewsCard item={item} variant="square" />
-          </GridItem>
-        ))}
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Title variant="section">{section.title}</Title>
-      {items.map((item, i) => (
-        <GridItem key={item.id} span={1} start={startOf(i)}>
-          {kind === "campus" ? (
+          ) : kind === "campus" ? (
             <CampusCard item={item} arch={ARCHES[i % ARCHES.length] ?? "top"} />
           ) : kind === "alumni" ? (
             <AlumniCard item={item} />
@@ -78,10 +70,10 @@ export function CardsSection({ section }: { section: CardsSectionData }) {
         </GridItem>
       ))}
       {links && (
-        <GridItem span={1}>
-          <PatternTile seed={1} cta={links} />
+        <GridItem span={1} place="utility">
+          {kind === "news" ? links : <PatternTile seed={1} cta={links} />}
         </GridItem>
       )}
-    </>
+    </GridItem>
   );
 }
