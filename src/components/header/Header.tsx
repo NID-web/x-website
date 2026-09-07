@@ -68,12 +68,12 @@ export function Header() {
       )}
     >
       <div className="flex h-[50px] items-center gap-3 px-4 tablet:h-[60px] tablet:px-6">
-        {/* Left — "Frame 256", the mark, home-linked. From tablet up this frame is
-            flex-1 and mirrors the right cluster's flex-1; two equal side frames
-            are what put the theme trigger on the header's exact centre line.
-            Measured in Figma 1:610 at 768 wide: both side frames 319, trigger
-            spans 355–413 for a centre of 384 against a header centre of 384. */}
-        <div className="flex items-center tablet:flex-1">
+        {/* Left — "Frame 256", the mark, home-linked. flex-1, mirroring the right
+            cluster's flex-1; two equal side frames are what put the theme
+            trigger on the header's exact centre line. Measured in Figma 1:610 at
+            768 wide: both side frames 319, trigger spans 355–413 for a centre of
+            384 against a header centre of 384. */}
+        <div className="flex flex-1 items-center">
           <Link
             href="/"
             aria-label="National Institute of Design — home"
@@ -91,17 +91,19 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Theme trigger. Centred at tablet+ by the two flex-1 frames around it.
-            Below tablet the Mobile variant groups it with the mark as the
-            "Brand & Utility" cluster (§7.3), so there it hugs the mark and
-            mr-auto pushes the right cluster to the far edge instead. */}
-        <div className="mr-auto tablet:mr-0">
+        {/* Theme trigger, centred at EVERY width by the two flex-1 frames around
+            it. Below tablet it used to hug the mark instead — NID-CONTEXT.md
+            §7.3's Mobile variant groups the two as a "Brand & Utility" cluster,
+            with mr-auto shoving the right cluster to the far edge. Centred on
+            the design owner's call (docs/STAGE-0-NOTES.md §29); the trigger is
+            the same control at every width and now sits on the same line. */}
+        <div>
           <ThemeSwitcher />
         </div>
 
         {/* Right — "Frame 101": Apply CTA (Button · Small), search, menu. Right
             aligned, gap 8. flex-1 to balance the left frame (see above). */}
-        <div className="flex items-center justify-end gap-2 tablet:flex-1">
+        <div className="flex flex-1 items-center justify-end gap-2">
           <Link
             href={APPLY_HREF}
             className={clsx(

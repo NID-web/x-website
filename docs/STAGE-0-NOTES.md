@@ -1116,3 +1116,72 @@ Not scaled with `--nid-tile-scale`, though that would also have worked. The scal
 value at a constant fraction of *its artboard column*, and those fractions differ by
 breakpoint (176/330 = 53%, 176/309.33 = 57%, 176/350 = 50%, 176/358 = 49%). A percentage is
 the stronger statement: the same shape everywhere, not four shapes each held steady.
+
+## 29. The theme trigger is centred at every width, not only at tablet and up
+
+The header is three frames: the mark, the theme trigger, the Apply/search/menu cluster. The
+trigger sits on the header's centre line because the two side frames are `flex-1` and
+therefore equal — that is the whole mechanism, and it was only switched on from tablet up
+(`tablet:flex-1` on both sides). Below tablet the trigger carried `mr-auto` instead, which
+pinned it beside the mark and shoved the right cluster to the far edge.
+
+That was NID-CONTEXT.md §7.3's Mobile variant, which groups mark and trigger into a
+"Brand & Utility" cluster. It is now centred at every width on the design owner's call: the
+trigger is the same control at every size, and there was no reason for it to sit on a
+different line on a phone.
+
+The change is the absence of three utilities rather than the addition of any — `flex-1` on
+both side frames unconditionally, and `mr-auto tablet:mr-0` deleted.
+
+**Measured** — the trigger's centre against the header's:
+
+| viewport | header centre | trigger centre | off | side frames |
+|---|---|---|---|---|
+| 1440 | 720 | 720 | 0 | 655 / 655 |
+| 768 | 384 | 384 | 0 | 319 / 319 |
+| 600 | 300 | 300 | 0 | 243 / 243 |
+| 390 | 195 | 195 | 0 | 138 / 138 |
+
+768 reproduces the Figma measurement in the component's own comment exactly — both side
+frames 319, centre 384.
+
+**It stops being exact below 390.** The right cluster has a min-content width of 132px
+(Apply pill, two icon buttons, two gaps) and cannot shrink past it, so once the free space
+runs out `flex-1` can no longer hold the two sides equal and the trigger drifts left: 9.4px
+at 360, 29.4px at 320. No horizontal overflow at either. 390 is the design's mobile artboard
+and covers the mainstream phones; 360 (Galaxy S) is the notable width below it. Closing that
+would mean absolutely positioning the trigger — which risks it colliding with the clusters
+at the very narrow end — or dropping the Apply pill below 390. Neither is worth doing
+unsolicited, so it is recorded here.
+
+## 30. The brand strip's clearance was a flat 48px against a rhythm that isn't flat
+
+`BrandStrip` opened and closed the page with `mb-12` / `mt-12` — 48px, the same at every
+width. The grid's own vertical rhythm is not the same at every width: `--nid-grid-row-gap`
+steps **24 / 24 / 20 / 16**. So the band's clearance drifted away from the page it sits on:
+
+| | row gap | clearance | ratio |
+|---|---|---|---|
+| 4 col | 24 | 48 | 2.00× |
+| 3 col | 24 | 48 | 2.00× |
+| 2 col | 20 | 48 | **2.40×** |
+| 1 col | 16 | 48 | **3.00×** |
+
+Reported as "the margin below the pattern strip looks a bit more in 1 col and 2 col", which
+is exactly what the table says: it is proportionally largest in precisely those two ranges,
+and by 20% and 50%.
+
+The fix is not a new number but the number that was already there. At 3 and 4 columns a flat
+48 *is* two row-gaps; the value only stopped meaning that where the row gap moved and 48 did
+not. So the clearance is now `calc(2 * var(--nid-grid-row-gap))` — **48 / 48 / 40 / 32**,
+2.00× at every width, with 3 and 4 columns rendering byte-identically to before.
+
+Applied to the closing strip as well as the opening one. Only the opening gap was reported,
+but the two are mirror images of the same band, and leaving the bottom at 48 while the top
+became 32 on a phone would have traded one visible imbalance for a worse one.
+
+Worth generalising: **a spacing value that is expressed as a multiple of a token stays
+correct when the token moves; the same value written as a literal does not.** `mb-12` was
+right when it was written and silently stopped being right at two of the four breakpoints.
+The grid gap, page margin and column count all step per breakpoint — anything meant to sit
+in that rhythm should be derived from them rather than measured off one artboard.

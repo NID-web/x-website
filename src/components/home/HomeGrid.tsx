@@ -67,8 +67,14 @@ export async function HomeGrid() {
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       {/* Craft band, full-bleed directly under the header — it sits outside the
           PageGrid shell on purpose: it runs edge to edge, so putting it in a
-          GridItem would inset it by the shell margin. */}
-      <BrandStrip className="mb-12" />
+          GridItem would inset it by the shell margin.
+
+          Its clearance is two grid row-gaps, not a flat 48px. Those are the same
+          number at 3 and 4 columns, where a flat mb-12 was already exactly 2×;
+          but the row gap steps down to 20 and 16 below that while 48 did not, so
+          the band's clearance grew to 2.4× and 3× the page's own rhythm and read
+          as a void (docs/STAGE-0-NOTES.md §30). */}
+      <BrandStrip className="mb-[calc(2*var(--nid-grid-row-gap))]" />
       <PageGrid>
         {HOME_TILES.map((tile) => (
           <GridItem key={tile.id} span={SPAN_BY_KIND[tile.kind] ?? 1}>
@@ -81,7 +87,7 @@ export async function HomeGrid() {
           above the grid, one below) — but not identically: the opening strip is
           the export's "Only Pattern" variant, the closing one leads with the
           NID wordmark. */}
-      <BrandStrip className="mt-12" logo />
+      <BrandStrip className="mt-[calc(2*var(--nid-grid-row-gap))]" logo />
     </main>
   );
 }
