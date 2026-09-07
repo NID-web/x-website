@@ -78,21 +78,6 @@
     },
     "kmc": {
       "heading": "Knowledge Management Centre"
-    },
-    "footer": {
-      "careers": "Careers",
-      "ids": "Integrated Design Services",
-      "placements": "Placements",
-      "youngDesigners": "Young Designers",
-      "alumniReg": "NID Alumni Data Registration",
-      "tenders": "Tenders",
-      "pmVidyalaxmi": "PM Vidyalaxmi Scheme",
-      "rti": "Right to Information",
-      "privacy": "Privacy Policy",
-      "terms": "Terms & Conditions",
-      "sitemap": "Sitemap",
-      "contact": "Contact",
-      "collaborations": "Collaborations"
     }
   },
   "Swatch": {
@@ -104,5 +89,27 @@
     "states": "Theme × appearance states",
     "typeSpecimen": "Type specimen",
     "spacingRadius": "Spacing & radius"
+  },
+  "Footer": {
+    "careers": "Careers",
+    "ids": "Integrated Design Services",
+    "placements": "Placements",
+    "youngDesigners": "Young Designers",
+    "alumniReg": "NID Alumni Data Registration",
+    "tenders": "Tenders",
+    "pmVidyalaxmi": "PM Vidyalaxmi Scheme",
+    "rti": "Right to Information",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "sitemap": "Sitemap",
+    "contact": "Contact",
+    "collaborations": "Collaborations"
+  },
+  "Page": {
+    "subPages": "In this section",
+    "seeMore": "See more"
+  },
+  "Cards": {
+    "latest": "Latest"
   }
 }

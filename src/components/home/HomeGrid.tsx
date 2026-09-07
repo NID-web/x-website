@@ -13,7 +13,7 @@ import { MediaCardTile } from "@/components/home/tiles/MediaCardTile";
 import { QuoteTile } from "@/components/home/tiles/QuoteTile";
 import { RosterTile } from "@/components/home/tiles/RosterTile";
 import { SpineTile } from "@/components/home/tiles/SpineTile";
-import { HomeFooter } from "@/components/home/HomeFooter";
+import { Footer } from "@/components/spine/Footer";
 import { BrandStrip } from "@/components/spine/BrandStrip";
 
 function renderTile(tile: HomeTile, t: Translate) {
@@ -32,7 +32,7 @@ function renderTile(tile: HomeTile, t: Translate) {
     case "portrait":
       return <PortraitTile tile={tile} t={t} />;
     case "pattern":
-      return <PatternTile tile={tile} />;
+      return <PatternTile seed={tile.seed} />;
     case "mediaCard":
       return <MediaCardTile tile={tile} t={t} />;
     case "quote":
@@ -81,7 +81,7 @@ export async function HomeGrid() {
             {renderTile(tile, t)}
           </GridItem>
         ))}
-        <HomeFooter t={t} />
+        <Footer />
       </PageGrid>
       {/* The band closes the page as well as opens it (export root: one strip
           above the grid, one below) — but not identically: the opening strip is

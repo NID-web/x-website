@@ -109,10 +109,14 @@ page — nesting a second one inside a `GridItem` doubles the margin (see
 
 `GridItem`'s `span` (`1 | 2 | 3 | 4`, default `1`) clamps itself as columns disappear at
 narrower breakpoints — `span={3}` becomes full-width at tablet and mobile, without a
-`min()` hack (which doesn't work in `grid-column: span`; see `CLAUDE.md` §2.1). One named
-span, `"full-then-1"`, covers the shape the numbers can't: Home's position statement, which
-is *reshaped* at laptop rather than clamped — full row below, one column above
-(`docs/STAGE-0-NOTES.md` §20, §22). Column counts, margins, and gaps come entirely from the
+`min()` hack (which doesn't work in `grid-column: span`; see `CLAUDE.md` §2.1). Two named
+spans cover the shapes the numbers can't: `"full-then-1"` is *reshaped* at laptop rather
+than clamped — full row below, one column above (Home's position statement, the sub-page
+link stack, every section title); `"hero"` is the page hero — full row, then two of three
+columns, then three of four. A `start` prop names a column where flow alone would put a
+cell in the wrong one: `1` opens row 2 after the page title, `2` keeps the intro in the
+content field when the rail cell is empty, and `"2-laptop"` / `"2-desktop"` keep a wrapping
+card out of the rail (`docs/STAGE-0-NOTES.md` §20, §22, §32). Column counts, margins, and gaps come entirely from the
 `--nid-grid-*` custom properties, which change at the four breakpoints — `tablet` **668** ·
 `laptop` 1024 · `desktop` 1280. A range's *start* is not its *artboard width*: `tablet`
 begins at 668 and is drawn at 768, exactly as `desktop` begins at 1280 and is drawn at
@@ -134,7 +138,7 @@ that came of confusing the two.
 
 ```bash
 npx tsc --noEmit          # strict, noUncheckedIndexedAccess
-npm run lint              # eslint + the no-literal-hex rule
+npm run lint              # eslint + the no-literal-hex and no-fixture-import rules
 npm run build              # [locale] routes must be ○/● (static), never ƒ (dynamic)
 npm run verify:parity     # design/tokens/* byte-matches its src/ copy — fast, no browser
 npm run verify:tokens     # 609 assertions: 540 semantic + scoped-theme + grid + type,
@@ -142,7 +146,7 @@ npm run verify:tokens     # 609 assertions: 540 semantic + scoped-theme + grid +
                           #   (runs verify:parity first and fails fast if that drifts)
 npm run verify:fonts      # confirms every font family (Typekit + the body face) loaded
 npm run verify:design     # re-checks design/tokens/ itself (python3 design/verify.py)
-npm run screenshot        # docs/screenshots/{swatch,home}-{1440,1024,768,390}.png
+npm run screenshot        # docs/screenshots/{swatch,home,about}-{1440,1024,768,390}.png
 ```
 
 Run `verify:tokens` before committing anything that touches `themes.css`, `globals.css`,

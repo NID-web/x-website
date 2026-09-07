@@ -12,6 +12,7 @@ export type IconName =
   | "sun"
   | "moon"
   | "x"
+  | "plus"
   | "facebook"
   | "instagram"
   | "youtube";
@@ -93,6 +94,15 @@ const ICONS: Record<IconName, IconDef> = {
     content: (
       <g {...stroke}>
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+      </g>
+    ),
+  },
+  plus: {
+    viewBox: "0 0 24 24",
+    content: (
+      <g {...stroke}>
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
       </g>
     ),
   },

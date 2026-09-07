@@ -8,10 +8,11 @@
  * All translatable prose lives in the messages file; proper nouns, addresses
  * and pre-formatted date strings are data and live here.
  *
- * CMS-adoptable later: swap HOME_TILES/HOME_FOOTER for a fetch and resolve the
- * `*Key`s to strings server-side.
+ * CMS-adoptable later: swap HOME_TILES for a fetch and resolve the `*Key`s to
+ * strings server-side. The footer lives in src/lib/footer-content.ts.
  */
 import type { MediaAsset } from "@/lib/content-model";
+import { mediaAsset } from "@/lib/media";
 
 /** A dotted key into the "Home" message namespace, e.g. "study.heading". */
 export type CopyKey = string;
@@ -48,16 +49,6 @@ export interface NewsRow {
   date: string;
   href: string;
   thumbnail: MediaAsset;
-}
-
-export type SocialPlatform = "x" | "facebook" | "instagram" | "youtube";
-export interface SocialLink {
-  platform: SocialPlatform;
-  href: string;
-}
-export interface ContactLink {
-  label: string; // the address itself — data
-  href: string; // mailto: / tel:
 }
 
 interface Base {
@@ -116,46 +107,8 @@ export type HomeTile =
     })
   | (Base & { kind: "spine"; headingKey: CopyKey; spines: string[] });
 
-export interface FooterContent {
-  primaryLinks: HomeLink[];
-  secondaryLinks: HomeLink[];
-  contactOverlineKey: CopyKey;
-  contacts: ContactLink[];
-  social: SocialLink[];
-  collaborationsOverlineKey: CopyKey;
-  collaborations: Collaborator[];
-}
-
-/** A partner mark in the footer's collaborations card. The organisation name is
- *  a proper noun, so it is data rather than a message key, and it doubles as the
- *  logo's alt text. */
-export interface Collaborator {
-  name: string;
-  /** `width`/`height` on the asset are the file's INTRINSIC size. */
-  logo: MediaAsset;
-  /** Rendered height in px, from the export's footer grid. The width follows
-   *  each mark's own aspect — logos must never be stretched to a common box. */
-  height: number;
-}
-
-/** THE single place home imagery resolves. Everything under public/home/ is the
- *  real design photography, web-sized, so nothing here is a placeholder.
- *
- *  When the CMS serves media, this helper is the whole migration: change the
- *  path it builds, or replace its call sites with server-provided MediaAssets,
- *  and delete public/home/. No tile component references an image path
- *  directly. Every asset keeps a real alt (the model requires it) and a
- *  square-ish natural size. */
-// basePath does NOT reach these. Next prefixes _next/* assets and <Link> hrefs
-// with it, but a raw src pointing into public/ is passed through untouched — so
-// under GitHub Pages (site served from /x-website/) every photo would resolve
-// against the domain root and 404. Set for the export build only; empty on a
-// normal build and in dev, where the site is served from /.
-const ASSET_BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-
-function img(file: string, alt: string, w = 800, h = 800): MediaAsset {
-  return { id: file, file: `${ASSET_BASE}/home/${file}`, alt, width: w, height: h };
-}
+const img = (file: string, alt: string, w = 800, h = 800) =>
+  mediaAsset(`/home/${file}`, alt, w, h);
 
 // Source order = the Figma bento, row by row, left → right (see get_metadata).
 // Only the hero spans 2 columns; everything else is one square cell.
@@ -344,75 +297,3 @@ export const HOME_TILES: HomeTile[] = [
     ],
   },
 ];
-
-export const HOME_FOOTER: FooterContent = {
-  primaryLinks: [
-    { labelKey: "footer.careers", href: "/careers" },
-    { labelKey: "footer.ids", href: "/integrated-design-services" },
-    { labelKey: "footer.placements", href: "/placements" },
-    { labelKey: "footer.youngDesigners", href: "/young-designers" },
-    { labelKey: "footer.alumniReg", href: "/alumni/registration" },
-    { labelKey: "footer.tenders", href: "/tenders" },
-    { labelKey: "footer.pmVidyalaxmi", href: "/pm-vidyalaxmi" },
-  ],
-  secondaryLinks: [
-    { labelKey: "footer.rti", href: "/right-to-information" },
-    { labelKey: "footer.privacy", href: "/privacy-policy" },
-    { labelKey: "footer.terms", href: "/terms" },
-    { labelKey: "footer.sitemap", href: "/sitemap" },
-  ],
-  contactOverlineKey: "footer.contact",
-  contacts: [
-    { label: "info@nid.edu", href: "mailto:info@nid.edu" },
-    { label: "cmc@nid.edu", href: "mailto:cmc@nid.edu" },
-    { label: "+91 79 2662 9500", href: "tel:+917926629500" },
-    { label: "+91 79 2662 9600", href: "tel:+917926629600" },
-  ],
-  social: [
-    { platform: "x", href: "https://x.com/nid_ahmedabad" },
-    { platform: "facebook", href: "https://facebook.com/nid.ahmedabad" },
-    { platform: "youtube", href: "https://youtube.com/@nid" },
-    { platform: "instagram", href: "https://instagram.com/nid.ahmedabad" },
-  ],
-  collaborationsOverlineKey: "footer.collaborations",
-  // Six separate marks, in the export's grid order (FooterQuaternary). Skill
-  // India and india.gov.in ship as vector data in the export and were rebuilt
-  // as SVGs; the other four are its own raster exports.
-  collaborations: [
-    {
-      name: "Skill India",
-      logo: img("logos/skill-india.svg", "Skill India", 43, 36),
-      height: 36,
-    },
-    {
-      name: "india.gov.in",
-      logo: img("logos/india-gov-in.svg", "india.gov.in", 51, 32),
-      height: 32,
-    },
-    {
-      name: "Make in India",
-      logo: img("logos/make-in-india.png", "Make in India", 600, 274),
-      height: 30,
-    },
-    {
-      name: "Startup India",
-      logo: img("logos/startup-india.png", "Startup India", 1080, 1080),
-      height: 39,
-    },
-    {
-      name: "Ministry of Women and Child Development, Government of India",
-      logo: img(
-        "logos/ministry-wcd.png",
-        "Ministry of Women and Child Development, Government of India",
-        1200,
-        800,
-      ),
-      height: 45,
-    },
-    {
-      name: "Khelo India",
-      logo: img("logos/khelo-india.png", "Khelo India", 571, 350),
-      height: 37,
-    },
-  ],
-};

@@ -76,23 +76,47 @@ export function ImagePlaceholder({ alt, className }: { alt: string; className?: 
   );
 }
 
-export function GradientWash({ className }: { className?: string }) {
+// The seven-stop accent gradient at 20%, cut to one of two shapes: the right
+// triangle that washes the Study tile (`wash`, 330 square) and the equilateral
+// one behind the page title (`polygon`, 173 × 150 — the "Polygon 1" vector in
+// 4932:576887). Same stops, same opacity; only the outline and the gradient's
+// span differ, so one component with a shape rather than two.
+const WASH_SHAPE = {
+  wash: {
+    id: "nid-study-wash",
+    viewBox: "0 0 330 330",
+    path: "M330 0H0L330 330V0Z",
+    line: { x1: 0, y1: 165, x2: 325.315, y2: 204.038 },
+  },
+  polygon: {
+    id: "nid-title-polygon",
+    viewBox: "0 0 173.205 150",
+    path: "M86.6025 0L173.205 150H0L86.6025 0Z",
+    line: { x1: 0, y1: 75, x2: 169.942, y2: 98.5479 },
+  },
+} as const;
+
+export function GradientWash({
+  shape = "wash",
+  className,
+}: {
+  shape?: keyof typeof WASH_SHAPE;
+  className?: string;
+}) {
+  const { id, viewBox, path, line } = WASH_SHAPE[shape];
   return (
     <svg
       aria-hidden="true"
-      viewBox="0 0 330 330"
-      preserveAspectRatio="none"
-      className={clsx("pointer-events-none absolute inset-0 size-full", className)}
+      viewBox={viewBox}
+      preserveAspectRatio={shape === "wash" ? "none" : "xMinYMin meet"}
+      className={clsx(
+        "pointer-events-none",
+        shape === "wash" && "absolute inset-0 size-full",
+        className,
+      )}
     >
       <defs>
-        <linearGradient
-          id="nid-study-wash"
-          gradientUnits="userSpaceOnUse"
-          x1="0"
-          y1="165"
-          x2="325.315"
-          y2="204.038"
-        >
+        <linearGradient id={id} gradientUnits="userSpaceOnUse" {...line}>
           <stop stopColor="var(--nid-accent-tertiary)" />
           <stop offset="0.206731" stopColor="var(--nid-accent-subtle)" />
           <stop offset="0.46" stopColor="var(--nid-accent-primary)" />
@@ -102,7 +126,7 @@ export function GradientWash({ className }: { className?: string }) {
           <stop offset="1" stopColor="var(--nid-accent-pentenary)" />
         </linearGradient>
       </defs>
-      <path d="M330 0H0L330 330V0Z" fill="url(#nid-study-wash)" fillOpacity="0.2" />
+      <path d={path} fill={`url(#${id})`} fillOpacity="0.2" />
     </svg>
   );
 }

@@ -1,23 +1,29 @@
+import type { ReactNode } from "react";
 import { PatternField1, PatternField2, PatternField3 } from "@/components/home/patterns";
-import type { HomeTile } from "@/lib/home-content";
 
-type PatternTileData = Extract<HomeTile, { kind: "pattern" }>;
-
-// The craft pattern fields that punctuate the bento (design/NID-CONTEXT.md §13).
-// Three distinct motifs, selected by the tile's seed — the export uses a
-// different one in each of its three slots rather than repeating one.
+// The craft pattern fields that punctuate a page (design/NID-CONTEXT.md §13):
+// a full square of one field, or — with `cta` — a row of it above and below a
+// centred link (About's "Just a tile" 4912:367990). The rows are desktop-only:
+// the 1024 / 768 / 390 boards keep the link in the rail and drop the pattern.
 //
-// Purely decorative (aria-hidden, inside the field itself), so the decorative
-// accent ramp is fine here. Shown at every breakpoint: all four Figma boards
-// draw the pattern tiles, so the earlier `hidden laptop:block` was wrong
-// (docs/STAGE-0-NOTES.md §20).
+// Purely decorative (aria-hidden inside the field), so the decorative accent
+// ramp is fine. Shown at every breakpoint on Home (STAGE-0-NOTES.md §20).
 const FIELDS = [PatternField1, PatternField2, PatternField3];
 
-export function PatternTile({ tile }: { tile: PatternTileData }) {
-  const Field = FIELDS[(tile.seed ?? 0) % FIELDS.length] ?? PatternField1;
+export function PatternTile({ seed = 0, cta }: { seed?: number; cta?: ReactNode }) {
+  const Field = FIELDS[seed % FIELDS.length] ?? PatternField1;
+  if (!cta) {
+    return (
+      <div className="relative aspect-square overflow-hidden">
+        <Field className="block size-full" />
+      </div>
+    );
+  }
   return (
-    <div className="relative aspect-square overflow-hidden">
-      <Field className="block size-full" />
+    <div className="flex flex-col justify-center desktop:aspect-square desktop:justify-between">
+      <Field className="hidden aspect-[4/1] w-full desktop:block" />
+      {cta}
+      <Field className="hidden aspect-[4/1] w-full desktop:block" />
     </div>
   );
 }

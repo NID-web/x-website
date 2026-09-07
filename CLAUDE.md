@@ -56,6 +56,7 @@ These fail without an error. Most have already gone wrong once.
 - `Link.label` never contains an arrow character; arrows are icons in their own slot.
 - A back-nav link names its destination ("About NID"), never "Back".
 - When `groupBy` is set, the data arrives already grouped — do not sort a flat list into buckets on the client.
+- Page content reaches a page through `getPage()` in `src/lib/content/` and nowhere else. Nothing outside that directory imports a fixture; `npm run lint` enforces it. Page prose lives in the fixture (it is CMS content), `messages/*.json` holds UI strings only.
 
 **Icons and motion**
 - Icons use `currentColor` and `aria-hidden="true"` — an icon with its own fill ignores its parent (a day in Figma).
@@ -75,6 +76,7 @@ These fail without an error. Most have already gone wrong once.
 npm run dev              # dev server
 npm run build            # [locale] routes must be ○ or ● (static/SSG), never ƒ (dynamic)
 npm run lint             # eslint + scripts/lint-tokens.mjs (no-literal-hex rule)
+                         #   + scripts/lint-fixtures.mjs (no fixture import outside src/lib/content/)
 npm run generate:tokens  # design/generate.py + copies outputs into src/ — use this,
                          #   not `python3 design/generate.py` directly, or the src/ copy
                          #   goes stale and nothing else notices
@@ -83,7 +85,7 @@ npm run verify:tokens    # 609 assertions: 540 semantic + scoped-theme + grid + 
                          #   (runs verify:parity first, fails fast if that drifts)
 npm run verify:fonts     # every font family (Typekit + body face) loads + Bodoni opsz
 npm run verify:design    # re-checks design/tokens/ itself (python3 design/verify.py)
-npm run screenshot       # docs/screenshots/{swatch,home}-{1440,1024,768,390}.png
+npm run screenshot       # docs/screenshots/{swatch,home,about}-{1440,1024,768,390}.png
 npx tsc --noEmit
 ```
 

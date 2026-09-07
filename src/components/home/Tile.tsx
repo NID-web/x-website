@@ -24,7 +24,9 @@ const SURFACE: Record<TileSurface, string> = {
 // contradiction, so don't.
 const SQUARE: Record<string, string> = {
   always: "aspect-square",
+  tablet: "tablet:aspect-square",
   laptop: "laptop:aspect-square",
+  desktop: "desktop:aspect-square",
   "max-laptop": "max-laptop:aspect-square",
   "max-tablet": "max-tablet:aspect-square",
 };
@@ -32,7 +34,8 @@ const STRETCH: Record<string, string> = {
   always: "h-full",
   laptop: "laptop:h-full",
 };
-const range = (v: boolean | "laptop" | "max-laptop" | "max-tablet" | undefined) =>
+type SquareRange = "tablet" | "laptop" | "desktop" | "max-laptop" | "max-tablet";
+const range = (v: boolean | SquareRange | undefined) =>
   v === true ? "always" : v === false || v === undefined ? undefined : v;
 
 export interface TileProps {
@@ -40,10 +43,10 @@ export interface TileProps {
   surface?: TileSurface;
   /** The 1:1 box, at EVERY breakpoint including phones — all four Figma boards
    *  draw every tile square, the 390 one included (docs/STAGE-0-NOTES.md §20).
-   *  `"laptop"` / `"max-laptop"` / `"max-tablet"` narrow it to one side of a
-   *  breakpoint: the position statement is square only at 3 columns and up, the
-   *  hero only at 1 column (it is a 2-wide banner at every wider count). */
-  square?: boolean | "laptop" | "max-laptop" | "max-tablet";
+   *  A range name narrows it to one side of a breakpoint: the position
+   *  statement is square only at 3 columns and up, the hero only at 1 column
+   *  (it is a 2-wide banner at every wider count), the alumni card only at 4. */
+  square?: boolean | SquareRange;
   /** Tiles that should fill the row height set by their square neighbours
    *  rather than set it (the span-2 hero, at laptop and up). */
   stretch?: boolean | "laptop";

@@ -1258,3 +1258,115 @@ only the arrow of the row actually under the pointer (`0,1,0` across the three, 
 The lesson worth keeping: **when a colour looks wrong, check what is multiplying it before
 changing what it is.** Opacity, blend modes and a scrim all present as "the wrong hue", and
 the token was innocent here.
+
+## 32. About NID is the first page through the content model
+
+`/en/about` (Figma `3754:240099`; 1024 `4296:269561`, 768 `4334:185219`, 390
+`4175:246865`) is built from a `PageResponse`, not a bespoke tile list like Home. What
+that added, and where the boards and the model disagreed.
+
+### The `getPage` seam and the fixture lint rule
+
+`src/lib/content/getPage.ts` is the one content call: `getPage(path)` returns the
+`PageResponse` for a route or `null`. Today it reads `src/lib/content/fixtures/*`; the day
+the API exists, only that file changes. To keep that true, `scripts/lint-fixtures.mjs`
+fails `npm run lint` on any import of a fixture from outside `src/lib/content/` — the same
+mechanism as the no-literal-hex rule, and proven the same way (a probe file importing
+`fixtures/about` failed it, then was removed).
+
+Page prose lives in the fixture, not `messages/en.json` — it is CMS content, and this is
+the first page where that is true. `en.json` gained only UI strings: `Page.subPages` (the
+link stack's `aria-label`), `Page.seeMore` (the phone standfirst toggle) and `Cards.latest`
+(the lead news card's overline). `Home.footer` moved to a top-level `Footer` namespace
+with the footer.
+
+### Footer promoted to the spine
+
+`HomeFooter` is now `src/components/spine/Footer.tsx`, its content `src/lib/footer-content.ts`
+(`FOOTER`, `FooterContent`, `Collaborator`), and it resolves its own translator
+(`getTranslations("Footer")`) rather than taking one from Home. It stays four `GridItem`s
+that a page renders inside its own `PageGrid` — not in the layout — because column 1 is the
+label rail all the way down and a second grid doubles the shell margin (§6). Zero visual
+change on Home; the collaborations block keeps `full-then-1` (§23) even though the About
+boards draw it one column wide at 1024 and 768.
+
+`img()` left `home-content.ts` for `src/lib/media.ts` (`mediaAsset(file, alt, w, h)`), so the
+GitHub Pages prefix (§16) is applied in one place for every fixture.
+
+### Grid additions
+
+`GridItem` gained a `hero` span (`col-span-full laptop:col-span-2 desktop:col-span-3` —
+§5.3's "columns 2–4, then 2–3, then full") and a `start` prop, the first time a column is
+*named* rather than reached by flow:
+
+| `start` | class | why |
+|---|---|---|
+| `1` | `laptop:col-start-1` | Row 1 holds only the page title (cols 1–2) and the utility slot; without this the link stack flowed into column 3 beside the title — caught by measuring, the stack's x read 732, not 24. |
+| `2` | `laptop:col-start-2` | The intro's rail cell is empty. |
+| `"2-laptop"` | `laptop:col-start-2 desktop:col-start-auto` | A card that wraps at 3 columns stays in the content field, as the 1024 board draws the third campus at x 357 — flow alone would drop it into the rail. |
+| `"2-desktop"` | `desktop:col-start-2` | The same at 4 columns, for a fourth one-column card. |
+
+Each is a base utility plus breakpoint-scoped overrides, never two unscoped utilities of
+one family (§20). `Tile.square` gained `"tablet"` and `"desktop"` ranges: the news cards
+are squares from 2 columns up and 72px list rows on the phone; the alumni card is the
+square from the 1440 board at 4 columns and the design's `Person` component (portrait over
+name and bio, natural height) below.
+
+### Separators are drawn at 2 columns
+
+`CLAUDE.md` said separators are omitted below 3 columns and the prompt asked for
+`hidden laptop:block`. The 768 board draws all four (`4334:185244` at y 981, and so on)
+and `NID-CONTEXT.md` §5.3 says "shown · shown · omitted" for 4&3 · 2 · 1. `Separator` is
+`hidden tablet:block`; the `CLAUDE.md` line was corrected. It is a 24px row with no rule —
+`get_design_context` on `3847:87985` returns an empty frame — so the gap between sections
+is 24 + 24 + 24.
+
+### Where the boards and the model disagree, and what was done
+
+- **The intro row is page-level.** Hero, standfirst and the six sub-page links are
+  `Page.hero`, `Page.intro` and `derived.subPageLinks`, not a `text` + `links` section: the
+  model has those exact slots, and the board's column 1 is empty beside the intro, which a
+  `text` section's title would have filled. The "Read full mandate" link beside the intro
+  (`4584:812757`) has no page-level field; it rides on `Page.contacts` — the field with that
+  placement — as a `LabelValue` whose value is the path, with a `TODO(review)` proposing
+  `Page.introLinks`. Only the 1440 board draws it; the 1024, 768 and 390 boards have no link
+  there at all. It is content, so it is kept and stacks after the body as the model says.
+- **Cards items are `Page`.** The cards union is `Discipline | Programme | Page`, so news
+  articles (`headline` → `title`, `date` → `publishedAt`, thumbnail → `hero[0]`), campuses
+  and award-winning students all arrive as `Page`, and `CardsSection` chooses the card by
+  which page an item is a child of (`cardKind` in `src/lib/content/pages.ts`). Three
+  `TODO(review)`s in the fixture name the gaps: NewsArticle, Campus and Person are not in
+  the union. The same table builds card hrefs, because the response gives items no path.
+- **The links cell cannot match every board by flow.** The model places a section's links
+  in column 4 at 4 columns, the rail at 3, and after the body below — and source order does
+  exactly that for the intro, campus and student-awards rows. The news section is the
+  exception: its links sit beside the lead card at 1440 and 1024, but the 768 and 390 boards
+  draw them *after* the two square cards. No source order satisfies both, and nothing is
+  ever reordered, so the DOM follows the two boards the page is designed on; at 2 and 1
+  columns "All News & Events" precedes the two squares. Flagged for a look.
+- **Pattern tiles are 4-column only.** Neither "Just a tile" appears on the 1024, 768 or
+  390 boards: the news one is `hidden desktop:block`, and the student-awards one is
+  `PatternTile` with a `cta` slot whose pattern rows are desktop-only, so below 1280 it is
+  just its link in the rail — one link in the DOM, not one shown and one hidden.
+- **The 768 board packs the footer oddly** — `Primary Footer` beside the student-awards
+  link, then the separator, then the other three blocks. That is auto-layout filling an odd
+  cell, not a design; the separator stays before all four blocks.
+- **The hero crop** follows §5.3 (2.2:1 → 2:1 → 16:9 → 4:3). The 1440 board draws
+  1038 × 478, i.e. 2.17:1 — 6px taller than the spec ratio. Measured: 1038 × 471.8 at 1440,
+  760 × 380 at 1200, 720 × 405 at 768, 358 × 268.5 at 390. At 1024 the row is 360 tall
+  because the six-link stack is, and the 321px hero sits at its top, as the board draws.
+- **The page title's polygon** (`4932:576607`, an equilateral 173 × 150 triangle) carries
+  the same seven-stop gradient at 20% as `GradientWash`, so it is that component with a
+  `shape="polygon"` rather than a new one. Only the 1440 board has it; it is
+  `hidden desktop:block`. The 1024 board also draws the page title one column wide; it
+  stays `span={2}` per §5.3 — "About NID" fits either way.
+- **The phone standfirst** (`4361:190044`) is clipped to seven lines behind a "See more"
+  inline CTA and set Body/Large/**Bold** in text/primary, where the 1440 board sets
+  Body/Large/Regular in text/secondary. Both are kept as drawn (`Standfirst`, the page's
+  one client component). The 390 board's `Title` instances are 28px tall where the H1
+  token is 32/36; the token is used.
+- **The primary CTA row** is 40px on the board with its 2px rule inside the box, so
+  `Cta variant="primary"` is `pt-2 pb-1.5 border-b-2` (8 + 24 + 6 + 2), not `py-2` — at
+  42 per row the six-link stack was 372 tall, not 360, and pushed the 1024 hero row down.
+- **The news list row on the phone** measures 73px against the board's 72: the 1px rule is
+  under the 72px thumbnail rather than inside it.
