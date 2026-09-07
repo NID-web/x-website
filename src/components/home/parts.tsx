@@ -94,6 +94,16 @@ const WASH_SHAPE = {
     path: "M86.6025 0L173.205 150H0L86.6025 0Z",
     line: { x1: 0, y1: 75, x2: 169.942, y2: 98.5479 },
   },
+  // 4932:576889, the secondary-page title wash. Figma draws `wash`'s outline at
+  // 150 and rotates the layer 180°; the rotation is baked into the path and the
+  // gradient line here (both reflected through the centre) rather than carried
+  // as a transform, so the shape reads the same way the other two do.
+  corner: {
+    id: "nid-title-corner",
+    viewBox: "0 0 150 150",
+    path: "M0 150H150L0 0Z",
+    line: { x1: 150, y1: 75, x2: 2.129, y2: 57.2555 },
+  },
 } as const;
 
 export function GradientWash({

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { ElementType, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
 // Replaces the broken `grid-column: span min(2, var(--nid-grid-columns))`
 // idiom (grid-column: span requires an integer literal; min() there is
@@ -51,12 +51,41 @@ const START = {
 } as const;
 
 // A section's utility slot — its links, placed the way CLAUDE.md places the
-// page's: the last column of the title row at 4 columns, the rail on the row
-// beneath at 3 (the title row's last column is the lead card's there), and
-// flow — last, after the cards — below that. A row can only be named inside a
-// `subgrid` item, whose rows are its own.
+// page's: the last column of the title row at 4 columns, the row beneath at 3
+// (the title row's last column is a card's there), and flow — last, after the
+// cards — below that. A row can only be named inside a `subgrid` item, whose
+// rows are its own.
+//
+// The two differ only in WHICH column of that second row, because it depends on
+// what else is on it and CSS cannot ask:
+//   utility        → the rail (column 1). For a section whose second row is
+//                    already full of cards — News, where the lead card takes
+//                    columns 2–3 of the title row and the two square cards take
+//                    2–3 of the row below. The rail is the only free cell.
+//   utility-field  → column 2, the start of the content field. For a section
+//                    whose second row is otherwise empty — Student Awards,
+//                    whose two cards both fit the title row. The link then sits
+//                    under the cards it belongs to instead of alone in the rail
+//                    (design owner's call, docs/STAGE-0-NOTES.md §36).
+// Both are identical at 4 columns and below 3.
+//
+// Two more name a row that is not a section's:
+//   page-utility  → the PAGE's own slot, back-nav or filter. The last column of
+//                   row 1 at 3 and 4 columns, leaving row 1 below that
+//                   (CLAUDE.md § Layout). It needs no subgrid: the page title
+//                   is the grid's first child, so row 1 genuinely is row 1.
+//                   `-col-start-2` is the last column at either count — line -2
+//                   is line 4 of five, and line 3 of four.
+//   rail          → column 1 of a section's second row, for the decorative tile
+//                   that sits under a section title. Desktop only, like the
+//                   tile: below that the rail stays empty and the cards keep to
+//                   the content field (§36).
 const PLACE = {
   utility: "laptop:col-start-1 laptop:row-start-2 desktop:-col-start-2 desktop:row-start-1",
+  "utility-field":
+    "laptop:col-start-2 laptop:row-start-2 desktop:-col-start-2 desktop:row-start-1",
+  "page-utility": "laptop:-col-start-2 laptop:row-start-1",
+  rail: "desktop:col-start-1 desktop:row-start-2",
 } as const;
 
 export type GridSpan = keyof typeof SPAN;
@@ -71,28 +100,36 @@ export function GridItem({
   className,
   as: Tag = "div",
   children,
+  ...rest
 }: {
   span?: GridSpan;
   start?: GridStart;
   place?: GridPlace;
-  /** A full-row item whose children are laid on the page's own column tracks
-   *  (`grid-template-columns: subgrid`) but on rows of its own — so a cell can
-   *  be pinned to "row 1" of the section. Still the one grid: no margin, no
-   *  gutter, no second column definition. Only the column axis is subgridded,
-   *  so the row gap is restated. */
+  /** Lay this item's children on the page's own column tracks
+   *  (`grid-template-columns: subgrid`) while giving it rows of its own — so a
+   *  cell can be pinned to "row 1" of a section, and so a card can align its
+   *  parts to real columns. Still the one grid: no margin, no gutter, no second
+   *  column definition. It composes with `span`, which decides how many tracks
+   *  are inherited. Only the column axis is subgridded, so the row gap is
+   *  restated; the column gap is inherited. */
   subgrid?: boolean;
   className?: string;
   as?: ElementType;
   children?: ReactNode;
-}) {
+  // Everything else reaches the element. Without this a GridItem rendered
+  // `as="nav"` silently loses its accessible name — the attribute is accepted
+  // by the type checker and then dropped, so the landmark ships unlabelled.
+} & Omit<ComponentPropsWithoutRef<"div">, "className" | "children">) {
   return (
     <Tag
       className={clsx(
-        subgrid ? "col-span-full grid grid-cols-subgrid gap-y-rowgutter" : SPAN[span],
+        SPAN[span],
+        subgrid && "grid grid-cols-subgrid gap-y-rowgutter",
         start && START[start],
         place && PLACE[place],
         className,
       )}
+      {...rest}
     >
       {children}
     </Tag>

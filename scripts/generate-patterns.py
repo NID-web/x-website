@@ -24,6 +24,14 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# How many units of the repeat a field is, per side. A unit is 81px at the 330px
+# reference tile, so a full-tile field is 4x4 - which is what the boards draw.
+# The alumni bed is not a full tile: it is the LEFT HALF of one, and shows 2x2
+# there. Getting this wrong does not crop or repeat any more, it just renders
+# the motif at the wrong size.
+FIELD_UNITS_DEFAULT = 4
+FIELD_UNITS = {"PatternFieldAlumni": 2}
 SOURCE = os.path.join(ROOT, "design", "assets", "patterns", "home-patterns.json")
 OUT = os.path.join(ROOT, "src", "components", "home", "patterns.tsx")
 THEMES_CSS = os.path.join(ROOT, "src", "styles", "themes.css")
@@ -73,10 +81,16 @@ def main():
     # Getting this wrong renders the field at grid scale - visibly too dense.
     unit_px = data["cell"] * 12 * 2
     scale = unit_px / unit_cells
+    # A field is a FIXED count of units (FIELD_UNITS), as the boards draw it,
+    # expressed as a viewBox so the whole composition scales with the tile. It
+    # used to be a <pattern> on a bare <svg>: no viewBox meant one user unit =
+    # one CSS px, so a wider tile revealed MORE units and a narrower one cropped
+    # them, which is not what the design does (docs/STAGE-0-NOTES.md §40).
 
     for field in data["fields"]:
         label = field["label"]
         by_colour = field["rects"]
+        field_px = unit_px * FIELD_UNITS.get(label, FIELD_UNITS_DEFAULT)
         paths = []
         for colour, boxes in sorted(by_colour.items(), key=lambda kv: -len(kv[1])):
             fill = token_for(colour, ramp, warnings)
@@ -87,7 +101,12 @@ def main():
         components.append(f'''
 export function {label}({{ className }}: PatternFieldProps) {{
   return (
-    <svg aria-hidden="true" className={{className}}>
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 {field_px:g} {field_px:g}"
+      preserveAspectRatio="xMidYMid slice"
+      className={{className}}
+    >
       <defs>
         <pattern id="{pid}" width="{unit_px:g}" height="{unit_px:g}" patternUnits="userSpaceOnUse">
           <g transform="scale({scale:g})">
@@ -130,9 +149,13 @@ export function {label}({{ className }}: PatternFieldProps) {{
 // Regenerate with `npm run generate:patterns`; the source is
 // design/assets/patterns/home-patterns.json.
 //
-// The craft pattern fields of the home bento. Each tiled field is one
-// 24x24-cell unit - four 12x12 quadrants pinwheeled 0/90/180/-90 - repeated by
-// an SVG <pattern>, so the field is fluid rather than a fixed 4x4 of 81px units.
+// The craft pattern fields of the home bento. Each field is a FIXED grid of one
+// 24x24-cell unit - four 12x12 quadrants pinwheeled 0/90/180/-90 - laid out by
+// an SVG <pattern> inside a viewBox, so the whole composition SCALES with the
+// tile: 4x4 for a full-tile field, 2x2 for the alumni bed, which is half a tile
+// wide. A field without that viewBox is fluid instead: one user unit reads as
+// one CSS px, a wider tile shows more units and a narrower one crops them,
+// which is not what the boards draw (docs/STAGE-0-NOTES.md §40).
 //
 // Scatter fields (PatternScatter*) are the exception: loose cells with no
 // repeating unit, emitted at their design size.

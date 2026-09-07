@@ -17,6 +17,9 @@ export const PAGE_ID = {
   newsEvents: "page-about-news-events",
   ourThemes: "page-about-our-themes",
   studentAwards: "page-about-student-awards",
+  newsArchive: "page-about-news-archive",
+  news2025: "page-about-news-2025",
+  news2024: "page-about-news-2024",
 } as const;
 
 const PATH: Record<UUID, string> = {
@@ -28,6 +31,13 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.newsEvents]: "/about/news-events",
   [PAGE_ID.ourThemes]: "/about/our-themes",
   [PAGE_ID.studentAwards]: "/about/student-awards",
+  // TODO(review): only the archive route is in sitemap.json. The two year
+  // routes are the shape the archive CTAs need and are not yet designed or
+  // agreed — confirm /about/news-events/2025 and /2024, or point all three at
+  // the archive with a query.
+  [PAGE_ID.newsArchive]: "/about/news-events/archive",
+  [PAGE_ID.news2025]: "/about/news-events/2025",
+  [PAGE_ID.news2024]: "/about/news-events/2024",
 };
 
 export function pathOf(id: UUID): string | undefined {

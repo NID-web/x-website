@@ -42,6 +42,10 @@ export function Cta({
 }: CtaProps) {
   const iconName = icon === "none" ? null : icon;
   const primary = variant === "primary";
+  // Back-navigation puts its arrow before the label (4322:517428). The side is
+  // read off the icon, not a prop: the model derives the icon from targetType
+  // and forbids authoring it, so a caller has nothing to set a side from.
+  const leading = iconName === "arrow-left";
   const classes = clsx(
     "group inline-flex items-center font-primary text-text-secondary no-underline transition-colors duration-150 ease-in-out",
     VARIANT[variant],
@@ -53,20 +57,24 @@ export function Cta({
     <Icon
       name={iconName}
       className={clsx(
-        "size-4 shrink-0 text-icon-quaternary transition-colors duration-150 ease-in-out",
+        "shrink-0 text-icon-quaternary transition-colors duration-150 ease-in-out",
+        // The trailing arrow is a 16px glyph inside the Icon Button's 24px box;
+        // the leading one is drawn at 24 with no box.
+        leading ? "size-6" : "size-4",
         hoverLabel && "group-hover:text-icon-secondary",
       )}
     />
   );
   const inner = (
     <>
+      {leading && arrow}
       <span className={clsx(primary && "flex-1")}>{label}</span>
-      {/* The primary row hosts its arrow in the Icon Button's 24px box. */}
-      {primary ? (
-        arrow && <span className="flex size-6 shrink-0 items-center justify-center">{arrow}</span>
-      ) : (
-        arrow
-      )}
+      {!leading &&
+        (primary ? (
+          arrow && <span className="flex size-6 shrink-0 items-center justify-center">{arrow}</span>
+        ) : (
+          arrow
+        ))}
     </>
   );
 

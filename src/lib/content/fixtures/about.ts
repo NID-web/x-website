@@ -63,14 +63,19 @@ const NEWS: Section = {
       ],
     }),
     stub({
-      // TODO(review): the board's third card is placeholder copy ("Lorem
-      // ipsum"); the editors need to supply the article.
-      id: "news-lorem-ipsum",
-      title: "Lorem ipsum",
-      slug: "lorem-ipsum",
+      // The About board draws this card as "Lorem ipsum"; the News & Events
+      // board (4199:303914) names it, on a byte-identical photo.
+      id: "news-incubation-centre",
+      title: "Inauguration of the Incubation and Innovation Centre at NID Gandhinagar Campus",
+      slug: "incubation-innovation-centre",
       parent: PAGE_ID.newsEvents,
       hero: [
-        mediaAsset("/about/news-address.jpg", "A speaker at a lectern in a wood-panelled hall.", 1200, 526),
+        mediaAsset(
+          "/about/news-address.jpg",
+          "A speaker addressing the inauguration from a lectern in a wood-panelled hall.",
+          1200,
+          526,
+        ),
       ],
     }),
   ],

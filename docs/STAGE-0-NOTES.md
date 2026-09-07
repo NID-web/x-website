@@ -1309,9 +1309,10 @@ column is *named* rather than reached by flow:
 
 Each is a base utility plus breakpoint-scoped overrides, never two unscoped utilities of
 one family (§20). `Tile.square` gained `"tablet"` and `"desktop"` ranges: the news cards
-are squares from 2 columns up and 72px list rows on the phone; the alumni card is the
+are squares from 2 columns up and 72px list rows on the phone; the alumni card was the
 square from the 1440 board at 4 columns and the design's `Person` component (portrait over
-name and bio, natural height) below.
+name and bio, natural height) below — **superseded by §38**, which makes it one square at
+every width and drops its `"desktop"` range entirely.
 
 ### Separators are drawn at 2 columns
 
@@ -1502,3 +1503,244 @@ editing the SVG — nothing checks that the three files agree.
 
 `public/index.html` (the Pages redirect stub, §13) also got the icon, relatively — without
 it the stub flashes the browser default on the way to `/en/`.
+
+## 36. Two CTAs dropped into the rail at 3 columns; they belong in column 2
+
+At 1024 (3 columns) "Read full mandate" and "Visit Student Awards Gallery" both landed in
+column 1, the rail, on an otherwise empty row — each stranded away from the content it
+belongs to. The design owner's call is that both sit in **column 2**, the start of the
+content field. Unchanged at 4 columns, at 2 and at 1.
+
+They got there by different routes, so they took different fixes.
+
+**"Read full mandate"** is `page.contacts`, `<GridItem span={1}>` with no start. At 4
+columns the standfirst (`span={2} start={2}`) takes 2–3 and auto-placement drops this in
+column 4, which is right. At 3 columns the standfirst fills the row, so it wraps — to
+column 1. `start="2-laptop"` (`laptop:col-start-2 desktop:col-start-auto`) pins column 2 at
+3 columns and leaves the 4-column auto-placement alone.
+
+**"Visit Student Awards Gallery"** is a section's utility slot, `place="utility"`, whose
+3-column rule was "the rail, row 2". That rule is right for News and wrong for Student
+Awards, and the difference is not something CSS can ask about — it is what else is on that
+row:
+
+| section at 3 columns | title row | row 2 |
+|---|---|---|
+| News & Events | title · lead card (2 cols) | **two square cards in 2–3** — the rail is the only free cell |
+| Student Awards | title · card · card | **empty** — column 2 is free |
+
+So `PLACE` gained `utility-field` (column 2) beside `utility` (the rail), and
+`CardsSection` picks by `kind`: News keeps the rail, everything else takes column 2. Both
+entries are identical at 4 columns (last column, title row) and neither applies below 3.
+
+Measured at all five widths after the change — 1440 and 1280 byte-identical to before
+(x=1086 / x=966, column 4), 768 and 390 unchanged, and at 1024 the two moved from x=24 to
+x=357 while "All News & Events" stayed at x=24.
+
+## 37. The Student Awards pattern was desktop-only, and §36 removed its reason
+
+`PatternTile`'s `cta` form — a band of the craft field above and below a centred link
+(About's "Just a tile" 4912:367990) — drew both bands `hidden … desktop:block`. Below 4
+columns the tile was its link and nothing else, which is what the 1024 / 768 / 390 boards
+show: there the link sits in the **rail**, and a decorative band across a rail cell is
+noise, so the boards drop it.
+
+§36 moved that link out of the rail. At 3 columns it now sits in column 2, in the content
+field, where the thing is a tile again — so the bands are drawn at every width. Only the
+`aspect-square` proportion stays desktop-only: a square across a 768 half-row or the whole
+of a 390 is a hole, not a tile. Below 4 columns the tile is just as tall as its three rows
+(1024 195px, 768 215px, 390 219px, against 330 at 1440).
+
+Scope is exactly one tile. `PatternTile` without `cta` — Home's tiles and the News rail
+tile — takes a different branch and is untouched; About's student-awards link is the only
+`cta` caller in the codebase.
+
+## 38. The alumni card was two tiles pretending to be one
+
+`AlumniCard` branched at 1280. At 4 columns it drew the board's square (4683:397311) — the
+craft bed, the bandhani scatter, the portrait in the scatter, name / three-line bio /
+hairline. Below that it drew the `Person` component the 1024 / 768 / 390 boards carry
+(4296:269589): a 144px luminosity-blended portrait, no bed, no scatter, no rule, and an
+unclamped bio. Four differences at once, so the same tile read as two different things
+either side of one breakpoint.
+
+The settling argument is not either board: it is that **this tile already exists on Home**
+as `PortraitTile`, and `PortraitTile` draws the bed, the scatter and the closing rule at
+every width with no `desktop:` gating. Two components with the same structure disagreeing
+about which breakpoints the structure applies to is the bug, whatever a board shows. So
+`AlumniCard` now mirrors `PortraitTile`: one shape, no branch.
+
+Concretely, gone from it: `square="desktop"` (the `Tile` default, `true`, is every
+breakpoint), `max-desktop:gap-4 max-desktop:py-3`, the `hidden … desktop:block` on the bed
+and the scatter, `size-36 … desktop:size-auto desktop:w-4/5`, `mix-blend-luminosity …
+desktop:mix-blend-normal`, `text-h6 … desktop:text-h5`, `text-micro … desktop:text-label`,
+the two `desktop:text-text-tertiary`s, `desktop:line-clamp-3` and the rule's
+`hidden … desktop:block`. What survives is the 4-column column of each pair.
+
+Measured after: square at all four widths (1440 330, 1024 309, 768 350, 390 358) with both
+pattern SVGs present at each. `Tile.square`'s `"desktop"` range now has no caller; it is
+left in the map since the other ranges are used and the cost is one line.
+
+The `sizes` hint changed with the geometry — the portrait is four fifths of half the tile,
+so ~132px at 1440, ~124 at 1024, ~140 at 768, ~143 at 390: `(min-width: 668px) 160px,
+40vw`, one fixed hint above the phone and a viewport fraction on it.
+
+## 39. News & Events is the first secondary page, and the template for ~100 more
+
+`/en/about/news-events` (Figma `4123:240887`) is the About page's shape with two things
+added that only a **secondary** page has: a back-nav in the page's own utility slot, and a
+sibling band before the footer. Both come from `derived` on the `PageResponse` — never from
+a section — and neither had a renderer before this page.
+
+### The route is `/about/news-events`
+
+The brief called it `/about/news`. `design/tokens/sitemap.json` says `/about/news-events`,
+and three places already linked there and 404'd: the header menu (`nav-content.ts`),
+About's sub-page rail, and About's "All News & Events" CTA. Building the sitemap's path
+resolves all three at once.
+
+### This landing has no responsive boards, and that is not an oversight to work around
+
+`NID-CONTEXT.md` §5.5 names the four page families laid out at every breakpoint — Home,
+About landing, News **Archive**, Student Awards. Appendix A's key-board list agrees, and
+`sitemap.json` carries a `responsive` array for Archive and Student Awards but only a bare
+`board` for this page. `get_metadata` on the canvas (`0:1`) cannot be used to check: the
+response exceeds what the transport will parse, the same failure the About pass hit. So
+1024 / 768 / 390 here come from §5.3, the About boards' precedent and the brief's stated
+defaults, not from drawings. Anything below 1440 on this page is therefore a derivation,
+and a board — if one is ever drawn — outranks it.
+
+### The page utility slot, and why it needs no subgrid
+
+`GridItem` gained `place="page-utility"` (`laptop:-col-start-2 laptop:row-start-1`): the
+last column of row 1 at 3 and 4 columns, leaving row 1 below that. `-col-start-2` is "the
+last column" at either count without a per-breakpoint class, because line −2 is line 4 of
+five and line 3 of four.
+
+Unlike the section slot it names a row of the **page** grid, and that row is real: the page
+title is the grid's first child. `place="utility"` needs its section to be a subgrid only
+because "row 2 of this section" is not a row the page grid knows about. The back-nav pairs
+it with `span="full-then-1"`, so below 3 columns it stops being a slot and becomes a
+full-width band under the title, which is what the model means by the slot leaving row 1.
+
+### `subgrid` composes with `span`, and subgrids nest
+
+`GridItem`'s `subgrid` used to force `col-span-full`. It now emits `SPAN[span]` alongside
+the grid classes, so a subgrid item still declares its width — `CardsSection` passes
+`span={4}` explicitly. That change is what lets the feature card work: its cell is
+`span="hero" subgrid`, nested inside the section's own subgrid, and the card's photo takes
+`laptop:col-span-1 desktop:col-span-2` while its text takes one track.
+
+The point is that no arithmetic is involved. A square photo two tracks wide is
+330 + 24 + 330 = 684 at 4 columns, so the card is exactly two grid rows tall; at 3 columns
+it is one track wide and one row tall. Measured 1038 × 684 at 1440 and 642.67 × 309.33 at
+1024 — both exact. The first draft used a `w-grid-column` utility reading
+`--nid-grid-column-width`; the subgrid needs no token at all, and the utility was not
+added.
+
+### Cards never enter the rail, so a card below a lead pins column 2
+
+§36 established that column 1 is the rail at 3 columns and up. Cards that start on the
+section's **title** row get that for free — the title already holds column 1 — which is all
+`startOf` ever had to handle. A card that starts on a **fresh** row beneath a lead does
+not: at 3 columns the rail tile is hidden and column 1 is free, so index 0 would drop into
+it. `startBelowLead` pins every even index to column 2 at laptop, index 0 included. Both
+helpers moved to `sections/parts.tsx` and are shared with `LinksSection`.
+
+The rail tile itself is now `place="rail"` rather than flowed. On About it landed in
+column 1 of row 2 by luck, because the section's links were pinned to the last column of
+row 1 and pushed it there. The "2026" section has no links, so the tile would have taken
+that cell — which the board gives to a card.
+
+### `Cta` reads the arrow's side off its name
+
+Back-nav draws its arrow **before** the label (`4322:517428`), at 24px and with no Icon
+Button box, where every other CTA trails a 16px glyph inside one. The side is derived from
+`icon === "arrow-left"`, not a new prop: `content-model.ts` derives the icon from
+`targetType` and forbids authoring it, so a caller has nothing to set a side from. Nothing
+else on the site uses `arrow-left`, so Home and About are untouched.
+
+### The rest
+
+- **`LinksSection` was reshaped.** It rendered one `LinkStack` in columns 2–3; the board
+  draws the archive years one to a column across the content field (`4123:240894`). It now
+  emits a `GridItem span={1}` per link with `startOf`. Nothing regressed: no `links`
+  section existed anywhere before this page.
+- **`LinkStack`'s `twoUpAtTablet` became `twoUp: "tablet-only" | "tablet-up"`.** The rail's
+  sub-page links are two-up only at 2 columns; the sibling band is two-up from 2 columns
+  **up**. That is the opposite range, so it is two named modes rather than a flipped
+  boolean.
+- **`GradientWash` gained `corner`** — `4932:576889`, the same seven-stop gradient at 20%
+  as About's polygon on a different outline. Figma draws it as `wash`'s triangle at 150 and
+  rotates the layer 180°; the rotation is baked into the path and the gradient line here
+  rather than carried as a transform. `Title` takes a `wash` prop, default `polygon`.
+- **No separator between the title row and the first section.** The board's four separators
+  sit between sections, before the sibling band and before the footer. About renders one
+  before its first section because an intro block precedes it; this page has nothing there.
+- **The sibling band's separator belongs to the band.** Both are wrapped in the same
+  `siblingBand.length > 0` guard, so an empty band leaves no stray rule. Verified by
+  building with `siblingBand: []`: the rendered "More in About NID" drops from 2 to 0 and
+  the page's `<hr>` count from 4 to 3.
+
+### Where the board and the model disagree
+
+- The **"Featured" section holds four articles** while `NewsArticle.featured` is capped at
+  three site-wide (§8.5). It does not bite yet — the cards union cannot carry a
+  `NewsArticle`, so the flag is unreachable — but the backend needs to know before it
+  enforces the cap.
+- **Lead prominence has no field.** "Featured" leads with a 3-column card and "2026" with a
+  2-column one; both are `type: "cards"`, four items, no links. `CardsSection` takes a
+  `lead` prop and the page names the featured section by id. It is deletable the day the
+  cards union carries `NewsArticle`.
+- **The sibling band labels Charter "Charter"**, where About's rail calls the same page
+  "NID's 'Mandate'". Both are right: `siblingBand` entries carry `title`, `subPageLinks`
+  carry an authored `label`.
+- **The "2026" cards are lorem ipsum on the board** with empty tint images. The four
+  Featured articles are the year's articles, so both sections list the same four records.
+- **The board identifies About's placeholder card.** About's third news card ships as
+  "Lorem ipsum" with a `TODO(review)` asking editors for the article. Its photo is
+  byte-identical to this board's "Inauguration of the Incubation and Innovation Centre at
+  NID Gandhinagar Campus" — that is the missing article. About's fixture is out of scope
+  here and was left alone.
+
+## 40. The pattern fields repeated when they should have scaled
+
+Every `PatternField*` was a bare `<svg>` — no `viewBox` — holding a `<pattern>` at
+`patternUnits="userSpaceOnUse"` with `width="81"`, painted onto a `100% × 100%` rect. With
+no viewBox one user unit is one CSS px, so the unit stayed 81px whatever the tile did: a
+wider tile revealed **more** repeats, a narrower one **cropped** them. The generated
+header even said so ("the field is fluid rather than a fixed 4x4 of 81px units") as though
+it were a feature. It is not what the boards draw — the field is a fixed composition, and
+it should get smaller when the tile is squeezed and bigger when it is not.
+
+The fix is a `viewBox` plus `preserveAspectRatio="xMidYMid slice"`. `100%` on the rect then
+resolves against the viewBox rather than the CSS box, so the rect is exactly N×N units and
+the whole composition maps to whatever size the element is.
+
+**N is not one number.** A unit is 81px at the 330px reference tile, so:
+
+| field | drawn on | units | viewBox |
+|---|---|---|---|
+| `PatternField1/2/3` | a whole tile | 4×4 | `0 0 324 324` |
+| `PatternFieldAlumni` | the LEFT HALF of a tile | 2×2 | `0 0 162 162` |
+
+Generating both at 4 would halve the alumni motif — the bed is `w-1/2`, so a 4×4 there is
+twice the density the card shows. `FIELD_UNITS` in `scripts/generate-patterns.py` carries
+the exception; everything else takes `FIELD_UNITS_DEFAULT`. The alumni bed now shares its
+162 coordinate space with `PatternScatterAlumni`, which sits on the other half of the same
+pair and was already emitted at 162.
+
+`slice`, not `meet`, because one consumer is not square: About's student-awards CTA bands
+are `aspect-[4/1]`. `meet` would letterbox them to a quarter-height sliver; `slice` covers,
+scaling on the long edge and cropping the short one — so the band still reads as 4 units
+across, which is what it was before. Verified by CTM rather than by eye (`getScreenCTM().a`
+= 1.0185 on a 330px band, i.e. an 82.5px unit, four across): at band size the thumbnail is
+genuinely misleading, and counting motifs in it gave the wrong answer twice.
+
+Measured on the row-3 pattern tile: 1440 → 82.5px units, 1280 → 72.5, 1024 → 77.3, 768 →
+87.5, 390 → 89.5. Always 4×4, only the scale moves. (The units do not shrink monotonically
+with the viewport because the tile does not — a 3-column 1024 tile is wider than a
+4-column 1280 one.)
+
+`patterns.tsx` is GENERATED. This change is in `scripts/generate-patterns.py`; editing the
+.tsx by hand is reverted by the next `npm run generate:patterns`.

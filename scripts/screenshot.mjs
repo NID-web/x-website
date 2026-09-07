@@ -28,6 +28,7 @@ const PAGES = [
   { name: "swatch", path: "/en/swatch" },
   { name: "home", path: "/en" },
   { name: "about", path: "/en/about" },
+  { name: "news-events", path: "/en/about/news-events" },
 ];
 
 function startServer() {

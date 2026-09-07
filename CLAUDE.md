@@ -43,7 +43,7 @@ These fail without an error. Most have already gone wrong once.
 - `letter-spacing` values are `em`, never `%` — percentages are invalid and get dropped.
 
 **Layout**
-- A page is **one grid**. Use `PageGrid` + `GridItem`. Do not nest per-section flex containers, or a second `PageGrid` inside a `GridItem` — either doubles the shell margin (caught once by measuring, see STAGE-0-NOTES §6). A section that must place a cell by row (a utility slot) is a `GridItem subgrid`: it shares the page's column tracks and adds no margin or gutter (STAGE-0-NOTES §32).
+- A page is **one grid**. Use `PageGrid` + `GridItem`. Do not nest per-section flex containers, or a second `PageGrid` inside a `GridItem` — either doubles the shell margin (caught once by measuring, see STAGE-0-NOTES §6). A section that must place a cell by row (a utility slot) is a `GridItem subgrid`: it shares the page's column tracks and adds no margin or gutter (STAGE-0-NOTES §32). `subgrid` composes with `span` rather than replacing it — a subgrid item still says how many tracks it takes, and they nest, which is how the feature card puts its photo and text on real columns (§39).
 - Never `grid-column: span min(2, var(--nid-grid-columns))` — `span` needs an integer literal, `min()` there is dropped and every span becomes 1. `GridItem` handles this.
 - Columns drop right-to-left; nothing is ever reordered. Four breakpoints only: `tablet` **668** · `laptop` 1024 · `desktop` 1280 — no `sm`/`md`/`lg`.
 - A range's **start** is not its **artboard width**. `tablet` starts at 668 but is drawn at 768; `desktop` starts at 1280 but is drawn at 1440. `GRID["minViewport"]` is the former, `GRID["referenceWidth"]` the latter — don't collapse them (STAGE-0-NOTES §21). The 1-column layout is for phones only; it used to claim everything below 768.
@@ -85,7 +85,7 @@ npm run verify:tokens    # 621 assertions: 540 semantic + scoped-theme + grid + 
                          #   (runs verify:parity first, fails fast if that drifts)
 npm run verify:fonts     # every font family (Typekit + body face) loads + Bodoni opsz
 npm run verify:design    # re-checks design/tokens/ itself (python3 design/verify.py)
-npm run screenshot       # docs/screenshots/{swatch,home,about}-{1440,1024,768,390}.png
+npm run screenshot       # docs/screenshots/{swatch,home,about,news-events}-{1440,1024,768,390}.png
 npx tsc --noEmit
 ```
 

@@ -4,9 +4,11 @@
 // src/lib/content/ may import a fixture (scripts/lint-fixtures.mjs).
 import type { PageResponse } from "@/lib/content-model";
 import { ABOUT } from "@/lib/content/fixtures/about";
+import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 
 const FIXTURES: Record<string, PageResponse> = {
   "/about": ABOUT,
+  "/about/news-events": NEWS_EVENTS,
 };
 
 export async function getPage(path: string): Promise<PageResponse | null> {

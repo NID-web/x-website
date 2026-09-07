@@ -13,7 +13,14 @@ function hasContent(s: Section) {
   );
 }
 
-export function SectionRenderer({ section }: { section: Section }) {
+export function SectionRenderer({
+  section,
+  lead,
+}: {
+  section: Section;
+  /** Passed through to a cards section — see CardsSection's `lead`. */
+  lead?: "wide" | "feature";
+}) {
   if (!hasContent(section)) return null;
   switch (section.type) {
     case "text":
@@ -21,7 +28,7 @@ export function SectionRenderer({ section }: { section: Section }) {
     case "links":
       return <LinksSection section={section} />;
     case "cards":
-      return <CardsSection section={section} />;
+      return <CardsSection section={section} lead={lead} />;
     case "files":
     case "rail":
     case "mosaic":

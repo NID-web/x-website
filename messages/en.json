@@ -107,7 +107,8 @@
   },
   "Page": {
     "subPages": "In this section",
-    "seeMore": "See more"
+    "seeMore": "See more",
+    "moreIn": "More in {section}"
   },
   "Cards": {
     "latest": "Latest"

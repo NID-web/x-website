@@ -2,9 +2,13 @@
 // Regenerate with `npm run generate:patterns`; the source is
 // design/assets/patterns/home-patterns.json.
 //
-// The craft pattern fields of the home bento. Each tiled field is one
-// 24x24-cell unit - four 12x12 quadrants pinwheeled 0/90/180/-90 - repeated by
-// an SVG <pattern>, so the field is fluid rather than a fixed 4x4 of 81px units.
+// The craft pattern fields of the home bento. Each field is a FIXED grid of one
+// 24x24-cell unit - four 12x12 quadrants pinwheeled 0/90/180/-90 - laid out by
+// an SVG <pattern> inside a viewBox, so the whole composition SCALES with the
+// tile: 4x4 for a full-tile field, 2x2 for the alumni bed, which is half a tile
+// wide. A field without that viewBox is fluid instead: one user unit reads as
+// one CSS px, a wider tile shows more units and a narrower one crops them,
+// which is not what the boards draw (docs/STAGE-0-NOTES.md §40).
 //
 // Scatter fields (PatternScatter*) are the exception: loose cells with no
 // repeating unit, emitted at their design size.
@@ -19,7 +23,12 @@ export interface PatternFieldProps {
 
 export function PatternField1({ className }: PatternFieldProps) {
   return (
-    <svg aria-hidden="true" className={className}>
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 324 324"
+      preserveAspectRatio="xMidYMid slice"
+      className={className}
+    >
       <defs>
         <pattern id="nid-patternfield1" width="81" height="81" patternUnits="userSpaceOnUse">
           <g transform="scale(1.6875)">
@@ -36,7 +45,12 @@ export function PatternField1({ className }: PatternFieldProps) {
 
 export function PatternField2({ className }: PatternFieldProps) {
   return (
-    <svg aria-hidden="true" className={className}>
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 324 324"
+      preserveAspectRatio="xMidYMid slice"
+      className={className}
+    >
       <defs>
         <pattern id="nid-patternfield2" width="81" height="81" patternUnits="userSpaceOnUse">
           <g transform="scale(1.6875)">
@@ -53,7 +67,12 @@ export function PatternField2({ className }: PatternFieldProps) {
 
 export function PatternField3({ className }: PatternFieldProps) {
   return (
-    <svg aria-hidden="true" className={className}>
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 324 324"
+      preserveAspectRatio="xMidYMid slice"
+      className={className}
+    >
       <defs>
         <pattern id="nid-patternfield3" width="81" height="81" patternUnits="userSpaceOnUse">
           <g transform="scale(1.6875)">
@@ -70,7 +89,12 @@ export function PatternField3({ className }: PatternFieldProps) {
 
 export function PatternFieldAlumni({ className }: PatternFieldProps) {
   return (
-    <svg aria-hidden="true" className={className}>
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 162 162"
+      preserveAspectRatio="xMidYMid slice"
+      className={className}
+    >
       <defs>
         <pattern id="nid-patternfieldalumni" width="81" height="81" patternUnits="userSpaceOnUse">
           <g transform="scale(1.6875)">

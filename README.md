@@ -146,7 +146,7 @@ npm run verify:tokens     # 621 assertions: 540 semantic + scoped-theme + grid +
                           #   (runs verify:parity first and fails fast if that drifts)
 npm run verify:fonts      # confirms every font family (Typekit + the body face) loaded
 npm run verify:design     # re-checks design/tokens/ itself (python3 design/verify.py)
-npm run screenshot        # docs/screenshots/{swatch,home,about}-{1440,1024,768,390}.png
+npm run screenshot        # docs/screenshots/{swatch,home,about,news-events}-{1440,1024,768,390}.png
 ```
 
 Run `verify:tokens` before committing anything that touches `themes.css`, `globals.css`,

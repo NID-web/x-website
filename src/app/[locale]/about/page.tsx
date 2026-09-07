@@ -46,7 +46,7 @@ export default async function AboutPage() {
 
         {derived.subPageLinks.length > 0 && (
           <GridItem span="full-then-1" start={1} as="nav" aria-label={t("subPages")}>
-            <LinkStack links={derived.subPageLinks} twoUpAtTablet />
+            <LinkStack links={derived.subPageLinks} twoUp="tablet-only" />
           </GridItem>
         )}
 
@@ -69,7 +69,11 @@ export default async function AboutPage() {
           </GridItem>
         )}
         {page.contacts.length > 0 && (
-          <GridItem span={1}>
+          // Column 4 beside the intro at 4 columns (auto — the standfirst has
+          // taken 2 and 3). At 3 columns the standfirst fills the row, so this
+          // wraps; `2-laptop` keeps it under the intro rather than dropping
+          // into the rail (docs/STAGE-0-NOTES.md §36).
+          <GridItem span={1} start="2-laptop">
             <ContactList contacts={page.contacts} />
           </GridItem>
         )}
