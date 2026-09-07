@@ -56,6 +56,7 @@ export function Header() {
   }, [menuOpen]);
 
   return (
+    <>
     <header
       className={clsx(
         "sticky top-0 z-40 w-full bg-surface-page/1",
@@ -123,7 +124,7 @@ export function Header() {
             }}
           />
           <IconButton
-            icon={menuOpen ? "x" : "menu"}
+            icon={menuOpen ? "close" : "menu"}
             label={menuOpen ? "Close menu" : "Main menu"}
             size="small"
             expanded={menuOpen}
@@ -133,7 +134,14 @@ export function Header() {
         </div>
       </div>
 
-      {menuOpen && <MainMenu id={menuId} onClose={() => setMenuOpen(false)} />}
     </header>
+
+    {/* Sibling of <header>, deliberately: once scrolled the header carries
+        `backdrop-blur`, and backdrop-filter makes an element a containing
+        block for its fixed-position descendants — nested here, the drawer
+        would anchor to the 50/60px header band instead of the viewport. It
+        stays mounted so it can slide out as well as in. */}
+    <MainMenu id={menuId} open={menuOpen} onClose={() => setMenuOpen(false)} />
+    </>
   );
 }

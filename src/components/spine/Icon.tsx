@@ -11,8 +11,10 @@ export type IconName =
   | "menu"
   | "sun"
   | "moon"
-  | "x"
+  | "close"
   | "plus"
+  | "minus"
+  | "x"
   | "facebook"
   | "instagram"
   | "youtube";
@@ -97,6 +99,18 @@ const ICONS: Record<IconName, IconDef> = {
       </g>
     ),
   },
+  // The UI cross that dismisses things (menu drawer, header toggle). NOT `x`
+  // below — that is the X/Twitter brand mark and belongs to the footer's
+  // social row only. They were confused once; the drawer shut with a logo.
+  close: {
+    viewBox: "0 0 24 24",
+    content: (
+      <g {...stroke}>
+        <line x1="6" y1="6" x2="18" y2="18" />
+        <line x1="18" y1="6" x2="6" y2="18" />
+      </g>
+    ),
+  },
   plus: {
     viewBox: "0 0 24 24",
     content: (
@@ -106,6 +120,17 @@ const ICONS: Record<IconName, IconDef> = {
       </g>
     ),
   },
+  // The expanded counterpart of `plus` — the main menu's disclosure toggle
+  // swaps between the two (Figma "Minus" 743:42490).
+  minus: {
+    viewBox: "0 0 24 24",
+    content: (
+      <g {...stroke}>
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </g>
+    ),
+  },
+  // X/Twitter BRAND MARK — social row only. To close something use `close`.
   x: {
     viewBox: "0 0 13.7548 15.0095",
     content: (
