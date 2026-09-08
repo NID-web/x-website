@@ -56,14 +56,13 @@ interface Base {
   id: string;
 }
 
-/** A video a tile plays in place, with its poster as the rest state. `title` is
- *  the provider's own title — it names the iframe and the play button. `start`
- *  is a cue point in seconds; leave it unset to begin at 0. */
+/** A self-hosted clip a tile plays in place, with the tile's own image as the
+ *  still behind it. `src` is a path under public/. Not an embed: nothing is
+ *  fetched from a third party, so there is no consent surface and no player
+ *  chrome to fight. */
 export interface HomeVideo {
-  provider: "youtube";
-  id: string;
+  src: string;
   title: string;
-  start?: number;
 }
 
 export type HomeTile =
@@ -130,9 +129,8 @@ export const HOME_TILES: HomeTile[] = [
     kind: "hero",
     media: img("hero-forest.jpg", "Sunlight through trees at an NID campus.", 1400, 660),
     video: {
-      provider: "youtube",
-      id: "cOgfk1jU34M",
-      title: "NID FILM | Introduction film about National Institute of Design, Ahmedabad",
+      src: "/home/nid-film.mp4",
+      title: "NID FILM — Introduction film about the National Institute of Design, Ahmedabad",
     },
   },
   {

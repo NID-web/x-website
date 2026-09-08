@@ -42,7 +42,7 @@ export default async function NewsEventsPage() {
 
   return (
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
-      <BrandStrip className="mb-[calc(2*var(--nid-grid-row-gap))]" />
+      <BrandStrip className="mb-[calc(1.5*var(--nid-grid-row-gap))]" />
       <PageGrid>
         <Title variant="page" wash="corner">
           {page.title}
@@ -87,7 +87,7 @@ export default async function NewsEventsPage() {
         <Separator />
         <Footer />
       </PageGrid>
-      <BrandStrip className="mt-[calc(2*var(--nid-grid-row-gap))]" logo />
+      <BrandStrip className="mt-[calc(1.5*var(--nid-grid-row-gap))]" logo />
     </main>
   );
 }

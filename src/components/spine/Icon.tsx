@@ -15,6 +15,7 @@ export type IconName =
   | "plus"
   | "minus"
   | "play"
+  | "pause"
   | "x"
   | "facebook"
   | "instagram"
@@ -131,10 +132,10 @@ const ICONS: Record<IconName, IconDef> = {
       </g>
     ),
   },
-  // Solid, unlike the stroked UI glyphs: it reads as a play button rather than
-  // an outlined arrowhead at the 28px the hero's overlay draws it. Nudged right
-  // of centre (8 to 19.8 in a 24 box) — a triangle centred on its bounding box
-  // looks left-heavy inside a circle.
+  // Solid, unlike the stroked UI glyphs: at the size the hero draws them they
+  // read as media controls rather than outlined arrowheads. The triangle is
+  // nudged right of centre (8 to 19.8 in a 24 box) — one centred on its
+  // bounding box looks left-heavy inside a circle.
   play: {
     viewBox: "0 0 24 24",
     content: (
@@ -142,6 +143,12 @@ const ICONS: Record<IconName, IconDef> = {
         fill="currentColor"
         d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.29-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z"
       />
+    ),
+  },
+  pause: {
+    viewBox: "0 0 24 24",
+    content: (
+      <path fill="currentColor" d="M7 5h3.2v14H7zM13.8 5H17v14h-3.2z" />
     ),
   },
   // X/Twitter BRAND MARK — social row only. To close something use `close`.

@@ -20,15 +20,14 @@ type HeroTileData = Extract<HomeTile, { kind: "hero" }>;
 //               its square neighbours in row 1 set.
 // It never needs a min-height: one of the three always gives it one. Above the
 // fold, so the image is eager.
-//
-// With `video` set the image becomes the poster of a VideoPlayer and nothing
-// else changes — the Tile, its span and all three shapes are untouched. This
-// reads its own copy rather than taking `t` from HomeGrid: it is the only tile
-// with a string of its own, and a prop for it would have to be threaded through
-// the renderer for one caller.
+// With `video` set the image becomes the still behind a self-hosted clip and
+// nothing else changes — the Tile, its span and all three shapes are untouched.
+// It reads its own copy rather than taking `t` from HomeGrid: it is the only
+// tile with a string of its own, and threading a prop through the renderer for
+// one caller would cost more than it saves.
 export async function HeroTile({ tile }: { tile: HeroTileData }) {
   const t = await getTranslations("Home");
-  const poster = (
+  const still = (
     <TileImage
       media={tile.media}
       className="relative h-full w-full"
@@ -53,10 +52,10 @@ export async function HeroTile({ tile }: { tile: HeroTileData }) {
           playLabel={t("video.play", { title: tile.video.title })}
           pauseLabel={t("video.pause", { title: tile.video.title })}
         >
-          {poster}
+          {still}
         </VideoPlayer>
       ) : (
-        poster
+        still
       )}
     </Tile>
   );
