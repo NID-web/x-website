@@ -23,9 +23,20 @@ import type { Theme } from "@/lib/theme-constants";
 // The inner parts are plain flex, deliberately NOT a `GridItem subgrid`: the
 // card's 24px padding shifts them 24px left of the page's column origins (title
 // at 354 against column 2 at 378), so snapping them to the grid would move them
-// off the board. The flex bases are the board's own widths and sum, with the
-// two gutters, to exactly the card's content box at 1440; below that they
-// shrink in proportion.
+// off the board.
+//
+// The three-part row is FOUR COLUMNS ONLY. Its bases are the board's own widths
+// and sum, with the two gutters, to 1344 — exactly the card's content box at
+// 1440. Three columns gives it 928, far too little, so at 3 columns the card
+// takes the same stacked shape it has at 2 and 1: motif and name on one line,
+// body beneath (docs/STAGE-0-NOTES.md §46).
+//
+// `desktop:flex-nowrap` is what makes the row a row. The container must wrap
+// below 4 columns — that is how the body gets its own line — but a wrapping
+// flex line WRAPS BEFORE IT SHRINKS, so between 1280 and 1439, where the box is
+// narrower than 1344, the body broke onto a second line and the motif slot grew
+// to swallow the slack. Suppressing the wrap at 4 columns lets the three shrink
+// in proportion instead, which is what the board's widths are for.
 export function ThemeCard({
   theme,
   label,
@@ -39,16 +50,16 @@ export function ThemeCard({
     <GridItem span={4}>
       <article
         data-theme={theme}
-        className="flex flex-wrap items-center gap-x-gutter gap-y-4 bg-surface-raised px-margin py-6"
+        className="flex flex-wrap items-center gap-x-gutter gap-y-4 bg-surface-raised px-margin py-6 desktop:flex-nowrap"
       >
-        <span className="flex flex-[0_0_auto] items-center justify-center laptop:flex-[1_1_282px]">
+        <span className="flex flex-[0_0_auto] items-center justify-center desktop:flex-[1_1_282px]">
           <ThemeMotif theme={theme} size="card" />
         </span>
-        <h2 className="flex-[1_1_auto] font-primary text-h2 text-text-tertiary laptop:flex-[0_1_330px]">
+        <h2 className="flex-[1_1_auto] font-primary text-h2 text-text-tertiary desktop:flex-[0_1_330px]">
           {label}
         </h2>
         {body && (
-          <p className="flex-[1_1_100%] font-body text-body text-text-primary laptop:flex-[0_1_684px]">
+          <p className="flex-[1_1_100%] font-body text-body text-text-primary desktop:flex-[0_1_684px]">
             {body}
           </p>
         )}

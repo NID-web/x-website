@@ -2011,9 +2011,35 @@ would snap them back to the columns and the card would stop matching the board. 
 at 1440: title x 354 against column 2 − 24, body x 708 against column 3 − 24, widths
 282 / 330 / 684. So the three parts are plain flex, sized from the card.
 
-The flex bases are the board's widths and sum with the two gutters to exactly the card's
-content box at 1440, so 1440 is exact and 1024 shrinks all three in proportion. Below
-laptop the card wraps: motif and name on one line, body beneath.
+The flex bases are the board's widths and sum with the two gutters to 1344 — exactly the
+card's content box at 1440.
+
+**The row is four columns only, and it needs `desktop:flex-nowrap` to be a row at all.**
+Both facts came out of measuring, and the first draft got both wrong.
+
+Three columns gives the card 928px against a row that wants 1344, and the row was applied
+from `laptop` up. The assumption was that flex would shrink the three parts to fit. It does
+not: the container must be `flex-wrap` below 4 columns, because that is how the body drops
+onto its own line, and **a wrapping flex line wraps before it shrinks**. So everywhere the
+box was narrower than 1344 the body broke onto a second line and the motif slot — the only
+part that grows — swallowed the slack. At 1280 that measured motif 830, body 684, and 500px
+of dead space; at 1024 it was worse. That is what "the card doesn't look good at 3 columns"
+was.
+
+Two changes, both one word. The row moved from `laptop:` to `desktop:`, so at 3 columns the
+card takes the same stacked shape it already had at 2 and 1 — motif and name on one line,
+body full width beneath, which at 928px is a comfortable measure. And the container is
+`desktop:flex-nowrap`, so within 4 columns the three parts shrink in proportion rather than
+wrapping. `ThemeMotif`'s `card` size steps with them (`size-16 desktop:size-20`).
+
+Measured after: 1440 and 1600 give the exact 282 / 330 / 684 with the name at column 2 − 24
+and the shortest cards at the board's 132; 1280 shrinks to 247 / 289 / 600 on one line;
+1279 down to 390 is stacked with the body at the full content width; no horizontal overflow
+at any width.
+
+This deviates from the brief, which asked to keep the three-part row at 4 **and** 3
+columns. The row cannot hold its proportions at 3 columns — 1344 into 928 — and forcing it
+is what looked wrong.
 
 ### Where the board and the build differ
 

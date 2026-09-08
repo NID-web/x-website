@@ -19,7 +19,7 @@ import { MOTIFS } from "@/components/header/motifs";
 // the motif on one line with the theme name.
 const SIZE = {
   header: "size-8",
-  card: "size-16 laptop:size-20",
+  card: "size-16 desktop:size-20",
 } as const;
 
 export function ThemeMotif({
