@@ -14,3 +14,13 @@ export function mediaAsset(
 ): MediaAsset {
   return { id: file, file: `${ASSET_BASE}${file}`, alt, width, height };
 }
+
+// The same prefix for a raw file path that is not an image — a <video src>,
+// a download href. `mediaAsset` is the image-shaped door onto public/; this is
+// the bare one. Both must exist: a path that skips it 404s on GitHub Pages,
+// where the site is served under /x-website (the deployed hero video did
+// exactly that — the <video> asked for /home/nid-film.mp4, which is not a
+// route on that host).
+export function assetPath(file: `/${string}`): string {
+  return `${ASSET_BASE}${file}`;
+}

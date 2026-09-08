@@ -12,7 +12,7 @@
  * strings server-side. The footer lives in src/lib/footer-content.ts.
  */
 import type { MediaAsset } from "@/lib/content-model";
-import { mediaAsset } from "@/lib/media";
+import { assetPath, mediaAsset } from "@/lib/media";
 
 /** A dotted key into the "Home" message namespace, e.g. "study.heading". */
 export type CopyKey = string;
@@ -57,7 +57,8 @@ interface Base {
 }
 
 /** A self-hosted clip a tile plays in place, with the tile's own image as the
- *  still behind it. `src` is a path under public/. Not an embed: nothing is
+ *  still behind it. `src` is a resolved URL — build it with `assetPath`, never as a
+ *  bare "/…" literal, or it 404s under the GitHub Pages basePath. Not an embed: nothing is
  *  fetched from a third party, so there is no consent surface and no player
  *  chrome to fight. */
 export interface HomeVideo {
@@ -129,8 +130,9 @@ export const HOME_TILES: HomeTile[] = [
     kind: "hero",
     media: img("hero-forest.jpg", "Sunlight through trees at an NID campus.", 1400, 660),
     video: {
-      src: "/home/nid-film.mp4",
-      title: "NID FILM — Introduction film about the National Institute of Design, Ahmedabad",
+      src: assetPath("/home/nid-film.mp4"),
+      title:
+        "NID FILM — Introduction film about the National Institute of Design, Ahmedabad",
     },
   },
   {
