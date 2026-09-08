@@ -30,6 +30,13 @@ const SPAN = {
   3: "col-span-full desktop:col-span-3",
   4: "col-span-full",
   "full-then-1": "col-span-full laptop:col-span-1",
+  // One column, except at THREE columns, where it takes the whole row. For a
+  // block that is last of four: at 4 columns the four share one row, at 2 the
+  // pairs do, and at 1 a column is the row — but at 3 the other three fill row
+  // one and this lands on a row of its own, where staying one column wide
+  // leaves two thirds of it empty. Same three-step shape as `hero`, so the
+  // media range decides and not the emit order of three col-span utilities.
+  "full-at-laptop": "col-span-1 laptop:col-span-full desktop:col-span-1",
   hero: "col-span-full laptop:col-span-2 desktop:col-span-3",
 } as const;
 

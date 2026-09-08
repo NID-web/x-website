@@ -81,7 +81,9 @@ export async function HomeGrid() {
             {renderTile(tile, t)}
           </GridItem>
         ))}
-        <Footer />
+        {/* Home's board runs the partner block across the whole row below
+            1024, where the editorial boards keep it in one column (§23). */}
+        <Footer collaborations="row" />
       </PageGrid>
       {/* The band closes the page as well as opens it (export root: one strip
           above the grid, one below) — but not identically: the opening strip is

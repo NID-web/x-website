@@ -802,6 +802,55 @@ Measured — the block, and its internal column count:
 | 668 | 2 | **620 × 73, full row** | **6 across** |
 | 390 | 1 | 358 × 128, full row | 4 across |
 
+### Amended: that is Home's board, not every board (2026-09-08)
+
+The full-row reshape above is what the **Home** board draws. The About and News & Events
+boards draw the block **one column wide at 1024 and 768**, and this note's own rule was
+applied to them anyway so the three pages could share one footer — which quietly put the
+editorial pages at odds with their own boards. Reported as "the logo tile in footer in
+about page shouldn't spread to 2 tiles", which at 768 is exactly what `full-then-1` does.
+
+`Footer` now takes `collaborations?: "row" | "column"`, defaulting to `column` (the
+editorial template is the common case); `HomeGrid` passes `"row"`. The internal grid
+follows the block, so `tablet:grid-cols-6 laptop:grid-cols-4` applies only to the row form
+— a one-column block is four across at every width.
+
+**Then the same argument turned up at three columns.** With the block one column wide, at
+1024 it is the only thing on row two — the three link blocks fill row one — so two thirds
+of that row sat empty while the six marks wrapped onto a second line inside a 309px box.
+Reported as "in 3 col layout, when the logos tile is the only one then it can spread and
+all the logos can be in one line".
+
+That is the whole rule, and it is about **being last of four**, not about any one width:
+
+| page columns | the four blocks | logos alone on a row? |
+|---|---|---|
+| 4 | all four share row one | no → one column |
+| 3 | three fill row one, logos on row two | **yes → whole row** |
+| 2 | pairs; contact and logos share row two | no → one column |
+| 1 | each block is the row | n/a — one column IS the row |
+
+So the column form is `GridItem`'s new `"full-at-laptop"` —
+`col-span-1 laptop:col-span-full desktop:col-span-1`, the same three-step shape as `hero`
+so the media range decides rather than the emit order of three `col-span` utilities. The
+internal grid follows the block in both forms, at opposite breakpoints:
+`tablet:grid-cols-6 laptop:grid-cols-4` for the row form,
+`laptop:grid-cols-6 desktop:grid-cols-4` for the column one.
+
+Re-measured, images settled, counting the logo lines rather than assuming them:
+
+| viewport | page cols | Home block | About / News block | across | About lines |
+|---|---|---|---|---|---|
+| 1440 | 4 | 330 × 322, 1 col | 330 × 322, 1 col | 4 | 2 |
+| 1280 | 4 | 290 × 322, 1 col | 290 × 322, 1 col | 4 | 2 |
+| 1024 | 3 | 309 × 184, 1 col | **976 × 89, 3 cols** | **6** | **1** |
+| 768 | 2 | **720 × 89, 2 cols** | **350 × 182, 1 col** | 6 / 4 | 2 |
+| 390 | 1 | 358 × 156, 1 col | 358 × 156, 1 col | 4 | 2 |
+
+At 768 the one-column form is four marks across and two on a second row — the "cramped"
+shape this note argued against. That trade is the design owner's call and it matches the
+board. Home is untouched at every width.
+
 ### The logos need their own light plate in dark appearance
 
 The partner marks are full-colour artwork with dark ink baked in, so on a dark surface they
