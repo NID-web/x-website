@@ -2061,3 +2061,156 @@ is what looked wrong.
   the inconsistency is a designer question.
 - Tanjore and Tiger share `surface/raised` (`#FFF0D4`) in light, so the ten cards show
   nine distinct surfaces. That is the palette, not a bug.
+
+## 47. The craft pattern shimmers on hover, one sub-pattern at a time
+
+Each craft field is a 4x4 grid of an 81px motif, and in Figma that motif is a
+COMPONENT SET of four variants, not one drawing — `Patternimate-1/2/3` (nodes
+569:40620, 671:53051, 677:41324). The name is the brief: Pattern + animate.
+Hovering one sub-pattern cycles that sub-pattern through its four frames.
+
+Three things had to change.
+
+**A `<pattern>` paint server cannot be hovered.** The fields filled one `<rect>`
+from `url(#nid-patternfieldN)`, so the whole 4x4 grid was a single element and
+there was nothing per-unit for `:hover` to select. An animated field now emits
+its 16 units as real `<g>`s, each stacking the four frames as `<use>`s of four
+`<defs>` groups. Each unit also carries `<rect fill="transparent">` as a hit
+area — `fill="none"` draws nothing AND receives no pointer, which reads as the
+hover simply not working.
+
+**The frames had to be extracted.** `home-patterns.json` held one frame per
+field. `scripts/extract-pattern-frames.py` decodes all four out of a screenshot
+of each component set, which is exact rather than approximate: a variant renders
+at 24x24 px for a 24x24-CELL motif, so it is one pixel per cell and the PNG is a
+lossless statement of the geometry. It is checked against what the file already
+had — frame 0 IS that geometry — and the run fails on any drift. All three
+agree cell for cell: 64/64, 96/96, 84/84.
+
+The frames are not just cells appearing and disappearing. They also **rotate the
+three accent colours** through the motif, which is why the reference for this was
+the Colour foundations file and not a motion one.
+
+**The run is BOUNDED and the delays are POSITIVE**, and those two facts are the
+same fact. It first shipped endless — hover and it shimmers until you leave —
+staggered by four NEGATIVE delays on an infinite animation, which begins
+mid-cycle immediately. The design owner's call is that a hover must not animate
+for ever, so the count is now finite (`--nid-pattern-cycles`, 3).
+
+Negative delays do not survive that change. With a finite count each frame
+reaches its last iteration at a different moment, so the run ends raggedly: the
+later frames stop while frame 0 is still mid-cycle holding opacity 0, and the
+sub-pattern goes BLANK for the tail — 450ms of nothing, at the old timing.
+Positive delays end it cleanly instead, because a frame that has not started yet
+falls back to the base rule, and the base rule is already the resting state
+(frame 0 opaque, the rest transparent). The run therefore ends ON frame 0 with
+the stragglers all in their off windows.
+
+No `animation-fill-mode` either way: `backwards` would apply each frame's 0%
+(opaque) state before its turn came and show all four at once.
+
+Both numbers are custom properties on `.nid-pattern-unit`, because the duration
+is not settled: `--nid-pattern-step` (320ms, how long one frame is held) and
+`--nid-pattern-cycles` (3). The first version held a frame for 150ms and read as
+a flicker rather than a shimmer.
+
+Only frame 0 is painted at rest, so an untouched field looks exactly as it did
+before any of this existed.
+
+This is a pattern animation, so it is gated on `prefers-reduced-motion`, which
+CLAUDE.md § Icons and motion asks for by name. It does not breach the "hover is
+colour only, never a transform" rule either: nothing moves or scales — which
+cells are painted, and in which accent, is the whole change.
+
+**Leaving does not cut the run short**, and CSS alone cannot express that: the
+animation hangs off `:hover`, so the frame the pointer leaves on is the frame
+the unit is stuck with. `PatternShimmer` (locale layout) latches a class on
+`pointerover` and drops it when the run ends, and the animation hangs off the
+latch as well as `:hover` — so it degrades to "runs while hovered" with no
+JavaScript. One delegated document listener, not one per unit: there are 48 on
+Home, `pointerover` bubbles, and making `PatternTile` a client component would
+ship ~1100 lines of generated SVG to the browser as JavaScript.
+
+The latch is released by the FIRST frame's `animationend`, not the last. The
+frames are staggered, so the last one's animation outlives the visible run by
+`3 x --nid-pattern-step` — a second of nothing moving, during which a hover
+would do nothing. The first frame's end IS the visible end: it reverts to the
+base rule, which paints it, while every straggler sits in an off window.
+Dropping the class cancels those stragglers, which costs nothing because they
+are invisible and already at their base value.
+
+Verified in the browser at 1440. 48 units on the page; at rest frame 0 is opaque
+with `animation-name: none`; **a hovered unit's neighbour keeps
+`animation-name: none`**. Hovering samples the visible frame as
+
+    f0 0-250  f1 333-501  f2 585-838  f3 920-1171  f0 1252-1503  ...  f3 3507-3755  f0 3838+
+
+— three clean cycles at ~320ms a frame, **no blank periods**, resting on frame 0
+from 3.8s and staying there while the pointer remains. With the pointer moved
+away 120ms in, the run continues untouched to the same 3.67s and the latch
+releases at 3.76s; the neighbour is never latched; hovering again after that
+replays it. Under `prefers-reduced-motion: reduce` all four frames report
+`animation-name: none` and the field holds frame 0 whether latched or not.
+
+Scope is the three home fields. `PatternFieldAlumni` has no component set with
+variants, so it keeps the old `<pattern>` fill — the generator branches on
+whether a field has `frames`, and static fields emit byte-identical output.
+
+## 48. The alumni tile opens on hover, and the Figma variants say by how much
+
+`Notable Alumni` is the one home portrait tile that goes somewhere. On hover the
+name and bio rise, a visit arrow appears under them, the overline darkens and
+the closing rule lights. The component set is `549:37812`, whose two 330x330
+variants (`Property 1=Default` and `Property 1=Variant2`) are the whole spec.
+
+They were read by decoding a screenshot of the set and profiling the ink row by
+row — the same trick as §47, and the reason is the same: the variants are
+stacked in one render, so one screenshot carries both states and the numbers can
+be compared against our own render at the same scale rather than eyeballed.
+
+| | Default | Variant2 |
+|---|---|---|
+| overline ink | y172-181, text/quaternary | y172-181, **text/primary** |
+| name ink | y219-239 | **y197-216** |
+| bio ink | y252-265, y272-285 | y230-243, y250-263 |
+| arrow | absent | **y286-300**, ~15px, icon/quaternary |
+| closing rule | border/subtle | **border/primary** |
+
+So the rise is **22px**, the overline goes quaternary to primary, and the rule
+goes subtle to primary. Three of those were wrong in the first cut and the
+profile is what caught them:
+
+- **The rise was 5px, not 22.** The arrow slot had been reserved at rest, the
+  way ListTile reserves its row arrows — but Default has NO arrow and sits its
+  name 22px lower, so reserving the slot spends the movement before it starts.
+  The slot now opens from zero, and a `min-h-[10px]` floor under the collapsing
+  spacer stops the name going flush against the overline.
+- **The arrow was half size.** The glyph occupies x7-x17 of a 24 viewBox, so
+  `size-4` draws 8px of ink where the variant measures 15. It is `size-8`, and
+  the slot is taller than the icon because the icon sits at the slot's top —
+  growing the slot is what lifts the arrow clear of the rule.
+- **The rule did not light at all**, and `border/default` was the wrong guess
+  for it; the variant's value is `border/primary`.
+
+`flex-grow` carries the movement because it interpolates and `justify-content`
+does not. `motion-safe:` gates the TRANSITION only, not the state change: under
+prefers-reduced-motion the tile still opens, instantly. That differs from
+RosterTile, which suppresses its avatar fan outright, and the difference is what
+each is for — the fan is a flourish, this movement is what makes room for the
+arrow, and suppressing it would leave a linked tile with no visible affordance.
+
+The NAME is the link and `after:inset-0` stretches its target over the tile, so
+the accessible name is the person rather than "read more" while the click target
+is still the whole tile (ListTile's whole-row reasoning). The destination is
+`/people/alumni` — "Notable Alumni" in sitemap.json and in the main menu, which
+is also what the tile's own overline says.
+
+`href` is optional on the portrait kind and only the alumni tile sets one. Pride
+of NID has no destination, so it renders no link, no arrow and no hover at all —
+an arrow promising somewhere to go that does not exist is worse than no arrow.
+Verified: that tile still has 0 anchors.
+
+Measured against the variants after the change, every row within 0-3px and every
+colour matching. The residual 2-3px is the rest state's own baseline (our
+overline sits 2px lower than Figma's), constant across both states, so the
+DELTA — which is what this note is about — is exact.

@@ -3,12 +3,18 @@
 // design/assets/patterns/home-patterns.json.
 //
 // The craft pattern fields of the home bento. Each field is a FIXED grid of one
-// 24x24-cell unit - four 12x12 quadrants pinwheeled 0/90/180/-90 - laid out by
-// an SVG <pattern> inside a viewBox, so the whole composition SCALES with the
-// tile: 4x4 for a full-tile field, 2x2 for the alumni bed, which is half a tile
-// wide. A field without that viewBox is fluid instead: one user unit reads as
-// one CSS px, a wider tile shows more units and a narrower one crops them,
-// which is not what the boards draw (docs/STAGE-0-NOTES.md §41).
+// 24x24-cell unit - four 12x12 quadrants pinwheeled 0/90/180/-90 - inside a
+// viewBox, so the whole composition SCALES with the tile: 4x4 for a full-tile
+// field, 2x2 for the alumni bed, which is half a tile wide. A field without
+// that viewBox is fluid instead: one user unit reads as one CSS px, a wider
+// tile shows more units and a narrower one crops them, which is not what the
+// boards draw (docs/STAGE-0-NOTES.md §41).
+//
+// An ANIMATED field draws its units as real elements rather than filling one
+// rect from an SVG <pattern>: a paint server has no per-unit element, so there
+// is nothing for :hover to select. Each unit stacks the four frames as <use>s
+// and carries a transparent hit rect. Hovering ONE unit shimmers only that one
+// (globals.css, .nid-pattern-unit / .nid-pattern-frame, STAGE-0-NOTES §47).
 //
 // Scatter fields (PatternScatter*) are the exception: loose cells with no
 // repeating unit, emitted at their design size.
@@ -30,15 +36,171 @@ export function PatternField1({ className }: PatternFieldProps) {
       className={className}
     >
       <defs>
-        <pattern id="nid-patternfield1" width="81" height="81" patternUnits="userSpaceOnUse">
-          <g transform="scale(1.6875)">
-        <path fill="var(--nid-accent-quaternary)" d="M22 2h2v2h-2zM24 4h2v2h-2zM32 4h2v2h-2zM30 6h2v2h-2zM28 8h2v2h-2zM4 14h2v2h-2zM6 16h2v2h-2zM8 18h2v2h-2zM22 20h4v2h-4zM4 22h2v2h-2zM20 22h2v4h-2zM26 22h2v4h-2zM44 22h2v2h-2zM2 24h2v2h-2zM42 24h2v2h-2zM22 26h4v2h-4zM38 28h2v2h-2zM40 30h2v2h-2zM42 32h2v2h-2zM18 38h2v2h-2zM16 40h2v2h-2zM14 42h2v2h-2zM22 42h2v2h-2zM24 44h2v2h-2z" />
-        <path fill="var(--nid-accent-tertiary)" d="M34 2h2v2h-2zM36 8h2v2h-2zM8 10h2v2h-2zM26 10h2v2h-2zM2 12h2v2h-2zM20 16h2v2h-2zM18 18h2v2h-2zM28 18h2v2h-2zM10 20h2v2h-2zM30 20h2v2h-2zM16 26h2v2h-2zM36 26h2v2h-2zM18 28h2v2h-2zM28 28h2v2h-2zM26 30h2v2h-2zM44 34h2v2h-2zM20 36h2v2h-2zM38 36h2v2h-2zM10 38h2v2h-2zM12 44h2v2h-2z" />
-        <path fill="var(--nid-accent-secondary)" d="M20 4h2v2h-2zM22 6h2v2h-2zM24 12h2v2h-2zM22 14h2v2h-2zM42 20h2v2h-2zM12 22h2v2h-2zM32 22h2v2h-2zM40 22h2v2h-2zM6 24h2v2h-2zM14 24h2v2h-2zM34 24h2v2h-2zM4 26h2v2h-2zM24 32h2v2h-2zM22 34h2v2h-2zM24 40h2v2h-2zM26 42h2v2h-2z" />
-          </g>
-        </pattern>
+        <g id="nid-patternfield1-f0">
+          <path fill="var(--nid-accent-quaternary)" d="M2 24h2v2h-2zM4 14h2v2h-2zM4 22h2v2h-2zM6 16h2v2h-2zM8 18h2v2h-2zM14 42h2v2h-2zM16 40h2v2h-2zM18 38h2v2h-2zM20 22h2v4h-2zM22 2h2v2h-2zM22 20h4v2h-4zM22 26h4v2h-4zM22 42h2v2h-2zM24 4h2v2h-2zM24 44h2v2h-2zM26 22h2v4h-2zM28 8h2v2h-2zM30 6h2v2h-2zM32 4h2v2h-2zM38 28h2v2h-2zM40 30h2v2h-2zM42 24h2v2h-2zM42 32h2v2h-2zM44 22h2v2h-2z" />
+          <path fill="var(--nid-accent-tertiary)" d="M2 12h2v2h-2zM8 10h2v2h-2zM10 20h2v2h-2zM10 38h2v2h-2zM12 44h2v2h-2zM16 26h2v2h-2zM18 18h2v2h-2zM18 28h2v2h-2zM20 16h2v2h-2zM20 36h2v2h-2zM26 10h2v2h-2zM26 30h2v2h-2zM28 18h2v2h-2zM28 28h2v2h-2zM30 20h2v2h-2zM34 2h2v2h-2zM36 8h2v2h-2zM36 26h2v2h-2zM38 36h2v2h-2zM44 34h2v2h-2z" />
+          <path fill="var(--nid-accent-secondary)" d="M4 26h2v2h-2zM6 24h2v2h-2zM12 22h2v2h-2zM14 24h2v2h-2zM20 4h2v2h-2zM22 6h2v2h-2zM22 14h2v2h-2zM22 34h2v2h-2zM24 12h2v2h-2zM24 32h2v2h-2zM24 40h2v2h-2zM26 42h2v2h-2zM32 22h2v2h-2zM34 24h2v2h-2zM40 22h2v2h-2zM42 20h2v2h-2z" />
+        </g>
+        <g id="nid-patternfield1-f1">
+          <path fill="var(--nid-accent-tertiary)" d="M2 22h2v4h-2zM4 14h2v2h-2zM6 16h2v2h-2zM8 18h2v2h-2zM14 42h2v2h-2zM16 18h2v2h-2zM16 40h2v2h-2zM18 30h2v2h-2zM18 38h2v2h-2zM20 22h2v4h-2zM22 2h4v2h-4zM22 20h4v2h-4zM22 26h4v2h-4zM22 44h4v2h-4zM26 22h2v4h-2zM28 8h2v2h-2zM28 16h2v2h-2zM30 6h2v2h-2zM30 28h2v2h-2zM32 4h2v2h-2zM38 28h2v2h-2zM40 30h2v2h-2zM42 32h2v2h-2zM44 22h2v4h-2z" />
+          <path fill="var(--nid-accent-secondary)" d="M2 12h2v2h-2zM4 28h2v2h-2zM8 8h2v2h-2zM8 38h2v2h-2zM10 20h2v2h-2zM12 44h2v2h-2zM16 26h2v2h-2zM18 4h2v2h-2zM20 16h2v2h-2zM20 36h2v2h-2zM26 10h2v2h-2zM26 30h2v2h-2zM28 42h2v2h-2zM30 20h2v2h-2zM34 2h2v2h-2zM36 26h2v2h-2zM38 8h2v2h-2zM38 38h2v2h-2zM42 18h2v2h-2zM44 34h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M6 24h2v2h-2zM12 22h2v4h-2zM14 24h2v2h-2zM22 6h2v2h-2zM22 12h4v2h-4zM22 14h2v2h-2zM22 34h4v2h-4zM24 32h2v2h-2zM24 40h2v2h-2zM32 22h4v2h-4zM34 24h2v2h-2zM40 22h2v2h-2z" />
+        </g>
+        <g id="nid-patternfield1-f2">
+          <path fill="var(--nid-accent-quaternary)" d="M0 22h2v4h-2zM2 12h2v2h-2zM4 28h2v2h-2zM8 10h2v2h-2zM10 20h2v2h-2zM10 38h2v2h-2zM12 44h2v2h-2zM16 20h2v2h-2zM16 26h2v2h-2zM18 4h2v2h-2zM20 16h2v2h-2zM20 30h2v2h-2zM20 36h2v2h-2zM22 0h4v2h-4zM22 46h4v2h-4zM26 10h2v2h-2zM26 16h2v2h-2zM26 30h2v2h-2zM28 42h2v2h-2zM30 20h2v2h-2zM30 26h2v2h-2zM34 2h2v2h-2zM36 8h2v2h-2zM36 26h2v2h-2zM38 36h2v2h-2zM42 18h2v2h-2zM44 34h2v2h-2zM46 22h2v4h-2z" />
+          <path fill="var(--nid-accent-secondary)" d="M4 14h2v2h-2zM6 16h2v2h-2zM8 18h2v2h-2zM14 42h2v2h-2zM16 40h2v2h-2zM18 38h2v2h-2zM20 22h2v4h-2zM22 20h4v2h-4zM22 26h4v2h-4zM26 22h2v4h-2zM28 8h2v2h-2zM30 6h2v2h-2zM32 4h2v2h-2zM38 28h2v2h-2zM40 30h2v2h-2zM42 32h2v2h-2z" />
+          <path fill="var(--nid-accent-tertiary)" d="M8 24h2v2h-2zM12 22h2v2h-2zM14 24h2v2h-2zM22 8h2v2h-2zM22 14h2v2h-2zM22 34h2v2h-2zM24 12h2v2h-2zM24 32h2v2h-2zM24 38h2v2h-2zM32 22h2v2h-2zM34 24h2v2h-2zM38 22h2v2h-2z" />
+        </g>
+        <g id="nid-patternfield1-f3">
+          <path fill="var(--nid-accent-secondary)" d="M2 26h4v2h-4zM4 20h2v2h-2zM6 10h2v2h-2zM8 24h2v2h-2zM10 40h2v2h-2zM12 22h2v2h-2zM14 24h2v2h-2zM18 20h2v2h-2zM20 2h2v4h-2zM20 28h2v2h-2zM20 42h2v2h-2zM22 8h2v2h-2zM22 14h2v2h-2zM22 34h2v2h-2zM24 12h2v2h-2zM24 32h2v2h-2zM24 38h2v2h-2zM26 4h2v2h-2zM26 18h2v2h-2zM26 42h2v4h-2zM28 26h2v2h-2zM32 22h2v2h-2zM34 24h2v2h-2zM36 6h2v2h-2zM38 22h2v2h-2zM40 36h2v2h-2zM42 20h4v2h-4zM42 26h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M4 14h2v2h-2zM6 16h2v2h-2zM8 18h2v2h-2zM14 42h2v2h-2zM16 40h2v2h-2zM18 38h2v2h-2zM20 22h2v4h-2zM22 20h4v2h-4zM22 26h4v2h-4zM26 22h2v4h-2zM28 8h2v2h-2zM30 6h2v2h-2zM32 4h2v2h-2zM38 28h2v2h-2zM40 30h2v2h-2zM42 32h2v2h-2z" />
+          <path fill="var(--nid-accent-tertiary)" d="M2 12h2v2h-2zM10 20h2v2h-2zM12 44h2v2h-2zM16 26h2v2h-2zM20 16h2v2h-2zM20 36h2v2h-2zM26 10h2v2h-2zM26 30h2v2h-2zM30 20h2v2h-2zM34 2h2v2h-2zM36 26h2v2h-2zM44 34h2v2h-2z" />
+        </g>
       </defs>
-      <rect width="100%" height="100%" fill="url(#nid-patternfield1)" />
+        <g className="nid-pattern-unit" transform="translate(0 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(0 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(0 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(0 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield1-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield1-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
     </svg>
   );
 }
@@ -52,15 +214,171 @@ export function PatternField2({ className }: PatternFieldProps) {
       className={className}
     >
       <defs>
-        <pattern id="nid-patternfield2" width="81" height="81" patternUnits="userSpaceOnUse">
-          <g transform="scale(1.6875)">
-        <path fill="var(--nid-accent-tertiary)" d="M0 0h2v2h-2zM46 0h2v2h-2zM20 2h2v2h-2zM26 2h2v2h-2zM4 4h2v2h-2zM42 4h2v2h-2zM6 6h2v2h-2zM40 6h2v2h-2zM14 8h2v2h-2zM32 8h2v2h-2zM16 10h2v2h-2zM30 10h2v2h-2zM8 14h2v2h-2zM38 14h2v2h-2zM10 16h2v2h-2zM16 16h2v2h-2zM30 16h2v2h-2zM36 16h2v2h-2zM18 18h2v2h-2zM28 18h2v2h-2zM2 20h2v2h-2zM44 20h2v2h-2zM22 22h4v4h-4zM2 26h2v2h-2zM44 26h2v2h-2zM18 28h2v2h-2zM28 28h2v2h-2zM10 30h2v2h-2zM16 30h2v2h-2zM30 30h2v2h-2zM36 30h2v2h-2zM8 32h2v2h-2zM38 32h2v2h-2zM16 36h2v2h-2zM30 36h2v2h-2zM14 38h2v2h-2zM32 38h2v2h-2zM6 40h2v2h-2zM40 40h2v2h-2zM4 42h2v2h-2zM42 42h2v2h-2zM20 44h2v2h-2zM26 44h2v2h-2zM0 46h2v2h-2zM46 46h2v2h-2z" />
-        <path fill="var(--nid-accent-quaternary)" d="M22 0h2v2h-2zM6 2h2v2h-2zM44 6h2v2h-2zM18 8h2v2h-2zM20 10h2v2h-2zM34 10h2v2h-2zM10 12h2v2h-2zM18 14h2v2h-2zM32 18h2v2h-2zM38 18h2v2h-2zM36 20h2v2h-2zM46 22h2v2h-2zM0 24h2v2h-2zM10 26h2v2h-2zM8 28h2v2h-2zM14 28h2v2h-2zM28 32h2v2h-2zM36 34h2v2h-2zM12 36h2v2h-2zM26 36h2v2h-2zM28 38h2v2h-2zM2 40h2v2h-2zM40 44h2v2h-2zM24 46h2v2h-2z" />
-        <path fill="var(--nid-accent-secondary)" d="M24 0h2v2h-2zM40 2h2v2h-2zM2 6h2v2h-2zM28 8h2v2h-2zM12 10h2v2h-2zM26 10h2v2h-2zM36 12h2v2h-2zM28 14h2v2h-2zM8 18h2v2h-2zM14 18h2v2h-2zM10 20h2v2h-2zM0 22h2v2h-2zM46 24h2v2h-2zM36 26h2v2h-2zM32 28h2v2h-2zM38 28h2v2h-2zM18 32h2v2h-2zM10 34h2v2h-2zM20 36h2v2h-2zM34 36h2v2h-2zM18 38h2v2h-2zM44 40h2v2h-2zM6 44h2v2h-2zM22 46h2v2h-2z" />
-          </g>
-        </pattern>
+        <g id="nid-patternfield2-f0">
+          <path fill="var(--nid-accent-tertiary)" d="M0 0h2v2h-2zM0 46h2v2h-2zM2 20h2v2h-2zM2 26h2v2h-2zM4 4h2v2h-2zM4 42h2v2h-2zM6 6h2v2h-2zM6 40h2v2h-2zM8 14h2v2h-2zM8 32h2v2h-2zM10 16h2v2h-2zM10 30h2v2h-2zM14 8h2v2h-2zM14 38h2v2h-2zM16 10h2v2h-2zM16 16h2v2h-2zM16 30h2v2h-2zM16 36h2v2h-2zM18 18h2v2h-2zM18 28h2v2h-2zM20 2h2v2h-2zM20 44h2v2h-2zM22 22h4v4h-4zM26 2h2v2h-2zM26 44h2v2h-2zM28 18h2v2h-2zM28 28h2v2h-2zM30 10h2v2h-2zM30 16h2v2h-2zM30 30h2v2h-2zM30 36h2v2h-2zM32 8h2v2h-2zM32 38h2v2h-2zM36 16h2v2h-2zM36 30h2v2h-2zM38 14h2v2h-2zM38 32h2v2h-2zM40 6h2v2h-2zM40 40h2v2h-2zM42 4h2v2h-2zM42 42h2v2h-2zM44 20h2v2h-2zM44 26h2v2h-2zM46 0h2v2h-2zM46 46h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M0 24h2v2h-2zM2 40h2v2h-2zM6 2h2v2h-2zM8 28h2v2h-2zM10 12h2v2h-2zM10 26h2v2h-2zM12 36h2v2h-2zM14 28h2v2h-2zM18 8h2v2h-2zM18 14h2v2h-2zM20 10h2v2h-2zM22 0h2v2h-2zM24 46h2v2h-2zM26 36h2v2h-2zM28 32h2v2h-2zM28 38h2v2h-2zM32 18h2v2h-2zM34 10h2v2h-2zM36 20h2v2h-2zM36 34h2v2h-2zM38 18h2v2h-2zM40 44h2v2h-2zM44 6h2v2h-2zM46 22h2v2h-2z" />
+          <path fill="var(--nid-accent-secondary)" d="M0 22h2v2h-2zM2 6h2v2h-2zM6 44h2v2h-2zM8 18h2v2h-2zM10 20h2v2h-2zM10 34h2v2h-2zM12 10h2v2h-2zM14 18h2v2h-2zM18 32h2v2h-2zM18 38h2v2h-2zM20 36h2v2h-2zM22 46h2v2h-2zM24 0h2v2h-2zM26 10h2v2h-2zM28 8h2v2h-2zM28 14h2v2h-2zM32 28h2v2h-2zM34 36h2v2h-2zM36 12h2v2h-2zM36 26h2v2h-2zM38 28h2v2h-2zM40 2h2v2h-2zM44 40h2v2h-2zM46 24h2v2h-2z" />
+        </g>
+        <g id="nid-patternfield2-f1">
+          <path fill="var(--nid-accent-secondary)" d="M0 0h2v2h-2zM0 46h2v2h-2zM2 2h2v2h-2zM2 20h2v2h-2zM2 26h2v2h-2zM2 44h2v2h-2zM6 6h2v2h-2zM6 40h2v2h-2zM10 16h2v2h-2zM10 30h2v2h-2zM16 10h2v2h-2zM16 16h2v2h-2zM16 30h2v2h-2zM16 36h2v2h-2zM18 18h2v2h-2zM18 28h2v2h-2zM20 2h2v2h-2zM20 44h2v2h-2zM22 22h4v4h-4zM26 2h2v2h-2zM26 44h2v2h-2zM28 18h2v2h-2zM28 28h2v2h-2zM30 10h2v2h-2zM30 16h2v2h-2zM30 30h2v2h-2zM30 36h2v2h-2zM36 16h2v2h-2zM36 30h2v2h-2zM40 6h2v2h-2zM40 40h2v2h-2zM44 2h2v2h-2zM44 20h2v2h-2zM44 26h2v2h-2zM44 44h2v2h-2zM46 0h2v2h-2zM46 46h2v2h-2z" />
+          <path fill="var(--nid-accent-tertiary)" d="M0 24h2v2h-2zM2 40h2v2h-2zM6 2h2v2h-2zM6 14h2v2h-2zM8 28h2v2h-2zM10 12h2v2h-2zM10 26h2v2h-2zM12 36h2v2h-2zM14 28h2v2h-2zM14 40h2v2h-2zM18 8h2v2h-2zM18 14h2v2h-2zM20 10h2v2h-2zM22 0h2v2h-2zM24 46h2v2h-2zM26 36h2v2h-2zM28 32h2v2h-2zM28 38h2v2h-2zM32 6h2v2h-2zM32 18h2v2h-2zM34 10h2v2h-2zM36 20h2v2h-2zM36 34h2v2h-2zM38 18h2v2h-2zM40 32h2v2h-2zM40 44h2v2h-2zM44 6h2v2h-2zM46 22h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M0 22h2v2h-2zM2 6h2v2h-2zM6 32h2v2h-2zM6 44h2v2h-2zM8 18h2v2h-2zM10 20h2v2h-2zM10 34h2v2h-2zM12 10h2v2h-2zM14 6h2v2h-2zM14 18h2v2h-2zM18 32h2v2h-2zM18 38h2v2h-2zM20 36h2v2h-2zM22 46h2v2h-2zM24 0h2v2h-2zM26 10h2v2h-2zM28 8h2v2h-2zM28 14h2v2h-2zM32 28h2v2h-2zM32 40h2v2h-2zM34 36h2v2h-2zM36 12h2v2h-2zM36 26h2v2h-2zM38 28h2v2h-2zM40 2h2v2h-2zM40 14h2v2h-2zM44 40h2v2h-2zM46 24h2v2h-2z" />
+        </g>
+        <g id="nid-patternfield2-f2">
+          <path fill="var(--nid-accent-tertiary)" d="M0 22h2v2h-2zM2 6h2v2h-2zM2 30h2v2h-2zM4 14h2v2h-2zM6 44h2v2h-2zM8 18h2v2h-2zM10 20h2v2h-2zM10 34h2v2h-2zM12 10h2v2h-2zM14 18h2v2h-2zM14 42h2v2h-2zM16 2h2v2h-2zM18 32h2v2h-2zM18 38h2v2h-2zM20 36h2v2h-2zM22 46h2v2h-2zM24 0h2v2h-2zM26 10h2v2h-2zM28 8h2v2h-2zM28 14h2v2h-2zM30 44h2v2h-2zM32 4h2v2h-2zM32 28h2v2h-2zM34 36h2v2h-2zM36 12h2v2h-2zM36 26h2v2h-2zM38 28h2v2h-2zM40 2h2v2h-2zM42 32h2v2h-2zM44 16h2v2h-2zM44 40h2v2h-2zM46 24h2v2h-2z" />
+          <path fill="var(--nid-accent-secondary)" d="M0 24h2v2h-2zM2 16h2v2h-2zM2 40h2v2h-2zM4 32h2v2h-2zM6 2h2v2h-2zM8 28h2v2h-2zM10 12h2v2h-2zM10 26h2v2h-2zM12 36h2v2h-2zM14 4h2v2h-2zM14 28h2v2h-2zM16 44h2v2h-2zM18 8h2v2h-2zM18 14h2v2h-2zM20 10h2v2h-2zM22 0h2v2h-2zM24 46h2v2h-2zM26 36h2v2h-2zM28 32h2v2h-2zM28 38h2v2h-2zM30 2h2v2h-2zM32 18h2v2h-2zM32 42h2v2h-2zM34 10h2v2h-2zM36 20h2v2h-2zM36 34h2v2h-2zM38 18h2v2h-2zM40 44h2v2h-2zM42 14h2v2h-2zM44 6h2v2h-2zM44 30h2v2h-2zM46 22h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M0 0h2v2h-2zM0 46h2v2h-2zM2 2h2v2h-2zM2 44h2v2h-2zM8 8h2v2h-2zM8 38h2v2h-2zM10 16h2v2h-2zM10 30h2v2h-2zM16 10h2v2h-2zM16 16h2v2h-2zM16 30h2v2h-2zM16 36h2v2h-2zM20 20h2v2h-2zM20 26h2v2h-2zM22 22h4v4h-4zM26 20h2v2h-2zM26 26h2v2h-2zM30 10h2v2h-2zM30 16h2v2h-2zM30 30h2v2h-2zM30 36h2v2h-2zM36 16h2v2h-2zM36 30h2v2h-2zM38 8h2v2h-2zM38 38h2v2h-2zM44 2h2v2h-2zM44 44h2v2h-2zM46 0h2v2h-2zM46 46h2v2h-2z" />
+        </g>
+        <g id="nid-patternfield2-f3">
+          <path fill="var(--nid-accent-tertiary)" d="M0 0h2v2h-2zM0 46h2v2h-2zM2 2h2v2h-2zM2 8h2v2h-2zM2 38h2v2h-2zM2 44h2v2h-2zM8 2h2v2h-2zM8 8h2v2h-2zM8 20h2v2h-2zM8 26h2v2h-2zM8 38h2v2h-2zM8 44h2v2h-2zM10 16h2v2h-2zM10 30h2v2h-2zM16 10h2v2h-2zM16 36h2v2h-2zM18 18h2v2h-2zM18 28h2v2h-2zM20 8h2v2h-2zM20 20h2v2h-2zM20 26h2v2h-2zM20 38h2v2h-2zM22 22h4v4h-4zM26 8h2v2h-2zM26 20h2v2h-2zM26 26h2v2h-2zM26 38h2v2h-2zM28 18h2v2h-2zM28 28h2v2h-2zM30 10h2v2h-2zM30 36h2v2h-2zM36 16h2v2h-2zM36 30h2v2h-2zM38 2h2v2h-2zM38 8h2v2h-2zM38 20h2v2h-2zM38 26h2v2h-2zM38 38h2v2h-2zM38 44h2v2h-2zM44 2h2v2h-2zM44 8h2v2h-2zM44 38h2v2h-2zM44 44h2v2h-2zM46 0h2v2h-2zM46 46h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M0 20h2v2h-2zM2 16h2v2h-2zM4 32h2v2h-2zM8 28h2v2h-2zM10 12h2v2h-2zM12 36h2v2h-2zM14 4h2v2h-2zM14 28h2v2h-2zM16 44h2v2h-2zM18 8h2v2h-2zM18 14h2v2h-2zM20 46h2v2h-2zM26 0h2v2h-2zM28 32h2v2h-2zM28 38h2v2h-2zM30 2h2v2h-2zM32 18h2v2h-2zM32 42h2v2h-2zM34 10h2v2h-2zM36 34h2v2h-2zM38 18h2v2h-2zM42 14h2v2h-2zM44 30h2v2h-2zM46 26h2v2h-2z" />
+          <path fill="var(--nid-accent-secondary)" d="M0 26h2v2h-2zM2 30h2v2h-2zM4 14h2v2h-2zM8 18h2v2h-2zM10 34h2v2h-2zM12 10h2v2h-2zM14 18h2v2h-2zM14 42h2v2h-2zM16 2h2v2h-2zM18 32h2v2h-2zM18 38h2v2h-2zM20 0h2v2h-2zM26 46h2v2h-2zM28 8h2v2h-2zM28 14h2v2h-2zM30 44h2v2h-2zM32 4h2v2h-2zM32 28h2v2h-2zM34 36h2v2h-2zM36 12h2v2h-2zM38 28h2v2h-2zM42 32h2v2h-2zM44 16h2v2h-2zM46 20h2v2h-2z" />
+        </g>
       </defs>
-      <rect width="100%" height="100%" fill="url(#nid-patternfield2)" />
+        <g className="nid-pattern-unit" transform="translate(0 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(0 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(0 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(0 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield2-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield2-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
     </svg>
   );
 }
@@ -74,15 +392,171 @@ export function PatternField3({ className }: PatternFieldProps) {
       className={className}
     >
       <defs>
-        <pattern id="nid-patternfield3" width="81" height="81" patternUnits="userSpaceOnUse">
-          <g transform="scale(1.6875)">
-        <path fill="var(--nid-accent-secondary)" d="M18 4h2v2h-2zM28 4h2v2h-2zM16 6h2v2h-2zM30 6h2v2h-2zM8 8h2v2h-2zM14 8h2v2h-2zM32 8h2v2h-2zM38 8h2v2h-2zM8 14h2v2h-2zM38 14h2v2h-2zM6 16h2v2h-2zM18 16h2v2h-2zM28 16h2v2h-2zM40 16h2v2h-2zM4 18h2v2h-2zM16 18h2v2h-2zM30 18h2v2h-2zM42 18h2v2h-2zM4 28h2v2h-2zM16 28h2v2h-2zM30 28h2v2h-2zM42 28h2v2h-2zM6 30h2v2h-2zM18 30h2v2h-2zM28 30h2v2h-2zM40 30h2v2h-2zM8 32h2v2h-2zM38 32h2v2h-2zM8 38h2v2h-2zM14 38h2v2h-2zM32 38h2v2h-2zM38 38h2v2h-2zM16 40h2v2h-2zM30 40h2v2h-2zM18 42h2v2h-2zM28 42h2v2h-2z" />
-        <path fill="var(--nid-accent-tertiary)" d="M4 4h2v2h-2zM42 4h2v2h-2zM20 6h2v2h-2zM26 6h2v2h-2zM20 18h2v2h-2zM26 18h2v2h-2zM6 20h2v2h-2zM18 20h2v2h-2zM28 20h2v2h-2zM40 20h2v2h-2zM6 26h2v2h-2zM18 26h2v2h-2zM28 26h2v2h-2zM40 26h2v2h-2zM20 28h2v2h-2zM26 28h2v2h-2zM20 40h2v2h-2zM26 40h2v2h-2zM4 42h2v2h-2zM42 42h2v2h-2z" />
-        <path fill="var(--nid-accent-quaternary)" d="M22 8h4v2h-4zM16 14h2v2h-2zM23 14h2v2h-2zM30 14h2v2h-2zM14 16h2v2h-2zM32 16h2v2h-2zM22 20h4v2h-4zM8 22h2v4h-2zM20 22h2v4h-2zM26 22h2v4h-2zM38 22h2v4h-2zM14 23h2v2h-2zM32 23h2v2h-2zM22 26h4v2h-4zM14 30h2v2h-2zM32 30h2v2h-2zM16 32h2v2h-2zM23 32h2v2h-2zM30 32h2v2h-2zM22 38h4v2h-4z" />
-          </g>
-        </pattern>
+        <g id="nid-patternfield3-f0">
+          <path fill="var(--nid-accent-secondary)" d="M4 18h2v2h-2zM4 28h2v2h-2zM6 16h2v2h-2zM6 30h2v2h-2zM8 8h2v2h-2zM8 14h2v2h-2zM8 32h2v2h-2zM8 38h2v2h-2zM14 8h2v2h-2zM14 38h2v2h-2zM16 6h2v2h-2zM16 18h2v2h-2zM16 28h2v2h-2zM16 40h2v2h-2zM18 4h2v2h-2zM18 16h2v2h-2zM18 30h2v2h-2zM18 42h2v2h-2zM28 4h2v2h-2zM28 16h2v2h-2zM28 30h2v2h-2zM28 42h2v2h-2zM30 6h2v2h-2zM30 18h2v2h-2zM30 28h2v2h-2zM30 40h2v2h-2zM32 8h2v2h-2zM32 38h2v2h-2zM38 8h2v2h-2zM38 14h2v2h-2zM38 32h2v2h-2zM38 38h2v2h-2zM40 16h2v2h-2zM40 30h2v2h-2zM42 18h2v2h-2zM42 28h2v2h-2z" />
+          <path fill="var(--nid-accent-tertiary)" d="M4 4h2v2h-2zM4 42h2v2h-2zM6 20h2v2h-2zM6 26h2v2h-2zM18 20h2v2h-2zM18 26h2v2h-2zM20 6h2v2h-2zM20 18h2v2h-2zM20 28h2v2h-2zM20 40h2v2h-2zM26 6h2v2h-2zM26 18h2v2h-2zM26 28h2v2h-2zM26 40h2v2h-2zM28 20h2v2h-2zM28 26h2v2h-2zM40 20h2v2h-2zM40 26h2v2h-2zM42 4h2v2h-2zM42 42h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M8 22h2v4h-2zM14 16h2v2h-2zM14 22h2v4h-2zM14 30h2v2h-2zM16 14h2v2h-2zM16 32h2v2h-2zM20 22h2v4h-2zM22 8h4v2h-4zM22 14h4v2h-4zM22 20h4v2h-4zM22 26h4v2h-4zM22 32h4v2h-4zM22 38h4v2h-4zM26 22h2v4h-2zM30 14h2v2h-2zM30 32h2v2h-2zM32 16h2v2h-2zM32 22h2v4h-2zM32 30h2v2h-2zM38 22h2v4h-2z" />
+        </g>
+        <g id="nid-patternfield3-f1">
+          <path fill="var(--nid-accent-secondary)" d="M2 12h2v2h-2zM2 34h2v2h-2zM4 4h2v2h-2zM4 22h2v4h-2zM4 42h2v2h-2zM10 10h2v2h-2zM10 36h2v2h-2zM12 2h2v2h-2zM12 44h2v2h-2zM18 20h2v2h-2zM18 26h2v2h-2zM20 18h2v2h-2zM20 28h2v2h-2zM22 4h4v2h-4zM22 42h4v2h-4zM26 18h2v2h-2zM26 28h2v2h-2zM28 20h2v2h-2zM28 26h2v2h-2zM34 2h2v2h-2zM34 44h2v2h-2zM36 10h2v2h-2zM36 36h2v2h-2zM42 4h2v2h-2zM42 22h2v4h-2zM42 42h2v2h-2zM44 12h2v2h-2zM44 34h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M4 18h2v2h-2zM4 28h2v2h-2zM8 14h2v2h-2zM8 32h2v2h-2zM14 8h2v2h-2zM14 22h2v4h-2zM14 38h2v2h-2zM16 18h2v2h-2zM16 28h2v2h-2zM18 4h2v2h-2zM18 16h2v2h-2zM18 30h2v2h-2zM18 42h2v2h-2zM22 14h4v2h-4zM22 32h4v2h-4zM28 4h2v2h-2zM28 16h2v2h-2zM28 30h2v2h-2zM28 42h2v2h-2zM30 18h2v2h-2zM30 28h2v2h-2zM32 8h2v2h-2zM32 22h2v4h-2zM32 38h2v2h-2zM38 14h2v2h-2zM38 32h2v2h-2zM42 18h2v2h-2zM42 28h2v2h-2z" />
+          <path fill="var(--nid-accent-tertiary)" d="M8 22h2v4h-2zM14 16h2v2h-2zM14 30h2v2h-2zM16 14h2v2h-2zM16 32h2v2h-2zM20 22h2v4h-2zM22 8h4v2h-4zM22 20h4v2h-4zM22 26h4v2h-4zM22 38h4v2h-4zM26 22h2v4h-2zM30 14h2v2h-2zM30 32h2v2h-2zM32 16h2v2h-2zM32 30h2v2h-2zM38 22h2v4h-2z" />
+        </g>
+        <g id="nid-patternfield3-f2">
+          <path fill="var(--nid-accent-tertiary)" d="M4 18h2v2h-2zM4 28h2v2h-2zM8 14h2v2h-2zM8 32h2v2h-2zM14 8h2v2h-2zM14 14h2v2h-2zM14 32h2v2h-2zM14 38h2v2h-2zM16 18h2v2h-2zM16 28h2v2h-2zM18 4h2v2h-2zM18 16h2v2h-2zM18 30h2v2h-2zM18 42h2v2h-2zM28 4h2v2h-2zM28 16h2v2h-2zM28 30h2v2h-2zM28 42h2v2h-2zM30 18h2v2h-2zM30 28h2v2h-2zM32 8h2v2h-2zM32 14h2v2h-2zM32 32h2v2h-2zM32 38h2v2h-2zM38 14h2v2h-2zM38 32h2v2h-2zM42 18h2v2h-2zM42 28h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M2 6h2v2h-2zM2 40h2v2h-2zM4 4h2v2h-2zM4 42h2v2h-2zM6 2h2v2h-2zM6 44h2v2h-2zM14 22h2v4h-2zM18 20h2v2h-2zM18 26h2v2h-2zM20 18h2v2h-2zM20 28h2v2h-2zM22 14h4v2h-4zM22 32h4v2h-4zM26 18h2v2h-2zM26 28h2v2h-2zM28 20h2v2h-2zM28 26h2v2h-2zM32 22h2v4h-2zM40 2h2v2h-2zM40 44h2v2h-2zM42 4h2v2h-2zM42 42h2v2h-2zM44 6h2v2h-2zM44 40h2v2h-2z" />
+          <path fill="var(--nid-accent-secondary)" d="M2 22h2v4h-2zM8 22h2v4h-2zM14 16h2v2h-2zM14 30h2v2h-2zM16 14h2v2h-2zM16 32h2v2h-2zM20 22h2v4h-2zM22 2h4v2h-4zM22 8h4v2h-4zM22 20h4v2h-4zM22 26h4v2h-4zM22 38h4v2h-4zM22 44h4v2h-4zM26 22h2v4h-2zM30 14h2v2h-2zM30 32h2v2h-2zM32 16h2v2h-2zM32 30h2v2h-2zM38 22h2v4h-2zM44 22h2v4h-2z" />
+        </g>
+        <g id="nid-patternfield3-f3">
+          <path fill="var(--nid-accent-secondary)" d="M0 4h2v2h-2zM4 18h2v2h-2zM4 28h2v2h-2zM4 46h2v2h-2zM6 16h2v2h-2zM6 30h2v2h-2zM8 8h2v2h-2zM8 38h2v2h-2zM16 6h2v2h-2zM16 18h2v2h-2zM16 28h2v2h-2zM16 40h2v2h-2zM18 4h2v2h-2zM18 16h2v2h-2zM18 30h2v2h-2zM18 42h2v2h-2zM28 4h2v2h-2zM28 16h2v2h-2zM28 30h2v2h-2zM28 42h2v2h-2zM30 6h2v2h-2zM30 18h2v2h-2zM30 28h2v2h-2zM30 40h2v2h-2zM38 8h2v2h-2zM38 38h2v2h-2zM40 16h2v2h-2zM40 30h2v2h-2zM42 0h2v2h-2zM42 18h2v2h-2zM42 28h2v2h-2zM46 42h2v2h-2z" />
+          <path fill="var(--nid-accent-quaternary)" d="M0 12h2v2h-2zM0 40h2v2h-2zM6 0h2v2h-2zM12 18h2v2h-2zM12 28h2v2h-2zM12 46h2v2h-2zM14 16h2v2h-2zM14 22h2v4h-2zM14 30h2v2h-2zM16 14h2v2h-2zM16 32h2v2h-2zM18 12h2v2h-2zM18 34h2v2h-2zM20 22h2v4h-2zM22 14h4v2h-4zM22 20h4v2h-4zM22 26h4v2h-4zM22 32h4v2h-4zM26 22h2v4h-2zM28 12h2v2h-2zM28 34h2v2h-2zM30 14h2v2h-2zM30 32h2v2h-2zM32 16h2v2h-2zM32 22h2v4h-2zM32 30h2v2h-2zM34 0h2v2h-2zM34 18h2v2h-2zM34 28h2v2h-2zM40 46h2v2h-2zM46 6h2v2h-2zM46 34h2v2h-2z" />
+          <path fill="var(--nid-accent-tertiary)" d="M0 32h2v2h-2zM4 4h2v2h-2zM4 42h2v2h-2zM14 0h2v2h-2zM18 20h2v2h-2zM18 26h2v2h-2zM20 18h2v2h-2zM20 28h2v2h-2zM26 18h2v2h-2zM26 28h2v2h-2zM28 20h2v2h-2zM28 26h2v2h-2zM32 46h2v2h-2zM42 4h2v2h-2zM42 42h2v2h-2zM46 14h2v2h-2z" />
+        </g>
       </defs>
-      <rect width="100%" height="100%" fill="url(#nid-patternfield3)" />
+        <g className="nid-pattern-unit" transform="translate(0 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 0)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(0 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 81)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(0 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 162)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(0 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(81 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(162 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
+        <g className="nid-pattern-unit" transform="translate(243 243)">
+          <rect width="81" height="81" fill="transparent" />
+          <g transform="scale(1.6875)">
+            <use href="#nid-patternfield3-f0" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f1" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f2" className="nid-pattern-frame" />
+            <use href="#nid-patternfield3-f3" className="nid-pattern-frame" />
+          </g>
+        </g>
     </svg>
   );
 }

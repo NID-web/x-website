@@ -59,7 +59,11 @@ export function ThemeSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-2">
+        // Centred ON THE TRIGGER, not anchored to its left edge. The trigger
+        // sits on the header's centre line at every width (§29), so a
+        // left-anchored 284px menu hangs 113px to the right of it — invisible
+        // on a desktop, but off the screen by 60px at 390 and 40px at 430.
+        <div className="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2">
           <ThemeMenu id={menuId} />
         </div>
       )}

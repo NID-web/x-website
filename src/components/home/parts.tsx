@@ -31,6 +31,7 @@ export function Overline({
   withRule = true,
   shortRule = false,
   dark = false,
+  hoverDark = false,
 }: {
   children: React.ReactNode;
   withRule?: boolean;
@@ -40,6 +41,13 @@ export function Overline({
    *  label and still tracks its height (see GradientRule). */
   shortRule?: boolean;
   dark?: boolean;
+  /** Darken to text/primary while the TILE is hovered. Opt-in, and only the
+   *  linked portrait tile asks for it — the Figma hover variant takes this
+   *  label from the tertiary teal to the darkest one, i.e. text/quaternary to
+   *  text/primary.
+   *  Worth having: quaternary is intentionally below AA (CLAUDE.md § Colour),
+   *  so this is the one state where the label is comfortably legible. */
+  hoverDark?: boolean;
 }) {
   return (
     <div className="flex items-stretch gap-2">
@@ -47,6 +55,8 @@ export function Overline({
         className={clsx(
           "whitespace-nowrap font-primary text-overline uppercase",
           dark ? "text-text-tertiary" : "text-text-quaternary",
+          hoverDark &&
+            "transition-colors duration-150 ease-in-out group-hover/tile:text-text-primary",
         )}
       >
         {children}

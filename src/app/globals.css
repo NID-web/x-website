@@ -193,17 +193,25 @@
 
   /* ---- type scale. size / line-height / tracking / weight in one utility. ---- */
   --text-display-serif: calc(var(--nid-type-display-serif-size) * var(--nid-tile-scale, 1));
-  --text-display-serif--line-height: calc(var(--nid-type-display-serif-lh) * var(--nid-tile-scale, 1));
+  --text-display-serif--line-height: calc(
+    var(--nid-type-display-serif-lh) * var(--nid-tile-scale, 1)
+  );
   --text-display-serif--letter-spacing: var(--nid-type-display-serif-tracking);
   --text-display-serif--font-weight: var(--nid-weight-serif-display);
 
-  --text-display-serif-card: calc(var(--nid-type-display-serif-card-size) * var(--nid-tile-scale, 1));
-  --text-display-serif-card--line-height: calc(var(--nid-type-display-serif-card-lh) * var(--nid-tile-scale, 1));
+  --text-display-serif-card: calc(
+    var(--nid-type-display-serif-card-size) * var(--nid-tile-scale, 1)
+  );
+  --text-display-serif-card--line-height: calc(
+    var(--nid-type-display-serif-card-lh) * var(--nid-tile-scale, 1)
+  );
   --text-display-serif-card--letter-spacing: var(--nid-type-display-serif-card-tracking);
   --text-display-serif-card--font-weight: var(--nid-weight-serif-subhead);
 
   --text-display-quote: calc(var(--nid-type-display-quote-size) * var(--nid-tile-scale, 1));
-  --text-display-quote--line-height: calc(var(--nid-type-display-quote-lh) * var(--nid-tile-scale, 1));
+  --text-display-quote--line-height: calc(
+    var(--nid-type-display-quote-lh) * var(--nid-tile-scale, 1)
+  );
   --text-display-quote--letter-spacing: var(--nid-type-display-quote-tracking);
   --text-display-quote--font-weight: var(--nid-weight-serif-subhead);
 
@@ -219,7 +227,9 @@
      ramp still comes from one place. Below 1024 it rejoins Heading/1's
      values, so the scale never grows as the viewport shrinks. */
   --text-statement: calc(var(--nid-type-home-statement-size) * var(--nid-tile-scale, 1));
-  --text-statement--line-height: calc(var(--nid-type-home-statement-lh) * var(--nid-tile-scale, 1));
+  --text-statement--line-height: calc(
+    var(--nid-type-home-statement-lh) * var(--nid-tile-scale, 1)
+  );
   --text-statement--letter-spacing: var(--nid-type-home-statement-tracking);
   --text-statement--font-weight: var(--nid-weight-heavy);
 
@@ -249,7 +259,9 @@
   --text-h6--font-weight: var(--nid-weight-heavy);
 
   --text-overline: calc(var(--nid-type-label-overline-size) * var(--nid-tile-scale, 1));
-  --text-overline--line-height: calc(var(--nid-type-label-overline-lh) * var(--nid-tile-scale, 1));
+  --text-overline--line-height: calc(
+    var(--nid-type-label-overline-lh) * var(--nid-tile-scale, 1)
+  );
   --text-overline--letter-spacing: var(--nid-type-label-overline-tracking);
   --text-overline--font-weight: var(--nid-weight-heavy);
 
@@ -259,37 +271,53 @@
   --text-meta--font-weight: var(--nid-weight-demi);
 
   --text-label: calc(var(--nid-type-label-small-size) * var(--nid-tile-scale, 1));
-  --text-label--line-height: calc(var(--nid-type-label-small-lh) * var(--nid-tile-scale, 1));
+  --text-label--line-height: calc(
+    var(--nid-type-label-small-lh) * var(--nid-tile-scale, 1)
+  );
   --text-label--letter-spacing: var(--nid-type-label-small-tracking);
   --text-label--font-weight: var(--nid-weight-medium);
 
   --text-button: calc(var(--nid-type-label-button-size) * var(--nid-tile-scale, 1));
-  --text-button--line-height: calc(var(--nid-type-label-button-lh) * var(--nid-tile-scale, 1));
+  --text-button--line-height: calc(
+    var(--nid-type-label-button-lh) * var(--nid-tile-scale, 1)
+  );
   --text-button--letter-spacing: var(--nid-type-label-button-tracking);
   --text-button--font-weight: var(--nid-weight-bold);
 
   --text-micro: calc(var(--nid-type-label-micro-size) * var(--nid-tile-scale, 1));
-  --text-micro--line-height: calc(var(--nid-type-label-micro-lh) * var(--nid-tile-scale, 1));
+  --text-micro--line-height: calc(
+    var(--nid-type-label-micro-lh) * var(--nid-tile-scale, 1)
+  );
   --text-micro--letter-spacing: var(--nid-type-label-micro-tracking);
   --text-micro--font-weight: var(--nid-weight-medium);
 
   --text-body-lg: calc(var(--nid-type-body-large-regular-size) * var(--nid-tile-scale, 1));
-  --text-body-lg--line-height: calc(var(--nid-type-body-large-regular-lh) * var(--nid-tile-scale, 1));
+  --text-body-lg--line-height: calc(
+    var(--nid-type-body-large-regular-lh) * var(--nid-tile-scale, 1)
+  );
   --text-body-lg--letter-spacing: var(--nid-type-body-large-regular-tracking);
   --text-body-lg--font-weight: var(--nid-weight-body-light);
 
-  --text-body-lg-bold: calc(var(--nid-type-body-large-bold-size) * var(--nid-tile-scale, 1));
-  --text-body-lg-bold--line-height: calc(var(--nid-type-body-large-bold-lh) * var(--nid-tile-scale, 1));
+  --text-body-lg-bold: calc(
+    var(--nid-type-body-large-bold-size) * var(--nid-tile-scale, 1)
+  );
+  --text-body-lg-bold--line-height: calc(
+    var(--nid-type-body-large-bold-lh) * var(--nid-tile-scale, 1)
+  );
   --text-body-lg-bold--letter-spacing: var(--nid-type-body-large-bold-tracking);
   --text-body-lg-bold--font-weight: var(--nid-weight-body-semibold);
 
   --text-body: calc(var(--nid-type-body-base-regular-size) * var(--nid-tile-scale, 1));
-  --text-body--line-height: calc(var(--nid-type-body-base-regular-lh) * var(--nid-tile-scale, 1));
+  --text-body--line-height: calc(
+    var(--nid-type-body-base-regular-lh) * var(--nid-tile-scale, 1)
+  );
   --text-body--letter-spacing: var(--nid-type-body-base-regular-tracking);
   --text-body--font-weight: var(--nid-weight-body);
 
   --text-body-bold: calc(var(--nid-type-body-base-bold-size) * var(--nid-tile-scale, 1));
-  --text-body-bold--line-height: calc(var(--nid-type-body-base-bold-lh) * var(--nid-tile-scale, 1));
+  --text-body-bold--line-height: calc(
+    var(--nid-type-body-base-bold-lh) * var(--nid-tile-scale, 1)
+  );
   --text-body-bold--letter-spacing: var(--nid-type-body-base-bold-tracking);
   --text-body-bold--font-weight: var(--nid-weight-body-bold);
 
@@ -298,23 +326,39 @@
      fall back to the raw .nid-body-*-italic classes, which are unlayered
      and out-rank @layer utilities — a silent cascade trap the moment
      anything else on the same element used a text-* utility. */
-  --text-body-italic: calc(var(--nid-type-body-base-italic-size) * var(--nid-tile-scale, 1));
-  --text-body-italic--line-height: calc(var(--nid-type-body-base-italic-lh) * var(--nid-tile-scale, 1));
+  --text-body-italic: calc(
+    var(--nid-type-body-base-italic-size) * var(--nid-tile-scale, 1)
+  );
+  --text-body-italic--line-height: calc(
+    var(--nid-type-body-base-italic-lh) * var(--nid-tile-scale, 1)
+  );
   --text-body-italic--letter-spacing: var(--nid-type-body-base-italic-tracking);
   --text-body-italic--font-weight: var(--nid-weight-body);
 
-  --text-caption: calc(var(--nid-type-body-caption-regular-size) * var(--nid-tile-scale, 1));
-  --text-caption--line-height: calc(var(--nid-type-body-caption-regular-lh) * var(--nid-tile-scale, 1));
+  --text-caption: calc(
+    var(--nid-type-body-caption-regular-size) * var(--nid-tile-scale, 1)
+  );
+  --text-caption--line-height: calc(
+    var(--nid-type-body-caption-regular-lh) * var(--nid-tile-scale, 1)
+  );
   --text-caption--letter-spacing: var(--nid-type-body-caption-regular-tracking);
   --text-caption--font-weight: var(--nid-weight-body);
 
-  --text-caption-bold: calc(var(--nid-type-body-caption-bold-size) * var(--nid-tile-scale, 1));
-  --text-caption-bold--line-height: calc(var(--nid-type-body-caption-bold-lh) * var(--nid-tile-scale, 1));
+  --text-caption-bold: calc(
+    var(--nid-type-body-caption-bold-size) * var(--nid-tile-scale, 1)
+  );
+  --text-caption-bold--line-height: calc(
+    var(--nid-type-body-caption-bold-lh) * var(--nid-tile-scale, 1)
+  );
   --text-caption-bold--letter-spacing: var(--nid-type-body-caption-bold-tracking);
   --text-caption-bold--font-weight: var(--nid-weight-body-bold);
 
-  --text-caption-italic: calc(var(--nid-type-body-caption-italic-size) * var(--nid-tile-scale, 1));
-  --text-caption-italic--line-height: calc(var(--nid-type-body-caption-italic-lh) * var(--nid-tile-scale, 1));
+  --text-caption-italic: calc(
+    var(--nid-type-body-caption-italic-size) * var(--nid-tile-scale, 1)
+  );
+  --text-caption-italic--line-height: calc(
+    var(--nid-type-body-caption-italic-lh) * var(--nid-tile-scale, 1)
+  );
   --text-caption-italic--letter-spacing: var(--nid-type-body-caption-italic-tracking);
   --text-caption-italic--font-weight: var(--nid-weight-body);
 }
@@ -447,9 +491,7 @@
     0.85,
     tan(
       atan2(
-        calc(
-          100cqi - (var(--nid-grid-columns) - 1) * var(--nid-grid-column-gap)
-        ),
+        calc(100cqi - (var(--nid-grid-columns) - 1) * var(--nid-grid-column-gap)),
         var(--nid-grid-track-ref)
       )
     ),
@@ -515,5 +557,86 @@
   :focus-visible {
     outline: 2px solid var(--nid-accent-primary);
     outline-offset: 2px;
+  }
+}
+
+/* ---- the craft pattern's hover shimmer -------------------------------------
+   Each 81px sub-pattern of an animated field (PatternField1/2/3) is a real
+   element with the four Figma frames stacked inside it as <use>s. Hovering ONE
+   sub-pattern runs that one through its frames; its neighbours are untouched,
+   which is the whole point of drawing the units instead of filling a rect from
+   an SVG <pattern>.
+
+   Only frame 0 is painted at rest, so a field with no pointer on it looks
+   exactly as it did before this existed.
+
+   BOUNDED, not endless. The run is a fixed number of cycles and then the unit
+   returns to frame 0 and stays there, even if the pointer never leaves. Leaving
+   and re-entering starts a fresh run, because the declaration is re-applied.
+   Both numbers are custom properties — the duration is not settled, and this is
+   the one place to change it:
+
+     --nid-pattern-step    how long ONE frame is held
+     --nid-pattern-cycles  how many times the four frames run
+
+   The delays are POSITIVE, and that is load-bearing now that the count is
+   finite. With negative delays (which is how the endless version staggered the
+   frames) each frame reaches its last iteration at a different moment, so the
+   run ends raggedly: the later frames stop while frame 0 is still mid-cycle and
+   holding opacity 0, and the sub-pattern goes BLANK for the tail. With positive
+   delays every frame is simply unstarted until its turn — and unstarted means
+   the base rule below, which is already the correct resting state — and the run
+   ends on frame 0 with the stragglers all in their off windows.
+
+   No animation-fill-mode, for the same reason: `backwards` would apply each
+   frame's 0% (opaque) state before its turn came and show all four at once.
+
+   This is a pattern animation, so it is gated on prefers-reduced-motion
+   (CLAUDE.md § Icons and motion). It is not a hover TRANSFORM — nothing moves
+   or scales; which cells are painted, and in which accent, is what changes. */
+.nid-pattern-unit {
+  --nid-pattern-step: 380ms;
+  --nid-pattern-cycles: 10;
+}
+
+.nid-pattern-frame {
+  opacity: 0;
+}
+
+.nid-pattern-frame:first-of-type {
+  opacity: 1;
+}
+
+@keyframes nid-pattern-shimmer {
+  0%,
+  24.99% {
+    opacity: 1;
+  }
+  25%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nid-pattern-unit:hover .nid-pattern-frame,
+  .nid-pattern-unit--running .nid-pattern-frame {
+    animation: nid-pattern-shimmer calc(var(--nid-pattern-step) * 4) steps(1, end)
+      var(--nid-pattern-cycles);
+  }
+
+  .nid-pattern-unit:hover .nid-pattern-frame:nth-of-type(2),
+  .nid-pattern-unit--running .nid-pattern-frame:nth-of-type(2) {
+    animation-delay: var(--nid-pattern-step);
+  }
+
+  .nid-pattern-unit:hover .nid-pattern-frame:nth-of-type(3),
+  .nid-pattern-unit--running .nid-pattern-frame:nth-of-type(3) {
+    animation-delay: calc(var(--nid-pattern-step) * 2);
+  }
+
+  .nid-pattern-unit:hover .nid-pattern-frame:nth-of-type(4),
+  .nid-pattern-unit--running .nid-pattern-frame:nth-of-type(4) {
+    animation-delay: calc(var(--nid-pattern-step) * 3);
   }
 }

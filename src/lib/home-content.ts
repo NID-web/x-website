@@ -90,6 +90,11 @@ export type HomeTile =
        *  the design, but the two scatters differ — Pride's is denser and on a
        *  different three colours. */
       bed?: "alumni" | "pride";
+      /** Where the tile goes. With one set the name becomes the link, the whole
+       *  tile becomes its target, and the visit arrow appears on hover. Without
+       *  one the tile is a static portrait — an arrow promising a destination
+       *  there is not one is worse than no arrow. */
+      href?: string;
     })
   | (Base & { kind: "pattern"; seed?: number })
   | (Base & {
@@ -201,6 +206,9 @@ export const HOME_TILES: HomeTile[] = [
     nameKey: "alumni.name",
     bioKey: "alumni.bio",
     bed: "alumni",
+    // The overline names the destination: /people/alumni is "Notable Alumni" in
+    // sitemap.json and in the main menu.
+    href: "/people/alumni",
   },
   // ── row 3 ──────────────────────────────────────────────────────────────
   { id: "pattern-3", kind: "pattern", seed: 3 },
