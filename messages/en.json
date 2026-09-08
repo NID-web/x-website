@@ -5,6 +5,10 @@
   },
   "Home": {
     "statement": "Curiosity. Craft. Purpose. Design that shapes tomorrow.",
+    "video": {
+      "play": "Play video: {title}",
+      "pause": "Pause video: {title}"
+    },
     "cta": {
       "allNews": "All news",
       "allEvents": "All events",

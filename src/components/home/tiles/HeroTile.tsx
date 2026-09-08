@@ -1,5 +1,7 @@
+import { getTranslations } from "next-intl/server";
 import { Tile } from "@/components/home/Tile";
 import { TileImage } from "@/components/home/TileImage";
+import { VideoPlayer } from "@/components/home/VideoPlayer";
 import type { HomeTile } from "@/lib/home-content";
 
 type HeroTileData = Extract<HomeTile, { kind: "hero" }>;
@@ -18,7 +20,23 @@ type HeroTileData = Extract<HomeTile, { kind: "hero" }>;
 //               its square neighbours in row 1 set.
 // It never needs a min-height: one of the three always gives it one. Above the
 // fold, so the image is eager.
-export function HeroTile({ tile }: { tile: HeroTileData }) {
+//
+// With `video` set the image becomes the poster of a VideoPlayer and nothing
+// else changes — the Tile, its span and all three shapes are untouched. This
+// reads its own copy rather than taking `t` from HomeGrid: it is the only tile
+// with a string of its own, and a prop for it would have to be threaded through
+// the renderer for one caller.
+export async function HeroTile({ tile }: { tile: HeroTileData }) {
+  const t = await getTranslations("Home");
+  const poster = (
+    <TileImage
+      media={tile.media}
+      className="relative h-full w-full"
+      sizes="(min-width: 1280px) 48vw, (min-width: 1024px) 64vw, 96vw"
+      priority
+    />
+  );
+
   return (
     <Tile
       as="figure"
@@ -29,12 +47,17 @@ export function HeroTile({ tile }: { tile: HeroTileData }) {
       padding={false}
       radius={false}
     >
-      <TileImage
-        media={tile.media}
-        className="relative h-full w-full"
-        sizes="(min-width: 1280px) 48vw, (min-width: 1024px) 64vw, 96vw"
-        priority
-      />
+      {tile.video ? (
+        <VideoPlayer
+          video={tile.video}
+          playLabel={t("video.play", { title: tile.video.title })}
+          pauseLabel={t("video.pause", { title: tile.video.title })}
+        >
+          {poster}
+        </VideoPlayer>
+      ) : (
+        poster
+      )}
     </Tile>
   );
 }

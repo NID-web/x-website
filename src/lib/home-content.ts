@@ -56,9 +56,19 @@ interface Base {
   id: string;
 }
 
+/** A video a tile plays in place, with its poster as the rest state. `title` is
+ *  the provider's own title — it names the iframe and the play button. `start`
+ *  is a cue point in seconds; leave it unset to begin at 0. */
+export interface HomeVideo {
+  provider: "youtube";
+  id: string;
+  title: string;
+  start?: number;
+}
+
 export type HomeTile =
   | (Base & { kind: "statement"; textKey: CopyKey })
-  | (Base & { kind: "hero"; media: MediaAsset })
+  | (Base & { kind: "hero"; media: MediaAsset; video?: HomeVideo })
   | (Base & {
       kind: "linkList";
       headingKey?: CopyKey;
@@ -119,6 +129,11 @@ export const HOME_TILES: HomeTile[] = [
     id: "hero",
     kind: "hero",
     media: img("hero-forest.jpg", "Sunlight through trees at an NID campus.", 1400, 660),
+    video: {
+      provider: "youtube",
+      id: "cOgfk1jU34M",
+      title: "NID FILM | Introduction film about National Institute of Design, Ahmedabad",
+    },
   },
   {
     id: "study",
