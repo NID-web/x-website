@@ -18,11 +18,11 @@ const ARCHES: ArchSide[] = ["top", "left", "right"];
 //
 // The section is a subgrid so its links can be its utility slot: last in source
 // order, pinned to the title row's last column at 4 columns and to column 2 of
-// the first free row beneath at 3 (GridItem `place`, STAGE-0-NOTES §36, §41),
+// the first free row beneath at 3 (GridItem `place`, STAGE-0-NOTES §37, §42),
 // and simply last below that, which is where the 768 and
 // 390 boards draw them. On the About board the student-awards links sit inside
 // a pattern tile (4912:367990), whose pattern rows used to be dropped below 4
-// columns and are now drawn at every width (§37).
+// columns and are now drawn at every width (§38).
 export function CardsSection({
   section,
   lead: leadVariant = "wide",

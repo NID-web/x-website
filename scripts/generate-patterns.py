@@ -85,7 +85,7 @@ def main():
     # expressed as a viewBox so the whole composition scales with the tile. It
     # used to be a <pattern> on a bare <svg>: no viewBox meant one user unit =
     # one CSS px, so a wider tile revealed MORE units and a narrower one cropped
-    # them, which is not what the design does (docs/STAGE-0-NOTES.md §40).
+    # them, which is not what the design does (docs/STAGE-0-NOTES.md §41).
 
     for field in data["fields"]:
         label = field["label"]
@@ -155,7 +155,7 @@ export function {label}({{ className }}: PatternFieldProps) {{
 // tile: 4x4 for a full-tile field, 2x2 for the alumni bed, which is half a tile
 // wide. A field without that viewBox is fluid instead: one user unit reads as
 // one CSS px, a wider tile shows more units and a narrower one crops them,
-// which is not what the boards draw (docs/STAGE-0-NOTES.md §40).
+// which is not what the boards draw (docs/STAGE-0-NOTES.md §41).
 //
 // Scatter fields (PatternScatter*) are the exception: loose cells with no
 // repeating unit, emitted at their design size.

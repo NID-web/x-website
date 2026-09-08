@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { GridItem } from "@/components/layout/GridItem";
 import { TileImage } from "@/components/home/TileImage";
+import { BackNav } from "@/components/spine/BackNav";
 import { BrandStrip } from "@/components/spine/BrandStrip";
 import { Footer } from "@/components/spine/Footer";
 import { Separator } from "@/components/spine/Separator";
@@ -44,6 +45,8 @@ export default async function AboutPage() {
       <PageGrid>
         <Title variant="page">{page.title}</Title>
 
+        <BackNav />
+
         {derived.subPageLinks.length > 0 && (
           <GridItem span="full-then-1" start={1} as="nav" aria-label={t("subPages")}>
             <LinkStack links={derived.subPageLinks} twoUp="tablet-only" />
@@ -72,7 +75,7 @@ export default async function AboutPage() {
           // Column 4 beside the intro at 4 columns (auto — the standfirst has
           // taken 2 and 3). At 3 columns the standfirst fills the row, so this
           // wraps; `2-laptop` keeps it under the intro rather than dropping
-          // into the rail (docs/STAGE-0-NOTES.md §36).
+          // into the rail (docs/STAGE-0-NOTES.md §37).
           <GridItem span={1} start="2-laptop">
             <ContactList contacts={page.contacts} />
           </GridItem>

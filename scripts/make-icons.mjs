@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Regenerates the two RASTER favicons from src/app/icon.svg, which is the
-// source of record (docs/STAGE-0-NOTES.md §35). Edit the SVG, then run
+// source of record (docs/STAGE-0-NOTES.md §36). Edit the SVG, then run
 // `npm run generate:icons` — nothing else checks that the three files agree.
 //
 //   src/app/favicon.ico    16 + 32 + 48, PNG payloads, for /favicon.ico

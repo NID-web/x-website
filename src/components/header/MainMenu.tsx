@@ -24,7 +24,7 @@ import { MENU_SECTIONS, type NavSection } from "@/lib/nav-content";
 // Each sub-menu is a disclosure COLLAPSED by default. The section header is a
 // <button aria-expanded>, NOT a link — only the nested page links navigate
 // (§7.4 / §13) — EXCEPT where the section has its own landing page, which for
-// now is About NID alone (`NavSection.href`, STAGE-0-NOTES §33): there the
+// now is About NID alone (`NavSection.href`, STAGE-0-NOTES §34): there the
 // title navigates and the glyph alone toggles. Expand/collapse is INSTANT — no
 // height animation. Nothing here is underlined in any state, and hover is a
 // colour change only.
@@ -57,7 +57,7 @@ function Section({
     <div className="flex flex-col">
       {/* Menu Title. §7.4 says a title is NOT a link, and eight of the nine
           still aren't. About NID is the exception the design owner asked for
-          (STAGE-0-NOTES §33): where a section has a landing page the row splits
+          (STAGE-0-NOTES §34): where a section has a landing page the row splits
           — the title navigates, and the plus/minus alone works the disclosure.
           Splitting also lets the glyph be a real IconButton; in the single-
           control form it has to stay a <span>, since a <button> cannot nest.

@@ -65,7 +65,7 @@ const START = {
 //
 // At 3 columns it is column 2, the start of the content field, for every
 // section — the link sits under the cards it belongs to rather than alone in
-// the rail (design owner's call, docs/STAGE-0-NOTES.md §36, §41).
+// the rail (design owner's call, docs/STAGE-0-NOTES.md §37, §42).
 //
 // Which ROW that is is left to auto-placement, and that is what lets one rule
 // serve sections whose second row differs. Student Awards' two cards both fit
@@ -85,7 +85,7 @@ const START = {
 //   rail          → column 1 of a section's second row, for the decorative tile
 //                   that sits under a section title. Desktop only, like the
 //                   tile: below that the rail stays empty and the cards keep to
-//                   the content field (§36).
+//                   the content field (§37).
 const PLACE = {
   utility: "laptop:col-start-2 desktop:-col-start-2 desktop:row-start-1",
   "page-utility": "laptop:-col-start-2 laptop:row-start-1",

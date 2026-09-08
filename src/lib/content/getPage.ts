@@ -5,10 +5,12 @@
 import type { PageResponse } from "@/lib/content-model";
 import { ABOUT } from "@/lib/content/fixtures/about";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
+import { OUR_THEMES } from "@/lib/content/fixtures/our-themes";
 
 const FIXTURES: Record<string, PageResponse> = {
   "/about": ABOUT,
   "/about/news-events": NEWS_EVENTS,
+  "/about/our-themes": OUR_THEMES,
 };
 
 export async function getPage(path: string): Promise<PageResponse | null> {

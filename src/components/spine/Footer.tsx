@@ -64,11 +64,13 @@ export async function Footer({
   const fullRow = collaborations === "row";
   return (
     <>
-      <GridItem span={1} as="nav">
+      {/* Two link landmarks in the same footer need distinguishing names, or a
+          screen reader offers "navigation" twice with nothing to choose by. */}
+      <GridItem span={1} as="nav" aria-label={t("primaryNav")}>
         <LinkColumn links={FOOTER.primaryLinks} t={t} />
       </GridItem>
 
-      <GridItem span={1} as="nav">
+      <GridItem span={1} as="nav" aria-label={t("secondaryNav")}>
         <LinkColumn links={FOOTER.secondaryLinks} t={t} weight="medium" />
       </GridItem>
 

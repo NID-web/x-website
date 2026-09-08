@@ -107,7 +107,9 @@
     "terms": "Terms & Conditions",
     "sitemap": "Sitemap",
     "contact": "Contact",
-    "collaborations": "Collaborations"
+    "collaborations": "Collaborations",
+    "primaryNav": "Services and opportunities",
+    "secondaryNav": "Policies and site information"
   },
   "Page": {
     "subPages": "In this section",
@@ -116,5 +118,17 @@
   },
   "Cards": {
     "latest": "Latest"
+  },
+  "OurThemes": {
+    "peacock": "India's national bird gives this theme its iridescent blue-green. The peacock's train shifts colour as it turns, never settling on one hue — the same quality the palette borrows. It carries the calm of deep teal with sudden brightness at the edges, and anchors the system as its default voice.",
+    "lotus": "The lotus rises through still water and opens clean above it — a figure for clarity that Indian art has returned to for centuries. Its palette runs from pale petal pink to a deep plum heart, warm where Peacock is cool, and held for moments the system wants to feel ceremonial.",
+    "indigo": "Few colours have travelled further. Indigo dye, grown and fermented across the subcontinent, coloured cloth from Gujarat to Bengal and gave the world a word for deep blue. The theme keeps that density — a blue that reads almost black in shadow and holds its saturation in full light.",
+    "henna": "Henna stains rather than covers. Applied as a green paste, it darkens over hours into red-brown, deepest where the skin is warmest, so no two hands take it quite the same way. The palette follows that range, from olive through rust, carrying the warmth of something applied by hand.",
+    "yoga": "The quietest theme in the set. Its palette withdraws to ash, bone and soft graphite, holding almost no hue at all — built for reading, for long documents, for pages where the content should carry the whole weight. Where the other themes assert themselves, this one gets out of the way.",
+    "tanjore": "Tanjore painting layers gesso, colour and gold leaf until the surface stands slightly proud of the board. The gold is the point: it catches light and moves as the viewer moves. This palette takes that lit warmth — ochre, deep red, and a gold that reads richer against dark ground.",
+    "khadi": "Khadi is handspun, handwoven and deliberately undyed. Its colour is the colour of the fibre itself — cream, oat, the faint unevenness of thread that machine cloth removes. The palette keeps that restraint, and is the closest this system comes to a neutral that still carries a history.",
+    "terracotta": "Fired earth, and one of the oldest made colours anywhere. From Harappan pottery to the votive horses of Tamil Nadu, terracotta holds the same warm orange-red wherever the clay is dug. The palette is grounded and matte, with none of Tanjore's shine — closer to soil than to gold.",
+    "ikkat": "Ikkat is dyed before it is woven. Threads are bound and coloured to a plan, then set on the loom, and the small inevitable drift produces the feathered edge the technique is known for. The palette borrows that softness — colours that meet without a hard line between them.",
+    "tiger": "Amber and black, and very little in between. The tiger's coat works by contrast rather than blend — every stripe an edge. This is the boldest theme in the set, its darks pushed close to true black so the amber reads at full strength. Used sparingly, it carries real force."
   }
 }

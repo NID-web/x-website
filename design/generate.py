@@ -363,7 +363,24 @@ w("/* ==========================================================================
 w("   Layer 2 — semantic tokens. Identical in every theme; only the")
 w("   appearance axis changes which primitive step each one points at.")
 w("   ========================================================================== */")
-for appearance, sel in (("light", ':root, [data-appearance="light"]'), ("dark", '[data-appearance="dark"]')):
+# A scoped theme needs the semantic layer re-declared on the element that sets
+# it. Layer 1 is keyed by [data-theme] and layer 2 by [data-appearance], so
+# `data-theme` alone gives an element its own primitives while --nid-<semantic>
+# keeps the ancestor's already-resolved colour: the card re-themes nothing. The
+# descendant selector below re-runs layer 2 on any scoped element, against its
+# own primitives, in the ancestor's appearance.
+#
+# `:not([data-appearance])` is load-bearing. Without it the descendant selector
+# (0,2,0) outranks a plain [data-appearance="dark"] (0,1,0), so a swatch panel
+# that sets BOTH attributes inside a light page would take the light block.
+# Excluding self-declaring elements leaves them to their own rule and lets the
+# two compose: a data-theme-only card inside a data-appearance panel follows the
+# panel.
+SCOPED = ' [data-theme]:not([data-appearance])'
+for appearance, sel in (
+    ("light", ':root,\n[data-appearance="light"],\n[data-appearance="light"]' + SCOPED),
+    ("dark", '[data-appearance="dark"],\n[data-appearance="dark"]' + SCOPED),
+):
     w("")
     w("%s {" % sel)
     group = None
@@ -377,7 +394,8 @@ for appearance, sel in (("light", ':root, [data-appearance="light"]'), ("dark", 
     w("}")
 w("")
 w('@media (prefers-color-scheme: dark) {')
-w('  :root:not([data-appearance]) {')
+w('  :root:not([data-appearance]),')
+w('  :root:not([data-appearance])%s {' % SCOPED)
 for tok in sem_order:
     w("    --nid-%s: var(--nid-%s);" % (slug(tok), slug(resolved[tok]["dark"])))
 w("  }")

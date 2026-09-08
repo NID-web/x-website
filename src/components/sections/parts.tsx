@@ -7,7 +7,7 @@ import { ctaProps } from "@/lib/content/links";
 
 // Column 1 is the label rail the whole page long, so a card or link that opens
 // a row of the content field has to name column 2 — flow alone would drop it
-// into the rail wherever column 1 happens to be free (§36). The content field
+// into the rail wherever column 1 happens to be free (§37). The content field
 // is 2 wide at 3 columns and 3 wide at 4.
 
 /** Cells that begin on the section's TITLE row: column 1 already holds the

@@ -76,54 +76,26 @@ export function ImagePlaceholder({ alt, className }: { alt: string; className?: 
   );
 }
 
-// The seven-stop accent gradient at 20%, cut to one of two shapes: the right
-// triangle that washes the Study tile (`wash`, 330 square) and the equilateral
-// one behind the page title (`polygon`, 173 × 150 — the "Polygon 1" vector in
-// 4932:576887). Same stops, same opacity; only the outline and the gradient's
-// span differ, so one component with a shape rather than two.
-const WASH_SHAPE = {
-  wash: {
-    id: "nid-study-wash",
-    viewBox: "0 0 330 330",
-    path: "M330 0H0L330 330V0Z",
-    line: { x1: 0, y1: 165, x2: 325.315, y2: 204.038 },
-  },
-  polygon: {
-    id: "nid-title-polygon",
-    viewBox: "0 0 173.205 150",
-    path: "M86.6025 0L173.205 150H0L86.6025 0Z",
-    line: { x1: 0, y1: 75, x2: 169.942, y2: 98.5479 },
-  },
-  // 4932:576889, the secondary-page title wash. Figma draws `wash`'s outline at
-  // 150 and rotates the layer 180°; the rotation is baked into the path and the
-  // gradient line here (both reflected through the centre) rather than carried
-  // as a transform, so the shape reads the same way the other two do.
-  corner: {
-    id: "nid-title-corner",
-    viewBox: "0 0 150 150",
-    path: "M0 150H150L0 0Z",
-    line: { x1: 150, y1: 75, x2: 2.129, y2: 57.2555 },
-  },
+// The seven-stop accent gradient at 20%, cut to the right triangle that washes
+// the Study tile (330 square). It used to take a `shape`, because the same
+// gradient also backed the page titles as an equilateral polygon (4932:576887)
+// and a corner triangle (4932:576889); both were removed on the design owner's
+// call and the Study tile is the only caller left, so the shape is inlined.
+const WASH = {
+  id: "nid-study-wash",
+  viewBox: "0 0 330 330",
+  path: "M330 0H0L330 330V0Z",
+  line: { x1: 0, y1: 165, x2: 325.315, y2: 204.038 },
 } as const;
 
-export function GradientWash({
-  shape = "wash",
-  className,
-}: {
-  shape?: keyof typeof WASH_SHAPE;
-  className?: string;
-}) {
-  const { id, viewBox, path, line } = WASH_SHAPE[shape];
+export function GradientWash({ className }: { className?: string }) {
+  const { id, viewBox, path, line } = WASH;
   return (
     <svg
       aria-hidden="true"
       viewBox={viewBox}
-      preserveAspectRatio={shape === "wash" ? "none" : "xMinYMin meet"}
-      className={clsx(
-        "pointer-events-none",
-        shape === "wash" && "absolute inset-0 size-full",
-        className,
-      )}
+      preserveAspectRatio="none"
+      className={clsx("pointer-events-none absolute inset-0 size-full", className)}
     >
       <defs>
         <linearGradient id={id} gradientUnits="userSpaceOnUse" {...line}>

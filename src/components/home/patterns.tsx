@@ -8,7 +8,7 @@
 // tile: 4x4 for a full-tile field, 2x2 for the alumni bed, which is half a tile
 // wide. A field without that viewBox is fluid instead: one user unit reads as
 // one CSS px, a wider tile shows more units and a narrower one crops them,
-// which is not what the boards draw (docs/STAGE-0-NOTES.md §40).
+// which is not what the boards draw (docs/STAGE-0-NOTES.md §41).
 //
 // Scatter fields (PatternScatter*) are the exception: loose cells with no
 // repeating unit, emitted at their design size.

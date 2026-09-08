@@ -29,6 +29,7 @@ const PAGES = [
   { name: "home", path: "/en" },
   { name: "about", path: "/en/about" },
   { name: "news-events", path: "/en/about/news-events" },
+  { name: "our-themes", path: "/en/about/our-themes" },
 ];
 
 function startServer() {

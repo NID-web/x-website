@@ -255,6 +255,72 @@ async function main() {
       check("found peacock/light and tanjore/light panels to compare", false);
     }
 
+    // ---- data-theme WITHOUT data-appearance ----
+    // Layer 1 is keyed by [data-theme] and layer 2 by [data-appearance], so a
+    // card that sets only the theme used to keep the ancestor's ALREADY
+    // RESOLVED semantic colours — its own primitives were live but nothing
+    // read them. themes.css now re-declares layer 2 for scoped descendants, so
+    // `data-theme` alone means "this theme, the page's appearance". The Our
+    // Themes cards depend on it: appearance is the visitor's and is not known
+    // at build time (docs/STAGE-0-NOTES.md §41).
+    const scoped = await page.evaluate(() => {
+      const read = (el) => {
+        const cs = getComputedStyle(el);
+        const hex = (name) => cs.getPropertyValue(name).trim().toUpperCase();
+        return {
+          surfaceRaised: hex("--nid-surface-raised"),
+          textPrimary: hex("--nid-text-primary"),
+        };
+      };
+      const probe = (appearance, attrs) => {
+        const prev = document.documentElement.getAttribute("data-appearance");
+        document.documentElement.setAttribute("data-appearance", appearance);
+        const el = document.createElement("div");
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        document.body.appendChild(el);
+        const out = read(el);
+        el.remove();
+        if (prev === null) document.documentElement.removeAttribute("data-appearance");
+        else document.documentElement.setAttribute("data-appearance", prev);
+        return out;
+      };
+      return {
+        themeOnlyLight: probe("light", { "data-theme": "tanjore" }),
+        themeOnlyDark: probe("dark", { "data-theme": "tanjore" }),
+        bothLight: probe("dark", { "data-theme": "tanjore", "data-appearance": "light" }),
+        bothDark: probe("light", { "data-theme": "tanjore", "data-appearance": "dark" }),
+      };
+    });
+    const tanjore = tokens.semantic.byThemeAndAppearance.Tanjore;
+    for (const [label, got, want] of [
+      ["light page", scoped.themeOnlyLight, tanjore.light],
+      ["dark page", scoped.themeOnlyDark, tanjore.dark],
+    ]) {
+      check(
+        `data-theme only, inside a ${label}: surface/raised is Tanjore's for that appearance`,
+        got.surfaceRaised === want["surface/raised"].toUpperCase(),
+        `${got.surfaceRaised} vs ${want["surface/raised"]}`,
+      );
+      check(
+        `data-theme only, inside a ${label}: text/primary is Tanjore's for that appearance`,
+        got.textPrimary === want["text/primary"].toUpperCase(),
+        `${got.textPrimary} vs ${want["text/primary"]}`,
+      );
+    }
+    // An element that declares BOTH still wins over the page, which is what
+    // /swatch and the theme menu rely on — and is why the descendant rule
+    // excludes self-declaring elements.
+    for (const [label, got, want] of [
+      ["light-in-dark", scoped.bothLight, tanjore.light],
+      ["dark-in-light", scoped.bothDark, tanjore.dark],
+    ]) {
+      check(
+        `data-theme + data-appearance (${label}) still overrides the page`,
+        got.surfaceRaised === want["surface/raised"].toUpperCase(),
+        `${got.surfaceRaised} vs ${want["surface/raised"]}`,
+      );
+    }
+
     // ---- grid + type assertions across the four breakpoints ----
     for (const bp of BREAKPOINTS) {
       await page.setViewportSize({ width: bp.width, height: bp.height });

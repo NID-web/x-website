@@ -39,11 +39,24 @@ during this client component's server render, so that has to happen in a `useEff
 and `setTheme`/`setAppearance` write the attribute, `localStorage`, and a cookie for a
 future SSR pass to read.
 
-**Scoped themes work for free.** Because primitives are declared on
-`[data-theme="…"]` (not just `:root`), putting `data-theme="tanjore"` on any element
-re-themes everything inside it independently of the page's own theme — this is how the
-20 panels on `/swatch` show every theme×appearance combination at once, and how a future
-"Our Themes" page's theme cards will work.
+**Scoped themes.** Layer 1 is keyed by `[data-theme]` and layer 2 by
+`[data-appearance]`, so `data-theme` on its own used to give an element its own primitives
+while every `--nid-<semantic>` kept the ancestor's already-resolved colour — the element
+re-themed nothing. `themes.css` now re-declares layer 2 for a scoped descendant that does
+not set its own appearance:
+
+```css
+[data-appearance="dark"],
+[data-appearance="dark"] [data-theme]:not([data-appearance]) { … }
+```
+
+So there are two ways to scope, and they mean different things. **`data-theme` alone** =
+*this theme, the visitor's appearance* — what the Our Themes cards need, since appearance
+is a runtime choice a static page cannot know. **Both attributes** = *this exact
+theme×appearance*, which is how the 20 panels on `/swatch` show every combination at once
+and how the theme menu draws each row's motif. The `:not([data-appearance])` is what keeps
+the two apart: without it the descendant selector would outrank a self-declaring element's
+own rule and a swatch panel would follow the page instead of itself.
 
 ### Adding a theme
 
@@ -116,7 +129,7 @@ link stack, every section title); `"hero"` is the page hero — full row, then t
 columns, then three of four. A `start` prop names a column where flow alone would put a
 cell in the wrong one: `1` opens row 2 after the page title, `2` keeps the intro in the
 content field when the rail cell is empty, and `"2-laptop"` / `"2-desktop"` keep a wrapping
-card out of the rail (`docs/STAGE-0-NOTES.md` §20, §22, §32). Column counts, margins, and gaps come entirely from the
+card out of the rail (`docs/STAGE-0-NOTES.md` §20, §22, §33). Column counts, margins, and gaps come entirely from the
 `--nid-grid-*` custom properties, which change at the four breakpoints — `tablet` **668** ·
 `laptop` 1024 · `desktop` 1280. A range's *start* is not its *artboard width*: `tablet`
 begins at 668 and is drawn at 768, exactly as `desktop` begins at 1280 and is drawn at
@@ -141,12 +154,12 @@ npx tsc --noEmit          # strict, noUncheckedIndexedAccess
 npm run lint              # eslint + the no-literal-hex and no-fixture-import rules
 npm run build              # [locale] routes must be ○/● (static), never ƒ (dynamic)
 npm run verify:parity     # design/tokens/* byte-matches its src/ copy — fast, no browser
-npm run verify:tokens     # 621 assertions: 540 semantic + scoped-theme + grid + type,
+npm run verify:tokens     # 627 assertions: 540 semantic + scoped-theme + grid + type,
                           #   in a real (Playwright) browser against a production build
                           #   (runs verify:parity first and fails fast if that drifts)
 npm run verify:fonts      # confirms every font family (Typekit + the body face) loaded
 npm run verify:design     # re-checks design/tokens/ itself (python3 design/verify.py)
-npm run screenshot        # docs/screenshots/{swatch,home,about,news-events}-{1440,1024,768,390}.png
+npm run screenshot        # docs/screenshots/{swatch,home,about,news-events,our-themes}-{1440,1024,768,390}.png
 ```
 
 Run `verify:tokens` before committing anything that touches `themes.css`, `globals.css`,

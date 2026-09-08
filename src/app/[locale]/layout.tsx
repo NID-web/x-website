@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Header } from "@/components/header/Header";
+import { NavTrail } from "@/components/spine/NavTrail";
 import { HeadShell } from "../head-shell";
 import "../globals.css";
 
@@ -38,6 +39,10 @@ export default async function LocaleLayout({
       <body>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
+            {/* Records the route on EVERY page so the next page's BackNav can
+                name this one — including pages that show no back link
+                themselves (src/lib/nav-trail.ts). */}
+            <NavTrail />
             <Header />
             {children}
           </ThemeProvider>

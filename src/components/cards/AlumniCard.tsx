@@ -12,7 +12,7 @@ import type { Page } from "@/lib/content-model";
 // 390 boards draw (4296:269589) — a 144px luminosity-blended portrait, no bed,
 // no scatter, no rule, unclamped bio. That made the same tile read as two
 // different things either side of 1280; it is one tile, so it is one shape
-// (docs/STAGE-0-NOTES.md §38).
+// (docs/STAGE-0-NOTES.md §39).
 //
 // The item is a Page until the cards union carries Person: title is the name,
 // intro the bio, hero[0] the portrait.

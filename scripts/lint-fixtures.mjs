@@ -2,7 +2,7 @@
 // Fails on any import of a content fixture from outside src/lib/content/.
 // getPage() is the one seam between the front end and its content; a component
 // that reaches past it into a fixture keeps working right up until the API
-// replaces the fixture, and then breaks silently (docs/STAGE-0-NOTES.md §32).
+// replaces the fixture, and then breaks silently (docs/STAGE-0-NOTES.md §33).
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

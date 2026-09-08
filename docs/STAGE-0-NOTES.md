@@ -1258,7 +1258,7 @@ size. The script now reads that file and still maps hexes to semantic accent tok
 If a pattern changes in Figma, the path is now: read the tile with the Figma MCP, update the
 JSON, `npm run generate:patterns`. Not: edit `patterns.tsx`.
 
-## 31. The overline rule was never the wrong colour — it was held at 45%
+## 32. The overline rule was never the wrong colour — it was held at 45%
 
 The gradient hairline beside every tile overline (ACADEMIC CALENDAR, NEWS & EVENTS, …) now
 goes to full strength while its tile is hovered.
@@ -1308,7 +1308,7 @@ The lesson worth keeping: **when a colour looks wrong, check what is multiplying
 changing what it is.** Opacity, blend modes and a scrim all present as "the wrong hue", and
 the token was innocent here.
 
-## 32. About NID is the first page through the content model
+## 33. About NID is the first page through the content model
 
 `/en/about` (Figma `3754:240099`; 1024 `4296:269561`, 768 `4334:185219`, 390
 `4175:246865`) is built from a `PageResponse`, not a bespoke tile list like Home. What
@@ -1360,7 +1360,7 @@ Each is a base utility plus breakpoint-scoped overrides, never two unscoped util
 one family (§20). `Tile.square` gained `"tablet"` and `"desktop"` ranges: the news cards
 are squares from 2 columns up and 72px list rows on the phone; the alumni card was the
 square from the 1440 board at 4 columns and the design's `Person` component (portrait over
-name and bio, natural height) below — **superseded by §38**, which makes it one square at
+name and bio, natural height) below — **superseded by §39**, which makes it one square at
 every width and drops its `"desktop"` range entirely.
 
 ### Separators are drawn at 2 columns
@@ -1427,7 +1427,7 @@ is 24 + 24 + 24.
 - **The news list row on the phone** measures 73px against the board's 72: the 1px rule is
   under the 72px thumbnail rather than inside it.
 
-## 33. The main menu is a drawer, and one of its nine titles is a link
+## 34. The main menu is a drawer, and one of its nine titles is a link
 
 Two corrections to the primary menu (`src/components/header/MainMenu.tsx`), both against
 `NID-CONTEXT.md` §7.4.
@@ -1486,7 +1486,7 @@ Geometry is identical either way (the link measures 24 tall inside the same 40 r
 Programmes still starts at y=128). Nothing is underlined in either form. Add an `href` per
 section as the remaining landing pages are built.
 
-## 34. The home page moved to `/`; it was at `/home` and the wordmark never reached it
+## 35. The home page moved to `/`; it was at `/home` and the wordmark never reached it
 
 The header wordmark has always linked to `/` (§7.3 — the mark is the home link). `/` held
 the Stage-0 placeholder — "foundations only", plus a link to the swatch — and the tile grid
@@ -1511,7 +1511,7 @@ One consumer needed updating: `scripts/screenshot.mjs` shot `/en/home`, now `/en
 Watch for a stale `.next/types/validator.ts` after deleting a route: `npx tsc --noEmit`
 fails on the removed module until a build regenerates it. Build first, then typecheck.
 
-## 35. The favicon was still Vercel's; it is now the NID monogram
+## 36. The favicon was still Vercel's; it is now the NID monogram
 
 `src/app/favicon.ico` was the 25KB Next scaffold icon from `create-next-app`, untouched
 since 21 Aug. Replaced with the NID monogram — the **first three paths** of the bilingual
@@ -1553,7 +1553,7 @@ editing the SVG — nothing checks that the three files agree.
 `public/index.html` (the Pages redirect stub, §13) also got the icon, relatively — without
 it the stub flashes the browser default on the way to `/en/`.
 
-## 36. Two CTAs dropped into the rail at 3 columns; they belong in column 2
+## 37. Two CTAs dropped into the rail at 3 columns; they belong in column 2
 
 At 1024 (3 columns) "Read full mandate" and "Visit Student Awards Gallery" both landed in
 column 1, the rail, on an otherwise empty row — each stranded away from the content it
@@ -1586,7 +1586,7 @@ Measured at all five widths after the change — 1440 and 1280 byte-identical to
 (x=1086 / x=966, column 4), 768 and 390 unchanged, and at 1024 the two moved from x=24 to
 x=357 while "All News & Events" stayed at x=24.
 
-## 37. The Student Awards pattern was desktop-only, and §36 removed its reason
+## 38. The Student Awards pattern was desktop-only, and §37 removed its reason
 
 `PatternTile`'s `cta` form — a band of the craft field above and below a centred link
 (About's "Just a tile" 4912:367990) — drew both bands `hidden … desktop:block`. Below 4
@@ -1594,7 +1594,7 @@ columns the tile was its link and nothing else, which is what the 1024 / 768 / 3
 show: there the link sits in the **rail**, and a decorative band across a rail cell is
 noise, so the boards drop it.
 
-§36 moved that link out of the rail. At 3 columns it now sits in column 2, in the content
+§37 moved that link out of the rail. At 3 columns it now sits in column 2, in the content
 field, where the thing is a tile again — so the bands are drawn at every width. Only the
 `aspect-square` proportion stays desktop-only: a square across a 768 half-row or the whole
 of a 390 is a hole, not a tile. Below 4 columns the tile is just as tall as its three rows
@@ -1604,7 +1604,7 @@ Scope is exactly one tile. `PatternTile` without `cta` — Home's tiles and the 
 tile — takes a different branch and is untouched; About's student-awards link is the only
 `cta` caller in the codebase.
 
-## 38. The alumni card was two tiles pretending to be one
+## 39. The alumni card was two tiles pretending to be one
 
 `AlumniCard` branched at 1280. At 4 columns it drew the board's square (4683:397311) — the
 craft bed, the bandhani scatter, the portrait in the scatter, name / three-line bio /
@@ -1634,7 +1634,7 @@ The `sizes` hint changed with the geometry — the portrait is four fifths of ha
 so ~132px at 1440, ~124 at 1024, ~140 at 768, ~143 at 390: `(min-width: 668px) 160px,
 40vw`, one fixed hint above the phone and a viewport fraction on it.
 
-## 39. News & Events is the first secondary page, and the template for ~100 more
+## 40. News & Events is the first secondary page, and the template for ~100 more
 
 `/en/about/news-events` (Figma `4123:240887`) is the About page's shape with two things
 added that only a **secondary** page has: a back-nav in the page's own utility slot, and a
@@ -1689,7 +1689,7 @@ added.
 
 ### Cards never enter the rail, so a card below a lead pins column 2
 
-§36 established that column 1 is the rail at 3 columns and up. Cards that start on the
+§37 established that column 1 is the rail at 3 columns and up. Cards that start on the
 section's **title** row get that for free — the title already holds column 1 — which is all
 `startOf` ever had to handle. A card that starts on a **fresh** row beneath a lead does
 not: at 3 columns the rail tile is hidden and column 1 is free, so index 0 would drop into
@@ -1752,7 +1752,7 @@ else on the site uses `arrow-left`, so Home and About are untouched.
   NID Gandhinagar Campus" — that is the missing article. About's fixture is out of scope
   here and was left alone.
 
-## 40. The pattern fields repeated when they should have scaled
+## 41. The pattern fields repeated when they should have scaled
 
 Every `PatternField*` was a bare `<svg>` — no `viewBox` — holding a `<pattern>` at
 `patternUnits="userSpaceOnUse"` with `width="81"`, painted onto a `100% × 100%` rect. With
@@ -1794,14 +1794,14 @@ with the viewport because the tile does not — a 3-column 1024 tile is wider th
 `patterns.tsx` is GENERATED. This change is in `scripts/generate-patterns.py`; editing the
 .tsx by hand is reverted by the next `npm run generate:patterns`.
 
-## 41. §36's one exception went too — News's link is in column 2 as well
+## 42. §37's one exception went too — News's link is in column 2 as well
 
-§36 moved "Read full mandate" and "Visit Student Awards Gallery" out of the rail at 3
+§37 moved "Read full mandate" and "Visit Student Awards Gallery" out of the rail at 3
 columns and into column 2, and recorded that "All News & Events" **stayed at x=24**. That
 exception is now gone: the design owner's call is that every cards section's utility link
 sits in column 2, the start of the content field, at 3 columns.
 
-The exception existed because §36 read the problem as *which column*, and answered it with
+The exception existed because §37 read the problem as *which column*, and answered it with
 two `PLACE` entries that each pinned a row as well — `utility` (rail, row 2) for News,
 `utility-field` (column 2, row 2) for everything else. News could not use column 2 because
 its row 2 is already both square cards, and an explicitly-placed item would have been laid
@@ -1822,13 +1822,13 @@ with it — the section no longer has to know which shape it is.
 
 Measured at all five widths. At 1024 "All News & Events" moved from x=24 (row 2, beside the
 cards) to x=357, y+334 (row 3, under them); "Visit Student Awards Gallery" held at x=357,
-where §36 put it. 1440 (x=1086) and 1280 (x=966) are unchanged, both links still in the
+where §37 put it. 1440 (x=1086) and 1280 (x=966) are unchanged, both links still in the
 last column of the title row, and 768 and 390 — where no `laptop:`/`desktop:` class applies
 and the link simply flows last — are unchanged too. The /about/news-events sections carry
 no links, so nothing on that page moves; an overlap check across every cell of every
 section on both pages reports none.
 
-## 42. The brand strip's page spacing belongs to the brand strip
+## 43. The brand strip's page spacing belongs to the brand strip
 
 The band under the header cleared `calc(1.5 * var(--nid-grid-row-gap))` — 36px at 1440.
 The design owner's call is that it clears **one column gap**: the band reads as the first
@@ -1855,3 +1855,183 @@ it is the one `logo ? … : …` line in `BrandStrip`.
 Measured on all three pages at all five widths: the opening band's computed
 `margin-bottom` equals the live `column-gap` of the page grid at each (24 / 24 / 24 / 20 /
 16), and the menu panel's band computes 0 top and bottom.
+
+## 44. The gradient wash behind the page titles is gone
+
+`Title variant="page"` drew a 20% seven-stop accent gradient behind the H1, desktop only —
+the equilateral polygon 4932:576887 on About, the corner triangle 4932:576889 on News &
+Events. Removed on the design owner's call. This is a deliberate deviation from
+NID-CONTEXT.md §7.5 and from both boards, which still draw it.
+
+What went with it, because nothing else used it:
+
+- `Title`'s `wash` prop, and the `wash="corner"` at its one call site
+  (`/about/news-events`). A prop that selects between two things neither of which is
+  drawn is a trap, not an option.
+- The `TODO(review)` asking whether primary → polygon and secondary → corner should be
+  read off `page.template` rather than passed in. The question is settled by deletion.
+- `WASH_SHAPE`'s `polygon` and `corner` entries in `home/parts.tsx`, and with them
+  `GradientWash`'s `shape` prop and its two `shape === "wash"` branches
+  (`preserveAspectRatio`, `absolute inset-0 size-full`). Home's Study tile is the only
+  caller left, so its shape is inlined as `WASH`.
+- The two `relative`s on the page title — the GridItem's was the positioning context for
+  the absolutely-placed wash, the H1's put it above the wash. Neither has anything to
+  relate to now.
+
+`tablet:min-h-[150px]` STAYS. It reads as the wash's height (150 is the polygon's viewBox
+height) but it is the title block's own: the H1 is vertically centred in it from `tablet`
+up, at every width, while the wash was `desktop:` only. Measured after the change, the
+title block is 684 × 150 at x=24 on both pages, unchanged.
+
+The gradient itself is untouched on Home, where the Study tile still washes with it
+(`nid-study-wash` present at 1440). Restoring the title wash is one revert of this commit.
+
+## 45. Back-nav names where the visitor came FROM, not the parent in the tree
+
+The back link was `derived.backNav` — `parent.title` and the parent's path, computed
+server-side by walking `Page.parent`. The design owner's call is that it names **the page
+the visitor actually came from**, and renders nothing when there is no such page.
+
+Usually those agree. They part the moment someone reaches News & Events from Home's "All
+news" tile: the tree says "About NID" for ever, history says "Home".
+
+`derived.backNav` is therefore UNUSED by the front end now. It stays in
+`content-model.ts` — that file is the backend contract and is not ours to edit
+unilaterally — so treat it as a field the API may still send and this site ignores.
+
+**Why it cannot be server-rendered.** Where a visitor came from is not knowable at build
+time, and the site is statically exported, so `headers()` (and with it Referer) is out —
+CLAUDE.md forbids it in a layout anyway. The utility slot is empty in the static HTML and
+fills in after hydration. That is the accepted cost of the behaviour, chosen knowingly.
+
+**Why the trail is not `document.referrer`.** The referrer is set by the DOCUMENT load and
+does not move when next/link soft-navigates, so after two in-app clicks it still names the
+page the visitor entered the site on. The trail is a per-tab sessionStorage record instead,
+and the referrer is only the fallback for the first page of a session — the one case a
+per-tab store cannot have seen. Per-tab is also what makes "opened in a new tab" correctly
+show nothing.
+
+**Recording and rendering are separate components, and that is the bug this design
+avoids.** `NavTrail` (locale layout) records on every page; `BackNav` renders on pages that
+show a link. Folded together, a page with no back link never records its own visit — built
+that way first, and arriving at News & Events from Home drew no link at all, because "/"
+had never been written down. Home is exactly the page most visitors come from.
+
+**Reading the store.** `useSyncExternalStore`, not state copied in from an effect: the
+server snapshot is null, which is what the static HTML must contain, and
+`react-hooks/set-state-in-effect` rejects the other shape. The snapshot is stamped with the
+route it was computed FOR and a mismatch reads as null — without that, a soft navigation
+renders one frame of the previous page's back link, because the store still holds it when
+the new page first renders and the advancing effect has not run yet.
+
+**Naming.** CLAUDE.md: the label names its destination, never "Back". So a route the site
+cannot NAME is a route it will not link to. `routeTitle` in `nav-content.ts` is built from
+MENU_SECTIONS plus Home, so it cannot drift from the menu; anything outside it, and every
+external referrer, renders nothing rather than a nameless arrow.
+
+Verified end to end (no hydration warnings, all four routes still `○`/`●`):
+
+| arrival | back link |
+|---|---|
+| direct load, fresh tab | not rendered |
+| reload of the same page | not rendered — a page is never its own previous page |
+| Home → "All news" | "Home" → /en |
+| About → "News & Events" | "About NID" → /en/about |
+| browser Back to About | "News & Events" → /en/about/news-events |
+| from an external site | not rendered |
+| hard load from /about, empty store | "About NID" → /en/about (the referrer fallback) |
+
+Not on Home. `HomeGrid` is a bespoke bento with no title row and so no utility slot, and a
+back link there would consume a tile cell. `NavTrail` still runs on it, which is the half
+Home actually needs.
+
+## 46. `data-theme` alone now re-themes, and Our Themes is why
+
+`/en/about/our-themes` (Figma `4800:347502`) draws the ten palettes as ten full-width
+cards, each rendered **in its own theme**. That is the whole page, and it could not be
+built on the scoping the repo had.
+
+### What was actually broken
+
+`themes.css` declares layer 1 (65 primitives) under `[data-theme="…"]` and layer 2 (27
+semantics) under `[data-appearance="…"]`. A custom property whose value is `var(--other)`
+computes **where it is declared**, so `--nid-surface-raised: var(--nid-primary-100)`
+resolves on `<html>` and inherits down as a fixed colour. An element that set only
+`data-theme` therefore got its own primitives — live, correct, and read by nothing — while
+every semantic token kept the page's already-resolved value. Measured before the fix, a
+`data-theme="tanjore"` element inside a peacock page reported `--nid-primary-100` as
+Tanjore's `#FFF0D4` and `--nid-surface-raised` as Peacock's `#CDFCFF`.
+
+`README.md` promised the opposite ("scoped themes work for free … how a future Our Themes
+page's theme cards will work") and has been corrected. `/swatch` and the theme menu were
+never affected because both set **both** attributes.
+
+### Why the page cannot just set both
+
+`data-appearance` on a card pins it to one appearance. The card must follow the *visitor's*
+light/dark choice, which is client state: the inline `<head>` script sets it before paint,
+and `ThemeProvider` can only adopt it in an effect. A statically prerendered card would
+ship `light` in its HTML and flip after hydration — ten cards flashing on a page that is
+nothing but ten cards.
+
+### The fix, in the generator
+
+`design/generate.py` now emits each appearance block with a scoped descendant selector:
+
+```css
+[data-appearance="dark"],
+[data-appearance="dark"] [data-theme]:not([data-appearance]) { … }
+```
+
+Layer 2 is re-declared on the scoped element, against **its** primitives, in the
+**ancestor's** appearance. `data-theme` alone now means *this theme, the visitor's
+appearance*; both attributes still mean *this exact theme×appearance*.
+
+`:not([data-appearance])` is load-bearing and was nearly a bug. Without it the descendant
+selector `[data-appearance="light"] [data-theme]` (0,2,0) outranks a self-declaring
+element's own `[data-appearance="dark"]` (0,1,0), so a `/swatch` panel showing
+Tanjore/dark inside the light page would have taken the light block. Excluding
+self-declaring elements leaves them to their own rule, and the two compose: a
+theme-only card inside a `data-appearance` panel follows the panel.
+
+The regenerated `themes.css` diff is three selectors and nothing else; `verify:parity`
+passes. Six assertions were added to `verify:tokens` (now **627**): an element with
+`data-theme` only resolves that theme's `surface/raised` and `text/primary` inside a light
+page and inside a dark one, and an element with both attributes still overrides the page in
+either direction. Reverting the selector drops it to 623 — the four theme-only assertions
+fail and the two both-attribute ones still pass, which is the proof that `/swatch` and the
+theme menu are untouched by the change.
+
+### The card is flex, not a subgrid
+
+Inside the 1392-wide card: `24 pad + 282 motif + 24 + 330 title + 24 + 684 body + 24 pad`.
+That puts the title at 354 and the body at 708, each exactly **24px left of** the page's
+column origins at 378 and 732 — the card's own padding shifts them. A `GridItem subgrid`
+would snap them back to the columns and the card would stop matching the board. Measured
+at 1440: title x 354 against column 2 − 24, body x 708 against column 3 − 24, widths
+282 / 330 / 684. So the three parts are plain flex, sized from the card.
+
+The flex bases are the board's widths and sum with the two gutters to exactly the card's
+content box at 1440, so 1440 is exact and 1024 shrinks all three in proportion. Below
+laptop the card wraps: motif and name on one line, body beneath.
+
+### Where the board and the build differ
+
+- **The card is 160px tall, not 132, for six of the ten themes.** The board's uniform 132
+  is three lines of body copy — but Figma rendered those paragraphs in Futura PT Medium,
+  because Appendix B records that *"the ten Our Themes paragraphs have no text style
+  applied"* as a casualty of the Tonos font failure. Their metrics (16/28, 0.01em) are
+  exactly `Body/Base/Regular`, so the intended face is the body face, and Tonos is wider:
+  peacock, indigo, henna, yoga, khadi and terracotta run to four lines. Kept as Tonos —
+  the token system is right and the board's height is an artifact of the fallback — and
+  flagged for the designer, who can shorten the copy or confirm Futura.
+- **The theme name is `text/tertiary`, not an accent token.** Scoped, it is that theme's
+  tertiary text colour.
+- **The subtitle is one step darker than the board.** The board sets the italic sub-line on
+  `text/quaternary`, which `CLAUDE.md` documents as deliberately below WCAG AA and
+  decorative-only. This is a sentence of content, so it is drawn on `text/secondary`.
+- **No separators and no sibling band.** The board has neither, although News & Events has
+  four separators and a band and both pages are children of About NID. Followed the board;
+  the inconsistency is a designer question.
+- Tanjore and Tiger share `surface/raised` (`#FFF0D4`) in light, so the ten cards show
+  nine distinct surfaces. That is the palette, not a bug.

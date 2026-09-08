@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import { notFound } from "next/navigation";
 import { PageGrid } from "@/components/layout/PageGrid";
-import { GridItem } from "@/components/layout/GridItem";
+import { BackNav } from "@/components/spine/BackNav";
 import { BrandStrip } from "@/components/spine/BrandStrip";
-import { Cta } from "@/components/spine/Cta";
 import { Footer } from "@/components/spine/Footer";
 import { Separator } from "@/components/spine/Separator";
 import { Title } from "@/components/spine/Title";
@@ -44,23 +43,9 @@ export default async function NewsEventsPage() {
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        <Title variant="page" wash="corner">
-          {page.title}
-        </Title>
+        <Title variant="page">{page.title}</Title>
 
-        {derived.backNav && (
-          <GridItem span="full-then-1" place="page-utility">
-            {/* Names its destination, never "Back" — the arrow carries that
-                (NID-CONTEXT.md §7.1) and leads the label because it is an
-                arrow-left (Cta derives the side). */}
-            <Cta
-              variant="primary"
-              icon="arrow-left"
-              label={derived.backNav.label}
-              href={derived.backNav.href}
-            />
-          </GridItem>
-        )}
+        <BackNav />
 
         {page.sections.map((section, i) => (
           <Fragment key={section.id}>

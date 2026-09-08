@@ -13,14 +13,31 @@ import { MOTIFS } from "@/components/header/motifs";
 //
 // Decorative and aria-hidden, so the decorative accent ramp is allowed here
 // (CLAUDE.md § Colour).
-export function ThemeMotif({ theme, className }: { theme: Theme; className?: string }) {
+// The glyph carries no intrinsic size — it is a viewBox-only <svg> — so the
+// size is named here rather than passed as a class, which would race the
+// default on emit order. `card` steps down below 3 columns, where the card puts
+// the motif on one line with the theme name.
+const SIZE = {
+  header: "size-8",
+  card: "size-16 laptop:size-20",
+} as const;
+
+export function ThemeMotif({
+  theme,
+  size = "header",
+  className,
+}: {
+  theme: Theme;
+  size?: keyof typeof SIZE;
+  className?: string;
+}) {
   const Motif = MOTIFS[theme];
   return (
     <span
       aria-hidden="true"
-      className={clsx("inline-flex size-8 shrink-0 items-center justify-center", className)}
+      className={clsx("inline-flex shrink-0 items-center justify-center", SIZE[size], className)}
     >
-      <Motif className="size-8" />
+      <Motif className={SIZE[size]} />
     </span>
   );
 }
