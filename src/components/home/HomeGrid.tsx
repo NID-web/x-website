@@ -58,7 +58,6 @@ const SPAN_BY_KIND: Partial<Record<HomeTile["kind"], GridSpan>> = {
   hero: 2,
 };
 
-
 export async function HomeGrid() {
   const raw = await getTranslations("Home");
   const t: Translate = (key) => raw(key);
@@ -74,7 +73,7 @@ export async function HomeGrid() {
           but the row gap steps down to 20 and 16 below that while 48 did not, so
           the band's clearance grew to 2.4× and 3× the page's own rhythm and read
           as a void (docs/STAGE-0-NOTES.md §30). */}
-      <BrandStrip className="mb-[calc(1.5*var(--nid-grid-row-gap))]" />
+      <BrandStrip />
       <PageGrid>
         {HOME_TILES.map((tile) => (
           <GridItem key={tile.id} span={SPAN_BY_KIND[tile.kind] ?? 1}>
@@ -89,7 +88,7 @@ export async function HomeGrid() {
           above the grid, one below) — but not identically: the opening strip is
           the export's "Only Pattern" variant, the closing one leads with the
           NID wordmark. */}
-      <BrandStrip className="mt-[calc(1.5*var(--nid-grid-row-gap))]" logo />
+      <BrandStrip logo />
     </main>
   );
 }

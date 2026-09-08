@@ -40,7 +40,7 @@ export default async function AboutPage() {
 
   return (
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
-      <BrandStrip className="mb-[calc(1.5*var(--nid-grid-row-gap))]" />
+      <BrandStrip />
       <PageGrid>
         <Title variant="page">{page.title}</Title>
 
@@ -88,7 +88,7 @@ export default async function AboutPage() {
         <Separator />
         <Footer />
       </PageGrid>
-      <BrandStrip className="mt-[calc(1.5*var(--nid-grid-row-gap))]" logo />
+      <BrandStrip logo />
     </main>
   );
 }

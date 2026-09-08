@@ -58,23 +58,22 @@ const START = {
 } as const;
 
 // A section's utility slot — its links, placed the way CLAUDE.md places the
-// page's: the last column of the title row at 4 columns, the row beneath at 3
+// page's: the last column of the title row at 4 columns, a row beneath at 3
 // (the title row's last column is a card's there), and flow — last, after the
 // cards — below that. A row can only be named inside a `subgrid` item, whose
 // rows are its own.
 //
-// The two differ only in WHICH column of that second row, because it depends on
-// what else is on it and CSS cannot ask:
-//   utility        → the rail (column 1). For a section whose second row is
-//                    already full of cards — News, where the lead card takes
-//                    columns 2–3 of the title row and the two square cards take
-//                    2–3 of the row below. The rail is the only free cell.
-//   utility-field  → column 2, the start of the content field. For a section
-//                    whose second row is otherwise empty — Student Awards,
-//                    whose two cards both fit the title row. The link then sits
-//                    under the cards it belongs to instead of alone in the rail
-//                    (design owner's call, docs/STAGE-0-NOTES.md §36).
-// Both are identical at 4 columns and below 3.
+// At 3 columns it is column 2, the start of the content field, for every
+// section — the link sits under the cards it belongs to rather than alone in
+// the rail (design owner's call, docs/STAGE-0-NOTES.md §36, §41).
+//
+// Which ROW that is is left to auto-placement, and that is what lets one rule
+// serve sections whose second row differs. Student Awards' two cards both fit
+// the title row, so column 2 is free on row 2 and the link lands there. News's
+// lead card takes columns 2–3 of the title row and its two square cards take
+// 2–3 of the row below, so the first free cell in column 2 is row 3. Pinning
+// the row instead would put News's link on top of a card — grid overlaps
+// explicitly-placed items, it does not push them.
 //
 // Two more name a row that is not a section's:
 //   page-utility  → the PAGE's own slot, back-nav or filter. The last column of
@@ -88,9 +87,7 @@ const START = {
 //                   tile: below that the rail stays empty and the cards keep to
 //                   the content field (§36).
 const PLACE = {
-  utility: "laptop:col-start-1 laptop:row-start-2 desktop:-col-start-2 desktop:row-start-1",
-  "utility-field":
-    "laptop:col-start-2 laptop:row-start-2 desktop:-col-start-2 desktop:row-start-1",
+  utility: "laptop:col-start-2 desktop:-col-start-2 desktop:row-start-1",
   "page-utility": "laptop:-col-start-2 laptop:row-start-1",
   rail: "desktop:col-start-1 desktop:row-start-2",
 } as const;

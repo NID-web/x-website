@@ -17,9 +17,9 @@ const ARCHES: ArchSide[] = ["top", "left", "right"];
 // are never re-sorted here — grouping is the server's (CLAUDE.md § Content).
 //
 // The section is a subgrid so its links can be its utility slot: last in source
-// order, pinned to the title row's last column at 4 columns and the row beneath
-// at 3 (GridItem `place` — the rail for News, column 2 for everything else,
-// STAGE-0-NOTES §36), and simply last below that, which is where the 768 and
+// order, pinned to the title row's last column at 4 columns and to column 2 of
+// the first free row beneath at 3 (GridItem `place`, STAGE-0-NOTES §36, §41),
+// and simply last below that, which is where the 768 and
 // 390 boards draw them. On the About board the student-awards links sit inside
 // a pattern tile (4912:367990), whose pattern rows used to be dropped below 4
 // columns and are now drawn at every width (§37).
@@ -87,10 +87,11 @@ export function CardsSection({
         </GridItem>
       ))}
       {links && (
-        // At 3 columns News's second row is already both square cards, so its
-        // link takes the rail; every other cards section has that row to itself
-        // and its link sits in column 2, under the cards (GridItem PLACE).
-        <GridItem span={1} place={kind === "news" ? "utility" : "utility-field"}>
+        // At 3 columns every cards section's link sits in column 2, under the
+        // cards it belongs to; `utility` finds the first free row there, which
+        // is row 2 for a section whose cards fit the title row and row 3 for
+        // News, whose second row is already both square cards (GridItem PLACE).
+        <GridItem span={1} place="utility">
           {kind === "news" ? links : <PatternTile seed={1} cta={links} />}
         </GridItem>
       )}

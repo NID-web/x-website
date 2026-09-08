@@ -1793,3 +1793,65 @@ with the viewport because the tile does not — a 3-column 1024 tile is wider th
 
 `patterns.tsx` is GENERATED. This change is in `scripts/generate-patterns.py`; editing the
 .tsx by hand is reverted by the next `npm run generate:patterns`.
+
+## 41. §36's one exception went too — News's link is in column 2 as well
+
+§36 moved "Read full mandate" and "Visit Student Awards Gallery" out of the rail at 3
+columns and into column 2, and recorded that "All News & Events" **stayed at x=24**. That
+exception is now gone: the design owner's call is that every cards section's utility link
+sits in column 2, the start of the content field, at 3 columns.
+
+The exception existed because §36 read the problem as *which column*, and answered it with
+two `PLACE` entries that each pinned a row as well — `utility` (rail, row 2) for News,
+`utility-field` (column 2, row 2) for everything else. News could not use column 2 because
+its row 2 is already both square cards, and an explicitly-placed item would have been laid
+**on top of** one: grid overlaps explicit placements, it does not push them aside.
+
+The row was never the thing that had to be stated. Naming only the column and leaving the
+row to auto-placement makes one rule answer both cases, because the algorithm finds the
+first free cell in column 2 by itself:
+
+| section at 3 columns | title row | row 2 | link lands |
+|---|---|---|---|
+| Student Awards | title · card · card | empty | row 2, column 2 |
+| News & Events | title · lead card (2 cols) | two square cards in 2–3 | row 3, column 2 |
+
+So `utility-field` is deleted and `utility` is `laptop:col-start-2 desktop:-col-start-2
+desktop:row-start-1`. `CardsSection`'s `kind === "news" ? … : …` ternary on `place` goes
+with it — the section no longer has to know which shape it is.
+
+Measured at all five widths. At 1024 "All News & Events" moved from x=24 (row 2, beside the
+cards) to x=357, y+334 (row 3, under them); "Visit Student Awards Gallery" held at x=357,
+where §36 put it. 1440 (x=1086) and 1280 (x=966) are unchanged, both links still in the
+last column of the title row, and 768 and 390 — where no `laptop:`/`desktop:` class applies
+and the link simply flows last — are unchanged too. The /about/news-events sections carry
+no links, so nothing on that page moves; an overlap check across every cell of every
+section on both pages reports none.
+
+## 42. The brand strip's page spacing belongs to the brand strip
+
+The band under the header cleared `calc(1.5 * var(--nid-grid-row-gap))` — 36px at 1440.
+The design owner's call is that it clears **one column gap**: the band reads as the first
+thing on the page's grid, so the distance under it is the distance that separates two
+columns. `--nid-grid-column-gap` and `--nid-grid-row-gap` happen to hold the same value at
+every breakpoint, so the change is the 1.5 multiplier, not the token: 36 → 24 at 1440 and
+1280, 30 → 20 at 768, 24 → 16 at 390.
+
+The value moved INTO `BrandStrip` rather than being corrected in place. It was written out
+at three call sites — `HomeGrid`, `/about`, `/about/news-events` — and the band is on every
+page, so a fourth page is a fourth chance to type a different number. One `mb-gutter` on
+the component is the whole rule, and the call sites are now bare `<BrandStrip />`.
+
+`flush` is the opt-out, and it exists because one caller is not a page edge: `MainMenu`
+draws the band inside the panel header, as a flex row's child that sets its own box. A
+component that gives itself margin needs a way to not, or the next non-page caller
+inherits page spacing silently.
+
+The CLOSING strip's `mt` moved into the component unchanged, still
+`calc(1.5 * var(--nid-grid-row-gap))`. It was not part of this call, so the two are now
+deliberately asymmetric — 24px above the page, 36px below it. If they are meant to match,
+it is the one `logo ? … : …` line in `BrandStrip`.
+
+Measured on all three pages at all five widths: the opening band's computed
+`margin-bottom` equals the live `column-gap` of the page grid at each (24 / 24 / 24 / 20 /
+16), and the menu panel's band computes 0 top and bottom.

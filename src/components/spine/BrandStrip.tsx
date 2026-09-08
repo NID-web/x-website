@@ -21,17 +21,35 @@ import { NidWordmark } from "@/components/spine/NidWordmark";
 // The export ships two variants. `device="Only Pattern"` is the band alone and
 // opens the page; the default `device="Desktop"` leads with the NID wordmark and
 // closes it. Hence `logo` — set it on the closing strip only.
+//
+// The band owns the space between itself and the page, because the band is on
+// every page and the space has to be the same on every page — three call sites
+// each repeating an arbitrary length is how they drift. The opening strip
+// clears ONE COLUMN GAP (`gutter`, the design owner's call): the band reads as
+// the first thing on the page's grid, so the distance under it is the same
+// distance that separates two columns.
+//
+// `flush` is for a band that is not opening or closing a page — the one inside
+// the main menu panel, which is a flex row's own child and sets its own box.
 export function BrandStrip({
   className,
   logo = false,
+  flush = false,
 }: {
   className?: string;
   logo?: boolean;
+  /** Draw the band with no page spacing of its own. */
+  flush?: boolean;
 }) {
   return (
     <div
       aria-hidden="true"
-      className={clsx("flex items-center", logo && "gap-6 pb-2 pl-6", className)}
+      className={clsx(
+        "flex items-center",
+        !flush && (logo ? "mt-[calc(1.5*var(--nid-grid-row-gap))]" : "mb-gutter"),
+        logo && "gap-6 pb-2 pl-6",
+        className,
+      )}
     >
       {logo && (
         // accent/secondary — the token the export's literal fill resolves to.

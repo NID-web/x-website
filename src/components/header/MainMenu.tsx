@@ -187,7 +187,7 @@ export function MainMenu({
               tone="primary"
               onClick={onClose}
             />
-            <BrandStrip className="h-12 min-w-0 flex-1" />
+            <BrandStrip flush className="h-12 min-w-0 flex-1" />
           </div>
 
           {MENU_SECTIONS.map((section) => (
