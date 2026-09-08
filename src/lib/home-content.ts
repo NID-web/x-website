@@ -184,7 +184,7 @@ export const HOME_TILES: HomeTile[] = [
         thumbnail: img("news-3.jpg", "Inside the Knowledge Management Centre.", 200, 200),
       },
     ],
-    cta: { labelKey: "cta.allNews", href: "/news" },
+    cta: { labelKey: "cta.allNews", href: "/about/news-events" },
   },
   {
     id: "national-importance",
