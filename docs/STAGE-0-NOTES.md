@@ -2254,3 +2254,44 @@ still correctly renders nothing — there is no previous page in that tab.
 
 The general rule, now in CLAUDE.md § Rendering: anything keyed by route must
 strip the trailing slash, or it works locally and fails only on the deploy.
+
+## 50. The rail pattern was desktop-only on News, and the rail cell exists at 3 columns
+
+Third time this shape of bug has come up: §38 fixed it for About's `cta` tile, and this is
+the same mistake on the tile §38 explicitly left alone.
+
+News & Events drew nothing below 1280. Its two `CardsSection` rail tiles and the
+`SiblingBand` tile were all `hidden desktop:block`, so at 3 columns the page showed an
+EMPTY column 1 beside the cards — the rail cell is there, the same 309px square the 1440
+board fills, and nothing was in it. At 2 and 1 columns the craft field left the page
+entirely.
+
+The reason it was written that way does not survive contact with the grid: `PLACE.rail`
+was `desktop:col-start-1 desktop:row-start-2`, which reads as "the rail is a desktop
+thing". It is not. §37 established column 1 as the rail **at 3 columns and up**, so the
+placement was one breakpoint short of the concept it names. It is now
+`laptop:col-start-1 laptop:row-start-2` and the tiles are drawn at every width.
+
+Two things this had to get right, and both were measured rather than assumed.
+
+**Below laptop there is no rail, so the tile must not take a card's cell.** First attempt
+left the tiles at `span={1}`; at 768 the band landed in a card slot and shoved the square
+cards sideways into a different pairing. `span="full-then-1"` is the shape that was
+already needed — the whole row below 1024, one column at 3 and up — so the band reads as a
+divider between the lead and the squares instead of competing with them. Card positions at
+768 are then identical to before except for the vertical offset the band itself adds.
+
+**The square is only right where a rail cell exists.** `aspect-square` at 2 or 1 columns
+is a hole, not a tile — §38's words for the same problem. So the band proportion is
+`aspect-[4/1]` below laptop, `aspect-square` at laptop and up.
+
+`band` is a PROP, defaulted off, and that is the part worth remembering. Changing
+`PatternTile`'s bare branch directly also changed **Home's bento tiles** — they went from
+350x350 to 350x88 at 768 — which is exactly what §38 meant when it scoped itself to "one
+tile" and named Home's as untouched. Home's tiles are the composition, not a decoration
+beside it; they stay square at every width. Caught by measuring Home, not by reading it.
+
+Measured after, on a real server at all four widths: news-events 330x330 / 309x309 /
+720x180 / 358x90, about unchanged at 1440 and gaining its sibling-band tile at 1024 and
+below, home square at every width (330 / 309 / 350 / 358), and no horizontal overflow on
+any page. Card boxes on news-events at 1440 and 1024 are byte-identical to the baseline.

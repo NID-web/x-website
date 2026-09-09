@@ -30,8 +30,8 @@ export async function SiblingBand({
           twoUp="tablet-up"
         />
       </GridItem>
-      <GridItem span={1} className="hidden desktop:block">
-        <PatternTile seed={1} />
+      <GridItem span="full-then-1">
+        <PatternTile seed={1} band />
       </GridItem>
     </>
   );

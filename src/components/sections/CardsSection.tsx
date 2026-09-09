@@ -46,8 +46,8 @@ export function CardsSection({
           </GridItem>
         ))}
       {kind === "news" && (
-        <GridItem span={1} place="rail" className="hidden desktop:block">
-          <PatternTile seed={0} />
+        <GridItem span="full-then-1" place="rail">
+          <PatternTile seed={0} band />
         </GridItem>
       )}
       {rest.map((item, i) => (

@@ -59,11 +59,15 @@ const START = {
 //                    1 genuinely is row 1. `-col-start-2` is the last column at
 //                    either count: line -2 is line 4 of five, and line 3 of four.
 //   rail          -> column 1 of a section's second row, for the decorative
-//                    tile under a section title. Desktop only, like the tile.
+//                    tile under a section title. Laptop and up, NOT desktop
+//                    only: §37 made column 1 the rail at 3 columns and up, so a
+//                    desktop-only pin left the 3-column rail cell empty beside
+//                    the cards (STAGE-0-NOTES §50). Below laptop there is no
+//                    rail and the tile spans the row instead.
 const PLACE = {
   utility: "laptop:col-start-2 desktop:-col-start-2 desktop:row-start-1",
   "page-utility": "laptop:-col-start-2 laptop:row-start-1",
-  rail: "desktop:col-start-1 desktop:row-start-2",
+  rail: "laptop:col-start-1 laptop:row-start-2",
 } as const;
 
 export type GridSpan = keyof typeof SPAN;
