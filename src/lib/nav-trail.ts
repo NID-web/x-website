@@ -144,7 +144,7 @@ export function advance(here: string) {
  * "/about/", `routeTitle` finds no name for it and BackNav renders nothing: the
  * back link was missing on the whole deployed site, while dev (no trailing
  * slash) looked fine. `toRoute` already strips it for the referrer; this is the
- * same normalisation for the router's own pathname.
+ * same normalisation for the router's own pathname (docs/STAGE-0-NOTES.md §49).
  */
 export function normalise(pathname: string): string {
   const path = pathname.replace(/\/+$/, "");

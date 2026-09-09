@@ -2214,3 +2214,43 @@ Measured against the variants after the change, every row within 0-3px and every
 colour matching. The residual 2-3px is the rest state's own baseline (our
 overline sits 2px lower than Figma's), constant across both states, so the
 DELTA — which is what this note is about — is exact.
+
+## 49. The back link was missing on the deployed site only, and `trailingSlash` is why
+
+Reported as an offline bug: on `/en/about/`, disconnect, click News & Events,
+reconnect, reload — and the page comes back with no link to About NID. The
+offline detour turned out to be a red herring. The link was missing on the
+DEPLOYED SITE ALWAYS, in every navigation, with a perfect network. That is just
+how it came to be noticed.
+
+`next.config.ts` sets `trailingSlash: true` only for the Pages export
+(`GITHUB_PAGES=true`). So `usePathname()` reports `/about/` there and `/about`
+under `npm run dev` — while every authored href in `nav-content.ts`, and so
+every `ROUTE_TITLE` key, is `/about`. The trail recorded the route faithfully
+and then could not name it:
+
+```
+trail stored:  {"prev":"/about/", "current":"/about/news-events/"}
+ROUTE_TITLE:    "/", "/about", "/about/news-events", ...
+routeTitle("/about/") -> undefined
+```
+
+`BackNav` bails on `!route || !label`, so an unnamed route renders exactly like
+no previous page at all — the two states are indistinguishable, which is why
+this failed silently rather than loudly.
+
+The normalisation already existed and was wired to only half the inputs.
+`toRoute()` strips the trailing slash for the referrer, and its own comment says
+`/en/about/` and `/en/about` must not become two entries in the trail — but the
+router's own pathname reached `advance()` and `previousRoute()` raw, through a
+`normalise()` that handled only the `""` locale root. It now strips trailing
+slashes too, which is the one choke point both `NavTrail` and `BackNav` already
+funnel `usePathname()` through.
+
+Verified by driving the real static export with Playwright, before and after:
+online soft navigation and the reported offline-then-reload sequence both went
+from no link to `About NID -> /en/about/`. A direct load with an empty trail
+still correctly renders nothing — there is no previous page in that tab.
+
+The general rule, now in CLAUDE.md § Rendering: anything keyed by route must
+strip the trailing slash, or it works locally and fails only on the deploy.

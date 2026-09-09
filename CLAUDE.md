@@ -19,8 +19,7 @@ Design decisions are not in this file. They are in `design/`, and that is what t
 | `design/tokens/content-model.ts` | You are typing a page, section or link. **This is the contract with the backend — never edit it unilaterally.** |
 | `design/tokens/sitemap.json` | Routes, menu tree, footer. |
 
-`design/tokens/tailwind.config.ts` is **superseded** — it is v3 format. The live mapping is
-the `@theme` block in `src/app/globals.css`.
+The Tailwind configuration lives in the `@theme` block in `src/app/globals.css` (Tailwind v4; do not recreate `tailwind.config.ts`).
 
 `docs/STAGE-0-NOTES.md` records deliberate deviations from the design file. Read it before
 concluding something is a bug.
@@ -34,7 +33,7 @@ These fail without an error. Most have already gone wrong once.
 **Colour**
 - A component may only ever name a **layer-2 semantic token** — `text-text-primary`, `bg-surface-raised`, `border-border-subtle`.
 - Never a primitive (`--nid-primary-650`, `bg-primary-650`) — hard-codes the appearance and inverts wrongly in dark mode. Primitives are foundations-pages only.
-- Never a literal hex in `src/`. Breaks all twenty theme × appearance states at once. `npm run lint` enforces this.
+- Never a literal hex in `src/` — **including inside a comment**. Breaks all twenty theme × appearance states at once. `scripts/lint-tokens.mjs` matches raw file text and does not parse code, so a hex written in a comment fails `npm run lint` exactly like one in a class name.
 - Only `accent/primary` clears 3:1. `accent/secondary|tertiary|quaternary|pentenary` are decorative — never for an icon/graphic that carries meaning.
 - `text/quaternary` and `icon/quaternary` are **intentionally below WCAG AA**, same value in light and dark. Not a bug.
 
@@ -66,7 +65,15 @@ These fail without an error. Most have already gone wrong once.
 **Rendering**
 - Static by default. Do not call `cookies()`/`headers()` in a layout — opts the whole app out of static rendering. The theme comes from the inline `<head>` script.
 - `src/styles/themes.css` is **generated** by `design/generate.py`. The four Stage 0 corrections are folded into it (STAGE-0-NOTES §1) — any *new* edit still needs the same treatment, or the next regeneration reverts it silently.
+- `trailingSlash` is on **only** in the Pages export (`GITHUB_PAGES=true`), so `usePathname()` reports `/about/` there and `/about` in dev — while every authored href, and so every route-keyed lookup, is `/about`. Anything keyed by route must strip the trailing slash or it works locally and fails only on the deploy. `normalise()` in `src/lib/nav-trail.ts` is that choke point; skipping it left the back link missing site-wide on the deployed site while dev looked fine.
 - **There is no `src/app/layout.tsx`.** `[locale]/layout.tsx` is the real root layout — `next/root-params` stops walking at the first layout module, so a wrapping layout above `[locale]` hides the param. `app/not-found.tsx` needs its own `<html>`; both share `head-shell.tsx`'s `HeadShell`. Exception: the global not-found can't run `THEME_SCRIPT` at all (STAGE-0-NOTES §4).
+
+**Comments and workspace hygiene**
+- **Write only important, high-signal comments.** Do not write narrative essays, AI session journals, design tool debates, or changelogs inside code. Document non-obvious *why*, not obvious *what*.
+- **Length is not the test.** A comment that records a measurement, a rejected alternative, or a silent-failure trap is high-signal however long it runs — those are the ones that stop the same bug being reintroduced. Deleting them to shorten a file is how a fix gets undone by the next person who reads only the code.
+- **Cite the design doc, not the tool.** Reference `NID-CONTEXT.md §7.1` or `STAGE-0-NOTES §27` rather than a raw Figma node ID (`4641:354567`) or an internal frame name — sections survive re-exports, node IDs do not. Keep the measurement itself: a number nobody can re-derive is exactly what needs explaining.
+- **Always clean up temporary files before finishing.** Remove scratch files, test scripts, one-off CLI outputs, and debug logs. Do not leave untracked scratch directories or intermediate junk in the repo.
+- **Remove superseded and duplicate code.** When refactoring or replacing components, delete the old files and update call sites rather than leaving dead duplicates behind.
 
 ---
 
