@@ -115,7 +115,7 @@ export type HomeTile =
       avatars: MediaAsset[];
       cta?: HomeCta;
     })
-  | (Base & { kind: "spine"; headingKey: CopyKey; spines: string[] });
+  | (Base & { kind: "spine"; headingKey: CopyKey; spines: string[]; href?: string });
 
 const img = (file: string, alt: string, w = 800, h = 800) =>
   mediaAsset(`/home/${file}`, alt, w, h);
@@ -304,12 +304,17 @@ export const HOME_TILES: HomeTile[] = [
     bylineKey: "youngDesigners.byline",
     bylineAvatar: img("young-designer-yadav.jpg", "Portrait of Manish Yadav.", 120, 120),
     labelPlacement: "below",
-    href: "/young-designers/hybrid-board-game",
+    // /study/young-designers — "Young Designers" in sitemap.json, which is what
+    // the overline says. There is no per-project detail route yet, and
+    // /young-designers/hybrid-board-game was in neither the sitemap nor the menu.
+    href: "/study/young-designers",
   },
   {
     id: "kmc",
     kind: "spine",
     headingKey: "kmc.heading",
+    // /kmc is "Knowledge Management Centre" in sitemap.json — the heading.
+    href: "/kmc",
     // Book titles displayed on the vertical spine shelf.
     spines: [
       "The India Report",

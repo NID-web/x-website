@@ -152,12 +152,34 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
       <div className="flex flex-1 flex-col justify-between">
         {tile.overlineKey && (
           <div className="pt-2">
-            <Overline shortRule>{t(tile.overlineKey)}</Overline>
+            <Overline shortRule hoverDark={Boolean(tile.href)}>
+              {t(tile.overlineKey)}
+            </Overline>
           </div>
         )}
         <div className="flex w-full items-start gap-2">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <h4 className="font-primary text-h5 text-text-primary">{t(tile.titleKey)}</h4>
+            <h4
+              className={clsx(
+                "font-primary text-h5 text-text-primary",
+                tile.href &&
+                  "transition-colors duration-150 ease-in-out group-hover/tile:text-text-secondary",
+              )}
+            >
+              {/* Title is the link, `after:inset-0` makes the whole tile the
+                  target, arrow below is decorative — PortraitTile's reasoning,
+                  and the same shape FlipMediaCard's front face uses. */}
+              {tile.href ? (
+                <Link
+                  href={tile.href}
+                  className="text-inherit no-underline after:absolute after:inset-0 after:content-['']"
+                >
+                  {t(tile.titleKey)}
+                </Link>
+              ) : (
+                t(tile.titleKey)
+              )}
+            </h4>
             {tile.date && (
               <p className="font-primary text-label text-text-tertiary">{tile.date}</p>
             )}
@@ -175,11 +197,22 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
             />
           )}
         </div>
+        {tile.href && (
+          // The visit arrow, left, in a slot that opens from nothing on hover —
+          // the same row FlipMediaCard's front face draws, without the flip
+          // control, since this card has no back face. icon/quaternary is the
+          // fill the export gives this glyph.
+          <div className="h-0 overflow-hidden motion-safe:transition-[height] motion-safe:duration-400 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/tile:h-8 group-focus-within/tile:h-8">
+            <Icon name="arrow-up-right" className="size-6 text-icon-quaternary" />
+          </div>
+        )}
         <span
           aria-hidden="true"
           className={clsx(
             "block border-b-2 border-border-subtle",
             tile.bylineAvatar ? "h-8" : "h-2",
+            tile.href &&
+              "transition-colors duration-150 ease-in-out group-hover/tile:border-icon-tertiary",
           )}
         />
       </div>
