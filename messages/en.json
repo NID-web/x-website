@@ -14,7 +14,10 @@
       "allEvents": "All events",
       "readAct": "Read the Act",
       "learnMore": "Learn more",
-      "directorsNote": "Director’s Note"
+      "directorsNote": "Director’s Note",
+      "eventLink": "Event link",
+      "showDetails": "Show details",
+      "showCover": "Show cover"
     },
     "study": {
       "heading": "Study at NID",
@@ -51,7 +54,8 @@
     },
     "drawing": {
       "overline": "Workshop",
-      "title": "Drawing Dialogues"
+      "title": "Drawing Dialogues",
+      "body": "Drawing is a dialogue between the inner and outer worlds, where the humble act of mark-making becomes a witness to moments of perception and reception in both. The Indian philosophical concepts of drishti (seeing) and anubhava (experience) can be appreciated and evaluated in the context of creative design practices…"
     },
     "pride": {
       "overline": "Pride of NID",
@@ -63,7 +67,8 @@
     },
     "callForPapers": {
       "overline": "Call for Papers",
-      "title": "Shifting Paradigms"
+      "title": "Shifting Paradigms",
+      "body": "The Design Education: Tradition and Modernity (DETM 2005) conference at NID marked a decisive moment in the evolution of design education in India and the region. Bringing together over 400 participants from 27 countries and more than 50 institutions, it established a global dialogue on the future of design pedagogy and practice…"
     },
     "director": {
       "quote": "\"The World of Indian Design is now in a leadership position to contribute to the Design of the World…\""

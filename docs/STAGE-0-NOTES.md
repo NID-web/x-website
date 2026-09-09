@@ -2205,10 +2205,15 @@ is still the whole tile (ListTile's whole-row reasoning). The destination is
 `/people/alumni` — "Notable Alumni" in sitemap.json and in the main menu, which
 is also what the tile's own overline says.
 
-`href` is optional on the portrait kind and only the alumni tile sets one. Pride
-of NID has no destination, so it renders no link, no arrow and no hover at all —
-an arrow promising somewhere to go that does not exist is worse than no arrow.
-Verified: that tile still has 0 anchors.
+`href` is optional on the portrait kind, and the rule is that the hover follows
+the destination: an arrow promising somewhere to go that does not exist is worse
+than no arrow. When this was written only the alumni tile had one, so Pride of
+NID rendered no link, no arrow and no hover at all.
+
+**Superseded for Pride of NID (§51).** `/people/pride-of-nid` is in
+sitemap.json — "Pride of NID", which is what the tile's own overline says — so it
+now sets `href` and opens exactly as the alumni tile does. The RULE is unchanged
+and still governs: a portrait tile without a destination still renders no arrow.
 
 Measured against the variants after the change, every row within 0-3px and every
 colour matching. The residual 2-3px is the rest state's own baseline (our
@@ -2295,3 +2300,21 @@ Measured after, on a real server at all four widths: news-events 330x330 / 309x3
 720x180 / 358x90, about unchanged at 1440 and gaining its sibling-band tile at 1024 and
 below, home square at every width (330 / 309 / 350 / 358), and no horizontal overflow on
 any page. Card boxes on news-events at 1440 and 1024 are byte-identical to the baseline.
+
+## 51. Pride of NID opens on hover now, because its destination exists
+
+§48 built the portrait tile's hover open — the spacers collapse, the arrow slot
+opens, the closing rule lights — and gated all of it on `href`, because an arrow
+promising somewhere to go that does not exist is worse than no arrow. At the time
+only the alumni tile had a destination, so Pride of NID sat inert beside its twin.
+
+`/people/pride-of-nid` is in sitemap.json, titled "Pride of NID" — which is
+exactly what the tile's overline already says, the same relationship the alumni
+tile has with `/people/alumni`. So the tile sets `href` and gets the whole hover
+for free: no component change, one line of content.
+
+The rule §48 states is unchanged and still governs. A portrait tile with no
+destination still renders no link, no arrow and no hover — `PortraitTile` reads
+`tile.href` and nothing else. What changed is a fact about the content, not the
+policy, and §48 has been corrected in place so it no longer reads as though Pride
+of NID were permanently destination-less.

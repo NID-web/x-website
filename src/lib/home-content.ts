@@ -101,6 +101,11 @@ export type HomeTile =
       bylineKey?: CopyKey;
       bylineAvatar?: MediaAsset;
       href?: string;
+      /** Turns the card into the two-faced workshop card (Figma 257:12880).
+       *  Its presence is what adds the hover arrows and the flip; a media card
+       *  without it is unchanged. The `cta` is the SAME destination the front's
+       *  arrow points at — one event, named once. */
+      flip?: { bodyKey: CopyKey; cta: HomeCta };
     })
   | (Base & { kind: "quote"; quoteKey: CopyKey; avatar?: MediaAsset; attribution: HomeCta })
   | (Base & {
@@ -211,6 +216,10 @@ export const HOME_TILES: HomeTile[] = [
     date: "Oct 30 & 31 2026",
     labelPlacement: "below",
     href: "/events/drawing-dialogues",
+    flip: {
+      bodyKey: "drawing.body",
+      cta: { labelKey: "cta.eventLink", href: "/events/drawing-dialogues" },
+    },
   },
   {
     id: "pride",
@@ -220,6 +229,11 @@ export const HOME_TILES: HomeTile[] = [
     nameKey: "pride.name",
     bioKey: "pride.bio",
     bed: "pride",
+    // As with the alumni tile, the overline names the destination:
+    // /people/pride-of-nid is "Pride of NID" in sitemap.json. It had no href
+    // while that route was unbuilt, which is what STAGE-0-NOTES §48 recorded;
+    // the route exists, so the tile opens on hover like its twin.
+    href: "/people/pride-of-nid",
   },
   {
     id: "campuses",
@@ -229,7 +243,9 @@ export const HOME_TILES: HomeTile[] = [
     labelPlacement: "overlay",
     shape: "arch",
     scrim: false,
-    href: "/campuses",
+    // /about/campuses, not /campuses — the latter is in neither sitemap.json
+    // nor the main menu, so the tile pointed at nothing.
+    href: "/about/campuses",
   },
   // ── row 4 ──────────────────────────────────────────────────────────────
   {
@@ -241,6 +257,10 @@ export const HOME_TILES: HomeTile[] = [
     date: "Feb 23 – 25 2027",
     labelPlacement: "below",
     href: "/events/shifting-paradigms",
+    flip: {
+      bodyKey: "callForPapers.body",
+      cta: { labelKey: "cta.eventLink", href: "/events/shifting-paradigms" },
+    },
   },
   {
     id: "director",

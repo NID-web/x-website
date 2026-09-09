@@ -1,7 +1,10 @@
 import clsx from "clsx";
 import { Tile } from "@/components/home/Tile";
+import { FlipMediaCard } from "@/components/home/tiles/FlipMediaCard";
 import { Overline } from "@/components/home/parts";
 import { TileImage } from "@/components/home/TileImage";
+import { Icon } from "@/components/spine/Icon";
+import { Link } from "@/i18n/navigation";
 import type { HomeTile, Translate } from "@/lib/home-content";
 
 type MediaCardTileData = Extract<HomeTile, { kind: "mediaCard" }>;
@@ -14,6 +17,26 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
   const isOverlay = tile.labelPlacement === "overlay";
   const onDark = isInverse || isOverlay;
   const onPhoto = isOverlay && tile.media;
+
+  // The two-faced workshop card is its own CLIENT component, so translate here
+  // and hand plain strings across the boundary — a `t` function is not
+  // serialisable, and the other media cards stay server-rendered this way.
+  if (tile.flip) {
+    return (
+      <FlipMediaCard
+        media={tile.media}
+        overline={tile.overlineKey ? t(tile.overlineKey) : undefined}
+        title={t(tile.titleKey)}
+        date={tile.date}
+        body={t(tile.flip.bodyKey)}
+        ctaLabel={t(tile.flip.cta.labelKey)}
+        ctaHref={tile.flip.cta.href}
+        ctaExternal={tile.flip.cta.external}
+        showDetailsLabel={t("cta.showDetails")}
+        showCoverLabel={t("cta.showCover")}
+      />
+    );
+  }
 
   const label = (
     <div className="flex flex-col gap-1 p-6">
@@ -34,8 +57,34 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
           onPhoto ? "text-white" : onDark ? "text-text-on-accent" : "text-text-primary",
         )}
       >
-        {t(tile.titleKey)}
+        {/* The TITLE is the link and `after:inset-0` stretches its target over
+            the whole tile, so the accessible name is the place rather than an
+            arrow, while the click target stays the entire card — PortraitTile
+            and ListTile's reasoning. The arrow below is decorative. */}
+        {isOverlay && tile.href ? (
+          <Link
+            href={tile.href}
+            className="text-inherit no-underline after:absolute after:inset-0 after:content-['']"
+          >
+            {t(tile.titleKey)}
+          </Link>
+        ) : (
+          t(tile.titleKey)
+        )}
       </h4>
+      {isOverlay && tile.href && (
+        // The arrow's slot opens from nothing on hover, as PortraitTile's does
+        // (STAGE-0-NOTES §48): the rest variant has no arrow, so reserving the
+        // room would spend it at rest and leave nothing to open. `focus-within`
+        // as well as `hover`, because a keyboard reaches the link first and a
+        // touch device never hovers at all.
+        <div className="h-0 overflow-hidden motion-safe:transition-[height] motion-safe:duration-400 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/tile:h-8 group-focus-within/tile:h-8">
+          <Icon
+            name="arrow-up-right"
+            className={clsx("mt-1 size-6", onPhoto ? "text-white" : "text-text-on-accent")}
+          />
+        </div>
+      )}
       {tile.date && (
         <p
           className={clsx(
