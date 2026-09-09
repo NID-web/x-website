@@ -134,7 +134,19 @@ export function advance(here: string) {
   for (const onChange of listeners) onChange();
 }
 
-/** `usePathname` reports "" for the locale root; the trail calls it "/". */
+/**
+ * The route form everything downstream is keyed by: no trailing slash, and "/"
+ * for the locale root, which `usePathname` reports as "".
+ *
+ * The trailing slash is not cosmetic. The Pages export sets `trailingSlash`, so
+ * there `usePathname` returns "/about/" while every authored href — and so
+ * every ROUTE_TITLE key — is "/about". Left alone, the trail records a prev of
+ * "/about/", `routeTitle` finds no name for it and BackNav renders nothing: the
+ * back link was missing on the whole deployed site, while dev (no trailing
+ * slash) looked fine. `toRoute` already strips it for the referrer; this is the
+ * same normalisation for the router's own pathname.
+ */
 export function normalise(pathname: string): string {
-  return pathname === "" ? "/" : pathname;
+  const path = pathname.replace(/\/+$/, "");
+  return path === "" ? "/" : path;
 }
