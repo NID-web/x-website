@@ -6,10 +6,9 @@ import type { Section } from "@/lib/content-model";
 
 type TextSectionData = Extract<Section, { type: "text" }>;
 
-// type=text (NID-CONTEXT.md §8.2): title in the rail, prose in columns 2–3,
-// the image on the row beneath with square corners, links and contacts in
-// column 4 — which wrap into the rail at 3 columns and stack after the body
-// below that, by flow alone.
+/**
+ * Text section with title, body paragraphs, optional image, links, and contact info.
+ */
 export function TextSection({ section }: { section: TextSectionData }) {
   const rail = section.links.length > 0 || section.contacts.length > 0;
   return (

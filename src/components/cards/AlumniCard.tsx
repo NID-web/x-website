@@ -3,19 +3,9 @@ import { TileImage } from "@/components/home/TileImage";
 import { PatternFieldAlumni, PatternScatterAlumni } from "@/components/home/patterns";
 import type { Page } from "@/lib/content-model";
 
-// Notable Alumni card (4683:397311) — structurally Home's PortraitTile: the
-// craft bed and the bandhani scatter across the top half, the portrait in the
-// scatter, name / three-line bio / hairline below. One shape at EVERY width,
-// with no `desktop:` gating, exactly as PortraitTile draws it.
-//
-// It used to swap below 4 columns for the `Person` component the 1024 / 768 /
-// 390 boards draw (4296:269589) — a 144px luminosity-blended portrait, no bed,
-// no scatter, no rule, unclamped bio. That made the same tile read as two
-// different things either side of 1280; it is one tile, so it is one shape
-// (docs/STAGE-0-NOTES.md §39).
-//
-// The item is a Page until the cards union carries Person: title is the name,
-// intro the bio, hero[0] the portrait.
+/**
+ * Notable Alumni card displaying craft patterns, a circular portrait, and bio.
+ */
 export function AlumniCard({ item }: { item: Page }) {
   const photo = item.hero[0];
   return (
@@ -28,9 +18,6 @@ export function AlumniCard({ item }: { item: Page }) {
             <TileImage
               media={photo}
               className="relative aspect-square w-4/5 rounded-full"
-              // The portrait is four fifths of half the tile, so ~132px at 1440
-              // (330 wide), ~124 at 1024, ~140 at 768 and ~143 at 390 — one
-              // fixed hint above the phone, a viewport fraction on it.
               sizes="(min-width: 668px) 160px, 40vw"
             />
           )}
@@ -46,7 +33,6 @@ export function AlumniCard({ item }: { item: Page }) {
             </p>
           )}
         </div>
-        {/* The tile closes on a rule, as PortraitTile and the list tiles do. */}
         <span aria-hidden="true" className="block h-2 border-b-2 border-border-subtle" />
       </div>
     </Tile>

@@ -7,22 +7,14 @@ import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
 import { FOOTER, type FooterLink } from "@/lib/footer-content";
 
-// The four footer blocks (design/NID-CONTEXT.md §5.2 ROW f; sitemap.json
-// "footer"), rendered as direct GridItem children of the page's ONE PageGrid —
-// a page places <Footer /> inside its grid rather than the layout wrapping
-// every page in a second one, because column 1 is the label rail all the way
-// down and a nested grid would double the shell margin (STAGE-0-NOTES.md §6).
-// Footer blocks are not square; they take their natural height.
-
+/**
+ * Site footer blocks, rendered directly as GridItems within the PageGrid.
+ */
 type Translate = Awaited<ReturnType<typeof getTranslations<"Footer">>>;
 
 function LinkColumn({
   links,
   t,
-  /** Primary column is Heavy, secondary is Medium (the export's
-   *  `Futura_PT:Medium` = 500). text-h6 carries Heavy in its own token, so this
-   *  must override it — which only works because Tailwind emits font-weight
-   *  utilities after text-* ones, not because of class order in the string. */
   weight = "heavy",
 }: {
   links: FooterLink[];
@@ -48,16 +40,10 @@ function LinkColumn({
   );
 }
 
-// `collaborations` is the one place the boards disagree, so it is the one prop.
-// The About and News & Events boards draw the partner block ONE COLUMN wide at
-// 1024 and 768; the Home board runs it the full row below 1024 (STAGE-0-NOTES
-// §23). That difference used to be resolved by giving every page Home's
-// version — which quietly put the editorial pages at odds with their own
-// boards. `column` is the default because the editorial template is the common
-// case; Home opts back out.
 export async function Footer({
   collaborations = "column",
 }: {
+  /** Display format for collaboration logos: "column" (default for editorial) or "row" (Home). */
   collaborations?: "row" | "column";
 } = {}) {
   const t = await getTranslations("Footer");
@@ -107,26 +93,10 @@ export async function Footer({
         </ul>
       </GridItem>
 
-      {/* `row`: six marks in a 4-column grid do not fit a 2-column layout's
-          single column, so below 1024 the block takes the whole row (§23).
-          `column`: one column, as the editorial boards draw it — except at
-          three columns, where the other three blocks fill row one and this one
-          is alone on row two, so it spreads and the six marks make one line. */}
       <GridItem span={fullRow ? "full-then-1" : "full-at-laptop"}>
-        {/* No background of its own: the export's bg-white is a Figma frame
-            fill on a white page, and painting it turns the block into a white
-            slab the moment the surface is dark. */}
-        {/* The internal grid follows the block. Widening the block alone made
-            things worse, not better (§23): at 720px with 4 columns the marks
-            went four across at 168px and stranded two beside a half-empty row,
-            so the full-row form goes six across and only there. A one-column
-            block is four across at every width. Base plus breakpoint-scoped
-            overrides, so the media range decides, not emit order. */}
         <div
           className={clsx(
             "grid grid-cols-4 gap-4",
-            // Six across wherever the block has the whole row, four wherever it
-            // is one column — which is the opposite breakpoint in each form.
             fullRow
               ? "tablet:grid-cols-6 laptop:grid-cols-4"
               : "laptop:grid-cols-6 desktop:grid-cols-4",
@@ -136,10 +106,6 @@ export async function Footer({
             {t(FOOTER.collaborationsOverlineKey)}
           </h2>
           {FOOTER.collaborations.map((partner) => (
-            // Each mark gets its own light plate in dark appearance: these are
-            // full-colour logos with baked-in dark ink, and surface/inverse is
-            // the one sanctioned dark pairing. The padding and radius apply in
-            // BOTH appearances so nothing resizes when the appearance toggles.
             <span
               key={partner.name}
               className="flex items-center justify-center rounded-lg p-2 dark:bg-surface-inverse"
@@ -149,9 +115,7 @@ export async function Footer({
                 alt={partner.name}
                 width={partner.logo.width}
                 height={partner.logo.height}
-                // The image endpoint refuses SVG unless dangerouslyAllowSVG is set.
                 unoptimized={partner.logo.file.endsWith(".svg")}
-                // Height drives the size; the width follows the mark's own aspect.
                 style={{ maxHeight: partner.height }}
                 className="h-auto w-auto max-w-full object-contain"
               />

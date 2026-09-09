@@ -1,6 +1,4 @@
-// /about/news-events — the News & Events landing (Figma 4123:240887), as the
-// CMS will serve it. A SECONDARY page: back-nav and the sibling band come from
-// `derived`, never from a section. Typed by content-model.ts as it stands.
+// /about/news-events — News & Events page content fixture.
 import type { Page, PageResponse, Section } from "@/lib/content-model";
 import { PAGE_ID } from "@/lib/content/pages";
 import { mediaAsset } from "@/lib/media";
@@ -8,9 +6,7 @@ import { mediaAsset } from "@/lib/media";
 // Every article on the board carries this date.
 const PUBLISHED = "2026-07-23T00:00:00+05:30";
 
-/** An index stub for a child page: what a card needs and nothing more. Same
- *  shape as the About fixture's, including its TODO(review) about `sections`
- *  being required on a record a card never reads. */
+/** An index stub for a child page: what a card needs and nothing more. */
 function stub(
   page: Pick<Page, "id" | "title" | "slug" | "parent" | "hero"> & Partial<Page>,
 ): Page {
@@ -25,13 +21,6 @@ function stub(
   };
 }
 
-// The four 2026 articles. They are the whole of this year's news, so the
-// "Featured" and "2026" sections list the same records — the board draws lorem
-// ipsum in the 2026 cards, which is placeholder rather than content.
-//
-// Typed as Page stubs because the cards union lacks NewsArticle; headline, date
-// and thumbnail ride on title, publishedAt and hero[0] (see the TODO(review) on
-// CARD_KIND_BY_PARENT in src/lib/content/pages.ts).
 const ARTICLES: Page[] = [
   stub({
     id: "news-north-east-artisans",
@@ -40,11 +29,7 @@ const ARTICLES: Page[] = [
     parent: PAGE_ID.newsEvents,
     hero: [
       {
-        // Measured against the square crop this card renders: the President's
-        // face sits at 0.34 of the width and the artisan's at 0.64, so the pair
-        // is centred but spans more than any 1:1 window of a 1200×526 frame.
-        // Centre keeps both faces and splits the loss between her sari and his
-        // shoulder; pushing x toward the pot would crop her out.
+        // Focal point centered to keep both subjects in square crops.
         ...mediaAsset(
           "/news/north-east-artisans.jpg",
           "The President of India presenting an award to an artisan at Rashtrapati Bhavan.",

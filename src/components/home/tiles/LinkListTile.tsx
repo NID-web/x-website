@@ -6,15 +6,11 @@ import type { HomeTile, Translate } from "@/lib/home-content";
 
 type LinkListTileData = Extract<HomeTile, { kind: "linkList" }>;
 
-// "Study at NID" — a heading over a list of links, each a bold label with the
-// arrow in its own icon slot (never in the string, CLAUDE.md § Content), a
-// subtle underline, and a teal meta line.
+/**
+ * "Study at NID" — heading over a list of links with labels, subtle underlines, and meta lines.
+ */
 export function LinkListTile({ tile, t }: { tile: LinkListTileData; t: Translate }) {
   return (
-    // A square like every other tile. It keeps `justify-center` and no padding:
-    // on the page surface the square is a floor the content can exceed, and
-    // padding would be spent out of whatever headroom is left inside it
-    // (docs/STAGE-0-NOTES.md §18) — centring costs nothing.
     <Tile as="section" surface="page" padding={false} className="justify-center">
       {tile.gradient && <GradientWash />}
       {tile.overlineKey && <Overline>{t(tile.overlineKey)}</Overline>}
@@ -31,20 +27,11 @@ export function LinkListTile({ tile, t }: { tile: LinkListTileData; t: Translate
               className="inline-flex items-center gap-2.5 font-primary text-h6 uppercase text-text-secondary no-underline transition-colors duration-150 ease-in-out group-hover:text-text-primary"
             >
               {t(link.labelKey)}
-              {/* icon/quaternary — primary/350, the export's arrow fill, and a
-                  deliberately sub-AA token (CLAUDE.md § Colour). Legitimate
-                  here: the arrow is aria-hidden and repeats the affordance the
-                  label already carries. Hover takes it to icon/secondary. */}
               <Icon
                 name="arrow-up-right"
                 className="size-4 shrink-0 text-icon-quaternary transition-colors duration-150 ease-in-out group-hover:text-icon-secondary"
               />
             </Link>
-            {/* The CTA's underline, not the brand hairline the other tiles use.
-                The export draws it on the CTA box as a 2px `border-b` in
-                primary/150 — i.e. border/subtle — darkening to primary/400,
-                i.e. border/default, on hover. Both are border tokens, so this
-                is a rule rather than a decorative accent. */}
             <span
               aria-hidden="true"
               className="block h-0.5 max-w-28 bg-border-subtle transition-colors duration-150 ease-in-out group-hover:bg-border-default"

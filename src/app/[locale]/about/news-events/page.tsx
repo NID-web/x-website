@@ -13,8 +13,7 @@ import { getPage } from "@/lib/content/getPage";
 
 const PATH = "/about/news-events";
 
-/** The section whose lead card is drawn at feature size (4199:303897). A
- *  presentation choice the model cannot express — see CardsSection's `lead`. */
+/** The section whose lead card is drawn at feature size. */
 const FEATURED_SECTION = "section-news-featured";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,13 +26,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// News & Events (Figma 4123:240887) — the shape every SECONDARY page takes: the
-// back-nav in the page's utility slot beside the title, the sections, then the
-// sibling band before the footer. Back-nav and band both come from `derived`,
-// never from a section. Static: no cookies()/headers().
-//
-// Unlike About, no separator divides the title row from the first section: the
-// board runs the Featured title straight under it on the row gap alone.
+/**
+ * News & Events secondary landing page.
+ */
 export default async function NewsEventsPage() {
   const response = await getPage(PATH);
   if (!response) notFound();

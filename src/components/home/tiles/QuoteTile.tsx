@@ -5,11 +5,9 @@ import type { HomeTile, Translate } from "@/lib/home-content";
 
 type QuoteTileData = Extract<HomeTile, { kind: "quote" }>;
 
-// "Director's Note" — an italic serif pull-quote with the attribution beneath
-// it. The quote is bottom-aligned in the space above the attribution row
-// (export: `flex-1` + `justify-end`), which is what leaves the tile's whole
-// upper half empty. The CTA carries no arrow here — `iconRight={false}` in the
-// export — just the uppercase label over its border/subtle underline.
+/**
+ * Pull-quote tile with attribution and avatar.
+ */
 export function QuoteTile({ tile, t }: { tile: QuoteTileData; t: Translate }) {
   return (
     <Tile as="figure" surface="page" padding={false}>

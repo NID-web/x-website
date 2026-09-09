@@ -6,26 +6,16 @@ export function GradientRule({ className }: { className?: string }) {
       aria-hidden="true"
       className={clsx(
         "block w-full min-w-0 bg-overline-rule",
-        // The gradient is the full accent ramp — surface/page into primary,
-        // secondary, tertiary, quaternary, pentenary — and those hues are
-        // already exactly the Foundations board's. What the board does NOT do is
-        // hold it at 45%: that is what greys the teal and turns the pentenary
-        // stop from orange into pale tan. So tile hover changes no colour at
-        // all, it just stops muting the ones that are there.
-        //
-        // Opacity, unlike background-image, transitions — so this also gets the
-        // sanctioned 150ms rather than the instant swap a second gradient
-        // needed (docs/STAGE-0-NOTES.md §31).
-        "opacity-45 transition-opacity duration-150 ease-in-out",
-        "group-hover/tile:opacity-100",
+        "opacity-45 transition-opacity duration-150 ease-in-out group-hover/tile:opacity-100",
         className,
       )}
     />
   );
 }
 
-// The teal overline label with the gradient hairline trailing off to its right
-// — the header motif shared by the calendar, news, portrait and footer tiles.
+/**
+ * Overline label component with trailing gradient rule.
+ */
 export function Overline({
   children,
   withRule = true,
@@ -35,18 +25,8 @@ export function Overline({
 }: {
   children: React.ReactNode;
   withRule?: boolean;
-  /** Trim 2px off the top of the rule — the portrait and media-card tiles sit
-   *  it slightly below the label's cap height rather than flush with it. A top
-   *  margin rather than a height, so the rule stays bottom-aligned with the
-   *  label and still tracks its height (see GradientRule). */
   shortRule?: boolean;
   dark?: boolean;
-  /** Darken to text/primary while the TILE is hovered. Opt-in, and only the
-   *  linked portrait tile asks for it — the Figma hover variant takes this
-   *  label from the tertiary teal to the darkest one, i.e. text/quaternary to
-   *  text/primary.
-   *  Worth having: quaternary is intentionally below AA (CLAUDE.md § Colour),
-   *  so this is the one state where the label is comfortably legible. */
   hoverDark?: boolean;
 }) {
   return (
@@ -66,9 +46,9 @@ export function Overline({
   );
 }
 
-// Neutral stand-in for a photograph until the real Figma export lands under
-// public/home/. Carries the alt text so the intended content is legible in
-// layout review; swapped for <img>/next-image in the assets pass.
+/**
+ * Image placeholder for missing or loading photo assets.
+ */
 export function ImagePlaceholder({ alt, className }: { alt: string; className?: string }) {
   return (
     <div
@@ -86,11 +66,9 @@ export function ImagePlaceholder({ alt, className }: { alt: string; className?: 
   );
 }
 
-// The seven-stop accent gradient at 20%, cut to the right triangle that washes
-// the Study tile (330 square). It used to take a `shape`, because the same
-// gradient also backed the page titles as an equilateral polygon (4932:576887)
-// and a corner triangle (4932:576889); both were removed on the design owner's
-// call and the Study tile is the only caller left, so the shape is inlined.
+/**
+ * Seven-stop accent gradient wash overlay.
+ */
 const WASH = {
   id: "nid-study-wash",
   viewBox: "0 0 330 330",

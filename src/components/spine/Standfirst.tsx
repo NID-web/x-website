@@ -4,10 +4,9 @@ import clsx from "clsx";
 import { useState } from "react";
 import { Icon } from "@/components/spine/Icon";
 
-// Page.intro (NID-CONTEXT.md §8.1): Body/Large in columns 2–3. On the phone
-// board (4361:190044) it is clipped to seven lines behind a "See more" inline
-// CTA, and set Body/Large/Bold in text/primary rather than Regular in
-// text/secondary — both are the board's, kept as drawn.
+/**
+ * Standfirst introductory paragraph with mobile expandable clamp.
+ */
 export function Standfirst({ text, seeMore }: { text: string; seeMore: string }) {
   const [open, setOpen] = useState(false);
   return (

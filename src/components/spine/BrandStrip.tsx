@@ -1,36 +1,10 @@
 import clsx from "clsx";
-import { NidWordmark } from "@/components/spine/NidWordmark";
+import { Wordmark } from "@/components/spine/Wordmark";
 
-// The NID brand strip (design/NID-CONTEXT.md §13) — the decorative craft band
-// that sits directly under the header and again above the page foot.
-//
-// In Figma the band is 30 repeated 48px "Tile"s, each holding four 24px
-// "cross-garden-tile" quadrants, all identical — so this draws the one 22-rect
-// quadrant once and lets an SVG <pattern> repeat it, which also makes the strip
-// fluid instead of pinned to 1440px.
-//
-// The quadrant occupies x/y 4–24 of its 24px box, and the four placements below
-// compose the 48px tile as a clean pinwheel: 0°, 90°, 180°, −90°. The last one
-// is written `-rotate-90` in the export — read it carefully, matching just the
-// digits gives 90 and yields a lopsided motif instead of a 4-fold symmetric one.
-//
-// Colours are the three decorative accent tokens, so the band re-themes with the
-// page and inverts with appearance. Decorative and aria-hidden, so the
-// decorative ramp is allowed here (CLAUDE.md § Colour).
-//
-// The export ships two variants. `device="Only Pattern"` is the band alone and
-// opens the page; the default `device="Desktop"` leads with the NID wordmark and
-// closes it. Hence `logo` — set it on the closing strip only.
-//
-// The band owns the space between itself and the page, because the band is on
-// every page and the space has to be the same on every page — three call sites
-// each repeating an arbitrary length is how they drift. The opening strip
-// clears ONE COLUMN GAP (`gutter`, the design owner's call): the band reads as
-// the first thing on the page's grid, so the distance under it is the same
-// distance that separates two columns.
-//
-// `flush` is for a band that is not opening or closing a page — the one inside
-// the main menu panel, which is a flex row's own child and sets its own box.
+/**
+ * Decorative craft brand strip.
+ * Features an SVG pattern repeat of the craft quadrant, with an optional NID wordmark logo.
+ */
 export function BrandStrip({
   className,
   logo = false,
@@ -52,8 +26,7 @@ export function BrandStrip({
       )}
     >
       {logo && (
-        // accent/secondary — the token the export's literal fill resolves to.
-        <NidWordmark className="h-[29.583px] w-[213px] shrink-0 text-accent-secondary" />
+        <Wordmark ariaHidden tone="accent-secondary" className="shrink-0" />
       )}
       <svg
         className="block h-12 w-full min-w-0 flex-1"

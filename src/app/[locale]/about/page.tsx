@@ -27,11 +27,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// The About NID landing (Figma 3754:240099) — the first page through the
-// content model, and the shape every primary page takes (NID-CONTEXT.md §5.2):
-// title, sub-page links in the rail beside the hero, the standfirst, then the
-// sections and the footer, all direct children of one PageGrid. Static: no
-// cookies()/headers().
+/**
+ * About NID primary landing page.
+ */
 export default async function AboutPage() {
   const response = await getPage(PATH);
   if (!response) notFound();
@@ -55,8 +53,6 @@ export default async function AboutPage() {
 
         {hero && (
           <GridItem span="hero">
-            {/* The one rounded corner on the page (NID-CONTEXT.md §8.6); the
-                crop steps 2.2:1 → 2:1 → 16:9 → 4:3 with the column count (§5.3). */}
             <TileImage
               media={hero}
               priority
@@ -72,10 +68,6 @@ export default async function AboutPage() {
           </GridItem>
         )}
         {page.contacts.length > 0 && (
-          // Column 4 beside the intro at 4 columns (auto — the standfirst has
-          // taken 2 and 3). At 3 columns the standfirst fills the row, so this
-          // wraps; `2-laptop` keeps it under the intro rather than dropping
-          // into the rail (docs/STAGE-0-NOTES.md §37).
           <GridItem span={1} start="2-laptop">
             <ContactList contacts={page.contacts} />
           </GridItem>

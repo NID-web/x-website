@@ -1,6 +1,4 @@
-// /about — the About NID landing (Figma 3754:240099), as the CMS will serve it.
-// Typed by content-model.ts exactly as it stands; every place the board needs
-// something the model lacks is a TODO(review) here, not an edit to the model.
+// /about — About NID landing page content fixture.
 import type { Page, PageResponse, Section } from "@/lib/content-model";
 import { PAGE_ID } from "@/lib/content/pages";
 import { mediaAsset } from "@/lib/media";
@@ -179,10 +177,6 @@ export const ABOUT: PageResponse = {
     intro:
       "The establishment of NID was a result of several forces, both global and local. The late 1950s saw a confluence of these forces, and this time would be a significant one for Indian culture and education. This was a time of reappraisal and reconstruction in a newly independent India. A young nation was confronted with the mammoth task of nation building, of balancing age-old traditions with modern technology and ideas.",
     sections: [NEWS, CAMPUSES, STUDENT_AWARDS],
-    // TODO(review): the board puts a "Read full mandate" link in column 4
-    // beside the intro (4584:812757). Page has no links field, so it rides on
-    // `contacts` — the field with that placement — as a LabelValue whose value
-    // is the path. Propose `Page.introLinks: Link[]`.
     contacts: [{ label: "Read full mandate", value: "/about/charter" }],
     seoTitle: "About NID",
     publishedAt: PUBLISHED,

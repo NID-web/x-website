@@ -10,7 +10,7 @@ Companion files in this bundle:
 |---|---|
 | `tokens/tokens.json` | Every token, machine-readable. Primitives per theme, semantic tokens resolved for all 20 theme×appearance combinations, type scale per breakpoint, grid, spacing. |
 | `tokens/themes.css` | The whole token layer as CSS custom properties. Drop-in; import once. |
-| `tokens/tailwind.config.ts` | Tailwind mapped onto those custom properties. No hex values anywhere. |
+| `src/app/globals.css` (`@theme`) | Tailwind mapped onto those custom properties. No hex values anywhere. |
 | `tokens/content-model.ts` | The CMS contract as TypeScript. Compiles clean. |
 | `tokens/sitemap.json` | Every route, the menu tree, the footer, and the eight open IA decisions. |
 
@@ -530,7 +530,7 @@ Practical consequences for the build:
 
 ### 6.5 Type in code
 
-**Tailwind:** `font-primary text-h2`, `font-body text-body`, `font-secondary text-display-quote italic`. The `fontSize` map in `tailwind.config.ts` points at the same custom properties, so a class picked once is correct at every breakpoint.
+**Tailwind:** `font-primary text-h2`, `font-body text-body`, `font-secondary text-display-quote italic`. The `--text-*` entries in the `@theme` block of `src/app/globals.css` point at the same custom properties, so a class picked once is correct at every breakpoint.
 
 **CSS Modules:** use the generated classes in `themes.css` (`.nid-heading-2`, `.nid-body-base-regular`, …) or compose them:
 

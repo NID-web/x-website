@@ -7,10 +7,9 @@ import { ThemeMotif } from "@/components/header/ThemeMotif";
 import { ThemeMenu } from "@/components/header/ThemeMenu";
 import { Icon } from "@/components/spine/Icon";
 
-// The theme trigger (§3.5): a 58×32 button showing the CURRENT theme's motif
-// plus a caret, opening the ThemeMenu dropdown beneath it. Self-contained —
-// owns open state, outside-click and Escape. The motif reads the active accent
-// tokens, so it always renders in the current theme without scoping.
+/**
+ * Theme switcher trigger button displaying the active theme motif and opening ThemeMenu.
+ */
 export function ThemeSwitcher() {
   const { theme } = useTheme();
   const [open, setOpen] = useState(false);

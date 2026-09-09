@@ -9,30 +9,15 @@ import { ThemeSwitcher } from "@/components/header/ThemeSwitcher";
 import { MainMenu } from "@/components/header/MainMenu";
 import { APPLY_HREF } from "@/lib/nav-content";
 
-// The site header (design/NID-CONTEXT.md §7.3, node 99:8595). Sticky, full-bleed.
-// Background is surface/page at 1% opacity — a near-transparent wash, NOT an
-// opaque band (STAGE-0-NOTES trap #2 — do not "fix" it to opacity 1).
-//
-// One row, justify-between, at two heights: 50px below tablet (Mobile variant),
-// 60px from tablet up (1024 and 768 keep the desktop header — §5/§7.3). "Below
-// tablet" is now below 668, not below 768 (STAGE-0-NOTES §21): a 700px-wide
-// window is a narrow desktop, not a phone, and takes the full-height header.
-// The only
-// responsive swap is the mark: the full bilingual wordmark on desktop, the
-// compact "NID" mark below tablet. The Apply / search / menu cluster is shared.
-//
-// At the top of the page the wash is all there is. Once the page scrolls, a
-// 16px backdrop blur turns it into frosted glass so content passing underneath
-// stays legible behind the 1% background rather than colliding with the nav.
+/**
+ * Site header component.
+ * Sticky header with bilingual/compact wordmark, theme switcher, apply button, and drawer navigation.
+ */
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuId = useId();
 
-  // Blur only once the page has actually moved. Read on mount as well as on
-  // scroll: a restored scroll position or a #hash landing starts part-way down
-  // the page and fires no scroll event, which would leave the nav unblurred
-  // over content. `passive` because this never calls preventDefault.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 0);
     onScroll();
@@ -40,7 +25,7 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Escape closes the menu; lock body scroll while the full-screen menu is open.
+  // Escape closes the menu; lock body scroll while menu is open.
   useEffect(() => {
     if (!menuOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -60,29 +45,23 @@ export function Header() {
     <header
       className={clsx(
         "sticky top-0 z-40 w-full bg-surface-page/1",
-        // backdrop-blur-lg is Tailwind's 16px step (--blur-lg). Applied on the
-        // header itself, not a pseudo-element: backdrop-filter samples what is
-        // painted behind the element, so it needs the element that spans the
-        // band. No transition — same reasoning as the theme swap, a filter
-        // fading in on every scroll start judders more than it smooths.
         scrolled && "backdrop-blur-lg",
       )}
     >
       <div className="flex h-[50px] items-center gap-3 px-4 tablet:h-[60px] tablet:px-6">
-        {/* Left — "Frame 256", the mark, home-linked. flex-1, mirroring the right
-            cluster's flex-1; two equal side frames are what put the theme
-            trigger on the header's exact centre line. Measured in Figma 1:610 at
-            768 wide: both side frames 319, trigger spans 355–413 for a centre of
-            384 against a header centre of 384. */}
+        {/* Left and right frames are both flex-1: two equal side frames are
+            what put the theme trigger on the header's exact centre line
+            (measured in Figma 1:610 at 768 — both frames 319, trigger 355–413,
+            centre 384 against a header centre of 384). Visibility lives on the
+            neutral <span> wrappers, not on the marks: the full wordmark sets its
+            own `inline-flex`, which would fight a `hidden` placed directly on it
+            (display utilities tie on specificity). */}
         <div className="flex flex-1 items-center">
           <Link
             href="/"
             aria-label="National Institute of Design — home"
             className="inline-flex items-center no-underline"
           >
-            {/* Visibility lives on neutral wrappers, not on the marks — the full
-                wordmark sets its own `inline-flex`, which would fight a `hidden`
-                placed directly on it (display utilities have equal specificity). */}
             <span className="hidden tablet:inline-flex">
               <Wordmark variant="full" />
             </span>
@@ -92,18 +71,14 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Theme trigger, centred at EVERY width by the two flex-1 frames around
-            it. Below tablet it used to hug the mark instead — NID-CONTEXT.md
-            §7.3's Mobile variant groups the two as a "Brand & Utility" cluster,
-            with mr-auto shoving the right cluster to the far edge. Centred on
-            the design owner's call (docs/STAGE-0-NOTES.md §29); the trigger is
-            the same control at every width and now sits on the same line. */}
+        {/* Centred at EVERY width by the two flex-1 frames around it. Below
+            tablet it used to hug the mark instead (§7.3's Mobile variant groups
+            the two as one cluster); centred on the design owner's call
+            (docs/STAGE-0-NOTES.md §29). */}
         <div>
           <ThemeSwitcher />
         </div>
 
-        {/* Right — "Frame 101": Apply CTA (Button · Small), search, menu. Right
-            aligned, gap 8. flex-1 to balance the left frame (see above). */}
         <div className="flex flex-1 items-center justify-end gap-2">
           <Link
             href={APPLY_HREF}
@@ -119,9 +94,8 @@ export function Header() {
             icon="search"
             label="Search"
             size="small"
-            onClick={() => {
-              /* Search index is Stage 5 — the control is present but inert. */
-            }}
+            // Search index is Stage 5 — the control is present but inert.
+            onClick={() => {}}
           />
           <IconButton
             icon={menuOpen ? "close" : "menu"}
@@ -137,10 +111,10 @@ export function Header() {
     </header>
 
     {/* Sibling of <header>, deliberately: once scrolled the header carries
-        `backdrop-blur`, and backdrop-filter makes an element a containing
-        block for its fixed-position descendants — nested here, the drawer
-        would anchor to the 50/60px header band instead of the viewport. It
-        stays mounted so it can slide out as well as in. */}
+        `backdrop-blur`, and backdrop-filter makes an element a containing block
+        for its fixed-position descendants — nested here, the drawer would
+        anchor to the 50/60px header band instead of the viewport. It stays
+        mounted so it can slide out as well as in. */}
     <MainMenu id={menuId} open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );

@@ -46,13 +46,6 @@ function renderTile(tile: HomeTile, t: Translate) {
   }
 }
 
-// The single-grid assembler. The whole page is ONE PageGrid (CLAUDE.md
-// § Layout); every tile is a direct GridItem child, one column wide, except the
-// two that open the page. The position statement is a full-width band below
-// 1024 and a single square above it — a reshape the boards make at 1024, not a
-// clamp. The hero always spans two tiles: the whole row at 1 and 2 columns, two
-// of three or four above. Every tile is shown at every breakpoint; nothing is
-// hidden and nothing is reordered (docs/STAGE-0-NOTES.md §20, §22).
 const SPAN_BY_KIND: Partial<Record<HomeTile["kind"], GridSpan>> = {
   statement: "full-then-1",
   hero: 2,
@@ -64,15 +57,13 @@ export async function HomeGrid() {
 
   return (
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
-      {/* Craft band, full-bleed directly under the header — it sits outside the
-          PageGrid shell on purpose: it runs edge to edge, so putting it in a
-          GridItem would inset it by the shell margin.
-
-          Its clearance is two grid row-gaps, not a flat 48px. Those are the same
-          number at 3 and 4 columns, where a flat mb-12 was already exactly 2×;
-          but the row gap steps down to 20 and 16 below that while 48 did not, so
-          the band's clearance grew to 2.4× and 3× the page's own rhythm and read
-          as a void (docs/STAGE-0-NOTES.md §30). */}
+      {/* Craft band, full-bleed directly under the header — outside the
+          PageGrid shell on purpose: it runs edge to edge, so a GridItem would
+          inset it by the shell margin. Its clearance is two grid row-gaps, not a
+          flat 48px: those are the same number at 3 and 4 columns, but the row gap
+          steps down to 20 and 16 below that while 48 did not, so a flat value
+          grew to 2.4x and 3x the page's own rhythm and read as a void
+          (docs/STAGE-0-NOTES.md §30). */}
       <BrandStrip />
       <PageGrid>
         {HOME_TILES.map((tile) => (
@@ -80,14 +71,11 @@ export async function HomeGrid() {
             {renderTile(tile, t)}
           </GridItem>
         ))}
-        {/* Home's board runs the partner block across the whole row below
-            1024, where the editorial boards keep it in one column (§23). */}
         <Footer collaborations="row" />
       </PageGrid>
-      {/* The band closes the page as well as opens it (export root: one strip
-          above the grid, one below) — but not identically: the opening strip is
-          the export's "Only Pattern" variant, the closing one leads with the
-          NID wordmark. */}
+      {/* The band closes the page as well as opens it — but not identically:
+          the opening strip is the export's "Only Pattern" variant, the closing
+          one leads with the NID wordmark. */}
       <BrandStrip logo />
     </main>
   );

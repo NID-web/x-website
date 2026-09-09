@@ -7,11 +7,9 @@ import { ctaProps } from "@/lib/content/links";
 
 type LinksSectionData = Extract<Section, { type: "links" }>;
 
-// type=links (NID-CONTEXT.md §8.2): destinations across the content field, one
-// to a column — the News & Events archive row draws 2025 / 2024 / Older in
-// columns 2, 3 and 4 (4123:240894). A link the model cannot resolve to an href
-// renders nothing, so the cells are built from the resolved list and never from
-// the raw index.
+/**
+ * Section rendering links across the content columns.
+ */
 export function LinksSection({ section }: { section: LinksSectionData }) {
   const links = section.items.flatMap((item) => {
     const cta = ctaProps(item);

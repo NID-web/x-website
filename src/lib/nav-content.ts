@@ -1,17 +1,5 @@
 /**
- * Header navigation — static content.
- *
- * The real menu tree is `Page.parent` filtered to published pages, served by the
- * CMS (design/NID-CONTEXT.md §7.4 — "there is no menu table"). Until that API
- * exists this mirrors the nine main-menu sets from the design file, with hrefs
- * from design/tokens/sitemap.json. Section TITLES are not links — only the
- * nested page links navigate (§7.4) — so a section carries a label, and an
- * `href` only where the design owner has asked for one (see NavSection.href
- * and docs/STAGE-0-NOTES.md §34). Labels are page titles / proper nouns = data,
- * so they live here rather
- * than in messages/en.json (unlike prose, which stays translatable).
- *
- * CMS-adoptable later: swap MENU_SECTIONS for the recursive parent query.
+ * Header navigation static content and route hierarchy.
  */
 import { THEMES, type Theme } from "@/lib/theme-constants";
 
@@ -23,14 +11,7 @@ export interface NavLink {
 export interface NavSection {
   id: string;
   title: string;
-  /**
-   * The section's own landing page, when it has one. §7.4 says menu titles are
-   * NOT links, and eight of the nine still aren't — but About NID has a real
-   * landing page and the design owner asked for the title to reach it
-   * (docs/STAGE-0-NOTES.md §34). Where this is set the row splits: the title
-   * navigates and the plus/minus alone works the disclosure. Add an entry here
-   * as each remaining landing page is built.
-   */
+  /** The section's own landing page route, if present. */
   href?: string;
   links: NavLink[];
 }
@@ -151,17 +132,7 @@ export const MENU_SECTIONS: NavSection[] = [
 // page from the landing grid is the commonest way in.
 export const HOME_NAV: NavLink = { label: "Home", href: "/" };
 
-// route → page title, for naming a destination the front end only knows as a
-// path. The back-nav is the caller: it learns where the visitor came from as a
-// URL and has to render that page's NAME, never "Back" (CLAUDE.md § Content).
-//
-// Built from MENU_SECTIONS rather than typed out, so it cannot fall out of step
-// with the menu, and so it goes away with it when the CMS serves the real tree
-// (every node there carries a title already). A section title counts only where
-// the section has a landing page of its own — eight of the nine do not.
-//
-// Coverage is the menu, and that is deliberate: a path with no entry has no
-// name, and a back link with no name is not rendered at all.
+// Map of route path to display title derived from MENU_SECTIONS for BackNav labels.
 const ROUTE_TITLE: Record<string, string> = Object.fromEntries([
   [HOME_NAV.href, HOME_NAV.label],
   ...MENU_SECTIONS.flatMap((section) => [

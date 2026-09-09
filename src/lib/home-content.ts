@@ -1,15 +1,5 @@
 /**
- * Home / Landing page — static content.
- *
- * A bespoke tile grid, NOT the editorial Section model (design/tokens/
- * content-model.ts stays the backend contract and is not edited here). This
- * file holds STRUCTURE ONLY — tile kind, source order, hrefs, dates, image
- * refs and `*Key` pointers into the "Home" namespace of messages/en.json.
- * All translatable prose lives in the messages file; proper nouns, addresses
- * and pre-formatted date strings are data and live here.
- *
- * CMS-adoptable later: swap HOME_TILES for a fetch and resolve the `*Key`s to
- * strings server-side. The footer lives in src/lib/footer-content.ts.
+ * Home / Landing page tile data and static content definitions.
  */
 import type { MediaAsset } from "@/lib/content-model";
 import { assetPath, mediaAsset } from "@/lib/media";
@@ -125,7 +115,7 @@ export type HomeTile =
 const img = (file: string, alt: string, w = 800, h = 800) =>
   mediaAsset(`/home/${file}`, alt, w, h);
 
-// Source order = the Figma bento, row by row, left → right (see get_metadata).
+// Bento grid tiles ordered row by row, left to right.
 // Only the hero spans 2 columns; everything else is one square cell.
 export const HOME_TILES: HomeTile[] = [
   // ── row 1 ──────────────────────────────────────────────────────────────
@@ -245,9 +235,6 @@ export const HOME_TILES: HomeTile[] = [
   {
     id: "shifting-paradigms",
     kind: "mediaCard",
-    // The maroon "Call for Papers" surface is a background IMAGE, not a colour.
-    // It is NOT an overlay card: the export builds it exactly like Drawing
-    // Dialogues — image on the top half, label beneath on the page surface.
     media: img("shifting-paradigms.jpg", "Shifting Paradigms — call for papers.", 700, 700),
     overlineKey: "callForPapers.overline",
     titleKey: "callForPapers.title",
@@ -303,8 +290,7 @@ export const HOME_TILES: HomeTile[] = [
     id: "kmc",
     kind: "spine",
     headingKey: "kmc.heading",
-    // The shelf, in the export's order (KMC / Frame17). Book titles are proper
-    // nouns, so they are data and stay here rather than in the messages file.
+    // Book titles displayed on the vertical spine shelf.
     spines: [
       "The India Report",
       "Design of the Indian Subcontinent",

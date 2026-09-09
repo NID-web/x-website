@@ -6,25 +6,9 @@ import type { HomeTile } from "@/lib/home-content";
 
 type HeroTileData = Extract<HomeTile, { kind: "hero" }>;
 
-// The hero image. The one card tile with square corners — the Figma card sets
-// `border-radius: inherit` with nothing to inherit from.
-//
-// Three shapes, one per column count, and it always occupies TWO tiles:
-//   1 column  — the whole row, and a square (the 390 board's 358 square).
-//   2 columns — the whole row, exactly ONE row tall, so it reads as the two
-//               tiles it replaces. Nothing shares its row, so nothing else can
-//               set that height: `h-grid-column` takes it from the grid's own
-//               rendered column width (see globals.css). Not the board —
-//               the 768 board draws a 350 square in one column.
-//   3-4 cols  — two columns wide and a row FOLLOWER (h-full), taking the height
-//               its square neighbours in row 1 set.
-// It never needs a min-height: one of the three always gives it one. Above the
-// fold, so the image is eager.
-// With `video` set the image becomes the still behind a self-hosted clip and
-// nothing else changes — the Tile, its span and all three shapes are untouched.
-// It reads its own copy rather than taking `t` from HomeGrid: it is the only
-// tile with a string of its own, and threading a prop through the renderer for
-// one caller would cost more than it saves.
+/**
+ * Home hero tile displaying an eager still image or looped video player across responsive grid spans.
+ */
 export async function HeroTile({ tile }: { tile: HeroTileData }) {
   const t = await getTranslations("Home");
   const still = (

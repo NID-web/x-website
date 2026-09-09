@@ -8,14 +8,9 @@ import { ThemeMotif } from "@/components/header/ThemeMotif";
 import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
 
-// The theme switcher dropdown (design/NID-CONTEXT.md §3.5, node 4641:354567).
-// 284 wide, surface/page, ten rows + a tertiary footer link. Each row re-themes
-// its own motif via a scoped data-theme wrapper while the page stays in the
-// active theme. Wired to the live ThemeProvider — this is the real UI that
-// replaces the Stage-0 <select> placeholder (ThemeControls).
-//
-// Interaction model: the row body selects the theme (keeping the current
-// appearance); the sun / moon buttons select that theme in light / dark.
+/**
+ * Theme switcher dropdown allowing selection of any of the ten themes in light or dark mode.
+ */
 
 function ModeButton({
   mode,
@@ -105,7 +100,7 @@ export function ThemeMenu({ id }: { id: string }) {
         );
       })}
 
-      {/* Footer — Tertiary CTA (§3.5). Not uppercase; label style, hover rule. */}
+      {/* Footer link to themes description page */}
       <Link
         href="/about/our-themes"
         role="menuitem"

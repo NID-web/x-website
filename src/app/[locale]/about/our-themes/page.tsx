@@ -13,12 +13,7 @@ import { THEMES, type Theme } from "@/lib/theme-constants";
 
 const PATH = "/about/our-themes";
 
-// Which message holds each palette's story. Typed against Theme, so adding an
-// eleventh theme to THEMES fails the build here rather than shipping a card
-// with no copy — and a stray key that is not a theme fails too. The prose
-// itself lives in messages/en.json because it is translatable: this page is
-// code-owned (see the fixture's TODO), so it follows Home's split rather than
-// the fixture-prose rule that applies to CMS pages (STAGE-0-NOTES §33).
+/** Maps each theme to its translation key in the "OurThemes" message namespace. */
 const BODY_KEY: Record<Theme, string> = {
   peacock: "peacock",
   lotus: "lotus",
@@ -42,13 +37,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Our Themes (Figma 4800:347502) — the secondary-page template with a
-// code-owned body: the ten palettes, each card drawn in its own theme.
-//
-// The board has no separators and no sibling band, unlike News & Events, so
-// neither is rendered. THEMES is the single source of which themes exist and in
-// what order; this page never keeps its own list, or it would drift from the
-// theme switcher the day an eleventh lands. Static: no cookies()/headers().
+/**
+ * Our Themes secondary landing page presenting all ten theme palettes.
+ */
 export default async function OurThemesPage() {
   const response = await getPage(PATH);
   if (!response) notFound();

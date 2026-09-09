@@ -1,31 +1,44 @@
 import clsx from "clsx";
 
-// The NID bilingual wordmark (design/NID-CONTEXT.md §7.3, 213×29.5834).
-//
-// The 66 paths are the real Figma vectors (Home frame 3031:50673, layer
-// `Layer_3`, flattened — the <g> wrappers there carry no transform, opacity or
-// stroke, so nesting them would add nothing).
-//
-// Every path is `currentColor`, never its own fill (CLAUDE.md § Icons), so the
-// caller's text colour governs it. The export confirms both bindings §7.3
-// describes: the header draws the mark in `icon/primary` (primary-650 in light,
-// inverting to primary-050 in dark) and the brand strip in `accent/secondary`.
-//
-//  • variant="full"    → desktop bilingual lockup, 213×29.5834
-//  • variant="compact" → mobile mark, colour accent/strong. STILL A STAND-IN:
-//    the export is the 1440 desktop artboard only and carries no mobile mark.
+// The colour is chosen HERE, from a named set, rather than layered on through
+// `className`: every path is `currentColor` and never its own fill (CLAUDE.md
+// § Icons), so two colour utilities landing on one element would tie on
+// specificity and let the stylesheet order decide which wins.
+const TONE = {
+  "icon-primary": "text-icon-primary",
+  "accent-secondary": "text-accent-secondary",
+  "accent-strong": "text-accent-strong",
+} as const;
+
+export type WordmarkTone = keyof typeof TONE;
+
+/**
+ * NID bilingual wordmark.
+ * - variant="full": bilingual vector mark (213×29.5834)
+ * - variant="compact": mobile mark. STILL A STAND-IN — the export is the 1440
+ *   desktop artboard only and carries no mobile mark.
+ */
 export function Wordmark({
   variant = "full",
+  tone,
+  ariaHidden,
   className,
 }: {
   variant?: "full" | "compact";
+  /** Semantic colour token. Defaults per §7.3: the header draws the full mark
+   *  in icon/primary, the brand strip in accent/secondary, the compact mark in
+   *  accent/strong. */
+  tone?: WordmarkTone;
+  ariaHidden?: boolean;
   className?: string;
 }) {
   if (variant === "compact") {
     return (
       <span
+        aria-hidden={ariaHidden}
         className={clsx(
-          "font-primary text-h4 font-bold leading-none tracking-tight text-accent-strong",
+          "font-primary text-h4 font-bold leading-none tracking-tight",
+          TONE[tone ?? "accent-strong"],
           className,
         )}
       >
@@ -37,10 +50,15 @@ export function Wordmark({
   return (
     <svg
       viewBox="0 0 213 29.5834"
-      role="img"
-      aria-label="National Institute of Design"
+      role={ariaHidden ? undefined : "img"}
+      aria-hidden={ariaHidden}
+      aria-label={ariaHidden ? undefined : "National Institute of Design"}
       fill="currentColor"
-      className={clsx("inline-block h-[29.5834px] w-[213px] text-icon-primary", className)}
+      className={clsx(
+        "inline-block h-[29.5834px] w-[213px]",
+        TONE[tone ?? "icon-primary"],
+        className,
+      )}
     >
       <path clipRule="evenodd" fillRule="evenodd" d="M0 8.15448H17.7786V29.5834L0 8.15448Z" />
       <path clipRule="evenodd" fillRule="evenodd" d="M23.4294 8.14777H27.4625C31.4236 8.14777 37.4513 11.6091 37.4513 18.6927C37.4513 26.0881 31.4236 29.162 27.4625 29.162H23.4294V8.14777Z" />

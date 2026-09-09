@@ -62,7 +62,7 @@ sem_decl = {}    # appearance -> {var: referenced var}
 cur = None
 for line in css.splitlines():
     s = line.strip()
-    m = re.match(r'^(?::root, )?\[data-appearance="(light|dark)"\] \{', s)
+    m = re.match(r'^\[data-appearance="(light|dark)"\],?', s)
     if m: cur = m.group(1); sem_decl[cur] = {}; continue
     if s == "}": cur = None; continue
     if cur:

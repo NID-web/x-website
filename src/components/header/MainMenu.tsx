@@ -8,36 +8,10 @@ import { IconButton } from "@/components/spine/IconButton";
 import { BrandStrip } from "@/components/spine/BrandStrip";
 import { MENU_SECTIONS, type NavSection } from "@/lib/nav-content";
 
-// The primary menu (design/NID-CONTEXT.md §7.4, node 1:178). Measured from the
-// Figma frame, it is a 400×900 panel — a right-hand DRAWER over the page, not
-// the full-screen grid this used to be. Geometry, all read off 1:178:
-//
-//   panel 400 wide · 24px side padding → a 352 content column
-//   "Frame 44" 56 tall: close IconButton 32 (Medium) · gap 8 · Brand Strip 48
-//     — both children centre on y=32, so the row is items-center
-//   nine sub-menus, 40 tall each (py-8 over a Heading/5 line-height of 24),
-//     gap 16 between them and after Frame 44
-//   expanded: header row + a Links list, gap 4, each link py-8 over a
-//     Label/Small line-height of 20 → 36. About NID (5 links) measures
-//     40 + 5×36 + 4×4 = 236, which is what the Expanded variant reports.
-//
-// Each sub-menu is a disclosure COLLAPSED by default. The section header is a
-// <button aria-expanded>, NOT a link — only the nested page links navigate
-// (§7.4 / §13) — EXCEPT where the section has its own landing page, which for
-// now is About NID alone (`NavSection.href`, STAGE-0-NOTES §34): there the
-// title navigates and the glyph alone toggles. Expand/collapse is INSTANT — no
-// height animation. Nothing here is underlined in any state, and hover is a
-// colour change only.
-//
-// The disclosure glyph is plus / minus (Figma "Minus" 743:42490), not a caret,
-// and it is drawn as a <span> rather than an IconButton: it lives INSIDE the
-// section's own button and a nested <button> is invalid. The nested links carry
-// no arrow — the collapsed export shows one only on the section row.
-//
-// The panel slides; the sections do not. The whole drawer stays mounted so it
-// can animate out as well as in, and is `inert` while closed so nothing in it
-// is tabbable or announced.
-
+/**
+ * Drawer navigation menu.
+ * Displays expandable nav sections with links, a close action, and the brand strip.
+ */
 function Section({
   section,
   expanded,
@@ -53,15 +27,15 @@ function Section({
   const title =
     "min-w-0 flex-1 font-primary text-h5 text-text-secondary transition-colors duration-150 ease-in-out";
 
+  // §7.4 says a menu title is NOT a link, and eight of the nine still are not.
+  // About NID is the exception the design owner asked for (STAGE-0-NOTES §34):
+  // where a section has a landing page the row splits — the title navigates and
+  // the plus/minus alone works the disclosure. Splitting also lets the glyph be
+  // a real IconButton; in the single-control form it has to stay a <span>,
+  // since a <button> cannot nest. Either way no rule, no underline, colour-only
+  // hover.
   return (
     <div className="flex flex-col">
-      {/* Menu Title. §7.4 says a title is NOT a link, and eight of the nine
-          still aren't. About NID is the exception the design owner asked for
-          (STAGE-0-NOTES §34): where a section has a landing page the row splits
-          — the title navigates, and the plus/minus alone works the disclosure.
-          Splitting also lets the glyph be a real IconButton; in the single-
-          control form it has to stay a <span>, since a <button> cannot nest.
-          Either way no rule, no underline, colour-only hover. */}
       {section.href ? (
         <div className="flex w-full items-center gap-2 py-2">
           <Link
@@ -92,9 +66,9 @@ function Section({
             {section.title}
           </span>
           {/* Icon Button geometry (§7.2 Small): 24 box, 4px padding, 16 glyph,
-              icon/quaternary — the export's literal fill is primary-350, which
-              is exactly what icon/quaternary resolves to. (Do not paste the hex
-              into a comment: lint-tokens greps comments too.) */}
+              icon/quaternary — which is exactly what the export's literal fill
+              resolves to. (Do not paste that hex into a comment: lint-tokens
+              greps comments too.) */}
           <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full p-1 text-icon-quaternary transition-colors duration-150 ease-in-out group-hover:bg-accent-quaternary">
             <Icon name={expanded ? "minus" : "plus"} className="size-4" />
           </span>
@@ -133,17 +107,11 @@ export function MainMenu({
   const [wasOpen, setWasOpen] = useState(open);
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  // Every open starts from all-collapsed. Adjusted during render off a
-  // previous-value flag rather than in an effect — an effect that setStates
-  // renders the stale expansion for a frame first (and react-hooks flags it).
-  // Reset on OPEN, not on close: resetting on close would collapse the
-  // sections in view while the panel is still sliding out.
   if (open !== wasOpen) {
     setWasOpen(open);
     if (open) setExpanded([]);
   }
 
-  // Focus is a DOM effect, so it stays one.
   useEffect(() => {
     if (open) closeRef.current?.focus();
   }, [open]);
@@ -153,14 +121,14 @@ export function MainMenu({
       className={clsx("fixed inset-0 z-50", !open && "pointer-events-none")}
       inert={!open}
     >
-      {/* Scrim. surface/inverse is the semantic that reads as "the opposite of
-          the page", so it darkens in light appearance and lightens in dark. */}
       <button
         type="button"
         tabIndex={-1}
         aria-label="Close menu"
         onClick={onClose}
         className={clsx(
+          // surface/inverse is the semantic that reads as "the opposite of the
+          // page", so the scrim darkens in light appearance and lightens in dark.
           "absolute inset-0 bg-surface-inverse/40 transition-opacity duration-300 ease-out motion-reduce:transition-none",
           open ? "opacity-100" : "opacity-0",
         )}
@@ -175,15 +143,12 @@ export function MainMenu({
         )}
       >
         <nav aria-label="Main menu" className="flex flex-col gap-4 px-6 pb-8">
-          {/* "Frame 44" — close button, then the brand strip filling the rest. */}
           <div className="flex h-14 shrink-0 items-center gap-2">
             <IconButton
               ref={closeRef}
               icon="close"
               label="Close menu"
               size="medium"
-              // icon/primary here, not §7.2's default quaternary — the
-              // instance in Frame 44 overrides it (get_variable_defs 679:45552).
               tone="primary"
               onClick={onClose}
             />

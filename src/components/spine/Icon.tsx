@@ -122,8 +122,7 @@ const ICONS: Record<IconName, IconDef> = {
       </g>
     ),
   },
-  // The expanded counterpart of `plus` — the main menu's disclosure toggle
-  // swaps between the two (Figma "Minus" 743:42490).
+  // Minus icon for menu disclosure toggle
   minus: {
     viewBox: "0 0 24 24",
     content: (

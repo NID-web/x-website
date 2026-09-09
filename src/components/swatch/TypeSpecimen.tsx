@@ -2,8 +2,7 @@ import { TYPE_STYLES } from "./tokens";
 
 const FUTURA_LADDER = [300, 400, 500, 600, 700, 800] as const;
 
-// All 22 Figma type styles via the text-* utilities (§4 of the build brief,
-// including the two added for the italic body cuts) — never a .nid-* class.
+// Type specimen demonstrating all typography styles via text-* utility classes.
 export function TypeSpecimen() {
   return (
     <div className="flex flex-col gap-8">

@@ -29,12 +29,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [appearance, setAppearanceState] = useState<Appearance>("light");
 
   // Adopt whatever the inline THEME_SCRIPT already set on <html>. This has to
-  // be a useEffect, not a lazy useState initializer: `document` doesn't exist
-  // during the server render of this (still SSR'd) client component, so
-  // reading it can only happen after mount — never localStorage during
-  // render, only after, so this can't diverge from what the browser already
-  // painted. That's the one-time hydration-adopt the set-state-in-effect
-  // rule doesn't have a case for.
+  // be a useEffect, NOT a lazy useState initializer: `document` does not exist
+  // during the server render of this (still SSR'd) client component, so reading
+  // it can only happen after mount. Never localStorage during render, only
+  // after, so this cannot diverge from what the browser already painted — the
+  // one-time hydration-adopt the set-state-in-effect rule has no case for.
   useEffect(() => {
     const root = document.documentElement;
     const currentTheme = root.getAttribute("data-theme");

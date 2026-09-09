@@ -1,13 +1,4 @@
-// /about/our-themes — the Our Themes page (Figma 4800:347502), as the CMS will
-// serve it. A secondary page: back-nav from `derived`, no sibling band.
-//
-// TODO(review): the ten theme cards are not expressible as any of the six
-// Section types — they are one card per entry in THEMES, a system list rather
-// than editorial items, so the page renders them from theme-constants the way
-// Home renders its tiles. This fixture therefore carries only the spine. Decide
-// whether the backend will ever serve the cards (which would need a seventh
-// type, and content-model.ts says resist that) or whether the page stays
-// code-owned.
+// /about/our-themes — Our Themes page content fixture.
 import type { PageResponse } from "@/lib/content-model";
 import { PAGE_ID } from "@/lib/content/pages";
 
@@ -40,10 +31,6 @@ export const OUR_THEMES: PageResponse = {
     ],
     backNav: { label: "About NID", href: "/about" },
     subPageLinks: [],
-    // TODO(review): the board draws no sibling band, although this is a
-    // secondary page and News & Events — its sibling under About NID — closes
-    // on one. Empty here so the page follows the board; decide whether the band
-    // belongs on every secondary page or only where a board draws it.
     siblingBand: [],
   },
 };

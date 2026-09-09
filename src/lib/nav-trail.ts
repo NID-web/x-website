@@ -1,19 +1,19 @@
 /**
  * Where the visitor came from — the one record behind the back-nav.
  *
- * It is kept per TAB in sessionStorage rather than read off document.referrer.
- * The referrer is set by the DOCUMENT load and does not move when next/link
+ * Kept per TAB in sessionStorage rather than read off document.referrer: the
+ * referrer is set by the DOCUMENT load and does not move when next/link
  * soft-navigates, so it would name the page a visitor entered the site on for
  * the rest of the session. It is still the fallback for the first page of a
- * session, which is the one case a per-tab store cannot have seen. Per-tab is
- * also what makes "opened in a new tab" correctly have no previous page.
+ * session, the one case a per-tab store cannot have seen. Per-tab is also what
+ * makes "opened in a new tab" correctly have no previous page.
  *
- * RECORDING AND RENDERING ARE SEPARATE, and that separation is the whole point:
- * `NavTrail` records on EVERY page, `BackNav` renders on the pages that show a
- * link. Fold them together and a page with no back link — Home — never records
- * its own visit, so the next page thinks nobody came from anywhere. (It did,
- * once: arriving at News & Events from Home's "All news" tile drew no link at
- * all, because "/" had never been written down.)
+ * RECORDING AND RENDERING ARE SEPARATE, and that separation is the point:
+ * `NavTrail` records on EVERY page, `BackNav` renders only where a link shows.
+ * Fold them together and a page with no back link — Home — never records its
+ * own visit, so the next page thinks nobody came from anywhere. (It did once:
+ * arriving at News & Events from Home's "All news" tile drew no link at all,
+ * because "/" had never been written down.)
  */
 import { routing } from "@/i18n/routing";
 
@@ -90,7 +90,7 @@ function fromReferrer(here: string): string | null {
 // snapshot is null, which is what the static HTML must contain, and the client
 // picks up the real value on hydration with no setState-in-effect.
 //
-// The snapshot is stamped with the route it was computed FOR, and a caller
+// The snapshot is STAMPED with the route it was computed for, and a caller
 // ignores one stamped for any other. Without that, a soft navigation would
 // render one frame of the PREVIOUS page's back link — the store still holds it
 // when the new page first renders, and the effect that advances the trail has

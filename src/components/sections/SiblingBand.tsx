@@ -5,13 +5,9 @@ import { Title } from "@/components/spine/Title";
 import { LinkStack } from "@/components/sections/parts";
 import type { DerivedPageContext } from "@/lib/content-model";
 
-// "More in <parent>" — derived.siblingBand, the band every secondary page
-// closes on before the footer (NID-CONTEXT.md §8.4, node 4315:276612). Not a
-// section: it is derived data, so it never appears in Page.sections and the
-// page places it itself.
-//
-// It renders NOTHING when there are no siblings — the model is explicit that an
-// empty band must not reach the page at all.
+/**
+ * Sibling page navigation band placed before the footer on secondary pages.
+ */
 export async function SiblingBand({
   items,
   parentTitle,
