@@ -15,14 +15,28 @@ function hasContent(s: Section) {
 export function SectionRenderer({
   section,
   lead,
+  clamp,
+  imagePlaceholder,
+  patternSeed,
 }: {
   section: Section;
   lead?: "wide" | "feature";
+  /** Both passed straight to TextSection; see the notes on its props. */
+  clamp?: { seeMore: string; seeLess: string };
+  imagePlaceholder?: boolean;
+  patternSeed?: number;
 }) {
   if (!hasContent(section)) return null;
   switch (section.type) {
     case "text":
-      return <TextSection section={section} />;
+      return (
+        <TextSection
+          section={section}
+          clamp={clamp}
+          imagePlaceholder={imagePlaceholder}
+          patternSeed={patternSeed}
+        />
+      );
     case "links":
       return <LinksSection section={section} />;
     case "cards":

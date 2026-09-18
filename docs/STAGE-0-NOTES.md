@@ -2318,3 +2318,137 @@ destination still renders no link, no arrow and no hover — `PortraitTile` read
 `tile.href` and nothing else. What changed is a fact about the content, not the
 policy, and §48 has been corrected in place so it no longer reads as though Pride
 of NID were permanently destination-less.
+
+## 52. Charter is the first page built on `text` sections, and the body clamps at every width
+
+`/en/about/charter` (Figma `4118:205415`) is News & Events' secondary template (§40) with the
+section bodies filled in. `sitemap.json` already carried the route, `PAGE_ID.charter` already
+existed, and three places already linked there and 404'd — About's sub-page rail, About's
+"Read full mandate" contact and News & Events' sibling band.
+
+Like §40 and §46 this page has **no 1024 / 768 / 390 boards**: `sitemap.json` gives it a bare
+`board` key where History next to it has `mobile` and Archive and Student Awards have
+`responsive`. Everything below 1440 is derived from NID-CONTEXT §5.3 and the two pages'
+precedent, and a board — if one is ever drawn — outranks it.
+
+### Section bodies are Body/Large, and nothing had ever rendered one
+
+`TextSection` shipped with About and was never exercised: About's content is a hero, a
+standfirst and three `cards` sections. Its body was `text-body` (Body/Base, 16/28). Both
+Charter bodies are `Body/Large/Regular` on the board (`4118:205433`, `4118:205439`), so it is
+now `text-body-lg`. Nothing regressed, because nothing else renders a `text` section.
+
+The colour is the one place the board contradicts itself: the visible "Focus body" is
+`text/secondary` and the hidden "Full text" `4364:189043` is `text/primary`. Kept
+`text/primary` — it is body copy, and that is the legible one.
+
+### The clamp is one shared component now, and it is measured, not assumed
+
+The board draws the Ten Mandates body twice: a short "Focus body" and a hidden 900px "Full
+text", which is how a designer draws a clamp. In code it is one `body` string.
+`Standfirst` already had exactly this behaviour for the phone standfirst, so it was extracted
+to `ClampedProse` and both use it — one "See more" on the site.
+
+Two things about it are deliberate:
+
+- **Paragraph spacing is a margin (`[&>p+p]:mt-4`), not a flex `gap`.** The clamp sets
+  `overflow: hidden` with `-webkit-line-clamp`, and a gap-spaced flex stack loses its rhythm
+  the moment the clamp takes over the display.
+- **The button stays mounted here and toggles**, so `aria-expanded` genuinely flips and the
+  glyph swaps `plus` → `minus` against a new `Page.seeLess` key. `Standfirst` keeps its
+  shipped one-way behaviour (`reCollapse={false}`, the button unmounts) — the 390 board draws
+  "See more" and no way back.
+
+Clamping ten sibling paragraphs is riskier than clamping one, so it was measured in two
+engines rather than eyeballed. Chromium and Firefox agree **exactly**: collapsed height 318
+at 1440 in both, identical paragraph boxes, `-webkit-line-clamp: 9`, `overflow: hidden`.
+318 is 9 × 30 (nine line boxes of Body/Large) + 3 × 16 (the three paragraph margins those
+nine lines span), and the board's own "Focus body" is 270 = 9 × 30. A paragraph-count clamp
+was the standing fallback and was not needed.
+
+Note the computed `display` reads `flow-root`, not `-webkit-box`: Tailwind v4's `line-clamp`
+utility no longer needs the old box display. The clamp is still applied — read
+`-webkit-line-clamp`, not `display`, if you are checking it.
+
+### `Cta` reads a LEADING glyph off the icon name too
+
+§40 established that the arrow's side comes from `icon === "arrow-left"`, never from a prop,
+because the model derives the icon from `targetType` and forbids authoring it. The Act row
+(`4140:246796`) needs a file glyph **before** the label *and* keeps its trailing arrow, so
+`icon === "document"` now means exactly that. Still no `iconPosition` prop.
+
+The glyph is Phosphor **FileText**, the component the board instances (`1:15`). Its path data
+is the board's own export transcribed verbatim with the fill swapped for `currentColor` — a
+filled glyph like `arrow-arc-left`, not one of the stroked UI marks. It was not redrawn from
+primitives; an approximation does not sit right beside the others.
+
+### The rail is contacts, and a page-level link has nowhere to live
+
+The board's rail block is three rows on a 64px pitch: `info@nid.edu`, the phone, and the Act.
+The first two are `Page.contacts`. The third is a **link**, and `Page` has no link slot at
+all — the same gap §33 hit with About's "Read full mandate" and proposed `Page.introLinks`
+for. It rides on `contacts` the same way, as a path-valued pair.
+
+`ContactList` therefore has to get a `targetType` back out of a `LabelValue`, which
+`contactCta` does by sniffing the value: `@` → email, `+`/digits → phone (both with **no**
+icon, NID-CONTEXT §7.1), `/…​.pdf` → document, `/` → page. It returns `null` for anything
+else and the caller falls back to label-over-text — that branch is load-bearing, not tidy-up:
+a contact is not always a link (a postal address, an office name) and a guessed scheme would
+ship a dead anchor. Asserted both ways: About's rail still renders exactly one CTA row and no
+label-over-text block.
+
+### Where the board and the build differ
+
+- **No page-title wash.** The board's `4932:576897` is a 150 × 150 gradient square in the
+  title's parent frame. §44 removed the wash from page titles on the design owner's call, so
+  the repo wins over the board. `tablet:min-h-[150px]` already holds the 150px block.
+- **The three images are placeholders, drawn as the board draws them.** The hero
+  (`4118:205429`) and both section images (`4140:246793`, `4140:246794`) are empty
+  `accent/subtle` rectangles labelled "replace with source" — the hero with the 64px
+  top-left radius §8.6 gives a secondary hero, the section images square-cornered. They are
+  built as exactly that: a flat `accent/subtle` field at the right crop, `aria-hidden`
+  because it says nothing. That keeps the board vertical rhythm, which the row heights
+  assume. `ImagePlaceholder` is scaffolding with one job — the day an asset lands the caller
+  renders `TileImage` on it and nothing around it moves. One `TODO(review)` in the fixture
+  names all four missing assets, the Act PDF included.
+
+  This reverses a first pass that rendered nothing, on the reading that a tinted box is the
+  empty scaffold NID-CONTEXT §8.3 refuses. It is not: §8.3 is about a SECTION with no content
+  at all, and both sections here have a title and a body. An unfilled image slot inside a
+  section that does have content is a different thing, and the board is explicit about how it
+  looks while the asset is outstanding.
+
+- **The intro and the Mandate body open with the same sentence.** That is what the board
+  draws — `4118:205430` and the first paragraph of `4118:205433` are identical. Kept as
+  drawn; a designer question, not a transcription slip.
+- **The Act link 404s until the PDF is supplied**, and it is the one anchor on the page with
+  `target="_blank"` and no `/en/` prefix. Correct: `linkNewTab` returns true for `document`
+  and a PDF is not a locale-prefixed route.
+- **The section image's pattern tile is reached by flow, not `place="rail"`.** `place="rail"`
+  names row 2 of a **subgrid**, which `CardsSection` is; a text section is a run of siblings
+  on the page grid, where row 2 is the page's row 2. It is `span="full-then-1" start={1}` in
+  source order before the image instead. Both tiles render here, beside the two section
+  placeholders.
+
+  **Which field a tile draws is per section, and the numbering is a trap.** `PatternTile`s
+  `seed` indexes `FIELDS = [PatternField1, PatternField2, PatternField3]`, and
+  `design/assets/patterns/home-patterns.json` records which Figma layer each field was
+  parsed from — the two numberings do **not** line up:
+
+  | seed | component | Figma layer | drawn on Charter at |
+  |---|---|---|---|
+  | 0 | `PatternField1` | Patternimate-2 | Mandate (`4906:365778`) |
+  | 1 | `PatternField2` | Patternimate-3 | the sibling band (`4906:361262`) |
+  | 2 | `PatternField3` | Patternimate-1 | The Ten Mandates (`4906:362880`) |
+
+  The first pass hardcoded `seed={0}` for every text section, so both sections drew the same
+  field where the board draws two different ones. `TextSection` takes a `patternSeed` and
+  the page names it per section id, the same shape as the clamp. Read the JSON table before
+  setting one — "Patternimate-1" is not `PatternField1`.
+
+Measured at 1600 / 1440 / 1200 / 1024 / 900 / 768 / 430 / 390: shell = min(viewport, 1440),
+no horizontal overflow at any width, all four titles on the column-1 origin (x = 24 at 1440),
+back-nav in the last column of row 1 at 3–4 columns and a full-width band below, four
+separators at 2 columns and up and **none** at 1 column, five sibling links, the three image
+placeholders present at the board crops, and every internal page href `/en/`-prefixed with
+no target.

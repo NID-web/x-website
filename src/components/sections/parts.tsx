@@ -3,7 +3,7 @@ import { Cta } from "@/components/spine/Cta";
 import { Overline } from "@/components/home/parts";
 import type { GridStart } from "@/components/layout/GridItem";
 import type { LabelValue, Link } from "@/lib/content-model";
-import { ctaProps } from "@/lib/content/links";
+import { contactCta, ctaProps } from "@/lib/content/links";
 
 /** Calculate explicit column start placement for cells in a section's title row. */
 export function startOf(index: number): GridStart | undefined {
@@ -60,23 +60,30 @@ export function LinkStack({
 }
 
 /**
- * Contact or key-value rail list. Values that are paths render as CTAs.
+ * Contact or key-value rail list. A value that resolves to a link renders as a
+ * CTA row; anything else renders as the label over plain text.
  */
 export function ContactList({ contacts }: { contacts: LabelValue[] }) {
   return (
     <ul className="flex flex-col gap-6">
-      {contacts.map((contact) => (
-        <li key={contact.label}>
-          {contact.value.startsWith("/") ? (
-            <Cta variant="primary" label={contact.label} href={contact.value} />
-          ) : (
-            <>
-              <Overline withRule={false}>{contact.label}</Overline>
-              <p className="mt-2 font-body text-body text-text-primary">{contact.value}</p>
-            </>
-          )}
-        </li>
-      ))}
+      {contacts.map((contact) => {
+        const cta = contactCta(contact);
+        return (
+          <li key={contact.label}>
+            {cta ? (
+              <Cta variant="primary" {...cta} />
+            ) : (
+              // NOT a fallback to tidy away: a contact that is not a link at all
+              // — a postal address, an office name — belongs here, and rendering
+              // it as an anchor would ship a dead one.
+              <>
+                <Overline withRule={false}>{contact.label}</Overline>
+                <p className="mt-2 font-body text-body text-text-primary">{contact.value}</p>
+              </>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

@@ -16,7 +16,7 @@ for why this build deviates from `design/NID-CONTEXT.md` in a few places.
 ```bash
 nvm use            # Node 24.19.0, see .nvmrc
 npm install
-npm run dev         # http://localhost:3000/en/swatch
+npm run dev         # http://localhost:3001/en/swatch
 ```
 
 `/en/swatch` is the Stage 0 acceptance surface — every token, every theme, every

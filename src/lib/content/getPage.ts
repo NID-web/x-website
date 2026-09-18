@@ -4,11 +4,13 @@
 // src/lib/content/ may import a fixture (scripts/lint-fixtures.mjs).
 import type { PageResponse } from "@/lib/content-model";
 import { ABOUT } from "@/lib/content/fixtures/about";
+import { CHARTER } from "@/lib/content/fixtures/charter";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 import { OUR_THEMES } from "@/lib/content/fixtures/our-themes";
 
 const FIXTURES: Record<string, PageResponse> = {
   "/about": ABOUT,
+  "/about/charter": CHARTER,
   "/about/news-events": NEWS_EVENTS,
   "/about/our-themes": OUR_THEMES,
 };
