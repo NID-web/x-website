@@ -38,7 +38,9 @@ export interface NewsRow {
   headlineKey: CopyKey;
   date: string;
   href: string;
-  thumbnail: MediaAsset;
+  /** Optional because a CMS row can arrive without a usable image. The row then
+   *  keeps its image box, empty — never a borrowed or placeholder photo. */
+  thumbnail?: MediaAsset;
 }
 
 interface Base {

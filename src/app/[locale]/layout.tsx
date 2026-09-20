@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Header } from "@/components/header/Header";
 import { PatternShimmer } from "@/components/home/PatternShimmer";
 import { NavTrail } from "@/components/spine/NavTrail";
+import { getSiteChrome } from "@/lib/content/getSiteChrome";
 import { HeadShell } from "../head-shell";
 import "../globals.css";
 
@@ -31,6 +32,9 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages();
+  // A fetch in a layout is fine — every route stays static. cookies()/headers()
+  // would not be (CLAUDE.md, Rendering).
+  const { menu } = await getSiteChrome(locale);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -48,7 +52,7 @@ export default async function LocaleLayout({
                 pointer leaves. One delegated listener for every pattern tile
                 on the site (src/components/home/PatternShimmer.tsx). */}
             <PatternShimmer />
-            <Header />
+            <Header menu={menu} />
             {children}
           </ThemeProvider>
         </NextIntlClientProvider>

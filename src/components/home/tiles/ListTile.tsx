@@ -14,6 +14,7 @@ const rowGap = "pt-3";
 const calendarRowRule = `pb-2 ${rowRule}`;
 
 const linkedRow = "group transition-colors duration-150 ease-in-out hover:border-border-default";
+const newsThumb = "relative size-[calc(64px*var(--nid-tile-scale))] shrink-0";
 const rowArrow =
   "size-4 shrink-0 text-icon-quaternary opacity-0 transition-opacity duration-150 ease-in-out group-hover:opacity-100";
 
@@ -90,11 +91,14 @@ export function ListTile({ tile, t }: { tile: ListTileData; t: Translate }) {
                 className={clsx(rowRule, linkedRow, i > 0 && rowGap)}
               >
                 <Link href={row.href} className="flex gap-3 no-underline">
-                <TileImage
-                  media={row.thumbnail}
-                  className="relative size-[calc(64px*var(--nid-tile-scale))] shrink-0"
-                  sizes="90px"
-                />
+                {row.thumbnail ? (
+                  <TileImage media={row.thumbnail} className={newsThumb} sizes="90px" />
+                ) : (
+                  // TileImage's loading backer at the same size: a row without
+                  // a usable image keeps its rhythm and its column instead of
+                  // pulling the headline left.
+                  <span aria-hidden="true" className={clsx("block bg-accent-subtle", newsThumb)} />
+                )}
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 block font-primary text-label text-text-primary transition-colors duration-150 ease-in-out group-hover:text-accent-primary">
                     {t(row.headlineKey)}

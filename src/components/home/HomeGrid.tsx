@@ -1,7 +1,8 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { GridItem, type GridSpan } from "@/components/layout/GridItem";
-import { HOME_TILES, type HomeTile, type Translate } from "@/lib/home-content";
+import type { HomeTile, Translate } from "@/lib/home-content";
+import { getHome } from "@/lib/content/getHome";
 import { StatementTile } from "@/components/home/tiles/StatementTile";
 import { HeroTile } from "@/components/home/tiles/HeroTile";
 import { LinkListTile } from "@/components/home/tiles/LinkListTile";
@@ -52,8 +53,14 @@ const SPAN_BY_KIND: Partial<Record<HomeTile["kind"], GridSpan>> = {
 };
 
 export async function HomeGrid() {
-  const raw = await getTranslations("Home");
-  const t: Translate = (key) => raw(key);
+  const [raw, { tiles, copy }] = await Promise.all([
+    getTranslations("Home"),
+    getLocale().then(getHome),
+  ]);
+  // CMS strings arrive under synthetic `api.*` keys (src/lib/content/home-adapters.ts)
+  // and must resolve here: next-intl logs a missing-message error for any key
+  // it is handed that en.json does not have.
+  const t: Translate = (key) => copy[key] ?? raw(key);
 
   return (
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
@@ -66,7 +73,7 @@ export async function HomeGrid() {
           (docs/STAGE-0-NOTES.md §30). */}
       <BrandStrip />
       <PageGrid>
-        {HOME_TILES.map((tile) => (
+        {tiles.map((tile) => (
           <GridItem key={tile.id} span={SPAN_BY_KIND[tile.kind] ?? 1}>
             {renderTile(tile, t)}
           </GridItem>

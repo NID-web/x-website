@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/spine/Icon";
 import { IconButton } from "@/components/spine/IconButton";
 import { BrandStrip } from "@/components/spine/BrandStrip";
-import { MENU_SECTIONS, type NavSection } from "@/lib/nav-content";
+import type { NavSection } from "@/lib/nav-content";
 
 /**
  * Drawer navigation menu.
@@ -98,10 +98,15 @@ export function MainMenu({
   id,
   open,
   onClose,
+  sections,
 }: {
   id: string;
   open: boolean;
   onClose: () => void;
+  /** Resolved by the server layout (src/lib/content/getSiteChrome.ts): a
+   *  "use client" module must not reach for the static fallback itself, or the
+   *  CMS menu would never reach the browser. */
+  sections: NavSection[];
 }) {
   const [expanded, setExpanded] = useState<string[]>([]);
   const [wasOpen, setWasOpen] = useState(open);
@@ -155,7 +160,7 @@ export function MainMenu({
             <BrandStrip flush className="h-12 min-w-0 flex-1" />
           </div>
 
-          {MENU_SECTIONS.map((section) => (
+          {sections.map((section) => (
             <Section
               key={section.id}
               section={section}

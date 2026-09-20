@@ -84,6 +84,10 @@ jobs:
           # photo 404s under the project-page subpath. See img() in
           # src/lib/home-content.ts.
           NEXT_PUBLIC_BASE_PATH: ${{ steps.setup_pages.outputs.base_path }}
+          # A repository variable (Settings → Secrets and variables → Actions →
+          # Variables), not a secret: it is a public URL. Until it exists this
+          # is empty and the build ships the static Home page, by design.
+          CMS_API_URL: ${{ vars.CMS_API_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
