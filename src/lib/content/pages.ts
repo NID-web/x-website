@@ -66,3 +66,25 @@ const CARD_KIND_BY_PARENT: Record<UUID, CardKind> = {
 export function cardKind(item: Pick<Page, "parent">): CardKind | undefined {
   return item.parent === null ? undefined : CARD_KIND_BY_PARENT[item.parent];
 }
+
+// TODO(review): the static half of BACKEND-HOME-TASKS A3. The CMS gives every
+// item a flat, globally unique slug (`ahmedabad-campus`); the site's routes are
+// nested and use their own last segment (`/about/campuses/ahmedabad`). Neither
+// is derivable from the other, so until CardRef carries a path this table is
+// the only place the two meet — an unlisted slug is dropped, never guessed.
+const PATH_BY_CMS_SLUG: Record<string, string> = {
+  "about-nid": "/about",
+  history: "/about/history",
+  charter: "/about/charter",
+  "directors-message": "/about/directors-message",
+  campuses: "/about/campuses",
+  "news-events": "/about/news-events",
+  "our-themes": "/about/our-themes",
+  "ahmedabad-campus": "/about/campuses/ahmedabad",
+  "gandhinagar-campus": "/about/campuses/gandhinagar",
+  "bengaluru-campus": "/about/campuses/bengaluru",
+};
+
+export function pathOfCmsSlug(slug: string): string | undefined {
+  return PATH_BY_CMS_SLUG[slug];
+}

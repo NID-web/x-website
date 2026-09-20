@@ -25,12 +25,14 @@ export function CampusCard({ item, arch }: { item: Page; arch: ArchSide }) {
   );
   return (
     <Tile as="article" surface="raised" padding={false} radius={false} className={ARCH[arch]}>
-      {image && (
+      {image ? (
         <TileImage
           media={image}
           className="absolute inset-0 size-full"
           sizes="(min-width: 1280px) 24vw, (min-width: 668px) 48vw, 96vw"
         />
+      ) : (
+        <span aria-hidden="true" className="absolute inset-0 block size-full bg-accent-subtle" />
       )}
       <div
         className={clsx(
