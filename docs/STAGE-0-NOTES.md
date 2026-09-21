@@ -372,6 +372,8 @@ own prose. Assert on the executable form, or word the comment around it.
 
 ## 16. GitHub Pages: `basePath` does not reach `public/` assets
 
+*(Superseded: the Pages deploy was removed in favour of Vercel — see §53.)*
+
 The Pages deploy is back (it was reverted in b97b89f while the repo was private —
 Pages is public-repos-only on the Free plan). Four pieces:
 `.github/workflows/deploy-pages.yml`, the `GITHUB_PAGES` branch in `next.config.ts`,
@@ -2452,3 +2454,25 @@ back-nav in the last column of row 1 at 3–4 columns and a full-width band belo
 separators at 2 columns and up and **none** at 1 column, five sibling links, the three image
 placeholders present at the board crops, and every internal page href `/en/`-prefixed with
 no target.
+
+---
+
+## 53. GitHub Pages is gone; the site deploys on Vercel
+
+The site is deployed on Vercel as an ordinary `next build`, so everything that existed
+only for the Pages static export (§16) was removed (2026-09-21):
+
+- `.github/workflows/deploy-pages.yml`, `npm run build:pages`, and `public/index.html`
+  (the meta-refresh stub for `/`; on a server build `src/proxy.ts` redirects `/` → `/en`).
+- The `GITHUB_PAGES` branch in `next.config.ts` — `output: "export"`, `basePath`,
+  `trailingSlash` and `images.unoptimized`. next/image now always optimises through
+  `/_next/image`.
+- `NEXT_PUBLIC_BASE_PATH` and `assetPath()`. A `public/` path is served at the site
+  root, so `mediaAsset()` stores it as-is and the hero film's `src` is a plain literal.
+
+Kept on purpose: the trailing-slash stripping in `nav-trail.ts` (§49). Nothing sets
+`trailingSlash` now, but it is one regex, and without it turning the option back on would
+silently lose the back link again.
+
+If the site ever needs to be static again, don't bring back `output: "export"` as it was.
+It can't run the proxy, and every `public/` path would need a base-path prefix again.

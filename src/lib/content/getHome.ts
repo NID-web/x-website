@@ -54,16 +54,22 @@ const SECTION_SOURCES: { staticId: string; structuredKey?: string; titles?: stri
 /** Lowercased, punctuation and whitespace collapsed: "NID  Film", "NID-Film"
  *  and "nid film" are one title; a reworded one is not, and says so in the log. */
 const normalise = (title: string) =>
-  title.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  title
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
 
 function findSection(sections: Section[], source: (typeof SECTION_SOURCES)[number]) {
   if (source.structuredKey) {
     return sections.find(
-      (s) => s.type === "STRUCTURED" && s.structuredContentType?.key === source.structuredKey,
+      (s) =>
+        s.type === "STRUCTURED" && s.structuredContentType?.key === source.structuredKey,
     );
   }
   const titles = (source.titles ?? []).map(normalise);
-  return sections.find((s) => s.type === "SPECIFIC" && titles.includes(normalise(s.title ?? "")));
+  return sections.find(
+    (s) => s.type === "SPECIFIC" && titles.includes(normalise(s.title ?? "")),
+  );
 }
 
 // cache(): generateMetadata and HomeGrid both call this; the merge, and its
@@ -104,7 +110,9 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
         media = still.media;
         got.push("still from api");
       }
-      const film = section ? filmFrom(section, tile.video?.title ?? "") : { keep: "no api section" };
+      const film = section
+        ? filmFrom(section, tile.video?.title ?? "")
+        : { keep: "no api section" };
       if ("keep" in film) kept.push(`film: ${film.keep}`);
       else {
         video = film;
@@ -138,7 +146,8 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
   const unused = api.sections
     .filter((s) => !used.has(s.id))
     .map((s) => {
-      const count = s.type === "STRUCTURED" ? (s.items?.length ?? 0) : (s.blocks?.length ?? 0);
+      const count =
+        s.type === "STRUCTURED" ? (s.items?.length ?? 0) : (s.blocks?.length ?? 0);
       const what = s.type === "STRUCTURED" ? "items" : "blocks";
       return `unused api section "${s.title ?? ""}" (${s.structuredContentType?.key ?? "SPECIFIC"}, ${count} ${what})`;
     });

@@ -2,7 +2,7 @@
  * Home / Landing page tile data and static content definitions.
  */
 import type { MediaAsset } from "@/lib/content-model";
-import { assetPath, mediaAsset } from "@/lib/media";
+import { mediaAsset } from "@/lib/media";
 
 /** A dotted key into the "Home" message namespace, e.g. "study.heading". */
 export type CopyKey = string;
@@ -49,9 +49,7 @@ interface Base {
 }
 
 /** A self-hosted clip a tile plays in place, with the tile's own image as the
- *  still behind it. `src` is a resolved URL — build it with `assetPath`, never as a
- *  bare "/…" literal, or it 404s under the GitHub Pages basePath. Not an embed: nothing is
- *  fetched from a third party, so there is no consent surface and no player
+ *  still behind it. Not an embed: nothing is fetched from a third party, so there is no consent surface and no player
  *  chrome to fight. */
 export interface HomeVideo {
   src: string;
@@ -132,7 +130,7 @@ export const HOME_TILES: HomeTile[] = [
     kind: "hero",
     media: img("hero-forest.jpg", "Sunlight through trees at an NID campus.", 1400, 660),
     video: {
-      src: assetPath("/home/nid-film.mp4"),
+      src: "/home/nid-film.mp4",
       title:
         "NID FILM — Introduction film about the National Institute of Design, Ahmedabad",
     },

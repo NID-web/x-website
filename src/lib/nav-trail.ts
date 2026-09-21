@@ -47,11 +47,10 @@ function write(trail: Trail) {
 }
 
 /**
- * The route the app knows a URL by: same-origin only, with the GitHub Pages
- * basePath, the locale segment and any trailing slash taken back off, so it
- * matches what `usePathname` reports and what `routeTitle` is keyed by. The
- * Pages export sets trailingSlash, so "/en/about/" and "/en/about" are one
- * route and must not become two entries in the trail.
+ * The route the app knows a URL by: same-origin only, with the locale segment
+ * and any trailing slash taken back off, so it matches what `usePathname`
+ * reports and what `routeTitle` is keyed by. "/en/about/" and "/en/about" are
+ * one route and must not become two entries in the trail.
  */
 function toRoute(href: string): string | null {
   let url: URL;
@@ -63,8 +62,6 @@ function toRoute(href: string): string | null {
   if (url.origin !== window.location.origin) return null;
 
   let path = url.pathname;
-  const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-  if (base && path.startsWith(base)) path = path.slice(base.length);
 
   for (const locale of routing.locales) {
     if (path === `/${locale}`) return "/";
@@ -138,12 +135,12 @@ export function advance(here: string) {
  * The route form everything downstream is keyed by: no trailing slash, and "/"
  * for the locale root, which `usePathname` reports as "".
  *
- * The trailing slash is not cosmetic. The Pages export sets `trailingSlash`, so
- * there `usePathname` returns "/about/" while every authored href — and so
- * every ROUTE_TITLE key — is "/about". Left alone, the trail records a prev of
- * "/about/", `routeTitle` finds no name for it and BackNav renders nothing: the
- * back link was missing on the whole deployed site, while dev (no trailing
- * slash) looked fine. `toRoute` already strips it for the referrer; this is the
+ * The trailing slash is not cosmetic. Under `trailingSlash` (the old GitHub
+ * Pages export had it on) `usePathname` returns "/about/" while every authored
+ * href — and so every ROUTE_TITLE key — is "/about". Left alone, the trail
+ * records a prev of "/about/", `routeTitle` finds no name for it and BackNav
+ * renders nothing: the back link was missing on the whole deployed site, while
+ * dev (no trailing slash) looked fine. `toRoute` already strips it for the referrer; this is the
  * same normalisation for the router's own pathname (docs/STAGE-0-NOTES.md §49).
  */
 export function normalise(pathname: string): string {
