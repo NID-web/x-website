@@ -24,6 +24,11 @@ export async function NewsCard({
   const spread = wide || feature;
   const image = item.hero[0];
   const href = pagePath(item);
+  const imageClass = clsx(
+    "relative shrink-0 max-tablet:size-18",
+    spread ? "tablet:h-full tablet:flex-1" : "tablet:w-full tablet:flex-1",
+    feature && "laptop:col-span-1 laptop:aspect-square laptop:h-auto desktop:col-span-2",
+  );
   const headline = href ? (
     <Link
       href={href}
@@ -50,20 +55,20 @@ export async function NewsCard({
         !spread && "tablet:gap-2",
       )}
     >
-      {image && (
+      {image ? (
         <TileImage
           media={image}
-          className={clsx(
-            "relative shrink-0 max-tablet:size-18",
-            spread ? "tablet:h-full tablet:flex-1" : "tablet:w-full tablet:flex-1",
-            feature && "laptop:col-span-1 laptop:aspect-square laptop:h-auto desktop:col-span-2",
-          )}
+          className={imageClass}
           sizes={
             spread
               ? "(min-width: 668px) 48vw, 72px"
               : "(min-width: 1280px) 24vw, (min-width: 668px) 48vw, 72px"
           }
         />
+      ) : (
+        // A CMS item can arrive without a usable image. TileImage's backer at
+        // the same size keeps the card's shape; never a borrowed photo.
+        <span aria-hidden="true" className={clsx("block bg-accent-subtle", imageClass)} />
       )}
       <div
         className={clsx(

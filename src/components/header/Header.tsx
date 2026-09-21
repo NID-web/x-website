@@ -7,13 +7,13 @@ import { Wordmark } from "@/components/spine/Wordmark";
 import { IconButton } from "@/components/spine/IconButton";
 import { ThemeSwitcher } from "@/components/header/ThemeSwitcher";
 import { MainMenu } from "@/components/header/MainMenu";
-import { APPLY_HREF } from "@/lib/nav-content";
+import { APPLY_HREF, type NavSection } from "@/lib/nav-content";
 
 /**
  * Site header component.
  * Sticky header with bilingual/compact wordmark, theme switcher, apply button, and drawer navigation.
  */
-export function Header() {
+export function Header({ menu }: { menu: NavSection[] }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuId = useId();
@@ -115,7 +115,7 @@ export function Header() {
         for its fixed-position descendants — nested here, the drawer would
         anchor to the 50/60px header band instead of the viewport. It stays
         mounted so it can slide out as well as in. */}
-    <MainMenu id={menuId} open={menuOpen} onClose={() => setMenuOpen(false)} />
+    <MainMenu id={menuId} open={menuOpen} onClose={() => setMenuOpen(false)} sections={menu} />
     </>
   );
 }

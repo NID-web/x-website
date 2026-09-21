@@ -66,3 +66,54 @@ const CARD_KIND_BY_PARENT: Record<UUID, CardKind> = {
 export function cardKind(item: Pick<Page, "parent">): CardKind | undefined {
   return item.parent === null ? undefined : CARD_KIND_BY_PARENT[item.parent];
 }
+
+// TODO(review): the static half of BACKEND-HOME-TASKS A3. The CMS gives every
+// item a flat, globally unique slug (`ahmedabad-campus`); the site's routes are
+// nested and use their own last segment (`/about/campuses/ahmedabad`). Neither
+// is derivable from the other, so until CardRef carries a path this table is
+// the only place the two meet — an unlisted slug is dropped, never guessed.
+// Every route below is design/tokens/sitemap.json's, never derived from the
+// slug: `integrated-design-services` is /consulting/ids and `placements` is
+// /industry/placements there. A slug the sitemap does not list stays out of
+// this table (the live navigation's `nid-alumni-data-registration` has no route),
+// and whatever looks it up drops that link and logs it.
+const PATH_BY_CMS_SLUG: Record<string, string> = {
+  "about-nid": "/about",
+  history: "/about/history",
+  charter: "/about/charter",
+  "directors-message": "/about/directors-message",
+  campuses: "/about/campuses",
+  "news-events": "/about/news-events",
+  "our-themes": "/about/our-themes",
+  "ahmedabad-campus": "/about/campuses/ahmedabad",
+  "gandhinagar-campus": "/about/campuses/gandhinagar",
+  "bengaluru-campus": "/about/campuses/bengaluru",
+  programmes: "/programmes",
+  "study-at-nid": "/study",
+  "admission-process": "/study/admission",
+  "life-at-nid": "/study/life-at-nid",
+  "pm-vidyalaxmi-scheme": "/study/pm-vidyalaxmi",
+  "young-designers": "/study/young-designers",
+  people: "/people",
+  "research-publications": "/research",
+  contact: "/contact",
+  careers: "/careers",
+  "integrated-design-services": "/consulting/ids",
+  placements: "/industry/placements",
+  tenders: "/tenders",
+  "right-to-information": "/regulatory/rti",
+  "privacy-policy": "/privacy",
+  "terms-and-conditions": "/terms",
+  sitemap: "/sitemap",
+};
+
+export function pathOfCmsSlug(slug: string): string | undefined {
+  return PATH_BY_CMS_SLUG[slug];
+}
+
+/** A news article's route. Articles are the one collection whose route IS
+ *  their CMS slug, under sitemap.json's /about/news-events/[slug] template —
+ *  the rule page-adapter.ts applies to the same collection as `slugUnderParent`. */
+export function newsArticlePath(slug: string): string {
+  return pathOfCmsSlug(slug) ?? `${pathOf(PAGE_ID.newsEvents)}/${slug}`;
+}

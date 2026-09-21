@@ -14,11 +14,16 @@ export function AlumniCard({ item }: { item: Page }) {
         <PatternFieldAlumni className="aspect-square w-1/2 shrink-0" />
         <div className="relative flex aspect-square w-1/2 shrink-0 items-center justify-center">
           <PatternScatterAlumni className="absolute inset-0 size-full" />
-          {photo && (
+          {photo ? (
             <TileImage
               media={photo}
               className="relative aspect-square w-4/5 rounded-full"
               sizes="(min-width: 668px) 160px, 40vw"
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              className="relative block aspect-square w-4/5 rounded-full bg-accent-subtle"
             />
           )}
         </div>

@@ -1,16 +1,20 @@
 import clsx from "clsx";
 import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { GridItem } from "@/components/layout/GridItem";
 import { Overline } from "@/components/home/parts";
 import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
-import { FOOTER, type FooterLink } from "@/lib/footer-content";
+import { type FooterLink } from "@/lib/footer-content";
+import { getSiteChrome } from "@/lib/content/getSiteChrome";
 
 /**
  * Site footer blocks, rendered directly as GridItems within the PageGrid.
  */
-type Translate = Awaited<ReturnType<typeof getTranslations<"Footer">>>;
+// CMS labels arrive under synthetic `api.footer.*` keys (getSiteChrome) and are
+// resolved before next-intl sees them, so every row here still renders a key
+// whether it came from the API or messages/en.json.
+type Translate = (key: string) => string;
 
 function LinkColumn({
   links,
@@ -46,26 +50,30 @@ export async function Footer({
   /** Display format for collaboration logos: "column" (default for editorial) or "row" (Home). */
   collaborations?: "row" | "column";
 } = {}) {
-  const t = await getTranslations("Footer");
+  const [raw, { footer, copy }] = await Promise.all([
+    getTranslations("Footer"),
+    getLocale().then(getSiteChrome),
+  ]);
+  const t: Translate = (key) => copy[key] ?? raw(key);
   const fullRow = collaborations === "row";
   return (
     <>
       {/* Two link landmarks in the same footer need distinguishing names, or a
           screen reader offers "navigation" twice with nothing to choose by. */}
       <GridItem span={1} as="nav" aria-label={t("primaryNav")}>
-        <LinkColumn links={FOOTER.primaryLinks} t={t} />
+        <LinkColumn links={footer.primaryLinks} t={t} />
       </GridItem>
 
       <GridItem span={1} as="nav" aria-label={t("secondaryNav")}>
-        <LinkColumn links={FOOTER.secondaryLinks} t={t} weight="medium" />
+        <LinkColumn links={footer.secondaryLinks} t={t} weight="medium" />
       </GridItem>
 
       <GridItem span={1}>
         <Overline withRule={false} dark={true}>
-          {t(FOOTER.contactOverlineKey)}
+          {t(footer.contactOverlineKey)}
         </Overline>
         <ul className="mt-4 flex flex-col gap-1.5">
-          {FOOTER.contacts.map((contact) => (
+          {footer.contacts.map((contact) => (
             <li key={contact.href}>
               <a
                 href={contact.href}
@@ -77,7 +85,7 @@ export async function Footer({
           ))}
         </ul>
         <ul className="mt-5 flex items-center gap-4">
-          {FOOTER.social.map((social) => (
+          {footer.social.map((social) => (
             <li key={social.platform}>
               <a
                 href={social.href}
@@ -103,9 +111,9 @@ export async function Footer({
           )}
         >
           <h2 className="col-span-full font-primary text-overline uppercase text-text-tertiary">
-            {t(FOOTER.collaborationsOverlineKey)}
+            {t(footer.collaborationsOverlineKey)}
           </h2>
-          {FOOTER.collaborations.map((partner) => (
+          {footer.collaborations.map((partner) => (
             <span
               key={partner.name}
               className="flex items-center justify-center rounded-lg p-2 dark:bg-surface-inverse"
