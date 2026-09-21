@@ -4,7 +4,14 @@ import { PatternTile } from "@/components/home/tiles/PatternTile";
 import { AlumniCard } from "@/components/cards/AlumniCard";
 import { CampusCard, type ArchSide } from "@/components/cards/CampusCard";
 import { NewsCard } from "@/components/cards/NewsCard";
-import { LinkStack, startIn, type CardField } from "@/components/sections/parts";
+import { ThumbCard } from "@/components/cards/ThumbCard";
+import {
+  LinkStack,
+  SectionBody,
+  startIn,
+  type BodyClamp,
+  type CardField,
+} from "@/components/sections/parts";
 import type { Page, Section } from "@/lib/content-model";
 import { cardKind } from "@/lib/content/pages";
 
@@ -13,19 +20,22 @@ type CardsSectionData = Extract<Section, { type: "cards" }>;
 const ARCHES: ArchSide[] = ["top", "left", "right"];
 
 /**
- * Section rendering collections of cards (News, Campus, Alumni).
+ * Section rendering collections of cards (News, Campus, Alumni, Thumb).
  * Uses subgrid to align cards and utility links with the page grid tracks.
  */
 export function CardsSection({
   section,
   lead: leadVariant = "wide",
   patternSeed = 0,
+  clamp,
 }: {
   section: CardsSectionData;
   /** Presentation variant for the first news item. */
   lead?: "wide" | "feature";
   /** The rail tile's field, beside a news lead; see TextSection's note. */
   patternSeed?: number;
+  /** For a section body, as TextSection's. */
+  clamp?: BodyClamp;
 }) {
   const items = section.items.filter((item): item is Page => "parent" in item);
   const kind = items[0] ? cardKind(items[0]) : undefined;
@@ -57,6 +67,9 @@ export function CardsSection({
   return (
     <GridItem as="section" span={4} subgrid>
       <Title variant="section">{section.title}</Title>
+      {/* A lead-in above the cards (Ahmedabad's Disciplines, 4119:227463). No
+          other cards section carries a body, so none changes. */}
+      {section.body && <SectionBody body={section.body} clamp={clamp} />}
       {lead &&
         (feature ? (
           <GridItem span="hero" subgrid>
@@ -76,7 +89,10 @@ export function CardsSection({
         <GridItem
           key={item.id}
           span={1}
-          start={startIn(i, field)}
+          // Thumbs are two-up in columns 2–3 at 3 and 4 columns, column 4 left
+          // empty (4260:264431…) — not the three-across field startIn draws —
+          // so every other card pins column 2, on the title row or below a body.
+          start={kind === "thumb" ? (i % 2 === 0 ? 2 : undefined) : startIn(i, field)}
         >
           {kind === "news" ? (
             <NewsCard item={item} variant="square" />
@@ -84,6 +100,8 @@ export function CardsSection({
             <CampusCard item={item} arch={ARCHES[i % ARCHES.length] ?? "top"} />
           ) : kind === "alumni" ? (
             <AlumniCard item={item} />
+          ) : kind === "thumb" ? (
+            <ThumbCard item={item} />
           ) : null}
         </GridItem>
       ))}

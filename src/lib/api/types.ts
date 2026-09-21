@@ -99,6 +99,20 @@ export interface NavItem {
   children: NavItem[];
 }
 
+/** `detail` on a "Campus Detail" document — a typed record beside the generic
+ *  sections, so it is read ONLY by the page adapter, which turns it into
+ *  ordinary Sections and key-info rows. Nothing downstream sees this shape. */
+export interface CampusDetail {
+  address: string | null;
+  mapEmbedUrl: string | null;
+  hostelCapacity: number | null;
+  campusSize: string | null;
+  establishedYear: number | null;
+  disciplines: CardRef[];
+  serviceCentres: CardRef[];
+  labAndFacilities: CardRef[];
+}
+
 export interface PublicContentResponse {
   id: number;
   slug: string;
@@ -110,6 +124,11 @@ export interface PublicContentResponse {
   seo: Seo | null;
   contacts?: ContactRef[];
   sections: Section[];
+  /** A template's typed record — `CampusDetail` on "Campus Detail", null on a
+   *  generic page. Unvalidated here on purpose: a malformed detail must cost
+   *  the page its detail-fed units, not the whole document. Read it through
+   *  campusDetail(). */
+  detail?: unknown;
   /** `footer` is ONE flat list; getSiteChrome splits it into two columns. */
   navigation: { header: NavItem[]; footer: NavItem[] } | null;
 }
@@ -188,6 +207,35 @@ function isSection(v: unknown): v is Section {
 
 function isSeo(v: unknown): v is Seo {
   return isObj(v) && isStrOrNull(v.metaTitle) && isStrOrNull(v.metaDescription);
+}
+
+const isNumOrNull = (v: unknown) => v === null || v === undefined || typeof v === "number";
+const isCardList = (v: unknown) => Array.isArray(v) && v.every(isCardRef);
+
+/** The document's campus detail, or null when it has none or it is malformed. */
+export function campusDetail(api: PublicContentResponse): CampusDetail | null {
+  const d = api.detail;
+  if (!isObj(d)) return null;
+  const ok =
+    isStrOrNull(d.address ?? null) &&
+    isStrOrNull(d.mapEmbedUrl ?? null) &&
+    isStrOrNull(d.campusSize ?? null) &&
+    isNumOrNull(d.hostelCapacity) &&
+    isNumOrNull(d.establishedYear) &&
+    isCardList(d.disciplines ?? []) &&
+    isCardList(d.serviceCentres ?? []) &&
+    isCardList(d.labAndFacilities ?? []);
+  if (!ok) return null;
+  return {
+    address: (d.address as string | null | undefined) ?? null,
+    mapEmbedUrl: (d.mapEmbedUrl as string | null | undefined) ?? null,
+    hostelCapacity: (d.hostelCapacity as number | null | undefined) ?? null,
+    campusSize: (d.campusSize as string | null | undefined) ?? null,
+    establishedYear: (d.establishedYear as number | null | undefined) ?? null,
+    disciplines: (d.disciplines as CardRef[] | undefined) ?? [],
+    serviceCentres: (d.serviceCentres as CardRef[] | undefined) ?? [],
+    labAndFacilities: (d.labAndFacilities as CardRef[] | undefined) ?? [],
+  };
 }
 
 export function isPublicContentResponse(v: unknown): v is PublicContentResponse {

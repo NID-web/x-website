@@ -2664,3 +2664,123 @@ there. When the copy arrives as the board's three paragraphs (the ask is blank l
 block 4, a content edit), it runs past seven lines and the control returns. That is the
 design working, not a regression — and the front end never splits the paragraph itself,
 for the same reason it never buckets a flat list: it does not restructure editorial content.
+
+---
+
+## 57. The campus pages: a typed `detail` at the adapter, three thin routes
+
+`/about/campuses/{ahmedabad,gandhinagar,bengaluru}` (Figma `4119:224215`, `4119:227603`,
+`4119:230966`) are the first pages whose CMS document is a template with a typed record —
+`template: "Campus Detail"`, a populated `detail` — rather than a generic page.
+
+### `detail` stops at the adapter
+
+`CampusDetail` and `campusDetail()` live in `api/types.ts`; the response guard lets
+`detail` through unvalidated so a malformed record costs only its own units. A page's
+`PageMergeConfig.detail` says what each part feeds: `keyInfo` maps a fixture row, by its
+board label, to a detail field ("Inaugurated" ← `establishedYear`); `lists` maps
+`disciplines` / `serviceCentres` / `labAndFacilities` to a fixture section. A `cards`
+section takes every entry as a card; a `links` section, or a text section's column-4
+links, takes only entries whose slug has a route the site knows a page id for. A list or
+field with no board slot is logged, never given a section. Nothing downstream sees
+`detail` — the rest of the site stays on the six section types.
+
+Values render as the API sends them, disputed ones included: Ahmedabad's Established reads
+1951, Bengaluru's Inaugurated 2015. Corrections belong in the CMS.
+
+### Day one: one section still missing, and why
+
+Ahmedabad renders five separators against the board's six: **Workshops, Labs & Facilities
+is absent.** Its board body is a developer note, not copy, and none of the CMS's 13 facility
+records can be a row — a link with no target is forbidden by `content-model.ts` outright
+("exactly one of page / document / url / address"), so rendering them needs a link model
+(T3), not a judgement call. Whether those 13 records should be published at all is a
+separate designer question.
+
+Services & Centres and Gandhinagar's column-4 links render as unlinked rows — §58.
+
+### Ahmedabad's Disciplines changes meaning with the CMS
+
+Without it, the fixture's three programme cards (`/programmes/bdes`, `mdes`, `phd`) — the
+board. With it, seventeen discipline records, unlinked (no discipline route exists), one
+imageless, one a duplicate. The API wins where it has data; deleting the `disciplines`
+line in the `/about/campuses/ahmedabad` config restores the programme cards.
+
+### Three route files, not a `[campus]` segment
+
+A `[campus]` folder would have to appear in `BUILT_ROUTES` as `/about/campuses/[campus]`,
+which the gate matches for ANY `/about/campuses/x` — it could no longer withhold a dead
+link under that prefix. Teaching `lint-routes` to read `generateStaticParams` means running
+or pattern-matching TypeScript page modules. Three five-line files over
+`components/campus/CampusPage.tsx` keep the gate and the lint exact.
+
+### Smaller changes
+
+- Contacts bound for `keyInfo` replace only its email and phone rows, in place; the facts
+  and document links stay. Page `contacts` are all email/phone, so there nothing changes.
+  Nothing is de-duplicated, and `personName` is dropped (no slot in `LabelValue`).
+- `ContactList`'s non-link row is the library's Information row: value in Heading/5. No
+  earlier page rendered one.
+- `CardsSection` renders a section body, and lays Thumbs two-up in columns 2–3.
+  `LinksSection` gained `layout="two-up"`. `SiblingBand` takes a `title` ("Other campuses").
+- The template skips a content-less section BEFORE its separator, so a dropped section
+  never leaves two rules in a row.
+- Clamps, counted per §55 against the board copy at 684px: About 8 / 8 / 7, Research Labs 6.
+
+---
+
+## 58. Designed-but-unbuilt links: an exemption on the campus pages, declined site-wide
+
+### The exemption
+
+`route-gate.ts`'s own rule separates a CTA (dropped when its page is not built — a call to
+action that does nothing reads as broken) from a card or row (kept, unlinked — its title is
+still content). The campus pages' Services & Centres and facility links were dropped as CTAs,
+but each is a RECORD the page lists: "Railway Design Centre" is information whether or not it
+is clickable. Their routes are designed in `sitemap.json` (`/consulting/ids`,
+`/consulting/outreach`, `/programmes/industry-online`, `/research/railway`, `/kmc`,
+`/research/natural-fiber`) and simply not built.
+
+`gatePage(response, { keepUnbuilt })` keeps an unbuilt link in the named sections and counts
+it as an unlinked row (`unlinked N rows` in the `[cms]` line, the route in `[routes]`).
+`getPage` passes exactly the campus configs' detail-derived sections
+(`detailSections(PAGE_CONFIG[path].detail)`), so no other page can reach it — proven: every
+other route's HTML is byte-identical, live and without the CMS. `LinkStack` draws a link that
+arrives unbuilt as plain text in the linked row's exact box (a transparent 2px rule holds the
+pitch): no anchor, arrow, rule or hover, so it does not read as a dead control. When a page
+is built the row becomes a link with no further change.
+
+Ahmedabad's `serviceCentres` is **held**, not used: the CMS's four records are a different
+list from the board's and lack three with designed routes, so it is logged by name and the
+fixture's list renders, live and fallback alike. `hold` → `lists` flips it once the backend
+says which list is authoritative. "Design Clinic for MSME" has no route anywhere and is not
+authored — a link needs a target.
+
+### The site-wide version, weighed and declined
+
+The same treatment everywhere was listed out before deciding. Every link the gate drops today
+(instrumented build, 21 Sep 2026):
+
+| Page | Slot | Label | Route | In sitemap | Site-wide would |
+|---|---|---|---|---|---|
+| Home | Events tile CTA | All events | `/events` | yes | text in a CTA slot |
+| Home | Drawing Dialogues flip card | event link | `/events/drawing-dialogues` | yes | text in a CTA slot |
+| Home | Shifting Paradigms flip card | event link | `/events/shifting-paradigms` | yes | text in a CTA slot |
+| Home | National Importance CTA | Read the Act | `/about/act` | no | still dropped |
+| About | sub-page rail | Director's Message | `/about/directors-message` | yes | unlinked rail row |
+| About | Student Awards link | Visit Student Awards Gallery | `/about/student-awards` | yes | unlinked |
+| Charter, History, Campuses, News & Events | sibling band | Director's Message | `/about/directors-message` | yes | unlinked, four bands |
+| History | Faculty Stalwarts link | All Faculty Stalwarts | `/people` | yes | unlinked |
+| News & Events | archive | Older | `/about/news-events/archive` | yes | the whole Archive section returns, one unlinked row |
+| News & Events | archive | 2025, 2024 | `/about/news-events/2025`, `/2024` | no | still dropped |
+
+Declined: "Director's Message" would go unlinked on six pages at once, Home's tile CTAs would
+become text inside tiles designed around a call to action, and the Archive section would come
+back holding a single unlinked row — each worse than withholding the link. The campus
+exemption stays an exemption. **Worth revisiting once more routes exist**, when the list is
+shorter and the unlinked rows would sit among linked ones.
+
+Two things that look dropped and are not: History's "The India Report (PDF)" is a document
+link, which the gate never touches (it renders, and 404s until the file lands); About's "Read
+full mandate" points at `/about/charter`, which is built.
+

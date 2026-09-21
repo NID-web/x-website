@@ -4,11 +4,17 @@
 // with its lower sections missing while the CMS is only part-seeded. The only
 // per-page knowledge is the PageMergeConfig in getPage.ts, so Charter, News &
 // Events and Our Themes go through this same function.
-import type { Page, PageResponse, Person, Section } from "@/lib/content-model";
-import type { CardRef, PublicContentResponse, Section as ApiSection } from "@/lib/api/types";
+import type { LabelValue, Link, Page, PageResponse, Person, Section } from "@/lib/content-model";
+import {
+  campusDetail,
+  type CardRef,
+  type PublicContentResponse,
+  type Section as ApiSection,
+} from "@/lib/api/types";
 import { toMediaAsset } from "@/lib/api/media";
 import { plainParagraphs, plainText } from "@/lib/content/format";
-import { pathOf, pathOfCmsSlug } from "@/lib/content/pages";
+import { contactCta } from "@/lib/content/links";
+import { PAGE_ID, pageIdOf, pathOf, pathOfCmsSlug } from "@/lib/content/pages";
 
 export interface SectionMergeRule {
   /** The API STRUCTURED section that feeds this fixture section is found by
@@ -62,6 +68,10 @@ export interface PageMergeConfig {
    *  `keyInfo` for a page whose rail block beside the hero is the model's
    *  key info rather than a first section's contacts. */
   contactsTo?: "contacts" | "keyInfo";
+  /** A template's typed `detail` record ("Campus Detail"), turned into key-info
+   *  values and ordinary sections HERE, so nothing past the adapter knows it
+   *  exists. */
+  detail?: DetailRules;
   /** structuredContentType.key of the section listing the page's children. */
   subPagesKey?: string;
   /** Keyed by the FIXTURE section's id. */
@@ -82,6 +92,30 @@ export interface AppendRule extends SectionMergeRule {
   /** The parent every item hangs off. A replaced section inherits its fixture
    *  items' parent; an appended one has none to inherit. */
   itemParent: string;
+}
+
+type DetailList = "disciplines" | "serviceCentres" | "labAndFacilities";
+type DetailField = "establishedYear" | "address" | "campusSize" | "hostelCapacity";
+
+export interface DetailRules {
+  /** Key-info rows, by the FIXTURE row's label, whose value a detail field
+   *  feeds. The label stays the board's ("Inaugurated", not "established"). */
+  keyInfo?: Record<string, DetailField>;
+  /** The fixture section each list feeds. A `cards` section takes every entry
+   *  as a card — unlinked until the record has a route; a `links` section, or a
+   *  `text` section's column-4 links, takes only the routable entries, because
+   *  a link with nowhere to go is not a link. A list with no slot is logged. */
+  lists?: Partial<Record<DetailList, string>>;
+  /** Lists that map to a fixture section but must NOT replace it yet — the API
+   *  list answers the same question as the board's and is incomplete against
+   *  it. Received, logged by name, and not used; moving a key from `hold` to
+   *  `lists` flips it. The section still counts as detail-derived. */
+  hold?: Partial<Record<DetailList, string>>;
+}
+
+/** Every fixture section a page's detail rules touch, fed or held. */
+export function detailSections(rules: DetailRules | undefined): Set<string> {
+  return new Set([...Object.values(rules?.lists ?? {}), ...Object.values(rules?.hold ?? {})]);
 }
 
 export interface SourceLog {
@@ -187,11 +221,47 @@ export function toPageResponse(
     if (api.heroText?.trim()) log.notes.push("dropped heroText");
   }
 
+  const detail = config.detail ? campusDetail(api) : null;
+  if (config.detail && !detail) log.static.push("detail(api has none, or it is malformed)");
+
+  if (detail && config.detail?.keyInfo) {
+    const fields = config.detail.keyInfo;
+    page.keyInfo = page.keyInfo.map((row) => {
+      const field = fields[row.label];
+      if (!field) return row;
+      const value = detail[field];
+      if (value === null || String(value).trim() === "") {
+        log.static.push(`keyInfo:${row.label}(detail.${field} empty)`);
+        return row;
+      }
+      // Rendered as the API sends it, disputed values included (a campus's
+      // establishedYear) — a wrong fact is corrected in the CMS, never here.
+      log.api.push(`keyInfo:${row.label}←${field}`);
+      return { ...row, value: String(value) };
+    });
+  }
+
   const contacts = api.contacts ?? [];
   const contactsTo = config.contactsTo ?? "contacts";
   if (contacts.length) {
-    page[contactsTo] = contacts.map(({ label, value }) => ({ label, value }));
-    log.api.push(contactsTo);
+    // The API's contacts replace the fixture's email and phone rows, in their
+    // place; any other row (a key-info fact, a document link) stays. All of a
+    // page's `contacts` are email/phone, so there it is a plain replacement.
+    // Nothing is de-duplicated: a repeated number is the CMS's to fix.
+    const isContact = (row: LabelValue) => {
+      const href = contactCta(row)?.href ?? "";
+      return href.startsWith("mailto:") || href.startsWith("tel:");
+    };
+    const rows = page[contactsTo];
+    const firstContact = rows.findIndex(isContact);
+    const before = firstContact < 0 ? rows : rows.slice(0, firstContact).filter((r) => !isContact(r));
+    const after = firstContact < 0 ? [] : rows.slice(firstContact).filter((r) => !isContact(r));
+    page[contactsTo] = [...before, ...contacts.map(({ label, value }) => ({ label, value })), ...after];
+    log.api.push(`${contactsTo}(${contacts.length} contacts)`);
+    // LabelValue has no slot for a named person; dropped, not folded into the
+    // label, which would change the content.
+    const named = contacts.filter((c) => c.personName?.trim()).length;
+    if (named) log.notes.push(`contacts: personName dropped (${named})`);
   } else {
     log.static.push(contactsTo === "contacts" ? "contacts(api empty)" : `${contactsTo}(api contacts empty)`);
   }
@@ -284,6 +354,45 @@ export function toPageResponse(
 
   /** A fixture text section's body from the SPECIFIC section titled
    *  `rule.textTitle`; the fixture's title, image and links stay. */
+  /** Detail entries as cards. Every entry is kept — a discipline has no route
+   *  to drop it for — and hangs off a parent with no path, so the card renders
+   *  unlinked until the record has a route (T2) rather than guessing one. */
+  const detailCards = (entries: CardRef[], name: string): Page[] => {
+    const rejects: string[] = [];
+    const items = entries.map((item): Page => {
+      const thumb = toMediaAsset(item.thumbnail);
+      if ("rejected" in thumb) rejects.push(thumb.rejected);
+      return {
+        id: String(item.id),
+        title: item.title,
+        slug: item.slug,
+        parent: PAGE_ID.disciplines,
+        template: "secondary",
+        utility: "back",
+        keyInfo: [],
+        hero: "asset" in thumb ? [thumb.asset] : [],
+        sections: [],
+        contacts: [],
+        publishedAt: item.publishedAt,
+      };
+    });
+    if (rejects.length) {
+      log.notes.push(`${name}: ${rejects.length} thumbnail${rejects.length === 1 ? "" : "s"} rejected (${[...new Set(rejects)].join("; ")})`);
+    }
+    return items;
+  };
+
+  /** Detail entries as links — only those whose slug has a route the site
+   *  knows a page id for. */
+  const detailLinks = (entries: CardRef[]): Link[] =>
+    entries.flatMap((item) => {
+      const path = pathOfCmsSlug(item.slug);
+      const page = path ? pageIdOf(path) : undefined;
+      return page
+        ? [{ id: `link-${item.slug}`, label: item.title, targetType: "page" as const, page }]
+        : [];
+    });
+
   const sliced = new Set<ApiSection>();
   const textBody = (fs: Section, rule: TextMergeRule, name: string): Section => {
     const wanted = rule.textTitle.trim().toLowerCase();
@@ -365,9 +474,12 @@ export function toPageResponse(
     return { ...fs, items };
   };
 
-  const sections = fixture.page.sections.map((fs): Section => {
+  // A section a detail list feeds is logged by the detail block below, once.
+  const detailTargets = detailSections(config.detail);
+  const sections: Section[] = fixture.page.sections.map((fs): Section => {
     const name = sectionName(fs.id);
     const rule = config.sections[fs.id];
+    if (!rule && detailTargets.has(fs.id) && detail) return fs;
     if (!rule) {
       log.static.push(fs.type === "links" ? `${name}(no link model)` : name);
       return fs;
@@ -401,6 +513,55 @@ export function toPageResponse(
     log.api.push(`${name}${title === fs.title ? "" : `→"${title}"`}(${items.length})`);
     return { ...fs, title, items };
   });
+
+  if (detail) {
+    const lists = config.detail?.lists ?? {};
+    const LISTS: DetailList[] = ["disciplines", "serviceCentres", "labAndFacilities"];
+    const hold = config.detail?.hold ?? {};
+    for (const list of LISTS) {
+      const entries = detail[list];
+      const held = hold[list];
+      if (held) {
+        if (entries.length) {
+          log.notes.push(
+            `${sectionName(held)}: held on the fixture, detail.${list} received and not used (${entries.length}: ${entries.map((e) => e.title).join(", ")})`,
+          );
+        }
+        continue;
+      }
+      const sectionId = lists[list];
+      if (!sectionId) {
+        if (entries.length) log.notes.push(`detail.${list}: ${entries.length} ${entries.length === 1 ? "entry" : "entries"}, no board slot`);
+        continue;
+      }
+      const at = sections.findIndex((s) => s.id === sectionId);
+      const name = sectionName(sectionId);
+      const fs = sections[at];
+      if (!fs) {
+        log.static.push(`${name}(no fixture section ${sectionId})`);
+        continue;
+      }
+      if (!entries.length) {
+        log.static.push(`${name}(detail.${list} empty)`);
+        continue;
+      }
+      if (fs.type === "cards") {
+        sections[at] = { ...fs, items: detailCards(entries, name) };
+        log.api.push(`${name}(${entries.length} from detail.${list})`);
+        continue;
+      }
+      const links = detailLinks(entries);
+      if (!links.length) {
+        log.static.push(`${name}(detail.${list}: ${entries.length} ${entries.length === 1 ? "entry" : "entries"}, none routable)`);
+        continue;
+      }
+      sections[at] = fs.type === "links" ? { ...fs, items: links } : { ...fs, links };
+      log.api.push(`${name}(${links.length} of ${entries.length} from detail.${list})`);
+    }
+    const unusedFields = (["address", "mapEmbedUrl", "hostelCapacity", "campusSize", "establishedYear"] as const)
+      .filter((f) => detail[f] !== null && !Object.values(config.detail?.keyInfo ?? {}).includes(f as DetailField));
+    if (unusedFields.length) log.notes.push(`detail unused: ${unusedFields.join(", ")}`);
+  }
 
   const fixtureIds = new Set(fixture.page.sections.map((s) => s.id));
   const appendedAfter = new Map<string, Section[]>();

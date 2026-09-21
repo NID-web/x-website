@@ -21,6 +21,20 @@ export const PAGE_ID = {
   news2025: "page-about-news-2025",
   news2024: "page-about-news-2024",
   people: "page-people",
+  campusAhmedabad: "page-about-campuses-ahmedabad",
+  campusGandhinagar: "page-about-campuses-gandhinagar",
+  campusBengaluru: "page-about-campuses-bengaluru",
+  programmes: "page-programmes",
+  consultingIds: "page-consulting-ids",
+  consultingOutreach: "page-consulting-outreach",
+  programmesIndustryOnline: "page-programmes-industry-online",
+  kmc: "page-kmc",
+  researchRailway: "page-research-railway",
+  researchNaturalFiber: "page-research-natural-fiber",
+  // The parent a CMS discipline card hangs off. It has NO path on purpose: no
+  // per-discipline route exists in sitemap.json, so a discipline card renders
+  // unlinked and the route backlog logs no path that was only guessed.
+  disciplines: "page-disciplines",
 } as const;
 
 const PATH: Record<UUID, string> = {
@@ -40,10 +54,26 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.news2025]: "/about/news-events/2025",
   [PAGE_ID.news2024]: "/about/news-events/2024",
   [PAGE_ID.people]: "/people",
+  [PAGE_ID.campusAhmedabad]: "/about/campuses/ahmedabad",
+  [PAGE_ID.campusGandhinagar]: "/about/campuses/gandhinagar",
+  [PAGE_ID.campusBengaluru]: "/about/campuses/bengaluru",
+  [PAGE_ID.programmes]: "/programmes",
+  [PAGE_ID.consultingIds]: "/consulting/ids",
+  [PAGE_ID.consultingOutreach]: "/consulting/outreach",
+  [PAGE_ID.programmesIndustryOnline]: "/programmes/industry-online",
+  [PAGE_ID.kmc]: "/kmc",
+  [PAGE_ID.researchRailway]: "/research/railway",
+  [PAGE_ID.researchNaturalFiber]: "/research/natural-fiber",
 };
 
 export function pathOf(id: UUID): string | undefined {
   return PATH[id];
+}
+
+/** The page id known by this path, if any — the way back from a CMS slug's
+ *  route to a `Link`, which carries a page id, never a path. */
+export function pageIdOf(path: string): UUID | undefined {
+  return Object.keys(PATH).find((id) => PATH[id] === path);
 }
 
 /** A page's route: its parent's path plus its own slug. */
@@ -57,12 +87,16 @@ export function pagePath(page: Pick<Page, "slug" | "parent">): string | undefine
 // articles, campuses and award-winning students all arrive as Page and the
 // card is chosen by which page they hang off. Adding NewsArticle, Campus and
 // Person to the union lets the kind come from the record instead.
-export type CardKind = "news" | "campus" | "alumni";
+export type CardKind = "news" | "campus" | "alumni" | "thumb";
 
 const CARD_KIND_BY_PARENT: Record<UUID, CardKind> = {
   [PAGE_ID.newsEvents]: "news",
   [PAGE_ID.campuses]: "campus",
   [PAGE_ID.studentAwards]: "alumni",
+  // The campus pages' Disciplines: programme pages on the fixture, CMS
+  // discipline records with the API (§57).
+  [PAGE_ID.programmes]: "thumb",
+  [PAGE_ID.disciplines]: "thumb",
 };
 
 export function cardKind(item: Pick<Page, "parent">): CardKind | undefined {

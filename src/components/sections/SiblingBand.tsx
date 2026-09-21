@@ -11,10 +11,14 @@ import type { DerivedPageContext } from "@/lib/content-model";
 export async function SiblingBand({
   items,
   parentTitle,
+  title,
   pattern = true,
 }: {
   items: DerivedPageContext["siblingBand"];
   parentTitle: string;
+  /** Replaces "More in {parent}" where a board names the band itself —
+   *  "Other campuses" on the three campus pages (4315:276798). */
+  title?: string;
   /** The craft tile after the links. On by default; see TextSection's
    *  `pattern`. */
   pattern?: boolean;
@@ -26,7 +30,7 @@ export async function SiblingBand({
   return (
     <>
       <Title variant="section" id={headingId}>
-        {t("moreIn", { section: parentTitle })}
+        {title ?? t("moreIn", { section: parentTitle })}
       </Title>
       <GridItem span={2} start={2} as="nav" aria-labelledby={headingId}>
         <LinkStack

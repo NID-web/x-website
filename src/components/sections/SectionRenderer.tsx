@@ -5,7 +5,9 @@ import { LinksSection } from "@/components/sections/LinksSection";
 import { RailSection } from "@/components/sections/RailSection";
 import { TextSection } from "@/components/sections/TextSection";
 
-function hasContent(s: Section) {
+/** The model's rule: a section with no body, image, links or items renders
+ *  nothing (NID-CONTEXT §8.3). Exported so a page can skip the separator too. */
+export function hasContent(s: Section) {
   return (
     Boolean(s.body?.trim()) || Boolean(s.image) || s.links.length > 0 || s.items.length > 0
   );
@@ -21,6 +23,7 @@ export function SectionRenderer({
   imagePlaceholder,
   pattern,
   patternSeed,
+  linksLayout,
 }: {
   section: Section;
   lead?: "wide" | "feature";
@@ -30,6 +33,8 @@ export function SectionRenderer({
   imagePlaceholder?: boolean;
   pattern?: boolean;
   patternSeed?: number;
+  /** Passed to LinksSection. */
+  linksLayout?: "flow" | "two-up";
 }) {
   if (!hasContent(section)) return null;
   switch (section.type) {
@@ -44,9 +49,11 @@ export function SectionRenderer({
         />
       );
     case "links":
-      return <LinksSection section={section} />;
+      return <LinksSection section={section} layout={linksLayout} />;
     case "cards":
-      return <CardsSection section={section} lead={lead} patternSeed={patternSeed} />;
+      return (
+        <CardsSection section={section} lead={lead} patternSeed={patternSeed} clamp={clamp} />
+      );
     case "rail":
       return <RailSection section={section} clamp={clamp} />;
     case "files":

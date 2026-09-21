@@ -4,7 +4,7 @@ import { ClampedProse, type Clamp } from "@/components/spine/ClampedProse";
 import { Cta } from "@/components/spine/Cta";
 import { Overline } from "@/components/home/parts";
 import type { LabelValue, Link } from "@/lib/content-model";
-import { contactCta, ctaProps } from "@/lib/content/links";
+import { builtHref, contactCta, ctaProps } from "@/lib/content/links";
 
 // Column 1 is the rail wherever there is one, and no card may land in it. Where
 // the rail exists, the content columns beside it — measured on the rendered
@@ -82,12 +82,25 @@ export function LinkStack({
 }) {
   return (
     <ul className={clsx("flex flex-col gap-6", twoUp && TWO_UP[twoUp])}>
-      {links.map((link) => {
+      {links.map((link, i) => {
         const cta = "href" in link ? link : ctaProps(link);
         return (
           cta && (
-            <li key={"id" in link ? link.id : link.href}>
-              <Cta variant="primary" {...cta} />
+            // By position, not href: two resolved links can share a
+            // destination, and the list is never reordered on the client.
+            <li key={i}>
+              {!("external" in cta && cta.external) && cta.href.startsWith("/") && !builtHref(cta.href) ? (
+                // A record whose page is designed but not built — reachable
+                // only through the gate's keepUnbuilt exemption. Plain text in
+                // the linked row's exact box (the transparent rule holds its
+                // 2px), so the list's pitch does not move; no anchor, arrow,
+                // rule or hover, so it does not read as a dead control.
+                <p className="border-b-2 border-transparent pt-2 pb-1.5 font-primary text-h5 text-text-primary">
+                  {cta.label}
+                </p>
+              ) : (
+                <Cta variant="primary" {...cta} />
+              )}
             </li>
           )
         );
@@ -103,10 +116,13 @@ export function LinkStack({
 export function ContactList({ contacts }: { contacts: LabelValue[] }) {
   return (
     <ul className="flex flex-col gap-6">
-      {contacts.map((contact) => {
+      {contacts.map((contact, i) => {
         const cta = contactCta(contact);
         return (
-          <li key={contact.label}>
+          // By position, not label: the CMS repeats labels (and whole pairs —
+          // Ahmedabad sends "Campus Office" twice), and the list is never
+          // reordered on the client after gatePage.
+          <li key={i}>
             {cta ? (
               <Cta variant="primary" {...cta} />
             ) : (
@@ -115,7 +131,10 @@ export function ContactList({ contacts }: { contacts: LabelValue[] }) {
               // it as an anchor would ship a dead one.
               <>
                 <Overline withRule={false}>{contact.label}</Overline>
-                <p className="mt-2 font-body text-body text-text-primary">{contact.value}</p>
+                {/* The library's Information row (Important · Vertical,
+                    NID-CONTEXT §7.7): the value is Heading/5, as the campus
+                    boards' key info draws it (4119:224223). */}
+                <p className="mt-2 font-primary text-h5 text-text-primary">{contact.value}</p>
               </>
             )}
           </li>

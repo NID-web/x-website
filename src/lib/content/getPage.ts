@@ -7,10 +7,13 @@ import { cache } from "react";
 import type { PageResponse } from "@/lib/content-model";
 import { cmsFetch } from "@/lib/api/client";
 import { isPublicContentResponse } from "@/lib/api/types";
-import { toPageResponse, type PageMergeConfig } from "@/lib/content/page-adapter";
+import { detailSections, toPageResponse, type PageMergeConfig } from "@/lib/content/page-adapter";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ABOUT } from "@/lib/content/fixtures/about";
 import { CAMPUSES } from "@/lib/content/fixtures/campuses";
+import { CAMPUS_AHMEDABAD } from "@/lib/content/fixtures/campus-ahmedabad";
+import { CAMPUS_BENGALURU } from "@/lib/content/fixtures/campus-bengaluru";
+import { CAMPUS_GANDHINAGAR } from "@/lib/content/fixtures/campus-gandhinagar";
 import { CHARTER } from "@/lib/content/fixtures/charter";
 import { HISTORY } from "@/lib/content/fixtures/history";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
@@ -20,6 +23,9 @@ import { PAGE_ID } from "@/lib/content/pages";
 const FIXTURES: Record<string, PageResponse> = {
   "/about": ABOUT,
   "/about/campuses": CAMPUSES,
+  "/about/campuses/ahmedabad": CAMPUS_AHMEDABAD,
+  "/about/campuses/gandhinagar": CAMPUS_GANDHINAGAR,
+  "/about/campuses/bengaluru": CAMPUS_BENGALURU,
   "/about/charter": CHARTER,
   "/about/history": HISTORY,
   "/about/news-events": NEWS_EVENTS,
@@ -52,6 +58,60 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-campuses-about": { textTitle: "About", blocks: [1, 3], of: 5 },
       "section-campuses-three": { textTitle: "About", blocks: [4, 4], of: 5 },
       "section-campuses-visiting": { textTitle: "About", blocks: [5, 5], of: 5 },
+    },
+  },
+  // The three campus pages read a "Campus Detail" document: one SPECIFIC
+  // "About" section plus a typed `detail` record, which the adapter turns into
+  // key-info values and ordinary sections (STAGE-0-NOTES §57). A detail list
+  // with no board slot is logged, never given a section of its own.
+  // TODO(review): "Programmes" key-info rows stay static on all three — the
+  // API has no programmes summary, and composing one from counted disciplines
+  // would invent a figure.
+  "/about/campuses/ahmedabad": {
+    slug: "ahmedabad-campus",
+    intro: "heroText",
+    sections: { "section-ahmedabad-about": { textTitle: "About" } },
+    detail: {
+      keyInfo: { Established: "establishedYear" },
+      // TODO(review): backend — which Services & Centres list is authoritative?
+      // The CMS's four (Printing & Reprographics, Design Clinic, Integrated
+      // Design Services, Continuing Education) is a different list from the
+      // board's five, and lacks three that have designed routes (Outreach,
+      // Industry & Online, Railway). Held on the fixture so live and fallback
+      // render the same; move this key into `lists` to switch.
+      hold: { serviceCentres: "section-ahmedabad-services" },
+      lists: {
+        labAndFacilities: "section-ahmedabad-workshops",
+        // TODO(review): the board draws three PROGRAMME cards; the CMS sends
+        // seventeen discipline records. The API wins where it has data, so with
+        // the CMS on this section lists disciplines and without it the
+        // fixture's three programmes — it changes meaning with CMS availability.
+        // Delete this one line to keep the programme cards.
+        disciplines: "section-ahmedabad-disciplines",
+      },
+    },
+  },
+  "/about/campuses/gandhinagar": {
+    slug: "gandhinagar-campus",
+    intro: "heroText",
+    sections: { "section-gandhinagar-about": { textTitle: "About" } },
+    detail: {
+      keyInfo: { Address: "address" },
+      lists: {
+        labAndFacilities: "section-gandhinagar-workshops",
+        disciplines: "section-gandhinagar-disciplines",
+      },
+    },
+  },
+  "/about/campuses/bengaluru": {
+    slug: "bengaluru-campus",
+    intro: "heroText",
+    // The board draws the campus contacts in the key-info rail (4119:230974).
+    contactsTo: "keyInfo",
+    sections: { "section-bengaluru-about": { textTitle: "About" } },
+    detail: {
+      keyInfo: { Inaugurated: "establishedYear" },
+      lists: { disciplines: "section-bengaluru-disciplines" },
     },
   },
   "/about/history": {
@@ -104,7 +164,11 @@ export const getPage = cache(async (path: string): Promise<PageResponse | null> 
   // The gate runs on every page, CMS or not: a fixture links to unbuilt routes
   // just as the API does.
   const merged = api && config ? toPageResponse(api, fixture, config) : null;
-  const { response, audit } = gatePage(merged?.response ?? fixture);
+  const { response, audit } = gatePage(merged?.response ?? fixture, {
+    // The campus pages' detail-derived sections list records, so an unbuilt
+    // link there stays as an unlinked row (route-gate.ts, STAGE-0-NOTES §58).
+    keepUnbuilt: detailSections(config?.detail),
+  });
   if (merged) {
     const { sources } = merged;
     console.info(

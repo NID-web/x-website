@@ -75,8 +75,9 @@ export async function Footer({
           {t(footer.contactOverlineKey)}
         </Overline>
         <ul className="mt-4 flex flex-col gap-1.5">
-          {footer.contacts.map((contact) => (
-            <li key={contact.href}>
+          {/* By position: the CMS can repeat a contact; never reordered here. */}
+          {footer.contacts.map((contact, i) => (
+            <li key={i}>
               <a
                 href={contact.href}
                 className="font-primary font-medium text-micro text-text-secondary no-underline transition-colors duration-150 ease-in-out hover:text-accent-primary"
@@ -115,9 +116,10 @@ export async function Footer({
           <h2 className="col-span-full font-primary text-overline uppercase text-text-tertiary">
             {t(footer.collaborationsOverlineKey)}
           </h2>
-          {footer.collaborations.map((partner) => (
+          {/* By position: names come from the CMS; never reordered here. */}
+          {footer.collaborations.map((partner, i) => (
             <span
-              key={partner.name}
+              key={i}
               className="flex items-center justify-center rounded-lg p-2 dark:bg-surface-inverse"
             >
               <Image

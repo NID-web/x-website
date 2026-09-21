@@ -86,8 +86,10 @@ function Section({
 
       {expanded && (
         <ul id={panelId} className="flex flex-col gap-1">
-          {section.links.map((link) => (
-            <li key={link.href}>
+          {/* By position: two CMS nav items can resolve to one route, and the
+              list is never reordered on the client. */}
+          {section.links.map((link, i) => (
+            <li key={i}>
               <Link
                 href={link.href}
                 prefetch={false}

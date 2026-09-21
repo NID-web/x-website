@@ -15,12 +15,14 @@ import { cardKind, pagePath } from "@/lib/content/pages";
 
 export interface RouteAudit {
   unlinked: number;
+  /** Unbuilt links kept as unlinked rows by the campus exemption. */
+  unlinkedRows: number;
   dropped: number;
   /** Missing route (a record's collapsed to `<parent>/<slug>`) → distinct paths. */
   missing: Map<string, Set<string>>;
 }
 
-const newAudit = (): RouteAudit => ({ unlinked: 0, dropped: 0, missing: new Map() });
+const newAudit = (): RouteAudit => ({ unlinked: 0, unlinkedRows: 0, dropped: 0, missing: new Map() });
 
 function miss(audit: RouteAudit, path: string, record: boolean) {
   const key = record ? `${path.replace(/\/[^/]+$/, "")}/<slug>` : path;
@@ -50,18 +52,42 @@ const keepContact = (audit: RouteAudit) => (contact: LabelValue) =>
 const keepResolved = (audit: RouteAudit) => (link: { href: string }) =>
   keepLink(audit, link.href);
 
-export function gatePage(response: PageResponse): { response: PageResponse; audit: RouteAudit } {
+/** The exemption: an unbuilt link stays, counted as an unlinked row and logged
+ *  with the backlog, and LinkStack draws it as plain text. */
+const keepAsRow = (audit: RouteAudit) => (link: Link) => {
+  const route = internalRoute(ctaProps(link));
+  if (route && !builtHref(route)) {
+    audit.unlinkedRows++;
+    miss(audit, route, false);
+  }
+  return true;
+};
+
+export interface GateOptions {
+  /** Sections whose links are RECORDS a page lists, not calls to action — the
+   *  campus pages' detail-derived sections (PAGE_CONFIG[path].detail). There an
+   *  unbuilt link keeps its place as an unlinked row, the treatment the header
+   *  gives cards and rows. Everywhere else it is still dropped: the site-wide
+   *  version was weighed and declined (STAGE-0-NOTES §58). */
+  keepUnbuilt?: ReadonlySet<string>;
+}
+
+export function gatePage(
+  response: PageResponse,
+  { keepUnbuilt }: GateOptions = {},
+): { response: PageResponse; audit: RouteAudit } {
   const audit = newAudit();
   const { page, derived } = response;
 
   const sections = page.sections.flatMap((section): Section[] => {
-    const links = section.links.filter(keepContentLink(audit));
+    const keep = keepUnbuilt?.has(section.id) ? keepAsRow(audit) : keepContentLink(audit);
+    const links = section.links.filter(keep);
     // Section contacts too, not only the page's: TextSection renders them, and
     // a page may hand its own contacts to its first section (Campuses). Every
     // contact on the site passes this one gate, whichever slot it arrives in.
     const contacts = section.contacts.filter(keepContact(audit));
     if (section.type === "links") {
-      const items = section.items.filter(keepContentLink(audit));
+      const items = section.items.filter(keep);
       // An emptied list goes whole, here rather than in the renderer, so the
       // page does not draw a separator for a section that is not there.
       return items.length ? [{ ...section, items, links, contacts }] : [];
@@ -162,7 +188,9 @@ export function gateHome(tiles: HomeTile[]): { tiles: HomeTile[]; audit: RouteAu
 
 /** `unlinked N cards, dropped M links (no route)`, for the [cms] line. */
 export const auditSummary = (audit: RouteAudit) =>
-  `unlinked ${audit.unlinked} cards, dropped ${audit.dropped} links (no route)`;
+  `unlinked ${audit.unlinked} cards, ` +
+  (audit.unlinkedRows ? `unlinked ${audit.unlinkedRows} rows, ` : "") +
+  `dropped ${audit.dropped} links (no route)`;
 
 /** The page's share of the page-build backlog: distinct missing routes by
  *  prefix, most-linked first. Logged once per page render. */

@@ -27,6 +27,7 @@ const CLAMP = {
 // class string per count, never `line-clamp-[${n}]`.
 const LINES = {
   4: "line-clamp-[4]",
+  6: "line-clamp-[6]",
   7: "line-clamp-[7]",
   8: "line-clamp-[8]",
   9: "line-clamp-[9]",

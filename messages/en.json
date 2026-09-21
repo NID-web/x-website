@@ -120,7 +120,8 @@
     "subPages": "In this section",
     "seeMore": "See more",
     "seeLess": "See less",
-    "moreIn": "More in {section}"
+    "moreIn": "More in {section}",
+    "otherCampuses": "Other campuses"
   },
   "Cards": {
     "latest": "Latest"
