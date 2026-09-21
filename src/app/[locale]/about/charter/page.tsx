@@ -7,8 +7,7 @@ import { GridItem } from "@/components/layout/GridItem";
 import { BackNav } from "@/components/spine/BackNav";
 import { BrandStrip } from "@/components/spine/BrandStrip";
 import { Footer } from "@/components/spine/Footer";
-import { ImagePlaceholder } from "@/components/spine/ImagePlaceholder";
-import { TileImage } from "@/components/home/TileImage";
+import { PageHero } from "@/components/spine/PageHero";
 import { Separator } from "@/components/spine/Separator";
 import { Standfirst } from "@/components/spine/Standfirst";
 import { Title } from "@/components/spine/Title";
@@ -34,9 +33,6 @@ const SECTION_PATTERN: Record<string, number> = {
   "section-charter-ten-mandates": 2, // 4906:362880, Patternimate-1 -> PatternField3
 };
 
-// NID-CONTEXT §5.3, and the 64px top-left radius §8.6 gives a secondary hero.
-const HERO_CROP =
-  "aspect-[4/3] rounded-tl-hero tablet:aspect-video laptop:aspect-[2/1] desktop:aspect-[2.2/1]";
 
 export async function generateMetadata(): Promise<Metadata> {
   const response = await getPage(PATH);
@@ -58,7 +54,6 @@ export default async function CharterPage() {
   const { page, derived } = response;
   const t = await getTranslations("Page");
   const clamp = { seeMore: t("seeMore"), seeLess: t("seeLess") };
-  const hero = page.hero[0];
 
   return (
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
@@ -77,23 +72,7 @@ export default async function CharterPage() {
           </GridItem>
         )}
 
-        {/* 4118:205429. The banner has not been supplied (see the TODO in the
-            fixture), so this draws the board's flat accent/subtle field at the
-            hero's crop and its 64px top-left radius (NID-CONTEXT §8.6). The day
-            the asset lands, `hero` is truthy and TileImage takes over without
-            anything around it moving. */}
-        <GridItem span="hero">
-          {hero ? (
-            <TileImage
-              media={hero}
-              priority
-              className={`relative w-full ${HERO_CROP}`}
-              sizes="(min-width: 1280px) 1038px, (min-width: 1024px) 64vw, 96vw"
-            />
-          ) : (
-            <ImagePlaceholder className={HERO_CROP} />
-          )}
-        </GridItem>
+        <PageHero hero={page.hero} />
 
         {page.intro && (
           <GridItem span={2} start={2}>
