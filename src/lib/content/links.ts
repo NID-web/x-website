@@ -13,6 +13,7 @@ type ResolvedCta = Pick<CtaProps, "label" | "href" | "external" | "icon">;
 export const BUILT_ROUTES = [
   "/",
   "/about",
+  "/about/campuses",
   "/about/charter",
   "/about/history",
   "/about/news-events",

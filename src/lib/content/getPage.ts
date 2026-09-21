@@ -10,6 +10,7 @@ import { isPublicContentResponse } from "@/lib/api/types";
 import { toPageResponse, type PageMergeConfig } from "@/lib/content/page-adapter";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ABOUT } from "@/lib/content/fixtures/about";
+import { CAMPUSES } from "@/lib/content/fixtures/campuses";
 import { CHARTER } from "@/lib/content/fixtures/charter";
 import { HISTORY } from "@/lib/content/fixtures/history";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
@@ -18,6 +19,7 @@ import { PAGE_ID } from "@/lib/content/pages";
 
 const FIXTURES: Record<string, PageResponse> = {
   "/about": ABOUT,
+  "/about/campuses": CAMPUSES,
   "/about/charter": CHARTER,
   "/about/history": HISTORY,
   "/about/news-events": NEWS_EVENTS,
@@ -33,6 +35,23 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-about-news": { structuredKey: "news", slugUnderParent: true },
       "section-about-campuses": { structuredKey: "campus" },
       "section-about-student-awards": { structuredKey: "student_award", slugUnderParent: true },
+    },
+  },
+  "/about/campuses": {
+    slug: "campuses",
+    intro: "heroText",
+    // Section 51 (key `campus`) lists the three children; the navigation tree
+    // lists the same three today. Same mechanism as About's sub-page rail.
+    subPagesKey: "campus",
+    sections: {
+      // TODO(review): backend — section 50 "About" carries three board
+      // sections' prose in one section's five blocks. `blocks` is a shim for
+      // the ask to split it (or for a stable Section.key, A1); delete it the day
+      // the CMS splits them. `of` is the guard: any other block count and all
+      // three fall back to the fixture.
+      "section-campuses-about": { textTitle: "About", blocks: [1, 3], of: 5 },
+      "section-campuses-three": { textTitle: "About", blocks: [4, 4], of: 5 },
+      "section-campuses-visiting": { textTitle: "About", blocks: [5, 5], of: 5 },
     },
   },
   "/about/history": {

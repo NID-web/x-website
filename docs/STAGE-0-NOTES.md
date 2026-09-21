@@ -2616,3 +2616,51 @@ switch-over works before the CMS is seeded. Against the live document, 5 of 13 u
 from the API. Its "Origins" is a merged narrative that repeats what the fixture's India
 Report and Sarabhais sections say, so the live page reads with that overlap until the
 five other sections are seeded.
+
+---
+
+## 56. Campuses: the block-slice shim, `PageHero`, and the title wash (closed)
+
+### The block-slice shim
+
+The CMS sends Campuses' prose as ONE SPECIFIC section, "About", whose five TEXT blocks are
+the board's three sections run together: blocks 1–3 are About, 4 is The Three Campuses, 5
+is Visiting NID. A `textTitle` rule may now carry `blocks: [from, to]` (1-based,
+inclusive), which slices that section's TEXT blocks into one fixture section's body.
+Several slice rules may share a section; a whole-section rule still may not.
+
+A slice is ordinal, so it breaks silently the moment an editor adds or reorders a block.
+`of` is the guard: it records the TEXT block count the slices were written against, and on
+any other count **every** slice rule falls back to its fixture body and logs
+`section:about(block count 6 ≠ 5)` — loud and whole, never half-merged. Tested with a
+six-block mock: none of the mock text rendered and all three bodies were the fixture's.
+
+The whole shim is deleted the day the CMS splits the section (or Section carries a stable
+`key`). The `TODO(review)` on the `/about/campuses` entry in `getPage.ts` tracks it.
+
+### `PageHero`
+
+Charter, History and Campuses each carried the same hero block — `TileImage` at the
+secondary crop, or the board's placeholder at the same crop. It moved to
+`spine/PageHero.tsx`. Proven by diffing the built HTML of both existing pages before and
+after: identical apart from the new Campuses link the route gate lit up. About's hero is
+not on it — About draws nothing without an asset, where a secondary page draws the
+placeholder.
+
+### The page-title wash is closed, not open
+
+The Campuses (`4932:576902`) and Charter (`4932:576897`) boards draw a 150 × 150 square
+behind the H1: the same seven-stop, 20% accent wash §44 removed, in a third shape (96px
+rounded left edge). The design owner has confirmed it is not wanted. The boards and the
+build diverge here **deliberately**; reinstating it means reversing §44 on every page, not
+adding a decoration to one. §52's mention of it is settled by this, not pending.
+
+### Clamp counts are the board's, not the API's
+
+About clamps at 9 lines and The Three Campuses at 7, read from the board's text per §55.
+They are not tuned to the CMS copy. Today the CMS sends The Three Campuses as one
+paragraph that fits in seven lines from 768 up, so `ClampedProse` shows no "See more"
+there. When the copy arrives as the board's three paragraphs (the ask is blank lines in
+block 4, a content edit), it runs past seven lines and the control returns. That is the
+design working, not a regression — and the front end never splits the paragraph itself,
+for the same reason it never buckets a flat list: it does not restructure editorial content.

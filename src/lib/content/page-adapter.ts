@@ -7,7 +7,7 @@
 import type { Page, PageResponse, Person, Section } from "@/lib/content-model";
 import type { CardRef, PublicContentResponse, Section as ApiSection } from "@/lib/api/types";
 import { toMediaAsset } from "@/lib/api/media";
-import { plainText } from "@/lib/content/format";
+import { plainParagraphs, plainText } from "@/lib/content/format";
 import { pathOf, pathOfCmsSlug } from "@/lib/content/pages";
 
 export interface SectionMergeRule {
@@ -33,9 +33,21 @@ export interface SectionMergeRule {
  *  drops the page back to its fixture body. Safe (it falls back and logs), and
  *  the cheapest thing available until Section carries a stable `key`. Never a
  *  synthetic key made from the title. */
-export interface TextMergeRule {
-  textTitle: string;
-}
+export type TextMergeRule = { textTitle: string } & (
+  | { blocks?: never; of?: never }
+  | {
+      /** Only TEXT blocks `from`–`to` (1-based, inclusive) of that section,
+       *  for a document that runs several board sections' prose together in
+       *  one section. Several rules may slice the same section. Ordinal, so it
+       *  breaks silently the moment an editor adds or reorders a block. */
+      blocks: [from: number, to: number];
+      /** The exact TEXT block count the slices were written against. Any
+       *  other count and EVERY slice rule on the section falls back to its
+       *  fixture body — loud and whole, never half-merged. Required with
+       *  `blocks`, by the type: an unguarded slice is an invalid state. */
+      of: number;
+    }
+);
 
 export interface PageMergeConfig {
   /** The document at /public/content/{slug}. */
@@ -272,6 +284,7 @@ export function toPageResponse(
 
   /** A fixture text section's body from the SPECIFIC section titled
    *  `rule.textTitle`; the fixture's title, image and links stay. */
+  const sliced = new Set<ApiSection>();
   const textBody = (fs: Section, rule: TextMergeRule, name: string): Section => {
     const wanted = rule.textTitle.trim().toLowerCase();
     const as = api.sections.find(
@@ -281,30 +294,45 @@ export function toPageResponse(
       log.static.push(`${name}(no api section titled "${rule.textTitle}")`);
       return fs;
     }
-    if (consumed.has(as)) {
+    // A slice may share its section with other slices, never with a whole-
+    // section rule.
+    if (consumed.has(as) && !(rule.blocks && sliced.has(as))) {
       log.static.push(`${name}(api section "${rule.textTitle}" already used)`);
       return fs;
     }
     consumed.add(as);
+    if (rule.blocks) sliced.add(as);
     if (fs.type !== "text") {
       log.static.push(`${name}(fixture section is ${fs.type}, not text)`);
       return fs;
     }
     const blocks = as.blocks ?? [];
-    const texts = blocks.flatMap((b) => (b.blockType === "TEXT" && b.text?.trim() ? [plainText(b.text)] : []));
+    let texts = blocks.flatMap((b) => (b.blockType === "TEXT" && b.text?.trim() ? [plainParagraphs(b.text)] : []));
+    if (rule.blocks) {
+      if (texts.length !== rule.of) {
+        log.static.push(`${name}(block count ${texts.length} ≠ ${rule.of})`);
+        return fs;
+      }
+      const [from, to] = rule.blocks;
+      texts = texts.slice(from - 1, to);
+    }
     const body = texts.map((t) => t.text).filter(Boolean).join("\n\n");
     if (!body) {
       log.static.push(`${name}(api section "${rule.textTitle}" has no TEXT)`);
       return fs;
     }
+    // Printed on every build, so the day the CMS copy gains paragraph breaks the
+    // log says so rather than the page quietly changing shape.
+    const breaks = texts.reduce((n, t) => n + t.breaks, 0);
+    if (breaks) log.notes.push(`${name}: ${breaks} authored paragraph break${breaks === 1 ? "" : "s"} kept`);
     const tags = [...new Set(texts.flatMap((t) => t.tags))];
     if (tags.length) log.notes.push(`${name}: stripped <${tags.join(">, <")}>`);
     const rest = blocks.filter((b) => b.blockType !== "TEXT");
-    if (rest.length) {
+    if (rest.length && !rule.blocks) {
       const types = [...new Set(rest.map((b) => b.blockType))].join("/");
       log.notes.push(`${name}: dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
     }
-    log.api.push(name);
+    log.api.push(rule.blocks ? `${name}(blocks ${rule.blocks[0]}–${rule.blocks[1]})` : name);
     return { ...fs, body };
   };
 
