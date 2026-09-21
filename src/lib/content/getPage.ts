@@ -11,6 +11,7 @@ import { toPageResponse, type PageMergeConfig } from "@/lib/content/page-adapter
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ABOUT } from "@/lib/content/fixtures/about";
 import { CHARTER } from "@/lib/content/fixtures/charter";
+import { HISTORY } from "@/lib/content/fixtures/history";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 import { OUR_THEMES } from "@/lib/content/fixtures/our-themes";
 import { PAGE_ID } from "@/lib/content/pages";
@@ -18,6 +19,7 @@ import { PAGE_ID } from "@/lib/content/pages";
 const FIXTURES: Record<string, PageResponse> = {
   "/about": ABOUT,
   "/about/charter": CHARTER,
+  "/about/history": HISTORY,
   "/about/news-events": NEWS_EVENTS,
   "/about/our-themes": OUR_THEMES,
 };
@@ -31,6 +33,26 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-about-news": { structuredKey: "news", slugUnderParent: true },
       "section-about-campuses": { structuredKey: "campus" },
       "section-about-student-awards": { structuredKey: "student_award", slugUnderParent: true },
+    },
+  },
+  "/about/history": {
+    slug: "history",
+    // The document's first SPECIFIC section is the Origins BODY, not a
+    // standfirst, so the intro is its heroText — which words the page
+    // differently from the board (NID-CONTEXT §8.1; see the gap report).
+    intro: "heroText",
+    // The block beside the hero is the model's keyInfo (the 390 board names
+    // it "Key Info"), not a first section's contacts.
+    contactsTo: "keyInfo",
+    sections: {
+      "section-history-origins": { textTitle: "Origins" },
+      "section-history-india-report": { textTitle: "The India Report" },
+      "section-history-sarabhais": { textTitle: "The Sarabhais" },
+      "section-history-convocation": { textTitle: "Convocation Through the Years" },
+      "section-history-past-directors": { textTitle: "Past Directors" },
+      // TODO(review): backend — `person` or `academic_faculty`? Both are content
+      // types (GET /public/content-types); the document sends neither yet.
+      "section-history-faculty-stalwarts": { structuredKey: "person" },
     },
   },
   "/about/news-events": {

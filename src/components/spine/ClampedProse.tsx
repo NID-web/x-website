@@ -5,7 +5,7 @@
 // phone standfirst only (STAGE-0-NOTES §33), so the Charter body (4361:189634)
 // and the standfirst share it instead of forking.
 import clsx from "clsx";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "@/components/spine/Icon";
 
 // Complete class strings, because Tailwind scans source text and never sees a
@@ -19,6 +19,24 @@ const CLAMP = {
   "always-9": { body: "line-clamp-[9]", button: "" },
 } as const;
 
+// A section body clamped at every width, by TEXT line count. Count the lines of
+// copy the board shows, not its height ÷ line-height: the boards separate
+// paragraphs with a blank 30px line, this component with a 16px margin, and
+// `line-clamp` counts neither — History's 300px "Focus body" is nine lines of
+// text, not ten (STAGE-0-NOTES §55). Same constraint as above: one complete
+// class string per count, never `line-clamp-[${n}]`.
+const LINES = {
+  4: "line-clamp-[4]",
+  7: "line-clamp-[7]",
+  8: "line-clamp-[8]",
+  9: "line-clamp-[9]",
+  10: "line-clamp-[10]",
+} as const;
+
+export type ClampLines = keyof typeof LINES;
+/** A named preset or a line count — everything `clamp` accepts. */
+export type Clamp = keyof typeof CLAMP | ClampLines;
+
 export function ClampedProse({
   text,
   clamp,
@@ -29,7 +47,8 @@ export function ClampedProse({
 }: {
   /** Paragraphs separated by blank lines, as `Section.body` authors them. */
   text: string;
-  clamp: keyof typeof CLAMP;
+  /** A named preset, or a line count clamped at every width. */
+  clamp: Clamp;
   seeMore: string;
   /** Only read when `reCollapse` is true. */
   seeLess?: string;
@@ -39,13 +58,35 @@ export function ClampedProse({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  // Whether the clamp is hiding anything. A fixed line count fits short copy at
+  // some widths — History's Origins is nine lines at 1440 and fewer at 768 —
+  // and a "See more" that reveals nothing is a dead control. True until
+  // measured, so the server HTML is the clamped-with-button state it always was.
+  const [clips, setClips] = useState(true);
+  const ref = useRef<HTMLDivElement>(null);
   const id = useId();
-  const { body, button } = CLAMP[clamp];
-  const showButton = reCollapse || !open;
+  const { body, button } =
+    typeof clamp === "number" ? { body: LINES[clamp], button: "" } : CLAMP[clamp];
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || open) return;
+    // Clipped means more than half a line hidden: scrollHeight runs a few px
+    // over clientHeight even when nothing is cut (measured 4px), and a real
+    // clip hides at least one whole line. The observer fires once on observe
+    // and again on every width change, which moves the line breaks.
+    const observer = new ResizeObserver(() => {
+      const line = parseFloat(getComputedStyle(el).lineHeight) || 24;
+      setClips(el.scrollHeight - el.clientHeight > line / 2);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [open]);
+  const showButton = (reCollapse || !open) && (open || clips);
 
   return (
     <>
       <div
+        ref={ref}
         id={id}
         // Paragraph spacing is a margin, not a flex `gap`: `line-clamp` sets
         // `display: -webkit-box`, which drops the flex layout and with it any

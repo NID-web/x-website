@@ -20,6 +20,7 @@ export const PAGE_ID = {
   newsArchive: "page-about-news-archive",
   news2025: "page-about-news-2025",
   news2024: "page-about-news-2024",
+  people: "page-people",
 } as const;
 
 const PATH: Record<UUID, string> = {
@@ -38,6 +39,7 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.newsArchive]: "/about/news-events/archive",
   [PAGE_ID.news2025]: "/about/news-events/2025",
   [PAGE_ID.news2024]: "/about/news-events/2024",
+  [PAGE_ID.people]: "/people",
 };
 
 export function pathOf(id: UUID): string | undefined {

@@ -1,6 +1,8 @@
 import type { Section } from "@/lib/content-model";
+import type { BodyClamp } from "@/components/sections/parts";
 import { CardsSection } from "@/components/sections/CardsSection";
 import { LinksSection } from "@/components/sections/LinksSection";
+import { RailSection } from "@/components/sections/RailSection";
 import { TextSection } from "@/components/sections/TextSection";
 
 function hasContent(s: Section) {
@@ -17,13 +19,16 @@ export function SectionRenderer({
   lead,
   clamp,
   imagePlaceholder,
+  pattern,
   patternSeed,
 }: {
   section: Section;
   lead?: "wide" | "feature";
-  /** Both passed straight to TextSection; see the notes on its props. */
-  clamp?: { seeMore: string; seeLess: string };
+  /** Passed straight to TextSection (and `clamp` to RailSection); see the notes
+   *  on its props. */
+  clamp?: BodyClamp;
   imagePlaceholder?: boolean;
+  pattern?: boolean;
   patternSeed?: number;
 }) {
   if (!hasContent(section)) return null;
@@ -34,6 +39,7 @@ export function SectionRenderer({
           section={section}
           clamp={clamp}
           imagePlaceholder={imagePlaceholder}
+          pattern={pattern}
           patternSeed={patternSeed}
         />
       );
@@ -41,8 +47,9 @@ export function SectionRenderer({
       return <LinksSection section={section} />;
     case "cards":
       return <CardsSection section={section} lead={lead} patternSeed={patternSeed} />;
-    case "files":
     case "rail":
+      return <RailSection section={section} clamp={clamp} />;
+    case "files":
     case "mosaic":
       return null;
   }

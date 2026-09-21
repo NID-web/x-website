@@ -1,7 +1,8 @@
 import clsx from "clsx";
+import { GridItem, type GridStart } from "@/components/layout/GridItem";
+import { ClampedProse, type Clamp } from "@/components/spine/ClampedProse";
 import { Cta } from "@/components/spine/Cta";
 import { Overline } from "@/components/home/parts";
-import type { GridStart } from "@/components/layout/GridItem";
 import type { LabelValue, Link } from "@/lib/content-model";
 import { contactCta, ctaProps } from "@/lib/content/links";
 
@@ -121,5 +122,42 @@ export function ContactList({ contacts }: { contacts: LabelValue[] }) {
         );
       })}
     </ul>
+  );
+}
+
+/** A section body behind "See more": the two labels, and how it clamps — a
+ *  ClampedProse preset or a line count; nine lines at every width if omitted. */
+export interface BodyClamp {
+  seeMore: string;
+  seeLess: string;
+  clamp?: Clamp;
+}
+
+/** A section's body in columns 2–3, clamped when the page asks for it. Shared
+ *  by `text` and `rail` sections. */
+export function SectionBody({ body, clamp }: { body: string; clamp?: BodyClamp }) {
+  // Section bodies are Body/Large/Regular (20/30), not Body/Base: both Charter
+  // bodies say so on the board (4118:205433, 4118:205439) and it is the first
+  // page to render a text section, so nothing was relying on the old 16/28. The
+  // COLOUR stays text/primary — the board sets the visible body text/secondary
+  // and the hidden full text text/primary, so it contradicts itself, and body
+  // copy takes the legible one.
+  return clamp ? (
+    <GridItem span={2} start={2} className="font-body text-body-lg text-text-primary">
+      <ClampedProse
+        text={body}
+        clamp={clamp.clamp ?? "always-9"}
+        seeMore={clamp.seeMore}
+        seeLess={clamp.seeLess}
+      />
+    </GridItem>
+  ) : (
+    <GridItem span={2} start={2} className="flex flex-col gap-4">
+      {body.split(/\n{2,}/).map((paragraph, i) => (
+        <p key={i} className="font-body text-body-lg text-text-primary">
+          {paragraph}
+        </p>
+      ))}
+    </GridItem>
   );
 }

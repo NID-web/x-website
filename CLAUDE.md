@@ -92,7 +92,7 @@ npm run verify:tokens    # 627 assertions: 540 semantic + scoped-theme + grid + 
                          #   (runs verify:parity first, fails fast if that drifts)
 npm run verify:fonts     # every font family (Typekit + body face) loads + Bodoni opsz
 npm run verify:design    # re-checks design/tokens/ itself (python3 design/verify.py)
-npm run screenshot       # docs/screenshots/{swatch,home,about,news-events,our-themes}-{1440,1024,768,390}.png
+npm run screenshot       # docs/screenshots/{swatch,home,about,charter,history,news-events,our-themes}-{1440,1024,768,390}.png
 npx tsc --noEmit
 ```
 

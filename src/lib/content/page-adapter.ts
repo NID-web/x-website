@@ -4,7 +4,7 @@
 // with its lower sections missing while the CMS is only part-seeded. The only
 // per-page knowledge is the PageMergeConfig in getPage.ts, so Charter, News &
 // Events and Our Themes go through this same function.
-import type { Page, PageResponse, Section } from "@/lib/content-model";
+import type { Page, PageResponse, Person, Section } from "@/lib/content-model";
 import type { CardRef, PublicContentResponse, Section as ApiSection } from "@/lib/api/types";
 import { toMediaAsset } from "@/lib/api/media";
 import { plainText } from "@/lib/content/format";
@@ -26,13 +26,34 @@ export interface SectionMergeRule {
   slugUnderParent?: boolean;
 }
 
+/** A SPECIFIC section's TEXT blocks feed a fixture `text` section's body.
+ *  Matched on the section's editorial TITLE — exact, case-insensitive, no
+ *  fuzzing — because a SPECIFIC section carries no machine key at all. That is
+ *  the failure mode: an editor who renames the section in the CMS silently
+ *  drops the page back to its fixture body. Safe (it falls back and logs), and
+ *  the cheapest thing available until Section carries a stable `key`. Never a
+ *  synthetic key made from the title. */
+export interface TextMergeRule {
+  textTitle: string;
+}
+
 export interface PageMergeConfig {
   /** The document at /public/content/{slug}. */
   slug: string;
+  /** Where the standfirst comes from. `firstTextBlock` (the default, About's
+   *  shape) takes the first TEXT block of the first SPECIFIC section and
+   *  consumes that section. `heroText` takes the document's own summary line —
+   *  for a page whose first SPECIFIC section is a body, not a standfirst.
+   *  `static` keeps the fixture's. */
+  intro?: "firstTextBlock" | "heroText" | "static";
+  /** The page field the document's `contacts` feed. `contacts` by default;
+   *  `keyInfo` for a page whose rail block beside the hero is the model's
+   *  key info rather than a first section's contacts. */
+  contactsTo?: "contacts" | "keyInfo";
   /** structuredContentType.key of the section listing the page's children. */
   subPagesKey?: string;
   /** Keyed by the FIXTURE section's id. */
-  sections: Record<string, SectionMergeRule>;
+  sections: Record<string, SectionMergeRule | TextMergeRule>;
   /** API sections that become NEW cards sections, in this order. Opt-in on
    *  purpose: rendering every unmatched section would let an editor push
    *  arbitrary sections into a designed page. A named section the API does not
@@ -118,35 +139,50 @@ export function toPageResponse(
     log.static.push(`hero(${rejected.length ? `media rejected: ${rejected.join("; ")}` : "api empty"})`);
   }
 
-  // The standfirst is the first TEXT block of the first SPECIFIC section. The
-  // model has one intro and no slot for the blocks after it, so they are
-  // counted, not rendered — inventing a text section would add one the board
-  // does not have.
-  const introSection = api.sections.find((s) => s.type === "SPECIFIC");
-  const blocks = introSection?.blocks ?? [];
-  const introBlock = blocks.find((b) => b.blockType === "TEXT" && b.text?.trim());
-  const intro = introBlock?.text ? plainText(introBlock.text) : undefined;
-  if (introSection && intro?.text) {
-    consumed.add(introSection);
-    page.intro = intro.text;
-    log.api.push("intro");
-    if (intro.tags.length) log.notes.push(`intro: stripped <${intro.tags.join(">, <")}>`);
-    const rest = blocks.filter((b) => b !== introBlock);
-    if (rest.length) {
-      const types = [...new Set(rest.map((b) => b.blockType))].join("/");
-      log.notes.push(`dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
-    }
-  } else log.static.push(`intro(${introSection ? "no TEXT block in a SPECIFIC section" : "no SPECIFIC section"})`);
+  const introSource = config.intro ?? "firstTextBlock";
+  if (introSource === "heroText") {
+    const intro = api.heroText?.trim() ? plainText(api.heroText) : undefined;
+    if (intro?.text) {
+      page.intro = intro.text;
+      log.api.push("intro(heroText)");
+      if (intro.tags.length) log.notes.push(`intro: stripped <${intro.tags.join(">, <")}>`);
+    } else log.static.push("intro(api heroText empty)");
+  } else if (introSource === "static") {
+    log.static.push("intro(config)");
+  } else {
+    // The standfirst is the first TEXT block of the first SPECIFIC section. The
+    // model has one intro and no slot for the blocks after it, so they are
+    // counted, not rendered — inventing a text section would add one the board
+    // does not have.
+    const introSection = api.sections.find((s) => s.type === "SPECIFIC");
+    const blocks = introSection?.blocks ?? [];
+    const introBlock = blocks.find((b) => b.blockType === "TEXT" && b.text?.trim());
+    const intro = introBlock?.text ? plainText(introBlock.text) : undefined;
+    if (introSection && intro?.text) {
+      consumed.add(introSection);
+      page.intro = intro.text;
+      log.api.push("intro");
+      if (intro.tags.length) log.notes.push(`intro: stripped <${intro.tags.join(">, <")}>`);
+      const rest = blocks.filter((b) => b !== introBlock);
+      if (rest.length) {
+        const types = [...new Set(rest.map((b) => b.blockType))].join("/");
+        log.notes.push(`dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
+      }
+    } else log.static.push(`intro(${introSection ? "no TEXT block in a SPECIFIC section" : "no SPECIFIC section"})`);
 
-  // The document's own summary line. No secondary board draws one, and the
-  // standfirst above is the intro when a page has any.
-  if (api.heroText?.trim()) log.notes.push("dropped heroText");
+    // The document's own summary line. No secondary board draws one, and the
+    // standfirst above is the intro when a page has any.
+    if (api.heroText?.trim()) log.notes.push("dropped heroText");
+  }
 
   const contacts = api.contacts ?? [];
+  const contactsTo = config.contactsTo ?? "contacts";
   if (contacts.length) {
-    page.contacts = contacts.map(({ label, value }) => ({ label, value }));
-    log.api.push("contacts");
-  } else log.static.push("contacts(api empty)");
+    page[contactsTo] = contacts.map(({ label, value }) => ({ label, value }));
+    log.api.push(contactsTo);
+  } else {
+    log.static.push(contactsTo === "contacts" ? "contacts(api empty)" : `${contactsTo}(api contacts empty)`);
+  }
 
   const seoTitle = api.seo?.metaTitle?.trim();
   const seoDescription = api.seo?.metaDescription?.trim();
@@ -234,6 +270,73 @@ export function toPageResponse(
     return items;
   };
 
+  /** A fixture text section's body from the SPECIFIC section titled
+   *  `rule.textTitle`; the fixture's title, image and links stay. */
+  const textBody = (fs: Section, rule: TextMergeRule, name: string): Section => {
+    const wanted = rule.textTitle.trim().toLowerCase();
+    const as = api.sections.find(
+      (s) => s.type === "SPECIFIC" && (s.title ?? "").trim().toLowerCase() === wanted,
+    );
+    if (!as) {
+      log.static.push(`${name}(no api section titled "${rule.textTitle}")`);
+      return fs;
+    }
+    if (consumed.has(as)) {
+      log.static.push(`${name}(api section "${rule.textTitle}" already used)`);
+      return fs;
+    }
+    consumed.add(as);
+    if (fs.type !== "text") {
+      log.static.push(`${name}(fixture section is ${fs.type}, not text)`);
+      return fs;
+    }
+    const blocks = as.blocks ?? [];
+    const texts = blocks.flatMap((b) => (b.blockType === "TEXT" && b.text?.trim() ? [plainText(b.text)] : []));
+    const body = texts.map((t) => t.text).filter(Boolean).join("\n\n");
+    if (!body) {
+      log.static.push(`${name}(api section "${rule.textTitle}" has no TEXT)`);
+      return fs;
+    }
+    const tags = [...new Set(texts.flatMap((t) => t.tags))];
+    if (tags.length) log.notes.push(`${name}: stripped <${tags.join(">, <")}>`);
+    const rest = blocks.filter((b) => b.blockType !== "TEXT");
+    if (rest.length) {
+      const types = [...new Set(rest.map((b) => b.blockType))].join("/");
+      log.notes.push(`${name}: dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
+    }
+    log.api.push(name);
+    return { ...fs, body };
+  };
+
+  /** A fixture rail section's people from a STRUCTURED section. Title, body
+   *  and links stay the fixture's; a person keeps their place without a photo
+   *  when the photo is rejected. */
+  const railItems = (fs: Extract<Section, { type: "rail" }>, as: ApiSection, name: string): Section => {
+    const photoRejects: string[] = [];
+    const items = (as.items ?? []).map((item): Person => {
+      // The person's name is the model's alt rule for a portrait (NID-CONTEXT
+      // §12) — a card's own title, which media.ts allows as the fallback.
+      const photo = toMediaAsset(item.thumbnail, { altFallback: item.title });
+      if ("rejected" in photo) photoRejects.push(photo.rejected);
+      return {
+        id: String(item.id),
+        name: item.title,
+        slug: item.slug,
+        role: "faculty",
+        ...("asset" in photo ? { photo: photo.asset } : {}),
+      };
+    });
+    if (photoRejects.length) {
+      log.notes.push(`${name}: ${photoRejects.length} photo${photoRejects.length === 1 ? "" : "s"} rejected (${[...new Set(photoRejects)].join("; ")})`);
+    }
+    if (!items.length) {
+      log.static.push(`${name}(api section has no items)`);
+      return fs;
+    }
+    log.api.push(`${name}(${items.length})`);
+    return { ...fs, items };
+  };
+
   const sections = fixture.page.sections.map((fs): Section => {
     const name = sectionName(fs.id);
     const rule = config.sections[fs.id];
@@ -241,12 +344,14 @@ export function toPageResponse(
       log.static.push(fs.type === "links" ? `${name}(no link model)` : name);
       return fs;
     }
+    if ("textTitle" in rule) return textBody(fs, rule, name);
     const as = structured(api, rule, consumed);
     if (typeof as === "string") {
       log.static.push(`${name}(${as})`);
       return fs;
     }
     consumed.add(as);
+    if (fs.type === "rail") return railItems(fs, as, name);
     if (fs.type !== "cards") {
       log.static.push(`${name}(fixture section is ${fs.type}, not cards)`);
       return fs;

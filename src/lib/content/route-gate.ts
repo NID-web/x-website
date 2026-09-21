@@ -83,7 +83,12 @@ export function gatePage(response: PageResponse): { response: PageResponse; audi
 
   return {
     response: {
-      page: { ...page, sections, contacts: page.contacts.filter(keepContact(audit)) },
+      page: {
+        ...page,
+        sections,
+        keyInfo: page.keyInfo.filter(keepContact(audit)),
+        contacts: page.contacts.filter(keepContact(audit)),
+      },
       derived: {
         ...derived,
         backNav,

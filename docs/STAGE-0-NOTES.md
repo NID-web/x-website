@@ -2530,3 +2530,89 @@ Why this mattered beyond honesty: Next prefetches every in-viewport `<Link>`, an
 headless Chrome a prefetch of a route with no page never completes. Enough of them (the
 live News & Events page had 13 article links) exhausted the per-host connections and
 `npm run screenshot` timed out. With the gate it completes in one run.
+
+---
+
+## 55. History: the first `rail` section, `keyInfo`, and clamps counted in lines of text
+
+`/en/about/history` (Figma `4118:208773`, mobile `4184:252521`) is Charter's template (§52)
+with its build and its CMS wiring landing together. Unlike Charter it has a 390 board;
+1024 and 768 are derived from §5.3 and the built pages.
+
+### The rail block is `Page.keyInfo`
+
+The model calls `keyInfo` the "rail block beside the hero" and `contacts` the thing
+"surfaced in column 4 of the first text section", and the 390 board names this frame
+"Key Info". History uses `keyInfo`; Charter ships the same block on `contacts` (§52). The
+two pages now disagree, deliberately, with a `TODO(review)` in the History fixture
+proposing Charter move. `ContactList` takes either — it only sees `LabelValue[]`. The route
+gate now filters `keyInfo` as it does `contacts`; no other page has any.
+
+### A clamp is counted in lines of TEXT, not board height ÷ line-height
+
+The boards draw each clamp's visible height — History's 300 / 240 / 210px — and the
+obvious reading is 10 / 8 / 7 lines at 30px. Built that way, measured at eight widths,
+three of the four "See more" controls at 768 and up **revealed nothing**. The boards
+separate paragraphs with a blank 30px line; `ClampedProse` uses a 16px margin, and
+`line-clamp` counts lines of text only. Past Directors is seven one-line entries: 210px on
+the board is four entries and three blank lines, and a seven-line clamp shows all seven.
+Counted in text lines the boards say **Origins 9, The Sarabhais 7, Past Directors 4**,
+which is exactly the copy each visible node shows.
+
+`ClampedProse` takes a line count (`LINES`, complete class strings — never an
+interpolated `line-clamp-[N]`) beside its two named presets, which are unchanged.
+Faculty Stalwarts is plain at 1440 and clipped to seven lines at 390, which is precisely
+the existing `phone-7`; clamping it at nine everywhere left a dead control at 1440.
+
+### "See more" renders only when the clamp hides something
+
+A fixed line count still fits short copy at some widths: Origins is nine lines at 1200,
+900 and 768. `ClampedProse` now measures, with a `ResizeObserver`, and drops the control
+when nothing is clipped. The test is "more than half a line hidden":
+`scrollHeight − clientHeight` measured 4px over the truly hidden height on every body,
+and exactly 4 when nothing was hidden, so a zero threshold reports phantom clipping. The
+state starts `true`, so the server HTML is the clamped-with-button state it always was —
+About and Charter are byte-identical — and Charter's Ten Mandates still clips at every
+width (+242 to +544px on expand), so it keeps its button everywhere.
+
+### The first `rail` section
+
+`RailSection` renders `groupBy: "none"` only; a grouped rail's data arrives in
+`PageResponse.groupedItems` and bucketing `items` on the client is what CLAUDE.md forbids,
+so that path is a Stage 3 `TODO(review)`. It is a subgrid like `CardsSection`, because its
+"All Faculty Stalwarts" CTA is the section's utility slot. That link goes to `/people`,
+which is not built, so today the route gate drops it.
+
+Portraits are two-up at every width — §5.3's "portraits stay two", and the 390 board's
+171 + 16 + 171. At 2–4 columns each card sits on the page's tracks (columns 2–3 at 3 and
+4, the even cards pinned to column 2). At 1 column the page grid has one track, so the
+cards sit in a two-column grid of their own, `tablet:contents` above that. It is the one
+nested grid on the site and it adds no margin or gutter. `startIn` was not used: it
+assumes three across at 4 columns, and the board draws two.
+
+`PersonCard` is not `AlumniCard`: that is Home's tile (pattern bed, intro, rule) with no
+change of shape below 1280, whatever the manual says. They share `TileImage` in a circle.
+
+### No craft tiles on this page
+
+History's 1440 board instances no pattern field — beside the section images or in the
+sibling band. `TextSection` and `SiblingBand` gained `pattern` (default `true`, so Charter
+and News & Events are unchanged) and History turns both off. Whether that is intended is a
+`TODO(review)`.
+
+### CMS: intro source, title-matched text sections, and the switch-over proof
+
+`PageMergeConfig` gained `intro: "firstTextBlock" | "heroText" | "static"` (default
+`firstTextBlock`, About's shape) and `contactsTo: "contacts" | "keyInfo"`. On History the
+first SPECIFIC section is the Origins **body**; read as the standfirst it would also have
+consumed the section so that it could not feed Origins. A `{ textTitle }` rule feeds a
+text section's body from the SPECIFIC section of that title — exact and case-insensitive,
+never fuzzy. A SPECIFIC section has no machine key, so an editor renaming it drops the page
+back to its fixture: safe, logged, and the reason Section needs a stable `key`.
+
+A mock serving the full document (five more titled sections, a `person` STRUCTURED
+section, contacts) built to `api=` every unit except `backNav` and `siblingBand` — the
+switch-over works before the CMS is seeded. Against the live document, 5 of 13 units come
+from the API. Its "Origins" is a merged narrative that repeats what the fixture's India
+Report and Sarabhais sections say, so the live page reads with that overlap until the
+five other sections are seeded.

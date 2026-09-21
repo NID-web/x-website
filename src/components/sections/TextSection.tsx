@@ -1,10 +1,9 @@
 import { GridItem } from "@/components/layout/GridItem";
 import { TileImage } from "@/components/home/TileImage";
 import { PatternTile } from "@/components/home/tiles/PatternTile";
-import { ClampedProse } from "@/components/spine/ClampedProse";
 import { ImagePlaceholder } from "@/components/spine/ImagePlaceholder";
 import { Title } from "@/components/spine/Title";
-import { ContactList, LinkStack } from "@/components/sections/parts";
+import { ContactList, LinkStack, SectionBody, type BodyClamp } from "@/components/sections/parts";
 import type { Section } from "@/lib/content-model";
 
 type TextSectionData = Extract<Section, { type: "text" }>;
@@ -16,18 +15,23 @@ export function TextSection({
   section,
   clamp,
   imagePlaceholder = false,
+  pattern = true,
   patternSeed = 0,
 }: {
   section: TextSectionData;
   /** Render the body behind a "See more" disclosure. Nothing in the model says
    *  a body is clamped, so the page names the section — the same shape §40 uses
-   *  for lead prominence. Both labels go the day the model carries the field. */
-  clamp?: { seeMore: string; seeLess: string };
+   *  for lead prominence. Both labels go the day the model carries the field.
+   *  `lines` is the board's visible height in lines; nine when omitted. */
+  clamp?: BodyClamp;
   /** Draw the board's flat placeholder where the section image will go, for a
    *  page whose boards have one but whose asset has not been supplied. Off by
    *  default: a section with no image and no placeholder asked for draws
    *  nothing, which is what most pages want. */
   imagePlaceholder?: boolean;
+  /** Draw the craft tile in the rail beside the section image. On by default,
+   *  which is what Charter's board draws; History's instances none. */
+  pattern?: boolean;
   /** Which craft field the rail tile draws. Index into PatternTile FIELDS:
    *  0 = PatternField1, 1 = PatternField2, 2 = PatternField3. The boards pick
    *  one per section and the model has no field for it, so the page names it
@@ -37,36 +41,12 @@ export function TextSection({
    *  PatternField3 is Patternimate-1. Read that table before setting one. */
   patternSeed?: number;
 }) {
-  // Section bodies are Body/Large/Regular (20/30), not Body/Base: both Charter
-  // bodies say so on the board (4118:205433, 4118:205439) and it is the first
-  // page to render a text section, so nothing was relying on the old 16/28. The
-  // COLOUR stays text/primary — the board sets the visible body text/secondary
-  // and the hidden full text text/primary, so it contradicts itself, and body
-  // copy takes the legible one.
   const rail = section.links.length > 0 || section.contacts.length > 0;
   const imageRow = Boolean(section.image) || imagePlaceholder;
   return (
     <>
       <Title variant="section">{section.title}</Title>
-      {section.body &&
-        (clamp ? (
-          <GridItem span={2} start={2} className="font-body text-body-lg text-text-primary">
-            <ClampedProse
-              text={section.body}
-              clamp="always-9"
-              seeMore={clamp.seeMore}
-              seeLess={clamp.seeLess}
-            />
-          </GridItem>
-        ) : (
-          <GridItem span={2} start={2} className="flex flex-col gap-4">
-            {section.body.split(/\n{2,}/).map((paragraph, i) => (
-              <p key={i} className="font-body text-body-lg text-text-primary">
-                {paragraph}
-              </p>
-            ))}
-          </GridItem>
-        ))}
+      {section.body && <SectionBody body={section.body} clamp={clamp} />}
       {rail && (
         <GridItem span={1} className="flex flex-col gap-6">
           {section.links.length > 0 && <LinkStack links={section.links} />}
@@ -80,9 +60,11 @@ export function TextSection({
               explicit column-1 start, NOT `place="rail"` — that names row 2 of a
               SUBGRID, and a text section is a run of siblings on the page grid,
               where row 2 is the page's row 2, not the section's. */}
-          <GridItem span="full-then-1" start={1}>
-            <PatternTile seed={patternSeed} band />
-          </GridItem>
+          {pattern && (
+            <GridItem span="full-then-1" start={1}>
+              <PatternTile seed={patternSeed} band />
+            </GridItem>
+          )}
           <GridItem span={2} start={2} as="figure">
             {section.image ? (
               <TileImage

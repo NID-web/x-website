@@ -11,9 +11,13 @@ import type { DerivedPageContext } from "@/lib/content-model";
 export async function SiblingBand({
   items,
   parentTitle,
+  pattern = true,
 }: {
   items: DerivedPageContext["siblingBand"];
   parentTitle: string;
+  /** The craft tile after the links. On by default; see TextSection's
+   *  `pattern`. */
+  pattern?: boolean;
 }) {
   if (items.length === 0) return null;
   const t = await getTranslations("Page");
@@ -30,9 +34,11 @@ export async function SiblingBand({
           twoUp="tablet-up"
         />
       </GridItem>
-      <GridItem span="full-then-1">
-        <PatternTile seed={1} band />
-      </GridItem>
+      {pattern && (
+        <GridItem span="full-then-1">
+          <PatternTile seed={1} band />
+        </GridItem>
+      )}
     </>
   );
 }
