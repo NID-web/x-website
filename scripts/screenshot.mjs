@@ -6,7 +6,7 @@
 // page takes — the four boards are the only way to review either.
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, openSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,6 +15,7 @@ const ROOT = path.resolve(__dirname, "..");
 const PORT = 4175;
 const BASE = `http://localhost:${PORT}`;
 const OUT_DIR = path.join(ROOT, "docs", "screenshots");
+const SERVER_LOG = path.join(ROOT, ".next", "screenshot-server.log");
 
 const VIEWPORTS = [
   { width: 1440, height: 900 },
@@ -28,14 +29,25 @@ const PAGES = [
   { name: "swatch", path: "/en/swatch" },
   { name: "home", path: "/en" },
   { name: "about", path: "/en/about" },
+  { name: "campuses", path: "/en/about/campuses" },
   { name: "charter", path: "/en/about/charter" },
   { name: "history", path: "/en/about/history" },
   { name: "news-events", path: "/en/about/news-events" },
   { name: "our-themes", path: "/en/about/our-themes" },
 ];
 
+// The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe
+// nobody drains blocks the child once it fills (~24 KB measured on macOS): the
+// server freezes mid-run and every later page.goto times out. It did exactly
+// that — one run's image-optimiser warnings came to ~52 KB — and any verbose
+// warning added later would do the same, on any network. Read the log after a
+// run for what the server said.
 function startServer() {
-  return spawn("npx", ["next", "start", "-p", String(PORT)], { cwd: ROOT, stdio: "pipe" });
+  const log = openSync(SERVER_LOG, "w");
+  return spawn("npx", ["next", "start", "-p", String(PORT)], {
+    cwd: ROOT,
+    stdio: ["ignore", log, log],
+  });
 }
 
 async function waitForServer(timeoutMs = 30_000) {
@@ -84,6 +96,7 @@ async function main() {
     }
 
     await browser.close();
+    console.log(`server log: ${path.relative(ROOT, SERVER_LOG)}`);
   } finally {
     server.kill();
   }

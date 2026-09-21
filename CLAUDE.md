@@ -22,7 +22,9 @@ Design decisions are not in this file. They are in `design/`, and that is what t
 The Tailwind configuration lives in the `@theme` block in `src/app/globals.css` (Tailwind v4; do not recreate `tailwind.config.ts`).
 
 `docs/STAGE-0-NOTES.md` records deliberate deviations from the design file. Read it before
-concluding something is a bug.
+concluding something is a bug. `docs/DEVELOPER-MANUAL.md` is the how-to — setup, the daily
+commands, the recipes, and a troubleshooting table for errors that look like something they
+are not.
 
 ---
 
@@ -59,7 +61,8 @@ These fail without an error. Most have already gone wrong once.
 
 **Icons and motion**
 - Icons use `currentColor` and `aria-hidden="true"` — an icon with its own fill ignores its parent (a day in Figma).
-- Hover states are colour changes only, never a transform, `150ms ease`. The theme swap is instant — no cross-fade, 65 custom properties change at once and it judders.
+- Hover states are colour changes, `150ms ease`, and never a transform. The one sanctioned exception is the linked-tile arrow reveal — a hidden arrow slot that opens by height on hover, gated behind `motion-safe:`, so under reduced motion it still appears, instantly. `MediaCardTile` is the reference implementation; the other linked tiles share it.
+- The theme swap is instant — no cross-fade, 65 custom properties change at once and it judders.
 - Menu titles are **not links**, nothing in the menu is underlined in any state. Gate animated patterns behind `prefers-reduced-motion`.
 
 **Rendering**

@@ -56,11 +56,15 @@ export function gatePage(response: PageResponse): { response: PageResponse; audi
 
   const sections = page.sections.flatMap((section): Section[] => {
     const links = section.links.filter(keepContentLink(audit));
+    // Section contacts too, not only the page's: TextSection renders them, and
+    // a page may hand its own contacts to its first section (Campuses). Every
+    // contact on the site passes this one gate, whichever slot it arrives in.
+    const contacts = section.contacts.filter(keepContact(audit));
     if (section.type === "links") {
       const items = section.items.filter(keepContentLink(audit));
       // An emptied list goes whole, here rather than in the renderer, so the
       // page does not draw a separator for a section that is not there.
-      return items.length ? [{ ...section, items, links }] : [];
+      return items.length ? [{ ...section, items, links, contacts }] : [];
     }
     if (section.type === "cards") {
       for (const item of section.items) {
@@ -72,7 +76,7 @@ export function gatePage(response: PageResponse): { response: PageResponse; audi
         if (path) miss(audit, path, true);
       }
     }
-    return [{ ...section, links }];
+    return [{ ...section, links, contacts }];
   });
 
   const backNav = derived.backNav && builtHref(derived.backNav.href) ? derived.backNav : null;

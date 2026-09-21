@@ -43,3 +43,27 @@ export function plainText(html: string): { text: string; tags: string[] } {
     .trim();
   return { text, tags };
 }
+
+// An authored paragraph break, and nothing else:
+//   a blank line          — two or more newlines with only whitespace between
+//   `</p>` then `<p>`     — whitespace between allowed
+//   two or more `<br>`s   — whitespace between allowed
+// A LONE `<br>` stays a space, as in plainText: a section body renders
+// paragraphs only, with no in-paragraph line break to carry it to, and turning
+// it into a paragraph would invent a boundary the author did not write. Single
+// newlines, other block tags and every inline tag are plainText's, unchanged.
+const PARAGRAPH_BREAK = /\n[^\S\n]*\n\s*|<\/p\s*>\s*<p\b[^>]*>|(?:<br\s*\/?>\s*){2,}/gi;
+
+/** A section body: plainText per authored paragraph, joined by the blank line
+ *  that ClampedProse and SectionBody split on. Carries across the breaks an
+ *  editor wrote and invents none — never a sentence splitter. Single-paragraph
+ *  fields (a standfirst, a tile's statement) stay on plainText. */
+export function plainParagraphs(html: string): { text: string; tags: string[]; breaks: number } {
+  const parts = html.split(PARAGRAPH_BREAK).map(plainText);
+  const kept = parts.filter((p) => p.text);
+  return {
+    text: kept.map((p) => p.text).join("\n\n"),
+    tags: [...new Set(parts.flatMap((p) => p.tags))],
+    breaks: kept.length - 1,
+  };
+}
