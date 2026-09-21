@@ -1,10 +1,15 @@
 // "July 23 2026" — the card date as the boards set it: long month, day, year,
 // no comma.
+//
+// Pinned to India's zone: the build runs in UTC on CI, and an article the CMS
+// stamps 00:30 IST (19:00 UTC the day before) would otherwise print the wrong
+// day. The date an NID reader sees is the date in India, wherever it is built.
 export function formatDate(iso: string, locale: string): string {
   const parts = new Intl.DateTimeFormat(locale, {
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: "Asia/Kolkata",
   }).formatToParts(new Date(iso));
   const get = (type: Intl.DateTimeFormatPartTypes) =>
     parts.find((p) => p.type === type)?.value ?? "";

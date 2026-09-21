@@ -4,12 +4,9 @@
 // reads and let anything else through, because the backend keeps adding fields
 // and an unknown one must never cost us a page.
 //
-// Two generations of the document are in the wild at once: the deployed API
-// still answers with the OLD shape (no `kind`, no `path`, no `config`), the
-// local one with the NEW. Everything the new shape added is therefore optional
-// here, and the ADAPTERS — not the guards — decide a document is too thin to
-// use. That is what makes the deployed API degrade to the static page instead
-// of failing the build.
+// One generic document model serves every page, Home included: sections are
+// SPECIFIC (blocks) or STRUCTURED (items of one content type). There is no
+// per-page shape and no machine key on a SPECIFIC section — see getHome.ts.
 
 export interface ContentTypeRef {
   key: string;
@@ -28,10 +25,10 @@ export interface MediaRef {
   /** The uploaded FILE's name much of the time ("news-1.jpg") — never alt text. */
   title: string | null;
   caption: string | null;
-  credit?: string | null;
   mimeType: string;
-  /** Null until the real files are imported; TileImage renders `fill` and
-   *  reads neither, but next/image in the footer needs both. */
+  // Not served by the deployed API. Kept optional because toMediaAsset reads
+  // them, so real dimensions start flowing the day the DTO exposes them.
+  credit?: string | null;
   widthPx?: number | null;
   heightPx?: number | null;
   focalPoint?: FocalPoint | null;
@@ -41,16 +38,14 @@ export interface CardRef {
   id: number;
   /** Flat and globally unique (`convocation-2026`) — not a path. */
   slug: string;
-  /** The item's route. Null means the CMS has no page for it yet. */
+  /** Not served today — routes come from pathOfCmsSlug(). Nothing may depend
+   *  on it; it is typed so a future `path` is used rather than ignored. */
   path?: string | null;
   title: string;
   heroText: string | null;
   thumbnail: MediaRef | null;
   contentType: ContentTypeRef;
   publishedAt: string | null;
-  /** Both only on a curated pick: the editor's short label and its meta line. */
-  label?: string | null;
-  meta?: string | null;
 }
 
 export interface SectionBlock {
@@ -59,34 +54,19 @@ export interface SectionBlock {
   orderIndex: number;
   /** HTML, not plain text — about-nid's sixth block carries a <strong>. */
   text: string | null;
+  /** The file of an IMAGE or VIDEO block. */
   media: MediaRef | null;
-  /** The card a CONTENT_REFERENCE block points at. */
-  referencedItem?: CardRef | null;
 }
 
 export interface Section {
   id: number;
-  /** New shape only: `statement` | `linkList` | `calendar` | `news` | `feature`
-   *  | `portrait` | `mediaCard` | `quote` | `roster` | `spine`. Null on the old
-   *  shape and on every editorial page, which are matched by
-   *  `structuredContentType.key` instead. */
-  kind?: string | null;
   title: string | null;
   orderIndex: number;
   type: "SPECIFIC" | "STRUCTURED";
-  /** Content the editor fills in that has no block or item of its own — a
-   *  calendar's rows, a spine's book titles, a CTA. Never styling. */
-  config?: Record<string, unknown> | null;
   blocks: SectionBlock[] | null;
   structuredContentType: ContentTypeRef | null;
   structuredMode: "CURATED" | "DYNAMIC" | null;
   items: CardRef[] | null;
-}
-
-/** `config.cta`, the one shape every CTA arrives in. */
-export interface ConfigCta {
-  label: string;
-  path: string;
 }
 
 export interface Seo {
@@ -113,8 +93,7 @@ export interface NavItem {
   id: number;
   label: string;
   slug: string;
-  /** Null = a disclosure heading, not a link (the handover says so). A null
-   *  path with no children is neither, and the menu drops it. */
+  /** Not served today — getSiteChrome derives it with pathOfCmsSlug(). */
   path?: string | null;
   orderIndex: number;
   children: NavItem[];
@@ -123,8 +102,6 @@ export interface NavItem {
 export interface PublicContentResponse {
   id: number;
   slug: string;
-  /** The page's own route ("/", "/about"). New shape only. */
-  path?: string | null;
   title: string | null;
   heroText: string | null;
   thumbnail: MediaRef | null;
@@ -133,11 +110,8 @@ export interface PublicContentResponse {
   seo: Seo | null;
   contacts?: ContactRef[];
   sections: Section[];
-  navigation: {
-    header: NavItem[];
-    footer: NavItem[];
-    footerSecondary?: NavItem[];
-  } | null;
+  /** `footer` is ONE flat list; getSiteChrome splits it into two columns. */
+  navigation: { header: NavItem[]; footer: NavItem[] } | null;
 }
 
 /** GET /public/site-config. `value` is already-parsed JSON for a JSON setting. */
@@ -171,7 +145,6 @@ type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
 const isStr = (v: unknown): v is string => typeof v === "string";
 const isStrOrNull = (v: unknown) => v === null || v === undefined || isStr(v);
-const isNumOrNull = (v: unknown) => v === null || v === undefined || typeof v === "number";
 
 export function isMediaRef(v: unknown): v is MediaRef {
   return isObj(v) && isStr(v.id) && isStr(v.url) && isStrOrNull(v.altText);
@@ -194,7 +167,7 @@ function isBlock(v: unknown): v is SectionBlock {
     isObj(v) &&
     isStr(v.blockType) &&
     isStrOrNull(v.text) &&
-    (v.referencedItem === null || v.referencedItem === undefined || isCardRef(v.referencedItem))
+    (v.media === null || v.media === undefined || isMediaRef(v.media))
   );
 }
 
@@ -205,12 +178,8 @@ function isContactRef(v: unknown): v is ContactRef {
 function isSection(v: unknown): v is Section {
   if (!isObj(v)) return false;
   const ct = v.structuredContentType;
-  // `kind` and `config` are NOT required: an editorial page's sections have
-  // neither, and the old shape has neither anywhere.
   return (
     isStrOrNull(v.title) &&
-    isStrOrNull(v.kind) &&
-    (v.config === null || v.config === undefined || isObj(v.config)) &&
     (ct === null || ct === undefined || (isObj(ct) && isStr(ct.key))) &&
     (v.blocks === null || v.blocks === undefined || (Array.isArray(v.blocks) && v.blocks.every(isBlock))) &&
     (v.items === null || v.items === undefined || (Array.isArray(v.items) && v.items.every(isCardRef)))
@@ -219,21 +188,6 @@ function isSection(v: unknown): v is Section {
 
 function isSeo(v: unknown): v is Seo {
   return isObj(v) && isStrOrNull(v.metaTitle) && isStrOrNull(v.metaDescription);
-}
-
-export function isNavItem(v: unknown): v is NavItem {
-  return (
-    isObj(v) &&
-    isStr(v.label) &&
-    isStr(v.slug) &&
-    isStrOrNull(v.path) &&
-    isNumOrNull(v.orderIndex) &&
-    (v.children === undefined || (Array.isArray(v.children) && v.children.every(isNavItem)))
-  );
-}
-
-export function isNavItems(v: unknown): v is NavItem[] {
-  return Array.isArray(v) && v.every(isNavItem);
 }
 
 export function isPublicContentResponse(v: unknown): v is PublicContentResponse {
@@ -268,23 +222,4 @@ export function isContactDetails(v: unknown): v is ContactDetail[] {
 
 export function isContentItems(v: unknown): v is ContentItems {
   return isObj(v) && Array.isArray(v.items) && v.items.every(isCardRef);
-}
-
-/** `config.cta` if the section carries a usable one. */
-export function configCta(config: Section["config"]): ConfigCta | null {
-  const cta = config?.cta;
-  if (!isObj(cta) || !isStr(cta.label) || !isStr(cta.path)) return null;
-  return { label: cta.label, path: cta.path };
-}
-
-/** A string field of `config`, trimmed, or null. */
-export function configString(config: Section["config"], key: string): string | null {
-  const v = config?.[key];
-  return isStr(v) && v.trim() ? v.trim() : null;
-}
-
-/** An array field of `config`, or an empty list. */
-export function configArray(config: Section["config"], key: string): unknown[] {
-  const v = config?.[key];
-  return Array.isArray(v) ? v : [];
 }

@@ -45,14 +45,19 @@ function Section({
           >
             {section.title}
           </Link>
-          <IconButton
-            icon={expanded ? "minus" : "plus"}
-            label={`${expanded ? "Hide" : "Show"} ${section.title} links`}
-            size="small"
-            expanded={expanded}
-            controls={panelId}
-            onClick={onToggle}
-          />
+          {/* A section the CMS serves with no children is a page, not a set:
+              a plus that expands an empty list promises something that is not
+              there. */}
+          {section.links.length > 0 && (
+            <IconButton
+              icon={expanded ? "minus" : "plus"}
+              label={`${expanded ? "Hide" : "Show"} ${section.title} links`}
+              size="small"
+              expanded={expanded}
+              controls={panelId}
+              onClick={onToggle}
+            />
+          )}
         </div>
       ) : (
         <button

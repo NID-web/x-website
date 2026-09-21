@@ -20,9 +20,9 @@ const isPagesExport = process.env.GITHUB_PAGES === "true";
 // hosts derived here are injected as CMS_MEDIA_HOSTS and media.ts reads them back.
 //
 // They are DERIVED FROM THE RESPONSE rather than configured. The API and its
-// files are not on the same origin (today the API answers on :3000 and serves
-// its media from :8080), and no env var the site owner maintains can know that
-// — the document does. So the config probes the home document once and collects
+// files need not share an origin (a local backend answered on :3000 and served
+// its media from :8080; the deployed one uses one host for both), and no env
+// var the site owner maintains can know that — the document does. So the config probes the home document once and collects
 // the distinct hosts of the media URLs inside it. A probe that fails costs
 // nothing but reach: the list narrows to the CMS_API_URL host, those images are
 // rejected with a `[cms]` reason, and the page falls back to its static assets.

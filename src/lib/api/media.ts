@@ -6,8 +6,8 @@
 // told about, so an asset this lets through that the config does not allow
 // would fail the build rather than fall back. They cannot drift, because both
 // read the SAME derived list: next.config.ts works out the media hosts (the
-// CMS_API_URL host plus whatever hosts the API's own media URLs use — today
-// the API is on :3000 and its files on :8080) and injects them as
+// CMS_API_URL host plus whatever hosts the API's own media URLs use — a local
+// backend once served its files from a second port) and injects them as
 // CMS_MEDIA_HOSTS. Unset, only the CMS_API_URL host is allowed.
 import type { MediaAsset } from "@/lib/content-model";
 import { cmsBaseUrl } from "@/lib/api/client";
@@ -30,8 +30,9 @@ export function toMediaAsset(
   ref: MediaRef | null | undefined,
   opts: {
     decorative?: boolean;
-    /** Used as alt when the API sent none. Pass the CARD's title (the person,
-     *  the programme) — never MediaRef.title, which is usually the filename. */
+    /** Used as alt when the API sent none. Pass a CARD's title (the person,
+     *  the partner) — never MediaRef.title, which is usually the filename, and
+     *  never a page's title, which names the page rather than the picture. */
     altFallback?: string;
   } = {},
 ): MediaResult {

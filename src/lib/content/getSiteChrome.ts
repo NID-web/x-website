@@ -9,6 +9,11 @@
 // the page already fetched rather than /public/navigation/header, which serves
 // the identical tree — one request fewer for the same bytes.
 //
+// No NavItem carries a `path`, so every route is DERIVED from its CMS slug
+// through pathOfCmsSlug() — sitemap.json's routes, never a guess from the slug.
+// Without that, every child and then every section dropped, and the whole menu
+// and footer fell back without a word.
+//
 // Labels reach the components through the same synthetic-key trick Home uses:
 // Footer renders `t(link.labelKey)`, so an API label is stored under an
 // `api.*` key that the page's translator resolves first. No component changes.
@@ -22,6 +27,7 @@ import {
   type NavItem,
 } from "@/lib/api/types";
 import { toMediaAsset } from "@/lib/api/media";
+import { pathOfCmsSlug } from "@/lib/content/pages";
 import { MENU_SECTIONS, type NavSection } from "@/lib/nav-content";
 import {
   FOOTER,
@@ -49,7 +55,7 @@ const LOGO_HEIGHT: Record<string, number> = {
   "india-gov-in": 32,
   "make-in-india": 30,
   "startup-india": 39,
-  "ministry-women-child-development": 45,
+  "ministry-of-women-and-child-development": 45,
   "khelo-india": 37,
 };
 const LOGO_HEIGHT_DEFAULT = 36;
@@ -64,35 +70,52 @@ const LOGO_INTRINSIC: Record<string, { width: number; height: number }> = {
   "india-gov-in": { width: 51, height: 32 },
   "make-in-india": { width: 600, height: 274 },
   "startup-india": { width: 1080, height: 1080 },
-  "ministry-women-child-development": { width: 1200, height: 800 },
+  "ministry-of-women-and-child-development": { width: 1200, height: 800 },
   "khelo-india": { width: 571, height: 350 },
 };
 
-/** A nav item with no path and no children is neither a link nor a disclosure
- *  heading — it names a page the CMS does not have yet, so the menu drops it
- *  instead of rendering a row that goes nowhere. */
-function toNavSection(item: NavItem, dropped: string[]): NavSection | null {
-  const links = (item.children ?? []).flatMap((child) => {
-    if (!child.path) {
+/** The footer's second column. The CMS serves the footer as one flat list; the
+ *  design has two, and nothing in a NavItem says which one it belongs to. Until
+ *  the API grows `navigation.footerSecondary`, these slugs are the tail. */
+const FOOTER_SECONDARY_SLUGS = new Set([
+  "right-to-information",
+  "privacy-policy",
+  "terms-and-conditions",
+  "sitemap",
+]);
+
+const byOrder = (a: NavItem, b: NavItem) => a.orderIndex - b.orderIndex;
+const routeOf = (item: NavItem) => item.path ?? pathOfCmsSlug(item.slug);
+
+/** A nav item with no route and no children is neither a link nor a disclosure
+ *  heading — it names a page the site has no route for, so the menu drops it
+ *  instead of rendering a row that goes nowhere. The menu is two levels deep,
+ *  so a grandchild (About NID › Campuses › Ahmedabad) has no row to live in: it
+ *  is reported, never silently flattened into its parent's list. */
+function toNavSection(item: NavItem, dropped: string[], deeper: string[]): NavSection | null {
+  const links = [...(item.children ?? [])].sort(byOrder).flatMap((child) => {
+    if (child.children?.length) deeper.push(`${item.slug}/${child.slug}(${child.children.length})`);
+    const href = routeOf(child);
+    if (!href) {
       dropped.push(`${item.slug}/${child.slug}`);
       return [];
     }
-    return [{ label: child.label, href: child.path }];
+    return [{ label: child.label, href }];
   });
-  if (!links.length && !item.path) {
+  const href = routeOf(item);
+  if (!links.length && !href) {
     dropped.push(item.slug);
     return null;
   }
-  return {
-    id: item.slug,
-    title: item.label,
-    ...(item.path ? { href: item.path } : {}),
-    links,
-  };
+  return { id: item.slug, title: item.label, ...(href ? { href } : {}), links };
 }
 
-function telHref(value: string) {
-  return `tel:${value.replace(/[\s-]/g, "")}`;
+/** A dialable tel: href, or null. A value holding two numbers ("+91 79 2662
+ *  9500 / 2662 9600", as the CMS stores it today) is not one: stripped naively
+ *  it becomes tel:+917926629500/26629600, which a phone dials as garbage. */
+function telHref(value: string): string | null {
+  const digits = value.replace(/[\s-]/g, "");
+  return /^\+?[0-9]{6,15}$/.test(digits) ? `tel:${digits}` : null;
 }
 
 export const getSiteChrome = cache(async (locale: string): Promise<SiteChrome> => {
@@ -126,52 +149,70 @@ export const getSiteChrome = cache(async (locale: string): Promise<SiteChrome> =
   // ── header menu: one unit, API wholesale ───────────────────────────────
   let menu = MENU_SECTIONS;
   const dropped: string[] = [];
-  const apiMenu = (home?.navigation?.header ?? [])
-    .slice()
-    .sort((a, b) => a.orderIndex - b.orderIndex)
-    .flatMap((item) => toNavSection(item, dropped) ?? []);
+  const deeper: string[] = [];
+  const apiMenu = [...(home?.navigation?.header ?? [])]
+    .sort(byOrder)
+    .flatMap((item) => toNavSection(item, dropped, deeper) ?? []);
   if (apiMenu.length) {
     menu = apiMenu;
-    fromApi.push(`menu(${apiMenu.length} sections)`);
-    if (dropped.length) notes.push(`menu dropped ${dropped.join(",")} (no path, no children)`);
+    fromApi.push(`menu(${apiMenu.length} sections, paths from slugs)`);
+    if (dropped.length) notes.push(`menu dropped ${dropped.join(",")} (no route in sitemap.json)`);
+    if (deeper.length) notes.push(`menu has no third level for ${deeper.join(",")}`);
     const lost = MENU_SECTIONS.filter((s) => !apiMenu.some((a) => a.title === s.title));
     if (lost.length) notes.push(`menu lacks ${lost.map((s) => s.id).join(",")}`);
   } else {
     fromStatic.push("menu(no header navigation)");
   }
 
-  // ── footer link columns ────────────────────────────────────────────────
-  const column = (items: NavItem[] | undefined, name: string) => {
-    const links = (items ?? [])
-      .slice()
-      .sort((a, b) => a.orderIndex - b.orderIndex)
-      .flatMap((item) =>
-        item.path
-          ? [{ labelKey: label(`${name}.${item.id}`, item.label), href: item.path }]
-          : [],
-      );
+  // ── footer link columns: one flat API list, split on a frontend tail ────
+  const footerDropped: string[] = [];
+  const column = (items: NavItem[], name: string) => {
+    const links = [...items].sort(byOrder).flatMap((item) => {
+      const href = routeOf(item);
+      if (!href) {
+        footerDropped.push(item.slug);
+        return [];
+      }
+      return [{ labelKey: label(`${name}.${item.id}`, item.label), href }];
+    });
     return links.length ? links : null;
   };
 
-  const primaryLinks = column(home?.navigation?.footer, "primary");
+  const flat = home?.navigation?.footer ?? [];
+  const primaryLinks = column(
+    flat.filter((i) => !FOOTER_SECONDARY_SLUGS.has(i.slug)),
+    "primary",
+  );
+  const secondaryLinks = column(
+    flat.filter((i) => FOOTER_SECONDARY_SLUGS.has(i.slug)),
+    "secondary",
+  );
   if (primaryLinks) fromApi.push("footer.primary");
   else fromStatic.push("footer.primary(api empty)");
-
-  const secondaryLinks = column(home?.navigation?.footerSecondary, "secondary");
-  if (secondaryLinks) fromApi.push("footer.secondary");
+  if (secondaryLinks) fromApi.push("footer.secondary(split from navigation.footer)");
   else fromStatic.push("footer.secondary(api empty)");
+  if (footerDropped.length) {
+    notes.push(`footer dropped ${footerDropped.join(",")} (no route in sitemap.json)`);
+  }
 
   // ── contacts: the API sends label/type/value, the href is ours ──────────
   let contactLinks: ContactLink[] | null = null;
   if (contacts?.length) {
-    contactLinks = contacts
-      .slice()
+    contactLinks = [...contacts]
       .sort((a, b) => a.orderIndex - b.orderIndex)
-      .map((c) => ({
-        label: c.value,
-        href: c.type === "EMAIL" ? `mailto:${c.value}` : telHref(c.value),
-      }));
-    fromApi.push("contacts");
+      .flatMap((c) => {
+        const href = c.type === "EMAIL" ? `mailto:${c.value}` : telHref(c.value);
+        if (!href) {
+          notes.push(`contact "${c.value}" dropped (not one dialable number)`);
+          return [];
+        }
+        return [{ label: c.value, href }];
+      });
+    if (contactLinks.length) fromApi.push("contacts");
+    else {
+      contactLinks = null;
+      fromStatic.push("contacts(no usable entry)");
+    }
   } else {
     fromStatic.push("contacts(api empty)");
   }
