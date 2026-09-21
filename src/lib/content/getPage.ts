@@ -114,6 +114,25 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       lists: { disciplines: "section-bengaluru-disciplines" },
     },
   },
+  "/about/charter": {
+    slug: "charter",
+    // The first SPECIFIC section is the Mandate BODY, not a standfirst —
+    // History's shape.
+    intro: "heroText",
+    sections: {
+      // Held off the CMS deliberately, and the page's ONE manual switch — every
+      // other fallback here flips itself. The document's "Mandate" section is a
+      // single block that also condenses all ten mandates (stating them twice,
+      // with the section below) and drops the "Institution of National
+      // Importance / NID Act 2014" sentence, so adopting it loses content.
+      // TODO(review): backend — restore this line the day the CMS splits
+      // "Mandate" into "Mandate" (the two-paragraph statement, Act sentence
+      // back) + "The Ten Mandates". Until then the board's copy stands.
+      // "section-charter-mandate": { textTitle: "Mandate" },
+      // Not in the document yet; switches on by itself when the CMS splits it.
+      "section-charter-ten-mandates": { textTitle: "The Ten Mandates" },
+    },
+  },
   "/about/history": {
     slug: "history",
     // The document's first SPECIFIC section is the Origins BODY, not a
