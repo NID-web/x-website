@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . && node scripts/lint-tokens.mjs && node scripts/lint-fixtures.mjs && node scripts/lint-notes.mjs",
+    "lint": "eslint . && node scripts/lint-tokens.mjs && node scripts/lint-fixtures.mjs && node scripts/lint-routes.mjs && node scripts/lint-notes.mjs",
     "generate:tokens": "python3 design/generate.py && cp design/tokens/themes.css src/styles/themes.css && cp design/tokens/font-manifest.json src/lib/font-manifest.json",
     "verify:parity": "node scripts/verify-parity.mjs",
     "verify:tokens": "next build && node scripts/verify-tokens.mjs",

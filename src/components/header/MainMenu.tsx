@@ -40,6 +40,10 @@ function Section({
         <div className="flex w-full items-center gap-2 py-2">
           <Link
             href={section.href}
+            // The menu publishes the sitemap ahead of the build, so most of its
+            // targets have no page yet; prefetching ~48 of them only queues
+            // requests (content links go through builtHref instead).
+            prefetch={false}
             onClick={onNavigate}
             className={clsx(title, "no-underline hover:text-text-primary")}
           >
@@ -86,6 +90,7 @@ function Section({
             <li key={link.href}>
               <Link
                 href={link.href}
+                prefetch={false}
                 onClick={onNavigate}
                 className="block py-2 font-primary text-label text-text-secondary no-underline transition-colors duration-150 ease-in-out hover:text-text-primary"
               >

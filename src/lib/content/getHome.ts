@@ -9,8 +9,8 @@
 // and lands the craft patterns beside the wrong neighbours. When the document
 // serves every tile, the order can move to the API again.
 //
-// No CMS, or a failed fetch, returns HOME_TILES untouched — the page is then
-// byte-identical to the static one. Nothing outside src/lib/content/ may import
+// No CMS, or a failed fetch, returns HOME_TILES with only the route gate
+// applied (route-gate.ts) — the same gate the CMS-fed page goes through. Nothing outside src/lib/content/ may import
 // HOME_TILES (scripts/lint-fixtures.mjs).
 import { cache } from "react";
 import { HOME_TILES, type HomeTile } from "@/lib/home-content";
@@ -23,6 +23,7 @@ import {
   statementAdapter,
   type Copy,
 } from "@/lib/content/home-adapters";
+import { auditSummary, gateHome, logMissingRoutes } from "@/lib/content/route-gate";
 
 export interface HomeContent {
   tiles: HomeTile[];
@@ -82,7 +83,12 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
     `/public/content/home?locale=${encodeURIComponent(locale)}`,
     isPublicContentResponse,
   );
-  if (!api) return { tiles: HOME_TILES, copy: {}, seo: { title: STATIC_TITLE } };
+  if (!api) {
+    // The route gate runs on the static page too; see route-gate.ts.
+    const { tiles, audit } = gateHome(HOME_TILES);
+    logMissingRoutes("/", audit);
+    return { tiles, copy: {}, seo: { title: STATIC_TITLE } };
+  }
 
   const bySource = new Map<string, Section>();
   for (const source of SECTION_SOURCES) {
@@ -94,7 +100,7 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
   const fromStatic: string[] = [];
   let copy: Copy = {};
 
-  const tiles = HOME_TILES.map((tile): HomeTile => {
+  const merged = HOME_TILES.map((tile): HomeTile => {
     if (tile.kind === "pattern") return tile;
     const section = bySource.get(tile.id);
 
@@ -157,11 +163,14 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
   if (title || description) fromApi.push("seo");
   else fromStatic.push("seo(no metaTitle or metaDescription)");
 
+  const { tiles, audit } = gateHome(merged);
   console.info(
     `[cms] home: api=${fromApi.join(",") || "none"} · static=${fromStatic.join(",") || "none"}` +
       ` · order=static` +
-      (unused.length ? ` · ${unused.join("; ")}` : ""),
+      (unused.length ? ` · ${unused.join("; ")}` : "") +
+      ` · ${auditSummary(audit)}`,
   );
+  logMissingRoutes("/", audit);
 
   return {
     tiles,

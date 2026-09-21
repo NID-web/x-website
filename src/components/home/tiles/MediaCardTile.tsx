@@ -29,9 +29,13 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         title={t(tile.titleKey)}
         date={tile.date}
         body={t(tile.flip.bodyKey)}
-        ctaLabel={t(tile.flip.cta.labelKey)}
-        ctaHref={tile.flip.cta.href}
-        ctaExternal={tile.flip.cta.external}
+        {...(tile.flip.cta
+          ? {
+              ctaLabel: t(tile.flip.cta.labelKey),
+              ctaHref: tile.flip.cta.href,
+              ctaExternal: tile.flip.cta.external,
+            }
+          : {})}
         showDetailsLabel={t("cta.showDetails")}
         showCoverLabel={t("cta.showCover")}
       />

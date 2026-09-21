@@ -4,7 +4,7 @@ import { TileImage } from "@/components/home/TileImage";
 import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
 import type { Page } from "@/lib/content-model";
-import { pagePath } from "@/lib/content/pages";
+import { cardHref } from "@/lib/content/links";
 
 /**
  * Campus card featuring an arched photograph and overlay title.
@@ -19,7 +19,8 @@ const ARCH: Record<ArchSide, string> = {
 
 export function CampusCard({ item, arch }: { item: Page; arch: ArchSide }) {
   const image = item.hero[0];
-  const href = pagePath(item);
+  // Unlinked, not dropped, when the campus page is not built (links.ts).
+  const href = cardHref(item);
   const name = (
     <span className="font-primary text-h3 text-white">{item.title}</span>
   );

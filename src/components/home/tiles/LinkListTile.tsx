@@ -21,17 +21,25 @@ export function LinkListTile({ tile, t }: { tile: LinkListTileData; t: Translate
       )}
       <ul className="relative mt-3 flex flex-col gap-3">
         {tile.links.map((link) => (
-          <li key={link.labelKey} className="group">
-            <Link
-              href={link.href}
-              className="inline-flex items-center gap-2.5 font-primary text-h6 uppercase text-text-secondary no-underline transition-colors duration-150 ease-in-out group-hover:text-text-primary"
-            >
-              {t(link.labelKey)}
-              <Icon
-                name="arrow-up-right"
-                className="size-4 shrink-0 text-icon-quaternary transition-colors duration-150 ease-in-out group-hover:text-icon-secondary"
-              />
-            </Link>
+          <li key={link.labelKey} className={link.href ? "group" : undefined}>
+            {link.href ? (
+              <Link
+                href={link.href}
+                className="inline-flex items-center gap-2.5 font-primary text-h6 uppercase text-text-secondary no-underline transition-colors duration-150 ease-in-out group-hover:text-text-primary"
+              >
+                {t(link.labelKey)}
+                <Icon
+                  name="arrow-up-right"
+                  className="size-4 shrink-0 text-icon-quaternary transition-colors duration-150 ease-in-out group-hover:text-icon-secondary"
+                />
+              </Link>
+            ) : (
+              // Withheld by the route gate: the label stays as information,
+              // with no arrow — an arrow to nowhere is a lie (CalendarRow).
+              <span className="inline-flex items-center font-primary text-h6 uppercase text-text-secondary">
+                {t(link.labelKey)}
+              </span>
+            )}
             <span
               aria-hidden="true"
               className="block h-0.5 max-w-28 bg-border-subtle transition-colors duration-150 ease-in-out group-hover:bg-border-default"

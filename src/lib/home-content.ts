@@ -19,7 +19,9 @@ export interface HomeCta {
 
 export interface HomeLink {
   labelKey: CopyKey;
-  href: string;
+  /** Absent once the route gate withholds it (src/lib/content/route-gate.ts):
+   *  the row stays, as plain text with no arrow. */
+  href?: string;
   metaKey?: CopyKey; // small meta line under the label
   external?: boolean;
 }
@@ -37,7 +39,8 @@ export interface CalendarRow {
 export interface NewsRow {
   headlineKey: CopyKey;
   date: string;
-  href: string;
+  /** Absent once the route gate withholds it: the row stays, unlinked. */
+  href?: string;
   /** Optional because a CMS row can arrive without a usable image. The row then
    *  keeps its image box, empty — never a borrowed or placeholder photo. */
   thumbnail?: MediaAsset;
@@ -105,9 +108,15 @@ export type HomeTile =
        *  Its presence is what adds the hover arrows and the flip; a media card
        *  without it is unchanged. The `cta` is the SAME destination the front's
        *  arrow points at — one event, named once. */
-      flip?: { bodyKey: CopyKey; cta: HomeCta };
+      flip?: { bodyKey: CopyKey; cta?: HomeCta };
     })
-  | (Base & { kind: "quote"; quoteKey: CopyKey; avatar?: MediaAsset; attribution: HomeCta })
+  | (Base & {
+      kind: "quote";
+      quoteKey: CopyKey;
+      avatar?: MediaAsset;
+      /** Names the speaker, so it stays when its route is withheld — as text. */
+      attribution: Omit<HomeCta, "href"> & { href?: string };
+    })
   | (Base & {
       kind: "roster";
       headingKey: CopyKey;

@@ -8,10 +8,12 @@ import type { PageResponse } from "@/lib/content-model";
 import { cmsFetch } from "@/lib/api/client";
 import { isPublicContentResponse } from "@/lib/api/types";
 import { toPageResponse, type PageMergeConfig } from "@/lib/content/page-adapter";
+import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ABOUT } from "@/lib/content/fixtures/about";
 import { CHARTER } from "@/lib/content/fixtures/charter";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 import { OUR_THEMES } from "@/lib/content/fixtures/our-themes";
+import { PAGE_ID } from "@/lib/content/pages";
 
 const FIXTURES: Record<string, PageResponse> = {
   "/about": ABOUT,
@@ -31,6 +33,23 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-about-student-awards": { structuredKey: "student_award", slugUnderParent: true },
     },
   },
+  "/about/news-events": {
+    slug: "news-events",
+    sections: {
+      "section-news-featured": { structuredKey: "news", nth: 1, slugUnderParent: true },
+      // TODO(review): designer — is this section a year bucket ("2026", the
+      // board) or a recency feed ("Latest News", the API, items 2020–2026)? It
+      // takes the API's title, so it currently reads "Latest News".
+      "section-news-2026": { structuredKey: "news", nth: 2, slugUnderParent: true },
+      // section-news-archive: a links section, and sections have no link model (A4).
+    },
+    // TODO(review): sitemap.json has one item route here, /about/news-events/[slug];
+    // events and workshops have none of their own, so they share it (BACKEND-HOME-TASKS A3).
+    appendSections: [
+      { id: "section-news-events", structuredKey: "event", after: "section-news-2026", itemParent: PAGE_ID.newsEvents, slugUnderParent: true },
+      { id: "section-news-workshops", structuredKey: "workshop", after: "section-news-2026", itemParent: PAGE_ID.newsEvents, slugUnderParent: true },
+    ],
+  },
 };
 
 // cache(): generateMetadata and the page both call this; one fetch and one log
@@ -39,15 +58,22 @@ export const getPage = cache(async (path: string): Promise<PageResponse | null> 
   const fixture = FIXTURES[path];
   if (!fixture) return null;
   const config = PAGE_CONFIG[path];
-  if (!config) return fixture;
+  const api = config ? await cmsFetch(`/public/content/${config.slug}`, isPublicContentResponse) : null;
 
-  const api = await cmsFetch(`/public/content/${config.slug}`, isPublicContentResponse);
-  if (!api) return fixture;
-
-  const { response, sources } = toPageResponse(api, fixture, config);
-  console.info(
-    `[cms] ${path}: api=${sources.api.join(",") || "none"} · static=${sources.static.join(",") || "none"}` +
-      (sources.notes.length ? ` · ${sources.notes.join(" · ")}` : ""),
-  );
+  // The gate runs on every page, CMS or not: a fixture links to unbuilt routes
+  // just as the API does.
+  const merged = api && config ? toPageResponse(api, fixture, config) : null;
+  const { response, audit } = gatePage(merged?.response ?? fixture);
+  if (merged) {
+    const { sources } = merged;
+    console.info(
+      `[cms] ${path}: api=${sources.api.join(",") || "none"}` +
+        (sources.appended.length ? ` · appended=${sources.appended.join(",")}` : "") +
+        ` · static=${sources.static.join(",") || "none"}` +
+        (sources.notes.length ? ` · ${sources.notes.join(" · ")}` : "") +
+        ` · ${auditSummary(audit)}`,
+    );
+  }
+  logMissingRoutes(path, audit);
   return response;
 });

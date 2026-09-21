@@ -31,6 +31,8 @@ function LinkColumn({
         <li key={link.labelKey}>
           <Link
             href={link.href}
+            // Sitemap run-ahead, like the menu: shown, never prefetched.
+            prefetch={false}
             className={clsx(
               "block border-b-2 border-border-subtle py-3 font-primary text-h6 text-text-secondary no-underline transition-colors duration-150 ease-in-out hover:border-border-default",
               weight === "medium" && "font-medium",

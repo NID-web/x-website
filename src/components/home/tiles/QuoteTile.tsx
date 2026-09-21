@@ -25,13 +25,21 @@ export function QuoteTile({ tile, t }: { tile: QuoteTileData; t: Translate }) {
             sizes="48px"
           />
         )}
-        <Cta
-          label={t(tile.attribution.labelKey)}
-          href={tile.attribution.href}
-          external={tile.attribution.external}
-          icon="none"
-          className="min-h-8 border-b-2 border-border-subtle px-2 py-1 hover:border-border-default"
-        />
+        {tile.attribution.href ? (
+          <Cta
+            label={t(tile.attribution.labelKey)}
+            href={tile.attribution.href}
+            external={tile.attribution.external}
+            icon="none"
+            className="min-h-8 border-b-2 border-border-subtle px-2 py-1 hover:border-border-default"
+          />
+        ) : (
+          // Withheld by the route gate. The attribution names the speaker, so
+          // it stays — as a caption, without the CTA's rule or hover.
+          <span className="inline-flex min-h-8 items-center px-2 py-1 font-primary text-button font-heavy uppercase text-text-secondary">
+            {t(tile.attribution.labelKey)}
+          </span>
+        )}
       </div>
     </Tile>
   );

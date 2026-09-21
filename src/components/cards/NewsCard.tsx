@@ -6,7 +6,7 @@ import { Overline } from "@/components/home/parts";
 import { Link } from "@/i18n/navigation";
 import type { Page } from "@/lib/content-model";
 import { formatDate } from "@/lib/content/format";
-import { pagePath } from "@/lib/content/pages";
+import { cardHref } from "@/lib/content/links";
 
 /**
  * News Article card supporting feature, wide, and square variants.
@@ -23,7 +23,8 @@ export async function NewsCard({
   const wide = variant === "wide";
   const spread = wide || feature;
   const image = item.hero[0];
-  const href = pagePath(item);
+  // Unlinked, not dropped, when the article's page is not built (links.ts).
+  const href = cardHref(item);
   const imageClass = clsx(
     "relative shrink-0 max-tablet:size-18",
     spread ? "tablet:h-full tablet:flex-1" : "tablet:w-full tablet:flex-1",

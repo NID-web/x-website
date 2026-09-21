@@ -40,7 +40,7 @@ export function SectionRenderer({
     case "links":
       return <LinksSection section={section} />;
     case "cards":
-      return <CardsSection section={section} lead={lead} />;
+      return <CardsSection section={section} lead={lead} patternSeed={patternSeed} />;
     case "files":
     case "rail":
     case "mosaic":

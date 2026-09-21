@@ -16,6 +16,17 @@ const PATH = "/about/news-events";
 /** The section whose lead card is drawn at feature size. */
 const FEATURED_SECTION = "section-news-featured";
 
+// TODO(review): designer — the rail field for the two sections the CMS appends
+// (Events, Workshops), which no board draws. Seeds index PatternTile FIELDS and
+// continue Charter's 1 / 3 / 2 order without repeating a neighbour: Latest News
+// draws PatternField1 (seed 0), so Events takes PatternField3 and Workshops
+// PatternField2. Featured and Latest News both keep seed 0 — changing it would
+// change the page with no CMS — which is itself an adjacent repeat to settle.
+const SECTION_PATTERN: Record<string, number> = {
+  "section-news-events": 2,
+  "section-news-workshops": 1,
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   const response = await getPage(PATH);
   if (!response) return {};
@@ -48,6 +59,7 @@ export default async function NewsEventsPage() {
             <SectionRenderer
               section={section}
               lead={section.id === FEATURED_SECTION ? "feature" : "wide"}
+              patternSeed={SECTION_PATTERN[section.id]}
             />
           </Fragment>
         ))}

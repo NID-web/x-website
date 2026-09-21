@@ -82,6 +82,8 @@ export function Header({ menu }: { menu: NavSection[] }) {
         <div className="flex flex-1 items-center justify-end gap-2">
           <Link
             href={APPLY_HREF}
+            // Admissions has no page yet; the menu's rule applies.
+            prefetch={false}
             className={clsx(
               "inline-flex h-7 items-center rounded-pill bg-surface-page px-3",
               "font-primary text-h6 text-text-secondary no-underline",

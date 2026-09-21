@@ -2476,3 +2476,57 @@ silently lose the back link again.
 
 If the site ever needs to be static again, don't bring back `output: "export"` as it was.
 It can't run the proxy, and every `public/` path would need a base-path prefix again.
+
+## 54. Cards never enter the rail, at any count; content links only point at built pages
+
+Two fixes the News & Events CMS wiring exposed (2026-09-21). Neither is News-specific.
+
+### The rail rule is a function of position, not a list of indices
+
+§40's `startBelowLead` pinned every even card to column 2 at **3 columns only**. At 4
+columns nothing was pinned, so a news section's 5th or 6th card wrapped into column 1 —
+the rail. No fixture section ever had more than 4 items; the CMS's "Latest News" has 6.
+
+Measured on the rendered page: 4 × 330 at 1440 and 3 × 309 at 1024 (rail + 3 or 2 content
+columns), 2 × 350 at 768 and 1 × 358 at 390 (no rail; the title is a band). Both lead
+cards are ONE grid row — the feature is 684px tall at 1440, not two row tracks — so the
+rail tile is always in row 2.
+
+`startIn(index, field)` in `sections/parts.tsx` replaces `startBelowLead`. A `CardField`
+says how many content cells row 1 leaves beside the title (`open`, after a wide lead's 2
+tracks, a feature's 2 or 3, and a desktop utility slot) and from which row an opening
+card is pinned (`pinFrom`). A card that opens a row at or after `pinFrom` gets column 2;
+the START table did not need extending. `startOf` is `startIn` over the plain title row.
+
+Byte-identity for every section that existed was a requirement, and it forces one
+asymmetry: news sections pin row 2 at laptop but not at desktop. The rail tile already
+holds column 1 of row 2 at both, so the laptop pin is redundant — it is what
+`startBelowLead` emitted, and keeping it keeps every existing section's classes. Verified
+exhaustively against the old functions for 1–12 items × both leads × with/without links,
+and in the browser for 1–8 items × both leads × 1600…390 (128 cells, 0 failing; the old
+rule fails 14 of the 5–8 cells). It also fixed a latent case: a campus/alumni section with
+links and 3+ cards dropped card 3 into the rail at desktop.
+
+### The route gate
+
+`BUILT_ROUTES` / `isBuiltRoute()` / `builtHref()` in `src/lib/content/links.ts` are the
+one judgement of whether a route has a page. `scripts/lint-routes.mjs` (in `npm run lint`)
+fails when the list and `src/app/[locale]` disagree in either direction.
+
+- A **card, list row or whole-tile link** with no page renders unlinked — same layout, no
+  anchor, no hover, not focusable. Cards ask `cardHref()` at render (a `Page` has no href to
+  strip); Home rows and tiles have theirs removed by `gateHome()`.
+- A **CTA or link-list entry** with no page is dropped by `gatePage()` / `gateHome()` — a
+  call to action that does nothing reads as broken. A links section that empties goes
+  whole, in the data, so no separator is drawn for it (News & Events' Archive, today).
+- The **header menu and footer** are exempt — they publish the sitemap ahead of the build —
+  and get `prefetch={false}` instead, as does the header's Apply link.
+
+Every page logs `[routes] <path>: …` — the distinct missing routes by prefix, the
+page-build backlog — and a CMS-fed page's `[cms]` line ends `unlinked N cards, dropped M
+links (no route)`.
+
+Why this mattered beyond honesty: Next prefetches every in-viewport `<Link>`, and in
+headless Chrome a prefetch of a route with no page never completes. Enough of them (the
+live News & Events page had 13 article links) exhausted the per-host connections and
+`npm run screenshot` timed out. With the gate it completes in one run.

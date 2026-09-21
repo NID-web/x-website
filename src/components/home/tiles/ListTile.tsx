@@ -85,32 +85,51 @@ export function ListTile({ tile, t }: { tile: ListTileData; t: Translate }) {
                 </li>
               );
             })
-          : tile.rows.map((row, i) => (
-              <li
-                key={row.headlineKey}
-                className={clsx(rowRule, linkedRow, i > 0 && rowGap)}
-              >
-                <Link href={row.href} className="flex gap-3 no-underline">
-                {row.thumbnail ? (
-                  <TileImage media={row.thumbnail} className={newsThumb} sizes="90px" />
-                ) : (
-                  // TileImage's loading backer at the same size: a row without
-                  // a usable image keeps its rhythm and its column instead of
-                  // pulling the headline left.
-                  <span aria-hidden="true" className={clsx("block bg-accent-subtle", newsThumb)} />
-                )}
-                <span className="min-w-0 flex-1">
-                  <span className="line-clamp-2 block font-primary text-label text-text-primary transition-colors duration-150 ease-in-out group-hover:text-accent-primary">
-                    {t(row.headlineKey)}
+          : tile.rows.map((row, i) => {
+              const body = (
+                <>
+                  {row.thumbnail ? (
+                    <TileImage media={row.thumbnail} className={newsThumb} sizes="90px" />
+                  ) : (
+                    // TileImage's loading backer at the same size: a row without
+                    // a usable image keeps its rhythm and its column instead of
+                    // pulling the headline left.
+                    <span aria-hidden="true" className={clsx("block bg-accent-subtle", newsThumb)} />
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span
+                      className={clsx(
+                        "line-clamp-2 block font-primary text-label text-text-primary",
+                        row.href &&
+                          "transition-colors duration-150 ease-in-out group-hover:text-accent-primary",
+                      )}
+                    >
+                      {t(row.headlineKey)}
+                    </span>
+                    <span className="mt-0.5 block font-primary text-micro text-text-tertiary">
+                      {row.date}
+                    </span>
                   </span>
-                  <span className="mt-0.5 block font-primary text-micro text-text-tertiary">
-                    {row.date}
-                  </span>
-                </span>
-                <Icon name="arrow-up-right" className={rowArrow} />
-                </Link>
-              </li>
-            ))}
+                  {row.href && <Icon name="arrow-up-right" className={rowArrow} />}
+                </>
+              );
+              // A row whose route the gate withheld stays, unlinked and with no
+              // hover — the calendar rows' rule.
+              return (
+                <li
+                  key={row.headlineKey}
+                  className={clsx(rowRule, row.href && linkedRow, i > 0 && rowGap)}
+                >
+                  {row.href ? (
+                    <Link href={row.href} className="flex gap-3 no-underline">
+                      {body}
+                    </Link>
+                  ) : (
+                    <span className="flex gap-3">{body}</span>
+                  )}
+                </li>
+              );
+            })}
       </ul>
     </Tile>
   );

@@ -41,8 +41,10 @@ export interface FlipMediaCardProps {
   title: string;
   date?: string;
   body: string;
-  ctaLabel: string;
-  ctaHref: string;
+  /** Both absent when the route gate withheld the event's page: the card still
+   *  turns over, and neither face offers a link. */
+  ctaLabel?: string;
+  ctaHref?: string;
   ctaExternal?: boolean;
   /** Accessible names for the flip control in each direction. */
   showDetailsLabel: string;
@@ -102,19 +104,26 @@ export function FlipMediaCard({
             <p className="min-h-0 flex-1 overflow-hidden px-6 font-primary text-label text-text-tertiary">
               {body}
             </p>
-            <div className="flex w-full items-center justify-between">
-              <Cta
-                variant="uppercase"
-                icon="none"
-                label={ctaLabel}
-                href={ctaHref}
-                external={ctaExternal}
-                // border/subtle darkening to border/default on the CTA's OWN
-                // hover — the same rule RosterTile and ListTile draw, and both
-                // are border tokens, so this is a rule rather than a decorative
-                // accent. `min-h-8` is the export's 32px box.
-                className="min-h-8 border-b-2 border-border-subtle px-2 py-1 hover:border-border-default"
-              />
+            <div
+              className={clsx(
+                "flex w-full items-center",
+                ctaHref ? "justify-between" : "justify-end",
+              )}
+            >
+              {ctaHref && ctaLabel && (
+                <Cta
+                  variant="uppercase"
+                  icon="none"
+                  label={ctaLabel}
+                  href={ctaHref}
+                  external={ctaExternal}
+                  // border/subtle darkening to border/default on the CTA's OWN
+                  // hover — the same rule RosterTile and ListTile draw, and both
+                  // are border tokens, so this is a rule rather than a decorative
+                  // accent. `min-h-8` is the export's 32px box.
+                  className="min-h-8 border-b-2 border-border-subtle px-2 py-1 hover:border-border-default"
+                />
+              )}
               {flipButton}
             </div>
           </div>
@@ -162,19 +171,26 @@ export function FlipMediaCard({
               "group-hover/tile:h-8 group-focus-within/tile:h-8",
             )}
           >
-            <div className="flex w-full items-center justify-between">
-              <Link
-                href={ctaHref}
-                {...(ctaExternal ? { target: "_blank", rel: "noreferrer" } : {})}
-                aria-label={ctaLabel}
-                // icon/quaternary, as PortraitTile's arrow is and as the export
-                // fills this glyph — NOT the darker icon/tertiary. The flip
-                // control beside it is icon/primary, and the two being
-                // different weights is the board's intent, not an oversight.
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full p-1 text-icon-quaternary no-underline transition-colors duration-150 ease-in-out hover:bg-accent-quaternary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-              >
-                <Icon name="arrow-up-right" className="size-6" />
-              </Link>
+            <div
+              className={clsx(
+                "flex w-full items-center",
+                ctaHref ? "justify-between" : "justify-end",
+              )}
+            >
+              {ctaHref && (
+                <Link
+                  href={ctaHref}
+                  {...(ctaExternal ? { target: "_blank", rel: "noreferrer" } : {})}
+                  aria-label={ctaLabel}
+                  // icon/quaternary, as PortraitTile's arrow is and as the export
+                  // fills this glyph — NOT the darker icon/tertiary. The flip
+                  // control beside it is icon/primary, and the two being
+                  // different weights is the board's intent, not an oversight.
+                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-full p-1 text-icon-quaternary no-underline transition-colors duration-150 ease-in-out hover:bg-accent-quaternary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+                >
+                  <Icon name="arrow-up-right" className="size-6" />
+                </Link>
+              )}
               {flipButton}
             </div>
           </div>
