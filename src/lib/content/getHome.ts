@@ -23,6 +23,7 @@ import {
   statementAdapter,
   type Copy,
 } from "@/lib/content/home-adapters";
+import { articleFeed } from "@/lib/content/getArticle";
 import { auditSummary, gateHome, logMissingRoutes } from "@/lib/content/route-gate";
 
 export interface HomeContent {
@@ -79,10 +80,12 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
   // The backend ignores `?locale=` (the response is byte-identical without it)
   // but never rejects it, so the seam's locale reaches the wire for the day it
   // is honoured.
-  const api = await cmsFetch(
-    `/public/content/home?locale=${encodeURIComponent(locale)}`,
-    isPublicContentResponse,
-  );
+  // articleFeed(): the news rows link /about/news-events/[slug], and the gate
+  // links only the slugs that route builds (getArticle.ts).
+  const [api] = await Promise.all([
+    cmsFetch(`/public/content/home?locale=${encodeURIComponent(locale)}`, isPublicContentResponse),
+    articleFeed(),
+  ]);
   if (!api) {
     // The route gate runs on the static page too; see route-gate.ts.
     const { tiles, audit } = gateHome(HOME_TILES);

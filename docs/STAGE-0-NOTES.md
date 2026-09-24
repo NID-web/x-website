@@ -2784,3 +2784,133 @@ Two things that look dropped and are not: History's "The India Report (PDF)" is 
 link, which the gate never touches (it renders, and 404s until the file lands); About's "Read
 full mandate" points at `/about/charter`, which is built.
 
+
+## 59. The article route: the first page whose structure the CMS owns
+
+`/about/news-events/[slug]` is built from two 1440 boards (Article — template, the 45th
+Convocation; Article — North-East Artisans). They are **one template populated twice** —
+same slot anatomy, same placement, different optional slots filled — so there is one page
+file and no variant. No 1024 / 768 / 390 boards exist; the narrower layouts below are
+derived from the existing rules, not drawn.
+
+### The exception to the fixture rule
+
+Every other CMS page merges the API over a fixture, and the fixture owns structure: which
+sections exist, their order, ids and titles (`page-adapter.ts`). That cannot work for a
+collection item — there is no board per article, and a skeleton for an unbounded set of
+instances is a guess. So on this route **the document owns structure**:
+`src/lib/content/getArticle.ts` projects an item document straight into `PageResponse` and
+never touches `page-adapter.ts`. Sections, their order, titles and count are the API's; the
+boards are the layout contract only. This is deliberately confined to one file — forking
+the adapter would make the seam eleven editorial pages rely on conditional on route type.
+
+Two fixture articles (`fixtures/articles.ts`) are the two boards verbatim. They are demo
+content, not a skeleton: an API document for the same slug replaces one **whole**. The
+Convocation is keyed `convocation-2026`, the CMS record for the same event, so the live
+build renders the CMS's (seed) document there. North-East Artisans is keyed by
+`sitemap.json`'s `/about/news-events/north-east-artisans`, which the listing and About
+fixtures already link; the CMS's record for the same story sits at its own 79-character
+slug (A3), so with the CMS on both routes build.
+
+### What an item document actually carries
+
+Probed live, 23 Sep 2026 — richer than the backend asks assumed:
+
+- `detail` is typed per content type. **News**: `body`, the article prose as one untitled
+  string with `\n\n` paragraph breaks and inline `<strong>` / `<em>`. **Event**: `schedules[]`
+  (`venue`, `startDate`, `endDate`, `campus`), `liveStreamLink`, `registrationLink`.
+  **Workshop**: `symposiumStartDate` / `EndDate`, `applyLink`, three milestone dates.
+- Sections carry **`IMAGE` and `LINK` blocks** (`LINK` has `text` + `url`; it is not in
+  `api/types.ts`'s union and is read as a string there).
+
+Mapped: `detail.body` → an untitled first text section (`TextSection` skips an empty title,
+so column 1 stays empty rather than holding an empty `h2`); TEXT → body; the first IMAGE →
+the section image (others counted); LINK → the column-4 links (an arrow in the label drops
+it); the detail's stream / registration / apply links → the first section's links. The Date
+row is an event's schedule start or a workshop's symposium dates, else `publishedAt`; the
+Venue row renders only when a schedule names one. Nothing is scraped from prose.
+
+### A missing image renders nothing
+
+On an editorial page the flat tinted box is a designed empty state. On an article it reads
+as a broken photograph, and both boards name theirs "placeholder — replace with source
+image". So `PageHero placeholder={false}` returns nothing without an asset, and article
+sections pass no `imagePlaceholder`: the rail and standfirst close up into row 2, a section
+with no image closes up to its separator. A hero whose `altText` is null is rejected
+(`toMediaAsset`, no fallback); one that has alt text but 404s still draws its box — there is
+no media HEAD check.
+
+### The route gate learned dynamic params
+
+A `[slug]` entry in `BUILT_ROUTES` used to mean "any segment", which would have relinked
+the unbuilt `archive` / `2025` / `2024` pages and any card whose slug the build did not
+generate — the reason the campus pages are three route files (§57). `registerBuiltParams()`
+in `links.ts` now records the exact slugs; unregistered means not built. `getArticle.ts`
+registers them from its index — the News & Events document's items, one request, memoised
+per process — and `getPage` / `getHome` await that index before gating, so a card links iff
+its article was generated. `generateStaticParams` returns the same set with
+`dynamicParams = false`. Measured live: 13 of 13 listing cards link, all to built routes.
+
+### Derived, not drawn
+
+Placement is History's secondary template. At 3 columns a section's column-4 links fall
+below its body in column 1 (`TextSection`'s existing flow, as on Charter); at 2 and 1
+columns everything stacks, and separators go at 1 column only. Every article body clamps at
+`ClampedProse`'s existing nine lines — an API section has no id for a per-page `CLAMP`
+table to name, and the control hides itself when nothing clips. The boards' 7- and 9-line
+"See more" are not taken as a spec; at 1440 neither board's body actually exceeds nine
+lines, so neither shows the control there.
+
+## 60. Director's Message: an editorial page, a portrait for a hero, pull quotes on the fixture
+
+`/about/directors-message` is built from one 1440 board. It is an **editorial** page — one
+instance, a fixed shape — so it goes through `page-adapter.ts` and a `PAGE_CONFIG` entry like
+Charter, not through §59's `getArticle.ts`, whose exception is for collection items with no
+board. The adapter is unchanged.
+
+### What the document carries (probed 23 Sep 2026)
+
+`detail: null`, `contacts: []`, two SPECIFIC sections. **"Message" is the whole essay in eight
+TEXT blocks**, and the board splits it at block boundaries: the opening paragraph is block 1,
+the first collapsible body blocks 2–4, the second 5–8 — so three `blocks` slices guarded by
+`of: 8`. The board's second body ends with a paragraph the CMS does not have ("I invite all of
+you…"); the API's version renders without it by decision, and the fixture keeps it.
+**"Director" is one `CONTENT_REFERENCE` block** to the person record `ashok-mondal` — name,
+role line, portrait: the API has the Person card, through a block type the adapter does not
+read. It is logged as an unused section; the name and "Director" stay on the fixture.
+
+The document's `hero` is not a banner: it is the 300 × 300 portrait (alt text set), and the
+board has no hero at all. So `page.hero[0]` feeds the Person card and nothing else, and
+`page.keyInfo[0]` carries role → name — the model has no person slot on a page. The
+`thumbnail` (`directors-message-hero.jpg`, alt null) 404s and is not used. The hero record and
+the person record's thumbnail are byte-identical files under two ids.
+
+### Pull quotes ride on the fixture
+
+The model has no quote block. Both board quotes are the Director's own sentences from the body
+that follows each — chosen by the board — and neither is in the response. They are
+`pullQuote` on the fixture's sections, typed by `EditorialSection` in
+`src/lib/content/editorial.ts` (front-end only; `content-model.ts` is untouched), and they
+survive the adapter because it spreads the fixture section when it replaces the body. The
+field name is the schema ask. Rendered by the shared `Blockquote` (a real `<blockquote>` in a
+`<figure>`).
+
+### The quote colour fails in every light theme
+
+`accent/pentenary` on `surface/page`, measured on the rendered page in all twenty states:
+light 2.59 (Indigo) – 2.96 (Terracotta), **below 3:1 in all ten**; dark 7.94 – 11.97, above
+4.5:1 in all ten. Shipped as drawn with a `TODO(review)`: CLAUDE.md reserves the decorative
+accents for decoration, and a quote carries meaning. The fix, if the designer agrees, is a
+light-appearance-only change.
+
+### Layout
+
+One `<article>` subgrid (§33, §40) holds the Person card (column 2) and the prose (2–3);
+column 1 below the title and column 4 are empty at every width — the board's whitespace, not
+an unfinished layout. Untitled bodies keep columns 2–3 and leave column 1 empty: the answer to
+the question §59 left open for an article's `detail.body`. Blocks sit one row gap apart —
+24px at 1440, measured. `PersonCard` gained an opt-in overline (the role over the gradient
+rule) and `placeholder={false}` (no empty circle for a single person); History's band is
+unchanged. The back link is the siblings' session `BackNav`, though the board draws none —
+a designer question. The sibling row is the fixture's five, two-up; Our Themes is built and
+links.

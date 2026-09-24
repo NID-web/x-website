@@ -11,8 +11,18 @@ import type { MediaAsset } from "@/lib/content-model";
 const HERO_CROP =
   "aspect-[4/3] rounded-tl-hero tablet:aspect-video laptop:aspect-[2/1] desktop:aspect-[2.2/1]";
 
-export function PageHero({ hero }: { hero: MediaAsset[] }) {
+export function PageHero({
+  hero,
+  placeholder = true,
+}: {
+  hero: MediaAsset[];
+  /** False on an article: there the boards' flat box is a stand-in for a photo
+   *  that will exist, not a designed empty state, and on a live news story it
+   *  reads as a broken image — so no asset, no hero (STAGE-0-NOTES §59). */
+  placeholder?: boolean;
+}) {
   const first = hero[0];
+  if (!first && !placeholder) return null;
   return (
     <GridItem span="hero">
       {first ? (

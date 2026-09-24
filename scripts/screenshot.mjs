@@ -34,8 +34,12 @@ const PAGES = [
   { name: "campus-gandhinagar", path: "/en/about/campuses/gandhinagar" },
   { name: "campus-bengaluru", path: "/en/about/campuses/bengaluru" },
   { name: "charter", path: "/en/about/charter" },
+  { name: "directors-message", path: "/en/about/directors-message" },
   { name: "history", path: "/en/about/history" },
   { name: "news-events", path: "/en/about/news-events" },
+  // The article template (STAGE-0-NOTES §59): the North-East Artisans board, a
+  // fixture-only slug, so it renders the same with or without the CMS.
+  { name: "article", path: "/en/about/news-events/north-east-artisans" },
   { name: "our-themes", path: "/en/about/our-themes" },
 ];
 

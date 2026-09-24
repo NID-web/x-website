@@ -18,31 +18,47 @@ export const BUILT_ROUTES = [
   "/about/campuses/bengaluru",
   "/about/campuses/gandhinagar",
   "/about/charter",
+  "/about/directors-message",
   "/about/history",
   "/about/news-events",
+  "/about/news-events/[slug]",
   "/about/our-themes",
   "/swatch",
 ] as const;
 
 const BUILT = BUILT_ROUTES.map((route) => route.split("/").filter(Boolean));
 
+// The values a `[param]` route actually builds, by route. A dynamic route is
+// built for exactly its generateStaticParams and nothing else (dynamicParams =
+// false), so "any segment" would be a lie: /about/news-events/[slug] matching
+// any slug would relink the unbuilt `archive` and year pages, and every card
+// whose slug the build did not generate, straight to a 404 — the reason the
+// campus pages are three route files and not a `[campus]` folder (§57).
+// Unregistered means NOT built: a gate that runs before registration withholds
+// the link rather than guessing it. Build-time state, set by the route's own
+// data module (getArticle.ts) before any page gates its links.
+const BUILT_PARAMS = new Map<string, ReadonlySet<string>>();
+
+export function registerBuiltParams(route: (typeof BUILT_ROUTES)[number], values: Iterable<string>) {
+  BUILT_PARAMS.set(route, new Set(values));
+}
+
 /** Whether a locale-less site path has a page. Query and hash are ignored. */
 export function isBuiltRoute(path: string): boolean {
   const segments = normalise(path.split(/[?#]/)[0] ?? "").split("/").filter(Boolean);
-  return BUILT.some(
-    (route) =>
-      route.length === segments.length &&
-      route.every((part, i) => /^\[.+\]$/.test(part) || part === segments[i]),
-  );
+  return BUILT.some((route, r) => {
+    if (route.length !== segments.length) return false;
+    const params = BUILT_PARAMS.get(BUILT_ROUTES[r]!);
+    return route.every((part, i) =>
+      /^\[.+\]$/.test(part) ? Boolean(params?.has(segments[i]!)) : part === segments[i],
+    );
+  });
 }
 
 // THE route gate. Content links — cards, list rows, CTAs — go through it; the
 // header menu and footer do not, because they publish the sitemap ahead of the
 // build by design (they only turn prefetch off). A link withheld here relinks
 // itself the day its page.tsx lands and joins BUILT_ROUTES.
-// TODO(review): the real fix for most of what this withholds is the news
-// article detail route, /about/news-events/[slug] — it needs its own board and
-// a per-slug API contract before it can be built.
 export function builtHref(href: string | undefined): string | undefined {
   return href && isBuiltRoute(href) ? href : undefined;
 }

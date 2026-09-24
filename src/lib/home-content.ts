@@ -276,7 +276,7 @@ export const HOME_TILES: HomeTile[] = [
     kind: "quote",
     quoteKey: "director.quote",
     avatar: img("director.jpg", "Portrait of the Director.", 200, 200),
-    attribution: { labelKey: "cta.directorsNote", href: "/about/director" },
+    attribution: { labelKey: "cta.directorsNote", href: "/about/directors-message" },
   },
   { id: "pattern-1", kind: "pattern", seed: 1 },
   {

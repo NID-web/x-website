@@ -123,6 +123,15 @@
     "moreIn": "More in {section}",
     "otherCampuses": "Other campuses"
   },
+  "Article": {
+    "date": "Date",
+    "venue": "Venue",
+    "moreNews": "More news",
+    "allNews": "All News & Events",
+    "liveStream": "Watch the live stream",
+    "register": "Register",
+    "apply": "Apply"
+  },
   "Cards": {
     "latest": "Latest"
   },

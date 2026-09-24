@@ -7,6 +7,7 @@ import { cache } from "react";
 import type { PageResponse } from "@/lib/content-model";
 import { cmsFetch } from "@/lib/api/client";
 import { isPublicContentResponse } from "@/lib/api/types";
+import { articleFeed } from "@/lib/content/getArticle";
 import { detailSections, toPageResponse, type PageMergeConfig } from "@/lib/content/page-adapter";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ABOUT } from "@/lib/content/fixtures/about";
@@ -15,6 +16,7 @@ import { CAMPUS_AHMEDABAD } from "@/lib/content/fixtures/campus-ahmedabad";
 import { CAMPUS_BENGALURU } from "@/lib/content/fixtures/campus-bengaluru";
 import { CAMPUS_GANDHINAGAR } from "@/lib/content/fixtures/campus-gandhinagar";
 import { CHARTER } from "@/lib/content/fixtures/charter";
+import { DIRECTORS_MESSAGE } from "@/lib/content/fixtures/directors-message";
 import { HISTORY } from "@/lib/content/fixtures/history";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 import { OUR_THEMES } from "@/lib/content/fixtures/our-themes";
@@ -27,6 +29,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/about/campuses/gandhinagar": CAMPUS_GANDHINAGAR,
   "/about/campuses/bengaluru": CAMPUS_BENGALURU,
   "/about/charter": CHARTER,
+  "/about/directors-message": DIRECTORS_MESSAGE,
   "/about/history": HISTORY,
   "/about/news-events": NEWS_EVENTS,
   "/about/our-themes": OUR_THEMES,
@@ -133,6 +136,23 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-charter-ten-mandates": { textTitle: "The Ten Mandates" },
     },
   },
+  "/about/directors-message": {
+    slug: "directors-message",
+    // Block 1 is the essay's opening paragraph, a body in columns 2–3, not a
+    // standfirst — the default would consume the whole "Message" section as one.
+    intro: "static",
+    // The essay is one SPECIFIC section of eight TEXT blocks; the board splits it
+    // at block boundaries (opening = 1, first body = 2–4, second = 5–8). `of`
+    // is the guard: any other block count and all three fall back to the
+    // fixture. The document's `hero` is the Director's portrait, used as such;
+    // its "Director" section (a CONTENT_REFERENCE to the person record) is
+    // logged unused — the adapter reads no references.
+    sections: {
+      "section-dm-opening": { textTitle: "Message", blocks: [1, 1], of: 8 },
+      "section-dm-body-1": { textTitle: "Message", blocks: [2, 4], of: 8 },
+      "section-dm-body-2": { textTitle: "Message", blocks: [5, 8], of: 8 },
+    },
+  },
   "/about/history": {
     slug: "history",
     // The document's first SPECIFIC section is the Origins BODY, not a
@@ -163,8 +183,9 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-news-2026": { structuredKey: "news", nth: 2, slugUnderParent: true },
       // section-news-archive: a links section, and sections have no link model (A4).
     },
-    // TODO(review): sitemap.json has one item route here, /about/news-events/[slug];
-    // events and workshops have none of their own, so they share it (BACKEND-HOME-TASKS A3).
+    // sitemap.json has one item route here, /about/news-events/[slug]; events
+    // and workshops have none of their own, so they share it (BACKEND-HOME-TASKS
+    // A3). getArticle.ts builds exactly this document's items.
     appendSections: [
       { id: "section-news-events", structuredKey: "event", after: "section-news-2026", itemParent: PAGE_ID.newsEvents, slugUnderParent: true },
       { id: "section-news-workshops", structuredKey: "workshop", after: "section-news-2026", itemParent: PAGE_ID.newsEvents, slugUnderParent: true },
@@ -178,7 +199,12 @@ export const getPage = cache(async (path: string): Promise<PageResponse | null> 
   const fixture = FIXTURES[path];
   if (!fixture) return null;
   const config = PAGE_CONFIG[path];
-  const api = config ? await cmsFetch(`/public/content/${config.slug}`, isPublicContentResponse) : null;
+  // The article index registers which /about/news-events/[slug] routes exist;
+  // the gate below and every card's href read it.
+  const [api] = await Promise.all([
+    config ? cmsFetch(`/public/content/${config.slug}`, isPublicContentResponse) : null,
+    articleFeed(),
+  ]);
 
   // The gate runs on every page, CMS or not: a fixture links to unbuilt routes
   // just as the API does.

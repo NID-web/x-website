@@ -16,6 +16,32 @@ export function formatDate(iso: string, locale: string): string {
   return `${get("month")} ${get("day")} ${get("year")}`;
 }
 
+function dayMonthYear(iso: string, locale: string) {
+  const parts = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).formatToParts(new Date(iso));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  return { day: get("day"), month: get("month"), year: get("year") };
+}
+
+/** "22 January 2026", or a range — "30–31 October 2026", "30 October – 2
+ *  November 2026" — the article rail's Date row as both boards set it: day
+ *  first, which is not the cards' "July 23 2026". Same India pinning as
+ *  formatDate. */
+export function formatEventDate(start: string, locale: string, end?: string | null): string {
+  const a = dayMonthYear(start, locale);
+  const one = `${a.day} ${a.month} ${a.year}`;
+  if (!end) return one;
+  const b = dayMonthYear(end, locale);
+  if (a.year !== b.year) return `${one} – ${b.day} ${b.month} ${b.year}`;
+  if (a.month !== b.month) return `${a.day} ${a.month} – ${b.day} ${b.month} ${b.year}`;
+  return a.day === b.day ? one : `${a.day}–${b.day} ${b.month} ${b.year}`;
+}
+
 const ENTITIES: Record<string, string> = {
   amp: "&",
   lt: "<",

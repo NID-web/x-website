@@ -45,7 +45,10 @@ export function TextSection({
   const imageRow = Boolean(section.image) || imagePlaceholder;
   return (
     <>
-      <Title variant="section">{section.title}</Title>
+      {/* An article's opening body carries no heading (a news item's
+          `detail.body`, STAGE-0-NOTES §59): column 1 stays empty rather than
+          holding an empty h2. */}
+      {section.title && <Title variant="section">{section.title}</Title>}
       {section.body && <SectionBody body={section.body} clamp={clamp} />}
       {rail && (
         <GridItem span={1} className="flex flex-col gap-6">
