@@ -8,6 +8,7 @@ import type { PageResponse } from "@/lib/content-model";
 import { assertFloor } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
 import { isPublicContentResponse } from "@/lib/api/types";
+import { withArchiveYears } from "@/lib/content/getArchive";
 import { articleFeed } from "@/lib/content/getArticle";
 import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import {
@@ -243,7 +244,10 @@ export const getPage = cache(async (path: string): Promise<PageResponse | null> 
   );
   const records = new Map(slugs.map((slug, i) => [slug, fetched[i] ?? null]));
   const merged = api && config ? toPageResponse(api, fixture, config, records) : null;
-  const { response, audit } = gatePage(merged?.response ?? fixture, {
+  const built = merged?.response ?? fixture;
+  // The listing's Archive row names the archive's own years (getArchive.ts).
+  const page = path === "/about/news-events" ? await withArchiveYears(built) : built;
+  const { response, audit } = gatePage(page, {
     // The campus pages' detail-derived sections list records, so an unbuilt
     // link there stays as an unlinked row (route-gate.ts, STAGE-0-NOTES §58).
     keepUnbuilt: detailSections(config?.detail),

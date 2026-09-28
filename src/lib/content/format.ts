@@ -28,6 +28,19 @@ function dayMonthYear(iso: string, locale: string) {
   return { day: get("day"), month: get("month"), year: get("year") };
 }
 
+/** "04 February 2026" — an archive row's date as its board sets it: the article
+ *  rail's order with a two-digit day. Same India pinning as formatDate. */
+export function formatArchiveDate(iso: string, locale: string): string {
+  const { day, month, year } = dayMonthYear(iso, locale);
+  return `${day.padStart(2, "0")} ${month} ${year}`;
+}
+
+/** The year an NID reader sees for this instant — the year formatArchiveDate
+ *  prints, so a row never sits under a year its own date contradicts. */
+export function yearInIndia(iso: string): string {
+  return dayMonthYear(iso, "en").year;
+}
+
 /** "22 January 2026", or a range — "30–31 October 2026", "30 October – 2
  *  November 2026" — the article rail's Date row as both boards set it: day
  *  first, which is not the cards' "July 23 2026". Same India pinning as

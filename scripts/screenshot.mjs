@@ -46,6 +46,7 @@ const PAGES = [
   { name: "directors-message", path: "/en/about/directors-message" },
   { name: "history", path: "/en/about/history" },
   { name: "news-events", path: "/en/about/news-events" },
+  { name: "news-archive", path: "/en/about/news-events/archive" },
   // The article template (STAGE-0-NOTES §59). The board set takes the North-East
   // Artisans FIXTURE; in a LIVE build that slug is a 308 to the CMS's version
   // (§63), so the live set names the CMS slug instead. Either way a redirect

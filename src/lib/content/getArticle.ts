@@ -10,10 +10,11 @@ import { cache } from "react";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { LabelValue, Link, MediaAsset, PageResponse, Section } from "@/lib/content-model";
 import { ARROW_CHARS } from "@/lib/content-model";
-import { assertFloor, report } from "@/lib/api/build-mode";
+import { assertFloor, report, strictBuild } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
 import { toMediaAsset } from "@/lib/api/media";
 import {
+  isContentItems,
   isPublicContentResponse,
   type CardRef,
   type PublicContentResponse,
@@ -39,21 +40,108 @@ const SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const articlePath = (slug: string) => `${PARENT}/${slug}`;
 
+/** The collections /about/news-events lists, and the archive's order of them. */
+export const LISTED_TYPES = ["news", "event", "workshop"] as const;
+export type ListedType = (typeof LISTED_TYPES)[number];
+
+// TODO(review): backend — the academic calendar's thirty entries are `event`
+// records slugged `calendar-NN-…`, with no thumbnail, a date range for heroText
+// and a seed publishedAt (2026-01-01). They are calendar rows, not news, so
+// neither the archive nor the article route takes them. A `calendar` content
+// type (or a flag) would let this prefix go.
+export const CALENDAR_SLUG_PREFIX = "calendar-";
+
+const LIST_LIMIT = 50; // the API rejects more
+
+export interface Listed {
+  /** Every non-calendar item of every listed type, one per slug, in
+   *  LISTED_TYPES order. Empty when the CMS is off. */
+  items: CardRef[];
+  /** Items served per type, calendar entries included (pagination.total). */
+  served: Record<ListedType, number>;
+  calendar: number;
+  /** False when any type did not arrive: the archive then renders its fixture. */
+  ok: boolean;
+}
+
+/** Every item of one type, across pages. Null when the CMS is off or a page
+ *  did not arrive (in a LIVE build cmsFetch has already thrown). */
+async function listType(type: ListedType): Promise<CardRef[] | null> {
+  const bySlug = new Map<string, CardRef>();
+  let total = 0;
+  for (let page = 1, pages = 1; page <= pages; page++) {
+    const res = await cmsFetch(
+      `/public/content-items?contentType=${type}&limit=${LIST_LIMIT}&page=${page}`,
+      isContentItems,
+    );
+    if (!res) return null;
+    for (const item of res.items) if (!bySlug.has(item.slug)) bySlug.set(item.slug, item);
+    total = res.pagination?.total ?? res.items.length;
+    pages = res.pagination?.totalPages ?? 1;
+  }
+  // The order is not stable across pages when dates tie (thirty events share
+  // 2026-01-01): page 2 repeated slugs from page 1 when probed, so an item can
+  // also be skipped. Deduping hides the repeat; only the count shows the skip.
+  // Reported as a floor, and like one it ends a LIVE build: a short list is a
+  // silently short archive (STAGE-0-NOTES §65).
+  report({ t: "floor", what: `paging ${type}: unique items vs pagination.total`, expected: total, got: bySlug.size, source: type });
+  if (bySlug.size !== total) {
+    const message =
+      `[cms] PAGING SHORT — /public/content-items?contentType=${type}: ${bySlug.size} unique items ` +
+      `across pages, pagination.total says ${total}. The API's order moved between pages.`;
+    if (strictBuild()) throw new Error(message);
+    console.warn(message);
+  }
+  return [...bySlug.values()];
+}
+
+let listed: Promise<Listed> | undefined;
+
+async function loadListed(): Promise<Listed> {
+  const lists = await Promise.all(LISTED_TYPES.map(listType));
+  const served = Object.fromEntries(
+    LISTED_TYPES.map((type, i) => [type, lists[i]?.length ?? 0]),
+  ) as Record<ListedType, number>;
+  const seen = new Set<string>();
+  const items: CardRef[] = [];
+  let calendar = 0;
+  for (const item of lists.flatMap((l) => l ?? [])) {
+    if (item.slug.startsWith(CALENDAR_SLUG_PREFIX)) {
+      calendar++;
+      continue;
+    }
+    if (seen.has(item.slug)) continue;
+    seen.add(item.slug);
+    items.push(item);
+  }
+  return { items, served, calendar, ok: lists.every(Boolean) };
+}
+
+/** News, events and workshops from the list endpoints: three requests per build
+ *  today, memoised per process like the feed. */
+export function listedItems(): Promise<Listed> {
+  return (listed ??= loadListed());
+}
+
 interface Feed {
   /** Routable feed items, newest first, one per slug. */
   items: CardRef[];
-  /** Every slug the route builds: the feed's and the fixtures'. */
+  /** Routable list-endpoint items the feed does not carry. They are built as
+   *  pages so the archive can link them, and are never "More news" siblings:
+   *  that stays the feed's, so no existing article changes. */
+  listedOnly: Map<string, CardRef>;
+  /** Every slug the route builds: the feed's, the lists' and the fixtures'. */
   slugs: Set<string>;
   /** Fixture slug → the CMS slug of the same story, where the feed lists it. */
   redirects: Map<string, string>;
   dropped: string[];
 }
 
-// The listing document's items ARE the article index: every card the site links
-// to under this route comes from it, so building exactly these makes every card
-// on /about/news-events resolve. One request for the whole index — the
-// alternative, /public/content-items?contentType=…, returns card refs too (not
-// documents), caps `limit` at 50 and adds 31 `calendar-*` events nothing links.
+// The listing document's items are the article index: every card on
+// /about/news-events comes from it, and it alone orders "More news". The
+// archive lists more — every news, event and workshop item the list endpoints
+// serve — so their non-calendar items are built too (STAGE-0-NOTES §66); a
+// calendar entry is not an article and nothing links one.
 //
 // Memoised per PROCESS, not per render (react `cache`): every article page and
 // every gate needs the same list, and one request per page would spend the
@@ -62,24 +150,31 @@ interface Feed {
 // restart to see an article added in the CMS.
 let feed: Promise<Feed> | undefined;
 
+/** Why a slug cannot be an article route, or null when it can. */
+function refusal(slug: string): string | null {
+  // The same rule the listing's cards are routed by (slugUnderParent).
+  const path = newsArticlePath(slug);
+  if (path !== articlePath(slug)) return `routes to ${path}`;
+  if (!SEGMENT.test(slug)) return "not a URL segment";
+  // A named page under the listing — `archive` is one — is a static segment
+  // beside [slug]. Next would prefer the static page anyway; refusing here
+  // keeps a CMS item slugged "archive" from being generated and linked at all.
+  if (pageIdOf(path)) return "collides with a named page";
+  return null;
+}
+
 async function loadFeed(): Promise<Feed> {
-  const doc = await cmsFetch(`/public/content/${FEED_SLUG}`, isPublicContentResponse);
+  const [doc, listed] = await Promise.all([
+    cmsFetch(`/public/content/${FEED_SLUG}`, isPublicContentResponse),
+    listedItems(),
+  ]);
   const bySlug = new Map<string, CardRef>();
   const dropped: string[] = [];
   for (const section of doc?.sections ?? []) {
     if (section.type !== "STRUCTURED") continue;
     for (const item of section.items ?? []) {
       if (bySlug.has(item.slug)) continue;
-      // The same rule the listing's cards are routed by (slugUnderParent).
-      const path = newsArticlePath(item.slug);
-      const reason =
-        path !== articlePath(item.slug)
-          ? `routes to ${path}`
-          : !SEGMENT.test(item.slug)
-            ? "not a URL segment"
-            : pageIdOf(path)
-              ? "collides with a named page"
-              : null;
+      const reason = refusal(item.slug);
       if (reason) {
         dropped.push(`${item.slug} (${reason})`);
         continue;
@@ -87,12 +182,24 @@ async function loadFeed(): Promise<Feed> {
       bySlug.set(item.slug, item);
     }
   }
+  const listedOnly = new Map<string, CardRef>();
+  for (const item of listed.items) {
+    if (bySlug.has(item.slug)) continue;
+    // Built only so the archive can link it, and the archive has no year for
+    // an undated item — so it would be a page nothing links to.
+    const reason = item.publishedAt ? refusal(item.slug) : "no publishedAt, not in the archive";
+    if (reason) {
+      dropped.push(`${item.slug} (${reason}, listed)`);
+      continue;
+    }
+    listedOnly.set(item.slug, item);
+  }
   const time = (item: CardRef) => (item.publishedAt ? Date.parse(item.publishedAt) : -Infinity);
   const items = [...bySlug.values()].sort((a, b) => time(b) - time(a));
   // The case that throws nothing: a 200 whose sections are empty builds two
   // fixture routes and withholds every news link, with exit 0.
   assertFloor("article feed (routable items in news-events)", CMS_FLOORS.articleFeed, items.length, `/public/content/${FEED_SLUG}`);
-  const slugs = new Set([...items.map((i) => i.slug), ...Object.keys(ARTICLES)]);
+  const slugs = new Set([...items.map((i) => i.slug), ...listedOnly.keys(), ...Object.keys(ARTICLES)]);
   // A fixture whose story the feed also carries under the CMS's slug would be
   // the same article at two URLs, one of them unlinked. It still builds, as a
   // permanent redirect: sitemap.json lists the fixture path and outside links
@@ -102,7 +209,7 @@ async function loadFeed(): Promise<Feed> {
   );
   // Still registered: a link to the old path is live and lands on the redirect.
   registerBuiltParams(ROUTE, slugs);
-  return { items, slugs, redirects, dropped };
+  return { items, listedOnly, slugs, redirects, dropped };
 }
 
 /** The article index, registered with the route gate. Every page that gates
@@ -114,7 +221,7 @@ export function articleFeed(): Promise<Feed> {
 
 /** generateStaticParams' slugs, with the one summary line for the build. */
 export async function articleSlugs(): Promise<string[]> {
-  const { items, slugs, redirects, dropped } = await articleFeed();
+  const { items, listedOnly, slugs, redirects, dropped } = await articleFeed();
   const fixtures = Object.keys(ARTICLES);
   const shared = fixtures.filter((s) => items.some((i) => i.slug === s)).length;
   const fixtureOnly = fixtures.length - shared - redirects.size;
@@ -123,11 +230,13 @@ export async function articleSlugs(): Promise<string[]> {
     route: ROUTE,
     count: slugs.size,
     fromFeed: items.length,
+    fromLists: listedOnly.size,
     fixtureOnly,
     redirects: [...redirects].map(([from, to]) => `${from} → ${to}`),
   });
   console.info(
     `[cms] ${ROUTE}: ${slugs.size} routes — ${items.length} from the api feed, ` +
+      `${listedOnly.size} from the list endpoints only${listedOnly.size ? ` (${[...listedOnly.keys()].join(", ")})` : ""}, ` +
       `${fixtureOnly} fixture-only, ${shared} fixture slug${shared === 1 ? "" : "s"} also in the feed` +
       (redirects.size ? `, ${redirects.size} fixture slug${redirects.size === 1 ? "" : "s"} redirecting (${[...redirects].map(([f, c]) => `${f} → ${c}`).join(", ")})` : "") +
       ` · dropped ${dropped.length} (no path)${dropped.length ? `: ${dropped.join(", ")}` : ""}`,
@@ -394,7 +503,7 @@ export const getArticle = cache(async (slug: string): Promise<PageResponse | nul
   const index = await articleFeed();
   if (!index.slugs.has(slug) || index.redirects.has(slug)) return null;
   const path = articlePath(slug);
-  const card = index.items.find((i) => i.slug === slug);
+  const card = index.items.find((i) => i.slug === slug) ?? index.listedOnly.get(slug);
   const fixture = ARTICLES[slug];
 
   // Only a slug the feed lists is asked for: a fixture-only slug has no document

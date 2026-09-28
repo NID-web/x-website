@@ -113,9 +113,10 @@ const ARCHIVE: Section = {
   order: 3,
   type: "links",
   title: "Archive",
+  // The board's "2025" and "2024" are not authored here: getPage puts one link
+  // per archive year before "Older", from the years the archive actually has
+  // (archiveYearLinks), so a year link never points at an empty anchor.
   items: [
-    { id: "link-news-2025", label: "2025", targetType: "page", page: PAGE_ID.news2025 },
-    { id: "link-news-2024", label: "2024", targetType: "page", page: PAGE_ID.news2024 },
     { id: "link-news-older", label: "Older", targetType: "page", page: PAGE_ID.newsArchive },
   ],
   links: [],

@@ -21,6 +21,7 @@ export const BUILT_ROUTES = [
   "/about/directors-message",
   "/about/history",
   "/about/news-events",
+  "/about/news-events/archive",
   "/about/news-events/[slug]",
   "/about/our-themes",
   "/swatch",
@@ -31,9 +32,9 @@ const BUILT = BUILT_ROUTES.map((route) => route.split("/").filter(Boolean));
 // The values a `[param]` route actually builds, by route. A dynamic route is
 // built for exactly its generateStaticParams and nothing else (dynamicParams =
 // false), so "any segment" would be a lie: /about/news-events/[slug] matching
-// any slug would relink the unbuilt `archive` and year pages, and every card
-// whose slug the build did not generate, straight to a 404 — the reason the
-// campus pages are three route files and not a `[campus]` folder (§57).
+// any slug would relink every card whose slug the build did not generate,
+// straight to a 404 — the reason the campus pages are three route files and not
+// a `[campus]` folder (§57).
 // Unregistered means NOT built: a gate that runs before registration withholds
 // the link rather than guessing it. Build-time state, set by the route's own
 // data module (getArticle.ts) before any page gates its links.

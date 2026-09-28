@@ -18,8 +18,6 @@ export const PAGE_ID = {
   ourThemes: "page-about-our-themes",
   studentAwards: "page-about-student-awards",
   newsArchive: "page-about-news-archive",
-  news2025: "page-about-news-2025",
-  news2024: "page-about-news-2024",
   people: "page-people",
   campusAhmedabad: "page-about-campuses-ahmedabad",
   campusGandhinagar: "page-about-campuses-gandhinagar",
@@ -50,13 +48,7 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.newsEvents]: "/about/news-events",
   [PAGE_ID.ourThemes]: "/about/our-themes",
   [PAGE_ID.studentAwards]: "/about/student-awards",
-  // TODO(review): only the archive route is in sitemap.json. The two year
-  // routes are the shape the archive CTAs need and are not yet designed or
-  // agreed — confirm /about/news-events/2025 and /2024, or point all three at
-  // the archive with a query.
   [PAGE_ID.newsArchive]: "/about/news-events/archive",
-  [PAGE_ID.news2025]: "/about/news-events/2025",
-  [PAGE_ID.news2024]: "/about/news-events/2024",
   [PAGE_ID.people]: "/people",
   [PAGE_ID.campusAhmedabad]: "/about/campuses/ahmedabad",
   [PAGE_ID.campusGandhinagar]: "/about/campuses/gandhinagar",
@@ -74,8 +66,13 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.youngDesigners]: "/study/young-designers",
 };
 
+// A page id may carry a fragment: the news-archive id plus "#" and a year is
+// that year's group on the archive, which the listing's Archive row links to.
+// TODO(review): backend — `Link` has no fragment field; this stands in for one.
 export function pathOf(id: UUID): string | undefined {
-  return PATH[id];
+  const [page, fragment] = id.split("#");
+  const path = PATH[page!];
+  return path && fragment ? `${path}#${fragment}` : path;
 }
 
 /** The page id known by this path, if any — the way back from a CMS slug's

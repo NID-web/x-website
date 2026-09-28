@@ -67,7 +67,7 @@ for (const [src, n] of bySrc) {
   const floor = floors.get("article feed (routable items in news-events)");
   line(
     `           ${src.replace(/^\/\[locale\]/, "")}: ${n} routes` +
-      (r ? ` (${r.fromFeed} from the CMS feed, ${r.fixtureOnly} fixture-only)` : "") +
+      (r ? ` (${r.fromFeed} from the CMS feed, ${r.fromLists ?? 0} from the list endpoints only, ${r.fixtureOnly} fixture-only)` : "") +
       (floor ? `  floor ${floor.expected} feed items ${floor.got >= floor.expected ? "✓" : "✗"}` : ""),
   );
 }
@@ -80,6 +80,11 @@ if (mode === "live") {
       : `FAILED: ${d.reason}`;
     line(`   ${d.ok ? " " : "✗"} ${d.path.slice(0, 52).padEnd(52)} ${size}`);
   }
+  // One HEAD per media file a slot checks (media.ts mediaExists), per build.
+  const heads = byKey("head", "url");
+  const missing = [...heads.values()].filter((h) => !h.ok);
+  line(`MEDIA      ${heads.size} files checked (HEAD), ${missing.length} missing`);
+  for (const h of missing) line(`   ✗ ${h.url.slice(0, 60)} ${h.status || "no response"}`);
   line(`FLOORS     ${floors.size} checked, ${shortFloors.length} short`);
   for (const f of shortFloors) line(`   ✗ ${f.what}: expected ≥ ${f.expected}, got ${f.got}`);
 }

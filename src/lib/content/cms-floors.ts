@@ -13,6 +13,12 @@ export const CMS_FLOORS = {
    *  the feed, and every news card's link. Live: 11. */
   articleFeed: 10,
 
+  /** Rows /about/news-events/archive renders: listed news, events and
+   *  workshops, calendar entries out, each with a built article. Live: 13. Two
+   *  below it, one more than the feed's margin, because the archive also loses
+   *  a row when an item lacks publishedAt — a CMS edit, not a lost response. */
+  archiveItems: 11,
+
   /** Sections per document, keyed by slug. `our-themes` is 0 because the
    *  document has none yet; raise it when its sections land. */
   documentSections: {

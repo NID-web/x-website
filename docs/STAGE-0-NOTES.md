@@ -3108,3 +3108,92 @@ made a fixture set by accident. `screenshot:live` is the LIVE set, in `docs/scre
 Each refuses the other's build, and a redirect fails the run instead of being photographed.
 `verify:tokens` and `verify:fonts` also build FIXTURE: they test tokens and fonts, and a LIVE
 build now fails on a CMS hiccup that has nothing to do with them.
+
+## 66. The News & Events Archive: grouped once at build, the article route widened, back-nav above the title
+
+`/about/news-events/archive` is the first page since About with all four boards (NID-CONTEXT
+§5.5), so nothing below 1440 here is derived.
+
+### The data, probed 28 Sep 2026
+
+There is no archive document (`archive` and `news-events-archive` are 404). The rows come from
+`/public/content-items` for `news`, `event` and `workshop`: 6 + 33 + 4 items, `page` paging
+with `pagination.total`, `limit` capped at 50, no `offset`. Thirty events are the academic
+calendar (`calendar-NN-…`, no thumbnail, all `publishedAt 2026-01-01`) and are excluded by one
+prefix constant, `CALENDAR_SLUG_PREFIX` in `getArticle.ts`. **The order is not stable across
+pages when dates tie** — at `limit=5`, page 2 repeated slugs from page 1 — so an item can be
+skipped as well as repeated. `listType` dedupes by slug and then compares the unique count with
+`pagination.total`. It is reported as a floor and, like one, a mismatch ends a LIVE build: a
+short list is a silently short archive.
+
+### The article route builds what the archive links
+
+The route used to build exactly the News & Events document's items (§59). Two non-calendar
+list items were not among them (`convocation-week-41`, `drawing-dialogues`), and an archive row
+without a built page is left out, never drawn unlinked. So the route now also builds the list
+endpoints' non-calendar, dated items, held apart in `Feed.listedOnly` (an undated item there would be a page nothing
+links to; an undated item in the document's feed still builds, and is only absent from the
+archive): "More news" still walks
+the document's feed only, and every existing article's HTML is unchanged, measured against a
+baseline build with the CMS on and off. Cost: 3 list requests and 2 documents, 26 → 31 distinct
+fetches. `CMS_FLOORS.archiveItems` is 11 against a live 13.
+
+### Grouped once, in the model's shape
+
+`groupBy` is the backend's job (NID-CONTEXT §8.2) and there is no archive document to carry it.
+`getArchive.ts` groups ONCE, server-side, by the year in India (`yearInIndia`, the year the row's
+own date prints) into `PageResponse.groupedItems`, and the fixture is authored already grouped.
+The page and `ArchiveRow` never sort or bucket; a backend-grouped archive replaces one function.
+The year is `publishedAt` for every type — for events the announcement (A2), and several are
+seed timestamps (B4): live today is 2026 ×10, 2021 ×1, 2020 ×2.
+
+The listing's Archive row is derived from the same groups: one link per year below the newest
+year in the DATA (not the clock, or a build on 1 January changes the output), to
+`/about/news-events/archive#<year>`, then "Older" to the page. The two unbuilt year routes are
+gone from `pages.ts`; with the CMS off only "Older" renders.
+
+### The back link is ABOVE the title at 2 and 1 columns — evidence, not an exception
+
+NID-CONTEXT §5.3 says the utility slot "leaves the row — back-link above the title". Every
+earlier secondary page put it BELOW, because it followed the title in the DOM, and none of
+them had a board narrower than 1440 to say otherwise. The 768 and 390 Archive boards are the
+first that draw it, and they draw it above. So the back-nav comes before the `h1` in the DOM;
+at 3 and 4 columns `place="page-utility"` still pins it to row 1's last column, so nothing moves
+there. Tab order is back-nav, then the rows. The article, News & Events, Our Themes and
+Director's Message pages probably should follow; they carry a TODO, not the change.
+
+Two consequences of the pin: the first year's `h2` flowed into the free cell between the title
+and the back link (measured at column 3 of row 1 at 1440), so `Title` gained `start` and the
+year titles pin column 1; and the year `h2`s are link targets, so `Title` gained `anchored`
+(a `scroll-mt` clearing the sticky header).
+
+### The row
+
+One `<a>` per `<li>`, plain flex, not a subgrid — at 1440 the thumb is at x 534 and the title at
+x 638, neither a column origin. The 4-column layout (date first, 132 wide) is the 2-column DOM
+with the text wrapper `display: contents` and the date `order-first`. `pt-2 pb-1.75` puts the
+1px rule inside the 96, as the board does; `py-2` measured 97 and a 121 pitch. Rows grow: the
+board's fixed text box clips a wrapped headline; a 200-character headline measured 3–5 lines
+and a 96–137px row, unclipped, at 1440 / 1024 / 768 / 390. The rows' `GridItem` reuses
+`span="hero"` for its geometry (full → 2 of 3 → 3 of 4) only.
+
+Thumbnails are decorative (`alt=""`), as on Home's news rows: the headline is in the same link.
+Decorative let through the six records with no altText, and exactly those six files 404, so
+`mediaExists` (media.ts) sends one HEAD per surviving thumbnail per build, memoised like
+`cmsFetch`, and a file that does not serve counts as absent (`thumb missing N` in the `[cms]`
+line). A flake costs a placeholder, never a row. Heroes are not checked yet (TODO in media.ts).
+
+**An absent thumbnail keeps its square**, filled with `ImagePlaceholder`, at 80 (64 on the
+phone) in every layout: a list reads as a column, and without it a title jumps 104px sideways.
+That is the opposite of the article rule (§59, no box without a hero) on purpose — above an
+article a flat box reads as a broken photograph; in a list it holds the alignment.
+
+### Where the boards and the build differ
+
+- The date is `text/tertiary`; the component draws `text/quaternary` at 2 and 1 columns.
+- The back link reads "News & Events"; the board says "Back to Latest".
+- The sibling band is News & Events' band plus News & Events itself (About's children), so it
+  has Director's Message, which the board's five omit. Two-up at 1024, where the board stacks.
+- Without the CMS, 2 of the fixture's 10 rows render: only North-East Artisans and the
+  Convocation have article pages, and those two take their title and date from the article
+  fixtures (19 May / 22 January), not the archive board (12 March / 04 February).
