@@ -31,6 +31,10 @@ export const PAGE_ID = {
   kmc: "page-kmc",
   researchRailway: "page-research-railway",
   researchNaturalFiber: "page-research-natural-fiber",
+  researchIcic: "page-research-icic",
+  researchBamboo: "page-research-bamboo",
+  researchHandloom: "page-research-handloom",
+  youngDesigners: "page-study-young-designers",
   // The parent a CMS discipline card hangs off. It has NO path on purpose: no
   // per-discipline route exists in sitemap.json, so a discipline card renders
   // unlinked and the route backlog logs no path that was only guessed.
@@ -64,6 +68,10 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.kmc]: "/kmc",
   [PAGE_ID.researchRailway]: "/research/railway",
   [PAGE_ID.researchNaturalFiber]: "/research/natural-fiber",
+  [PAGE_ID.researchIcic]: "/research/icic",
+  [PAGE_ID.researchBamboo]: "/research/bamboo",
+  [PAGE_ID.researchHandloom]: "/research/handloom",
+  [PAGE_ID.youngDesigners]: "/study/young-designers",
 };
 
 export function pathOf(id: UUID): string | undefined {

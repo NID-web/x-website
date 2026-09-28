@@ -83,6 +83,7 @@
   --color-text-tertiary: var(--nid-text-tertiary);
   --color-text-quaternary: var(--nid-text-quaternary);
   --color-text-on-accent: var(--nid-text-on-accent);
+  --color-text-quote: var(--nid-text-quote);
 
   --color-icon-primary: var(--nid-icon-primary);
   --color-icon-secondary: var(--nid-icon-secondary);

@@ -2878,10 +2878,12 @@ you…"); the API's version renders without it by decision, and the fixture keep
 **"Director" is one `CONTENT_REFERENCE` block** to the person record `ashok-mondal` — name,
 role line, portrait: the API has the Person card, through a block type the adapter does not
 read. It is logged as an unused section; the name and "Director" stay on the fixture.
+**Superseded by §64:** the adapter now reads it, and the person is a rail section.
 
 The document's `hero` is not a banner: it is the 300 × 300 portrait (alt text set), and the
 board has no hero at all. So `page.hero[0]` feeds the Person card and nothing else, and
-`page.keyInfo[0]` carries role → name — the model has no person slot on a page. The
+`page.keyInfo[0]` carries role → name (§64: wrong — a `rail` section is the model's person
+slot, and the card now reads it). The
 `thumbnail` (`directors-message-hero.jpg`, alt null) 404s and is not used. The hero record and
 the person record's thumbnail are byte-identical files under two ids.
 
@@ -2900,8 +2902,8 @@ field name is the schema ask. Rendered by the shared `Blockquote` (a real `<bloc
 `accent/pentenary` on `surface/page`, measured on the rendered page in all twenty states:
 light 2.59 (Indigo) – 2.96 (Terracotta), **below 3:1 in all ten**; dark 7.94 – 11.97, above
 4.5:1 in all ten. Shipped as drawn with a `TODO(review)`: CLAUDE.md reserves the decorative
-accents for decoration, and a quote carries meaning. The fix, if the designer agrees, is a
-light-appearance-only change.
+accents for decoration, and a quote carries meaning. **Fixed in §61** — light only, through a
+new `text/quote` token.
 
 ### Layout
 
@@ -2914,3 +2916,195 @@ rule) and `placeholder={false}` (no empty circle for a single person); History's
 unchanged. The back link is the siblings' session `BackNav`, though the board draws none —
 a designer question. The sibling row is the fixture's five, two-up; Our Themes is built and
 links.
+
+## 61. Pull-quote text gets its own token, `text/quote`; `accent/pentenary` is untouched
+
+§60's quotes rendered in `accent/pentenary` — a decorative accent (NID-CONTEXT §3.3) carrying
+the Director's own words — at 2.59–2.96:1 on `surface/page` in all ten light themes. The fix
+is to stop using a decorative token for text, not to redefine the token: pentenary's other
+consumers (the overline rule and feature-disc gradients, the home wash, the pattern fields,
+the BrandStrip and the header motifs) are all decoration and keep their exact colour.
+
+**4.5:1, not the large-text 3:1.** Display/Quote measures 25px at 1440 and 1280, 24px at
+1024, **22px at 768 and 20px at 390 and 667** — below the 24px large-text line on tablets
+and phones, so 4.5:1 is the requirement there, not a preference. Bodoni italic's hairlines
+would argue for it even at 25px.
+
+**The value is an existing step.** Light is `pentenary/400` in every theme: the first step
+of the same ramp to clear 4.5:1 in all ten (`pentenary/350` reaches only 3.36–3.92), and
+the "one step darker to 400" §3.3 already prescribes for informational use. Measured on the
+rendered page:
+
+| Theme | Before | After | | Theme | Before | After |
+|---|---|---|---|---|---|---|
+| Peacock | 2.75 | 4.77 | | Tanjore | 2.81 | 4.89 |
+| Lotus | 2.84 | 5.05 | | Khadi | 2.66 | 4.65 |
+| Indigo | 2.59 | **4.51** | | Terracotta | 2.96 | 5.23 |
+| Henna | 2.68 | 4.68 | | Ikkat | 2.80 | 4.86 |
+| Yoga | 2.71 | 5.35 | | Tiger | 2.70 | 4.72 |
+
+Hue drift from `pentenary/300` is at most 0.8° in OKLCH. A constant-hue, constant-chroma
+darkening of each theme's own pentenary down to exactly 4.5:1 lands within ΔE_ok 3.8 of
+`pentenary/400` everywhere, so no new primitive was worth adding. Indigo is the tight one:
+any lightening of Indigo's `pentenary/400` or darkening of its `primary/050` fails it.
+
+**Dark is unchanged by construction.** Dark aliases `@accent/pentenary` (7.94–11.97:1), so it
+tracks that token rather than copying its value. Baseline and after were diffed across 13
+routes × 20 states: no existing custom property changed value anywhere, and dark rendering
+is identical everywhere.
+
+**The rule beside the quote is `accent/primary`, not pentenary** — it was never gold, and it
+is unchanged.
+
+**Where it lives.** `text/quote` is not a Figma variable, so it is added in `generate.py`'s
+`FRONT_END_SEMANTIC`, not in `_raw_semantic.txt`: a fresh extract would drop it silently.
+The generator asserts that the name is *not* in the extract, so if the designer adds it to
+Figma the generator fails loudly instead of emitting it twice. `design/verify.py` and
+`verify:tokens` both assert 4.5:1 in all 20 states — the first from `tokens.json`, the second
+from the rendered swatch chips.
+
+**The board still shows the old gold.** The page now deliberately differs from the Figma
+Blockquote until the designer updates it. That is this fix, not drift.
+
+
+## 62. Text over a photograph sits on a scrim sized to the text block
+
+The two components that draw text over a photo — `MediaCardTile`'s overlay branch (Home:
+Campuses, Research & Publications) and `CampusCard` (About's campus cards) — drew white text
+straight on the image. Measured at the least favourable pixel under the text, that was
+1.66–3.49:1 with the real photos on About and Research, and 1.00:1 over a white image. A
+photo that 404s left the text on TileImage's `accent/subtle` backer at 1.33:1 in light.
+
+**The fix is the VideoPlayer button's pair**, `surface/inverse` under `text/on-accent`, as
+`PHOTO_SCRIM` / `PHOTO_TEXT` in `TileImage.tsx`, on the text block's own container, plus a
+32px feather above it that carries no text. Like every scrim in the app it darkens in light
+and lightens in dark. The opacity is computed: the worst photo for light text is pure white
+and for dark text pure black, and 66% is the floor for 4.5:1 across all twenty states; 75%
+gives 5.96:1 at worst. The button's 60% was set for an icon's 3:1.
+
+Measured on the rendered pages in all twenty states under four conditions (photo present,
+404, a white 1×1, a black 1×1): minimum 5.96:1, which is the computed bound. Tile, text
+block and image rects are identical at 1440 / 1024 / 768 / 390.
+
+A campus card with **no** image is the flat `accent/subtle` box and takes no scrim:
+`text/primary` on it is at least 9.79:1. A 404 is not knowable at render time, so it keeps
+the scrim, and the bound covers it.
+
+**This departs from the boards.** The Home Campuses tile was drawn with no scrim at all (the
+removed `scrim: false` flag) and the others with a near-black gradient over the whole tile.
+The boards need the scrim, and in dark appearance a light one with dark text.
+
+## 63. One page per story, and a hero that 404s renders nothing
+
+**The North-East Artisans duplicate.** The fixture slug `north-east-artisans` and the CMS's
+79-character slug for the same story both built, and only the CMS one was linked. The fixture
+now names its CMS slug in `ARTICLE_CMS_SLUG` (`fixtures/articles.ts`), stated rather than
+matched on title. While the feed lists that slug, the fixture path still builds but prerenders
+as a **308** to it (`permanentRedirect` in the page, via next-intl's navigation, so the
+locale is kept). It is not dropped, because sitemap.json lists the old path and outside links
+may use it. This works because the site is a normal server build (§53); a static export could
+only emit a meta refresh. With the CMS off the feed is empty, so the fixture is the page and
+the CMS path 404s. A fixture's "More news" link to a redirected slug points at the canonical
+path.
+
+**A hero that 404s.** §59 decided that a missing image renders nothing, but a record with alt
+text and a dead file still drew its box. `HideOnImageError` (client) removes the slot on the
+image's `error` event, and also catches a failure that happened before hydration
+(`complete` with no natural width). It wraps `PageHero` when `placeholder={false}`, and a
+section image when the section has no placeholder: exactly the slots where "no asset, no box"
+already held. Pages whose placeholder is the designed empty state are unchanged. Chosen over
+a build-time HEAD check because a network flake at build would silently drop a hero that
+exists. The cost is that without JavaScript a dead image still shows its box. Measured with
+the CMS on and off at 1440 and 390: with every article image forced to 404 there is no box,
+and the standfirst lands exactly where it does when the server omits the hero.
+
+## 64. `CONTENT_REFERENCE` to a person feeds a rail section; Our Themes joins the adapter
+
+The Director's Message "Director" section is one `CONTENT_REFERENCE` block. Probed 24 Sep:
+the block carries the record **as a card**, inline (`referencedItem`: id, slug, title,
+heroText, thumbnail, `contentType.key = "person"`). The designation is only in the record's
+own `detail` (`designation`, `department`, `bio`, `email`, `phone`, `batchYear`,
+`currentRole`; no tenure), so reading the role takes a second request. No other configured
+document uses the block (about-nid, campuses, the three campuses, charter, history,
+news-events, home, our-themes).
+
+§60 said the model has no person slot on a page. It has one: a `rail` section's `items` are
+`Person[]`. So the capability is general: a `ReferenceMergeRule { referencesTitle }` in
+PAGE_CONFIG feeds a fixture rail section's people from a SPECIFIC section's person
+references, one per block, matched on the section title like `textTitle` (a SPECIFIC section
+has no key). `getPage` fetches each referenced record first (`referencedSlugs`, through
+`cmsFetch`, memoised like the document) and hands them to the synchronous merge. For each
+person, a field the record lacks keeps the fixture person's at the same position. A record
+that does not arrive keeps the fixture person whole and logs `record <slug> unavailable`; the
+build never fails on it. The CMS has no role vocabulary, so `role` stays the fixture's.
+Director's Message moves its person from `keyInfo` + `hero` into a one-person rail section,
+and the page reads that.
+
+**What changed on the live page:** the name is the record's ("Dr Ashok Mondal", no full
+stop) and the portrait is the record's thumbnail (`ashok-mondal.jpg`, alt "Dr Ashok
+Mondal"). Before, the portrait came from the document's `hero` (`directors-message-photo.jpg`,
+with the board's longer alt). That hero is still mapped to `page.hero` and nothing renders
+it. Measured against a replay of the same CMS responses: with no CMS every page is identical;
+live, only Director's Message and Our Themes differ.
+
+**Our Themes** has a PAGE_CONFIG entry now (`intro: "heroText"`, no section rules). Its
+document still has no sections (24 Sep), but it does carry a title, `heroText` (word for word
+the fixture's intro) and SEO, so the visible page is identical and `<title>` / the meta
+description are now the CMS's, as on every other configured page. It flips on by itself when
+sections land, once rules name them.
+
+
+## 65. A build is FIXTURE, LIVE or it fails: floors, a summary, and one request per document
+
+**Found, 24 Sep 2026.** Three builds of the same tree:
+
+| Build | Article routes | Links withheld on News & Events | north-east-artisans | Exit |
+|---|---|---|---|---|
+| `CMS_API_URL` unset | 2 | 9 (6 cards, 3 links) | page | 0 |
+| set, reachable | 12 | 3 (the unbuilt archive / 2025 / 2024 links) | 308 | 0 |
+| set, every document 200 with `sections: []` | 2 | 9 | page | 0 |
+
+The third is the case that throws nothing, and `CMS_REQUIRED` missed it. The "reachable" build
+was worse than it looked: **most documents timed out** (`no response in 10s`: home ×24,
+site-config ×20, contact-details ×20, collaborations ×21, and most page documents), and
+those pages fell back to fixtures with exit 0. The feed happened to arrive, so the route
+count looked healthy. The cause was `cmsFetch`'s `cache()`, which is React's and lasts one
+render, so every page re-fetched the chrome: **125 requests in one build** against a limit
+of 100 a minute. During a build the result is now also kept per worker process (about 31
+requests for 26 documents); `next dev` keeps only the per-render cache.
+
+**Three outcomes, no fourth** (`src/lib/api/build-mode.ts`):
+- **FIXTURE:** `CMS_API_URL` unset. `next.config.ts` prints a banner, and refuses the build
+  under `CMS_REQUIRED=true` or `VERCEL_ENV=production`.
+- **LIVE:** `CMS_API_URL` set. Any document fetch failure or floor shortfall **throws**,
+  with or without `CMS_REQUIRED`, so a LIVE build cannot ship silent fallbacks.
+  `CMS_REQUIRED=true` adds "must be LIVE". `next dev` still warns and falls back.
+- **FAIL:** everything else.
+
+One consequence for §64: a referenced person record that 404s now fails a LIVE build
+instead of falling back to the fixture person. The adapter's fallback still covers
+`next dev` and FIXTURE.
+
+**Floors** (`src/lib/content/cms-floors.ts`, live counts on 24 Sep with a margin on lists):
+article feed 10 (live 11), section counts per document (exact), about-nid items 4, campuses
+items 3, menu sections 7, footer links 10, collaborations 5. Checked where each response is
+read.
+
+**Still able to shrink without tripping a floor:** the item count of each individual News &
+Events card section (the feed floor bounds their union, not each), Home's news rows, a
+campus's discipline and facilities lists, the footer contacts, and an article's own sections
+(on that route the CMS owns structure, §59). A title-matched text rule whose section is
+renamed falls back to the fixture body. That shows as stale copy, not a short page, and it
+still passes the section-count floor.
+
+**The summary.** `npm run build` ends with `scripts/build-summary.mjs`, which reads
+`.next/cms-build-report.jsonl` (appended by every worker) and the prerender manifest. It
+prints the mode, every document with its section and item counts, the floors, the article
+route count split feed / fixture, the 308s, and the links the gate withheld.
+
+**Screenshots are FIXTURE on purpose** (`CMS_API_URL= next build`): the boards are the
+fixtures. Before, they took whatever `.env.local` gave them, and a build that lost the feed
+made a fixture set by accident. `screenshot:live` is the LIVE set, in `docs/screenshots/live/`.
+Each refuses the other's build, and a redirect fails the run instead of being photographed.
+`verify:tokens` and `verify:fonts` also build FIXTURE: they test tokens and fonts, and a LIVE
+build now fails on a CMS hiccup that has nothing to do with them.

@@ -10,6 +10,7 @@ export function PersonCard({
   person,
   overline = false,
   placeholder = true,
+  priority = false,
 }: {
   person: Person;
   /** Draw `designation` as the overline above the name. Off on History's band,
@@ -19,6 +20,9 @@ export function PersonCard({
    *  rhythm; false draws no image at all, for a single person, where an empty
    *  circle reads as a missing face. */
   placeholder?: boolean;
+  /** Eager-load the portrait. Only where it sits above the fold — the
+   *  Director's Message portrait is row 2 of the page; History's band is not. */
+  priority?: boolean;
 }) {
   return (
     <article className="flex flex-col gap-4 py-3">
@@ -31,6 +35,7 @@ export function PersonCard({
           media={{ ...person.photo, alt: person.photo.alt || person.name }}
           className="relative size-36 shrink-0 rounded-full mix-blend-luminosity"
           sizes="144px"
+          priority={priority}
         />
       ) : (
         placeholder && (

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin();
@@ -68,11 +69,45 @@ function remotePatternsFor(mediaHosts: string[]) {
   });
 }
 
+// The build's mode, decided once, before anything renders (src/lib/api/build-mode.ts
+// has the three outcomes). FIXTURE is legitimate and deliberate — screenshots,
+// offline work — so it gets a banner nobody can miss rather than one line among
+// hundreds; on a deploy that must ship the CMS it is refused before a page is built.
+function announceMode(phase: string) {
+  if (phase !== PHASE_PRODUCTION_BUILD || process.env.NID_CMS_MODE_ANNOUNCED) return;
+  process.env.NID_CMS_MODE_ANNOUNCED = "1";
+  const required = process.env.CMS_REQUIRED === "true" || process.env.VERCEL_ENV === "production";
+  if (!cmsUrl) {
+    if (required) {
+      const why = process.env.VERCEL_ENV === "production" ? "VERCEL_ENV=production" : "CMS_REQUIRED=true";
+      throw new Error(
+        `[cms] BUILD REFUSED — CMS_API_URL is not set, and this build requires the CMS (${why}). ` +
+          `Without it every page is a fixture: no CMS copy, 2 of the news articles, most news ` +
+          `links withheld. Set CMS_API_URL in the environment for this deploy (Vercel: Project ` +
+          `Settings → Environment Variables → Production).`,
+      );
+    }
+    const rule = "=".repeat(78);
+    console.warn(
+      [
+        rule,
+        "  FIXTURE BUILD — CMS_API_URL is not set.",
+        "  Every page is its fixture: no CMS content, 2 article routes, news links withheld.",
+        "  Right for screenshots and offline work. NOT a build to deploy.",
+        rule,
+      ].join("\n"),
+    );
+    return;
+  }
+  console.info(`[cms] LIVE build — ${cmsUrl.host}${required ? " (CMS required)" : ""}`);
+}
+
 // An async default export rather than a top-level `await`: Next loads
 // next.config.ts through require() on some of its own paths, and a
 // module-level await makes that throw ("require() cannot be used on an ESM
 // graph with top-level await") before the build starts.
-export default async function config(): Promise<NextConfig> {
+export default async function config(phase: string): Promise<NextConfig> {
+  announceMode(phase);
   const mediaHosts = await deriveMediaHosts();
   const remotePatterns = remotePatternsFor(mediaHosts);
   // Next 16 blocks image optimisation for local IPs by default and answers

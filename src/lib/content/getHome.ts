@@ -14,7 +14,9 @@
 // HOME_TILES (scripts/lint-fixtures.mjs).
 import { cache } from "react";
 import { HOME_TILES, type HomeTile } from "@/lib/home-content";
+import { assertFloor } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
+import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import { isPublicContentResponse, type Section } from "@/lib/api/types";
 import {
   filmFrom,
@@ -92,6 +94,7 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
     logMissingRoutes("/", audit);
     return { tiles, copy: {}, seo: { title: STATIC_TITLE } };
   }
+  assertFloor("document home: sections", CMS_FLOORS.documentSections.home ?? 0, api.sections.length, "/public/content/home");
 
   const bySource = new Map<string, Section>();
   for (const source of SECTION_SOURCES) {

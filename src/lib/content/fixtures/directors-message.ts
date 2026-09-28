@@ -1,7 +1,7 @@
 // /about/directors-message — Director's Message page content fixture. The board's
 // copy, verbatim; the CMS's "Message" section feeds the three bodies by block
 // (getPage.ts), everything else stays here (STAGE-0-NOTES §60).
-import type { PageResponse } from "@/lib/content-model";
+import type { PageResponse, Section } from "@/lib/content-model";
 import type { EditorialSection } from "@/lib/content/editorial";
 import { PAGE_ID } from "@/lib/content/pages";
 import { mediaAsset } from "@/lib/media";
@@ -56,6 +56,36 @@ const BODY_2 = prose(
   "There is no value in excellent design that is divorced from reality, that is out of context and not in sync with the momentum that is gaining ground",
 );
 
+// The Person card: the model's person slot is a rail section, here of one.
+// With the CMS on, the document's "Director" reference feeds it (getPage.ts);
+// this is what renders without one. The PORTRAIT is the person's photo — this
+// board has no hero.
+const DIRECTOR: Section = {
+  id: "section-dm-director",
+  page: PAGE_ID.directorsMessage,
+  order: 0,
+  type: "rail",
+  title: "",
+  groupBy: "none",
+  items: [
+    {
+      id: "person-ashok-mondal",
+      name: "Dr. Ashok Mondal",
+      slug: "ashok-mondal",
+      role: "staff",
+      designation: "Director",
+      photo: mediaAsset(
+        "/about/ashok-mondal.jpg",
+        "Dr. Ashok Mondal, Director, National Institute of Design",
+        300,
+        300,
+      ),
+    },
+  ],
+  links: [],
+  contacts: [],
+};
+
 export const DIRECTORS_MESSAGE: PageResponse = {
   page: {
     id: PAGE_ID.directorsMessage,
@@ -64,20 +94,9 @@ export const DIRECTORS_MESSAGE: PageResponse = {
     parent: PAGE_ID.about,
     template: "secondary",
     utility: "back",
-    // The Person card: the row's label is the role overline, its value the name.
-    // The model has no person slot on a page; key info is its "who / what" rail.
-    keyInfo: [{ label: "Director", value: "Dr. Ashok Mondal" }],
-    // The PORTRAIT, not a banner — this board has no hero. The CMS's `hero` is
-    // the same 300 × 300 photograph, so the adapter's hero mapping feeds it.
-    hero: [
-      mediaAsset(
-        "/about/ashok-mondal.jpg",
-        "Dr. Ashok Mondal, Director, National Institute of Design",
-        300,
-        300,
-      ),
-    ],
-    sections: [OPENING, BODY_1, BODY_2],
+    keyInfo: [],
+    hero: [],
+    sections: [DIRECTOR, OPENING, BODY_1, BODY_2],
     contacts: [],
     seoTitle: "Director's Message",
     seoDescription:

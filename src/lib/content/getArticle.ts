@@ -10,6 +10,7 @@ import { cache } from "react";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { LabelValue, Link, MediaAsset, PageResponse, Section } from "@/lib/content-model";
 import { ARROW_CHARS } from "@/lib/content-model";
+import { assertFloor, report } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
 import { toMediaAsset } from "@/lib/api/media";
 import {
@@ -22,7 +23,8 @@ import { formatEventDate, plainParagraphs, plainText } from "@/lib/content/forma
 import { registerBuiltParams } from "@/lib/content/links";
 import { PAGE_ID, newsArticlePath, pageIdOf, pathOf } from "@/lib/content/pages";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
-import { ARTICLES } from "@/lib/content/fixtures/articles";
+import { CMS_FLOORS } from "@/lib/content/cms-floors";
+import { ARTICLE_CMS_SLUG, ARTICLES } from "@/lib/content/fixtures/articles";
 import { routeTitle } from "@/lib/nav-content";
 import { normalise } from "@/lib/nav-trail";
 
@@ -42,6 +44,8 @@ interface Feed {
   items: CardRef[];
   /** Every slug the route builds: the feed's and the fixtures'. */
   slugs: Set<string>;
+  /** Fixture slug → the CMS slug of the same story, where the feed lists it. */
+  redirects: Map<string, string>;
   dropped: string[];
 }
 
@@ -85,9 +89,20 @@ async function loadFeed(): Promise<Feed> {
   }
   const time = (item: CardRef) => (item.publishedAt ? Date.parse(item.publishedAt) : -Infinity);
   const items = [...bySlug.values()].sort((a, b) => time(b) - time(a));
+  // The case that throws nothing: a 200 whose sections are empty builds two
+  // fixture routes and withholds every news link, with exit 0.
+  assertFloor("article feed (routable items in news-events)", CMS_FLOORS.articleFeed, items.length, `/public/content/${FEED_SLUG}`);
   const slugs = new Set([...items.map((i) => i.slug), ...Object.keys(ARTICLES)]);
+  // A fixture whose story the feed also carries under the CMS's slug would be
+  // the same article at two URLs, one of them unlinked. It still builds, as a
+  // permanent redirect: sitemap.json lists the fixture path and outside links
+  // may use it. With the CMS off the feed is empty and the fixture is the page.
+  const redirects = new Map(
+    Object.entries(ARTICLE_CMS_SLUG).filter(([, cms]) => bySlug.has(cms)),
+  );
+  // Still registered: a link to the old path is live and lands on the redirect.
   registerBuiltParams(ROUTE, slugs);
-  return { items, slugs, dropped };
+  return { items, slugs, redirects, dropped };
 }
 
 /** The article index, registered with the route gate. Every page that gates
@@ -99,12 +114,22 @@ export function articleFeed(): Promise<Feed> {
 
 /** generateStaticParams' slugs, with the one summary line for the build. */
 export async function articleSlugs(): Promise<string[]> {
-  const { items, slugs, dropped } = await articleFeed();
+  const { items, slugs, redirects, dropped } = await articleFeed();
   const fixtures = Object.keys(ARTICLES);
   const shared = fixtures.filter((s) => items.some((i) => i.slug === s)).length;
+  const fixtureOnly = fixtures.length - shared - redirects.size;
+  report({
+    t: "routes",
+    route: ROUTE,
+    count: slugs.size,
+    fromFeed: items.length,
+    fixtureOnly,
+    redirects: [...redirects].map(([from, to]) => `${from} → ${to}`),
+  });
   console.info(
     `[cms] ${ROUTE}: ${slugs.size} routes — ${items.length} from the api feed, ` +
-      `${fixtures.length - shared} fixture-only, ${shared} fixture slug${shared === 1 ? "" : "s"} also in the feed` +
+      `${fixtureOnly} fixture-only, ${shared} fixture slug${shared === 1 ? "" : "s"} also in the feed` +
+      (redirects.size ? `, ${redirects.size} fixture slug${redirects.size === 1 ? "" : "s"} redirecting (${[...redirects].map(([f, c]) => `${f} → ${c}`).join(", ")})` : "") +
       ` · dropped ${dropped.length} (no path)${dropped.length ? `: ${dropped.join(", ")}` : ""}`,
   );
   return [...slugs];
@@ -356,11 +381,18 @@ function nextInFeed(items: CardRef[], slug: string): CardRef | undefined {
   return undefined;
 }
 
+/** The canonical path for a fixture slug the feed carries under another slug,
+ *  or undefined when `slug` is its own page. */
+export async function articleRedirect(slug: string): Promise<string | undefined> {
+  const cms = (await articleFeed()).redirects.get(slug);
+  return cms ? articlePath(cms) : undefined;
+}
+
 /** One article as the PageResponse the renderer consumes, or null for a slug the
- *  route does not build. */
+ *  route does not build as a page (unknown, or a redirect). */
 export const getArticle = cache(async (slug: string): Promise<PageResponse | null> => {
   const index = await articleFeed();
-  if (!index.slugs.has(slug)) return null;
+  if (!index.slugs.has(slug) || index.redirects.has(slug)) return null;
   const path = articlePath(slug);
   const card = index.items.find((i) => i.slug === slug);
   const fixture = ARTICLES[slug];
@@ -397,9 +429,15 @@ export const getArticle = cache(async (slug: string): Promise<PageResponse | nul
   // "More news": one sibling and the listing. A fixture keeps the sibling its
   // board draws; an API article takes the next item in the feed.
   const next = api || !fixture ? nextInFeed(index.items, slug) : undefined;
+  // A fixture's own sibling may name a slug that now redirects; link the
+  // canonical path so "More news" costs no extra hop.
+  const canonical = (href: string) => {
+    const cms = index.redirects.get(href.slice(PARENT.length + 1));
+    return href.startsWith(`${PARENT}/`) && cms ? articlePath(cms) : href;
+  };
   const sibling = next
     ? [{ id: `article-${next.slug}`, title: next.title, href: articlePath(next.slug) }]
-    : response.derived.siblingBand;
+    : response.derived.siblingBand.map((s) => ({ ...s, href: canonical(s.href) }));
   const all = { id: PAGE_ID.newsEvents, title: t("allNews"), href: PARENT };
   // A5: a document has no parent, so the back link is the route's own parent,
   // named by its destination — never "Back".

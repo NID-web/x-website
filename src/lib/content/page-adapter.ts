@@ -7,6 +7,7 @@
 import type { LabelValue, Link, Page, PageResponse, Person, Section } from "@/lib/content-model";
 import {
   campusDetail,
+  personDetail,
   type CardRef,
   type PublicContentResponse,
   type Section as ApiSection,
@@ -55,6 +56,42 @@ export type TextMergeRule = { textTitle: string } & (
     }
 );
 
+/** A SPECIFIC section's CONTENT_REFERENCE blocks to person records feed a
+ *  fixture `rail` section's people, one per block, in block order. Matched on
+ *  the section's editorial TITLE, exactly as TextMergeRule is and with the same
+ *  failure mode. The block carries the person as a card; the designation is
+ *  only on the record, so getPage fetches each one (referencedSlugs) and passes
+ *  them in. Per person, each field the record lacks keeps the fixture person's
+ *  at the same position; a record that did not arrive keeps the fixture
+ *  person whole. */
+export interface ReferenceMergeRule {
+  referencesTitle: string;
+}
+
+/** The records a config's reference rules need, so they can be fetched before
+ *  the (synchronous) merge. Person references only. */
+export function referencedSlugs(api: PublicContentResponse, config: PageMergeConfig): string[] {
+  const slugs = Object.values(config.sections).flatMap((rule) =>
+    "referencesTitle" in rule ? personRefs(referenceSection(api, rule)).map((r) => r.slug) : [],
+  );
+  return [...new Set(slugs)];
+}
+
+function referenceSection(api: PublicContentResponse, rule: ReferenceMergeRule) {
+  const wanted = rule.referencesTitle.trim().toLowerCase();
+  return api.sections.find((s) => s.type === "SPECIFIC" && (s.title ?? "").trim().toLowerCase() === wanted);
+}
+
+function personRefs(as: ApiSection | undefined): CardRef[] {
+  return [...(as?.blocks ?? [])]
+    .sort((a, b) => a.orderIndex - b.orderIndex)
+    .flatMap((b) =>
+      b.blockType === "CONTENT_REFERENCE" && b.referencedItem?.contentType.key === "person"
+        ? [b.referencedItem]
+        : [],
+    );
+}
+
 export interface PageMergeConfig {
   /** The document at /public/content/{slug}. */
   slug: string;
@@ -75,7 +112,7 @@ export interface PageMergeConfig {
   /** structuredContentType.key of the section listing the page's children. */
   subPagesKey?: string;
   /** Keyed by the FIXTURE section's id. */
-  sections: Record<string, SectionMergeRule | TextMergeRule>;
+  sections: Record<string, SectionMergeRule | TextMergeRule | ReferenceMergeRule>;
   /** API sections that become NEW cards sections, in this order. Opt-in on
    *  purpose: rendering every unmatched section would let an editor push
    *  arbitrary sections into a designed page. A named section the API does not
@@ -160,6 +197,8 @@ export function toPageResponse(
   api: PublicContentResponse,
   fixture: PageResponse,
   config: PageMergeConfig,
+  /** Records referencedSlugs() asked for, by slug; null where the fetch failed. */
+  records: ReadonlyMap<string, PublicContentResponse | null> = new Map(),
 ): { response: PageResponse; sources: SourceLog } {
   const log: SourceLog = { api: [], appended: [], static: [], notes: [] };
   const consumed = new Set<ApiSection>();
@@ -474,6 +513,67 @@ export function toPageResponse(
     return { ...fs, items };
   };
 
+  /** A fixture rail section's people from a SPECIFIC section's person
+   *  references (ReferenceMergeRule). */
+  const referenceRail = (fs: Section, rule: ReferenceMergeRule, name: string): Section => {
+    const as = referenceSection(api, rule);
+    if (!as) {
+      log.static.push(`${name}(no api section titled "${rule.referencesTitle}")`);
+      return fs;
+    }
+    if (consumed.has(as)) {
+      log.static.push(`${name}(api section "${rule.referencesTitle}" already used)`);
+      return fs;
+    }
+    consumed.add(as);
+    if (fs.type !== "rail") {
+      log.static.push(`${name}(fixture section is ${fs.type}, not rail)`);
+      return fs;
+    }
+    const refs = personRefs(as);
+    if (!refs.length) {
+      log.static.push(`${name}(api section "${rule.referencesTitle}" has no person reference)`);
+      return fs;
+    }
+    const people: Person[] = [];
+    refs.forEach((ref, i) => {
+      const fallback = fs.items[i];
+      const record = records.get(ref.slug);
+      if (!record) {
+        if (fallback) people.push(fallback);
+        log.static.push(`${name}#${i + 1}(record ${ref.slug} unavailable${fallback ? "" : ", no fixture person"})`);
+        return;
+      }
+      const fromApi: string[] = [];
+      const fromFixture: string[] = [];
+      const pick = <T,>(field: string, api: T | undefined, fixed: T | undefined) => {
+        if (api !== undefined) fromApi.push(field);
+        else if (fixed !== undefined) fromFixture.push(field);
+        return api ?? fixed;
+      };
+      const personName = pick("name", record.title?.trim() || undefined, fallback?.name) ?? ref.title;
+      const designation = pick("designation", personDetail(record)?.designation?.trim() || undefined, fallback?.designation);
+      // The person's name is the portrait's alt when the record gives none
+      // (NID-CONTEXT §12). The record's thumbnail is the portrait; its `hero`
+      // is a page banner.
+      const media = toMediaAsset(record.thumbnail ?? ref.thumbnail, { altFallback: personName });
+      if ("rejected" in media) log.notes.push(`${name}#${i + 1}: photo rejected (${media.rejected})`);
+      const photo = pick("photo", "asset" in media ? media.asset : undefined, fallback?.photo);
+      people.push({
+        id: String(record.id),
+        name: personName,
+        slug: record.slug,
+        // The CMS has no role vocabulary; the fixture person's stands.
+        role: fallback?.role ?? "staff",
+        ...(designation ? { designation } : {}),
+        ...(photo ? { photo } : {}),
+      });
+      log.api.push(`${name}#${i + 1}(${ref.slug}: ${fromApi.join(",") || "nothing"})`);
+      if (fromFixture.length) log.static.push(`${name}#${i + 1}(${fromFixture.join(",")})`);
+    });
+    return people.length ? { ...fs, items: people } : fs;
+  };
+
   // A section a detail list feeds is logged by the detail block below, once.
   const detailTargets = detailSections(config.detail);
   const sections: Section[] = fixture.page.sections.map((fs): Section => {
@@ -485,6 +585,7 @@ export function toPageResponse(
       return fs;
     }
     if ("textTitle" in rule) return textBody(fs, rule, name);
+    if ("referencesTitle" in rule) return referenceRail(fs, rule, name);
     const as = structured(api, rule, consumed);
     if (typeof as === "string") {
       log.static.push(`${name}(${as})`);

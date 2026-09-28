@@ -23,6 +23,11 @@ export const SEMANTIC_TOKENS: SemanticToken[] = [
     note: "A11y-exempt — intentionally below WCAG AA, identical in light and dark.",
   },
   { name: "text/on-accent", className: "bg-text-on-accent" },
+  {
+    name: "text/quote",
+    className: "bg-text-quote",
+    note: "Pull-quote text. Front-end token, not in Figma — pentenary/400 light, accent/pentenary dark.",
+  },
   { name: "icon/primary", className: "bg-icon-primary" },
   { name: "icon/secondary", className: "bg-icon-secondary" },
   { name: "icon/tertiary", className: "bg-icon-tertiary" },

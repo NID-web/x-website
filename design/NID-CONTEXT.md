@@ -130,7 +130,7 @@ The consequence is worth stating plainly: **a component only ever names a layer-
 
 Note on **Yoga**: all five ramps carry the same greyscale values, so `accent/secondary` and `accent/primary` are the same colour there. Any UI that relies on hue difference between accents (charts, multi-series legends) must not assume it. Note on **Tiger**: its deep steps run to `#0B0906` — essentially black — deliberately, so that the tiger motif reads as black-on-ochre.
 
-### 3.3 The 27 semantic tokens
+### 3.3 The 28 semantic tokens
 
 | Token | Light → | Dark → | Purpose |
 |---|---|---|---|
@@ -143,6 +143,7 @@ Note on **Yoga**: all five ramps carry the same greyscale values, so `accent/sec
 | `text/tertiary` | primary/450 | primary/250 | |
 | `text/quaternary` | primary/350 | primary/350 | ⚠ **A11y-exempt** faint/disabled tier; intentionally below WCAG AA for normal text. To restore AA, map Light→primary/450, Dark→primary/250. |
 | `text/on-accent` | primary/050 | primary/650 | Label on a filled accent. |
+| `text/quote` | pentenary/400 | = accent/pentenary | Pull-quote text. **Front-end token, not in the Figma variables** — the board draws the quote in `accent/pentenary`, which misses 3:1 in every light theme. Light is the §3.3 "one step darker to 400" rule; clears 4.5:1 in all 20 states (STAGE-0-NOTES §61). |
 | `icon/primary` | = text/primary | = text/primary | Aliases the text tier. |
 | `icon/secondary` | = text/secondary | = text/secondary | |
 | `icon/tertiary` | = text/tertiary | = text/tertiary | |

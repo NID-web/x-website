@@ -150,17 +150,39 @@ npm run dev      # http://localhost:3000/en
 | `npm run dev` | dev server | always |
 | `npx tsc --noEmit` | type check | before every commit |
 | `npm run lint` | ESLint **+ the no-hex rule + the no-fixture-import rule** | before every commit |
-| `npm run build` | production build | before every commit |
-| `npm run verify:tokens` | 627 assertions in a real browser: all 20 theme states, the grid at the four artboard widths **and** at 1600 / 1200 / 900 / 430 between them | after touching `themes.css`, `globals.css`, `PageGrid`, `GridItem` |
+| `npm run build` | production build, then a **build summary** (mode, documents, floors, routes, withheld links) | before every commit |
+| `npm run verify:tokens` | FIXTURE build (no CMS — tokens don't need it), then 667 assertions in a real browser: all 20 theme states, the grid at the four artboard widths **and** at 1600 / 1200 / 900 / 430 between them | after touching `themes.css`, `globals.css`, `PageGrid`, `GridItem` |
 | `npm run verify:parity` | checks `design/tokens/*` still matches its `src/` copy | fast; runs inside `verify:tokens` |
 | `npm run verify:fonts` | confirms all four font families actually loaded | after font changes |
-| `npm run screenshot` | writes `docs/screenshots/{swatch,home,about}-{1440,1024,768,390}.png` | visual review |
+| `npm run screenshot` | a **FIXTURE** build, on purpose — the boards are the fixtures — then `docs/screenshots/<page>-{1440,1024,768,390}.png` | comparing against Figma |
+| `npm run screenshot:live` | a LIVE build, then the same set into `docs/screenshots/live/` (the article is the CMS's own) | seeing what the CMS makes of the pages |
 | `npm run generate:tokens` | regenerates `themes.css` + `font-manifest.json` **and copies them into `src/`** | after editing `design/generate.py` |
 
 **Two pages worth knowing:**
 
 - `/en/swatch` — every token, every theme, the grid proof, the type specimen, on one page. Fastest way to check a token change.
 - Press **`g`** on any page in dev to toggle a translucent column ruler.
+
+### The build's three outcomes, and deploying on Vercel
+
+A build is exactly one of these (`src/lib/api/build-mode.ts`):
+
+| Outcome | When | What the log shows |
+|---|---|---|
+| **FIXTURE** | `CMS_API_URL` unset | A `=====` banner at the top: `FIXTURE BUILD — CMS_API_URL is not set.` Every page is its fixture, 2 article routes. For screenshots and offline work, **never a deploy**. |
+| **LIVE** | `CMS_API_URL` set, every document arrived, every floor met | `[cms] LIVE build — <host>` at the top, and the summary box at the end: `MODE LIVE`, `DOCUMENTS n fetched, 0 failed`, `FLOORS n checked, 0 short`, `/about/news-events/[slug]: 12 routes` |
+| **FAIL** | anything else | The build stops on the first `[cms] BUILD REFUSED`, `[cms] FETCH FAILED` or `[cms] FLOOR NOT MET` (§12 decodes each) |
+
+`CMS_API_URL` set means LIVE, so a CMS that times out or answers short **fails the build**. It no longer ships with fixtures quietly standing in. `next dev` still warns and falls back, so a flaky CMS never stops local work. The floors (the least the site accepts: 10 feed articles, 4 home sections, 7 menu sections…) live in `src/lib/content/cms-floors.ts`. Lowering one is a decision, not a fix.
+
+**Vercel needs**, in Project Settings → Environment Variables:
+
+| Variable | Production | Preview |
+|---|---|---|
+| `CMS_API_URL` | the CMS origin, no trailing slash, no `/api` | same, if previews should show CMS content; unset for a FIXTURE preview |
+| `CMS_REQUIRED` | `true` (belt and braces — `VERCEL_ENV=production` already implies it) | leave unset |
+
+The Build Command must be `npm run build` (the Vercel default when `package.json` has a `build` script), not `next build`, or the summary box never prints. A production build without `CMS_API_URL` is refused before a page is built: `[cms] BUILD REFUSED — CMS_API_URL is not set, and this build requires the CMS (VERCEL_ENV=production)`.
 
 **Reading `npm run build` output:** your route must show `○` or `●` (static). If it shows `ƒ` (dynamic), something in your page called `cookies()` or `headers()` and you've made the whole site render per-request. Find it and remove it.
 
@@ -1017,6 +1039,11 @@ Plus, depending on what you touched:
 | An icon stays one colour across themes | It hard-codes a `fill`. Change it to `currentColor`. |
 | A theme-scoped element looks half-right | You set `data-theme` but not `data-appearance`. Both are needed. |
 | Fonts don't load locally | Almost always the Typekit kit's domain allowlist, not the code. Don't substitute a Google font. |
+| The site deployed with most news links dead, only two news articles, or pages showing placeholder copy | A FIXTURE build, or (before 24 Sep 2026) a LIVE build that lost the CMS and fell back silently. Look for the `FIXTURE BUILD` banner or the summary box's `MODE` line in the Vercel build log. Set `CMS_API_URL` for that environment and redeploy. |
+| `[cms] BUILD REFUSED — CMS_API_URL is not set, and this build requires the CMS (…)` | A production build (or `CMS_REQUIRED=true`) with no CMS configured. Add `CMS_API_URL` to that environment's variables. Nothing is wrong with the code. |
+| `[cms] FETCH FAILED — /public/content/<slug>: HTTP 404` (or `no response in 10s`) | `CMS_API_URL` is set, so the build is LIVE, and one document didn't arrive. Retry first: the CMS allows 100 requests a minute. A 404 means the document was removed or renamed in the CMS. To build without the CMS on purpose, unset `CMS_API_URL`. |
+| `[cms] FLOOR NOT MET — <what>: expected at least N, got M (from <document>)` | The CMS answered, but with less than the site is built to show: an empty or unpublished list, a deleted section. Fix the content in the CMS. If the drop is intended, lower that number in `src/lib/content/cms-floors.ts` and say why in the commit. |
+| `screenshot needs a FIXTURE build and .next/ holds a LIVE one` | You ran `node scripts/screenshot.mjs` after a normal build. Use `npm run screenshot`, which builds the right mode. |
 | Every CMS image is broken locally; the server logs `upstream image … hostname resolved to private IP ["64:ff9b::…"]` | Your network is IPv6-only (NAT64 / CLAT46 — phone hotspots, some ISPs). See *CMS images refused on an IPv6-only network* below. |
 
 ### CMS images refused on an IPv6-only network

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Verifies the token layer end-to-end in a real browser: 540 semantic
-// assertions, the scoped-theme hard assertion, grid arithmetic at the four
+// Verifies the token layer end-to-end in a real browser: 560 semantic
+// assertions (28 tokens × 20 states), the pull-quote contrast floor, the scoped-theme hard assertion, grid arithmetic at the four
 // artboard breakpoints PLUS four deliberately off-artboard viewports, and the
 // letter-spacing/font-weight regression guards from docs/STAGE-0-PLAN.md §8.
 // Run against a production build (`next build && next start`), not the dev
@@ -169,7 +169,7 @@ async function main() {
     await page.setViewportSize({ width: 1440, height: 900 });
     await gotoSwatch(page);
 
-    // ---- 540 semantic assertions, read from the already-rendered panels ----
+    // ---- 560 semantic assertions, read from the already-rendered panels ----
     // This IS the scoped-theme test, not a separate concern bolted on: each
     // panel's chips are probed inside its own <section data-theme
     // data-appearance>, scoped independently of <html>'s own theme (which
@@ -216,9 +216,11 @@ async function main() {
         );
       }
     }
+    const expectedSemantic =
+      Object.keys(tokens.semantic.aliases).length * tokens.themes.length * 2;
     check(
-      "540 semantic assertions ran",
-      semanticAssertions === 540,
+      `${expectedSemantic} semantic assertions ran`,
+      semanticAssertions === expectedSemantic,
       String(semanticAssertions),
     );
     check(
@@ -226,6 +228,34 @@ async function main() {
       unresolvedCount === 0,
       String(unresolvedCount),
     );
+
+    // ---- pull-quote contrast, on the RENDERED chips rather than tokens.json ----
+    // text/quote is meaning-bearing, and Display/Quote is 20-22px below three
+    // columns, so WCAG 1.4.3's normal-text 4.5:1 applies — not the large-text
+    // 3:1 (STAGE-0-NOTES §61). Catches a designer value that stops clearing it.
+    const luminance = (hex) => {
+      const [r, g, b] = [1, 3, 5].map((i) => {
+        const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+        return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const contrast = (a, b) => {
+      const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+      return (hi + 0.05) / (lo + 0.05);
+    };
+    for (const panel of panelData) {
+      const quote = panel.values["text/quote"] ?? "";
+      const page = panel.values["surface/page"] ?? "";
+      const ratio = /^#[0-9a-f]{6}$/i.test(quote) && /^#[0-9a-f]{6}$/i.test(page)
+        ? contrast(quote, page)
+        : 0;
+      check(
+        `${panel.theme}/${panel.appearance} text/quote on surface/page ≥ 4.5:1`,
+        ratio >= 4.5,
+        `${ratio.toFixed(2)}:1 (${quote || "missing"} on ${page || "missing"})`,
+      );
+    }
 
     // ---- explicit scoped-theme hard assertion ----
     const htmlTheme = await page.evaluate(() =>

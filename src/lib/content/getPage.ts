@@ -5,10 +5,17 @@
 // outside src/lib/content/ may import a fixture (scripts/lint-fixtures.mjs).
 import { cache } from "react";
 import type { PageResponse } from "@/lib/content-model";
+import { assertFloor } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
 import { isPublicContentResponse } from "@/lib/api/types";
 import { articleFeed } from "@/lib/content/getArticle";
-import { detailSections, toPageResponse, type PageMergeConfig } from "@/lib/content/page-adapter";
+import { CMS_FLOORS } from "@/lib/content/cms-floors";
+import {
+  detailSections,
+  referencedSlugs,
+  toPageResponse,
+  type PageMergeConfig,
+} from "@/lib/content/page-adapter";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ABOUT } from "@/lib/content/fixtures/about";
 import { CAMPUSES } from "@/lib/content/fixtures/campuses";
@@ -144,10 +151,10 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     // The essay is one SPECIFIC section of eight TEXT blocks; the board splits it
     // at block boundaries (opening = 1, first body = 2–4, second = 5–8). `of`
     // is the guard: any other block count and all three fall back to the
-    // fixture. The document's `hero` is the Director's portrait, used as such;
-    // its "Director" section (a CONTENT_REFERENCE to the person record) is
-    // logged unused — the adapter reads no references.
+    // fixture. The "Director" section is a CONTENT_REFERENCE to the person
+    // record, which feeds the Person card's name, role and portrait.
     sections: {
+      "section-dm-director": { referencesTitle: "Director" },
       "section-dm-opening": { textTitle: "Message", blocks: [1, 1], of: 8 },
       "section-dm-body-1": { textTitle: "Message", blocks: [2, 4], of: 8 },
       "section-dm-body-2": { textTitle: "Message", blocks: [5, 8], of: 8 },
@@ -191,6 +198,15 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       { id: "section-news-workshops", structuredKey: "workshop", after: "section-news-2026", itemParent: PAGE_ID.newsEvents, slugUnderParent: true },
     ],
   },
+  "/about/our-themes": {
+    slug: "our-themes",
+    // The subtitle is the document's summary line; the page has no SPECIFIC
+    // section for a standfirst. The ten cards are the theme system itself, not
+    // content, so no section rule: the document has none to give (19 Sep:
+    // title, heroText and seo only), and every unit falls back and says so.
+    intro: "heroText",
+    sections: {},
+  },
 };
 
 // cache(): generateMetadata and the page both call this; one fetch and one log
@@ -208,7 +224,25 @@ export const getPage = cache(async (path: string): Promise<PageResponse | null> 
 
   // The gate runs on every page, CMS or not: a fixture links to unbuilt routes
   // just as the API does.
-  const merged = api && config ? toPageResponse(api, fixture, config) : null;
+  if (api && config) {
+    const source = `/public/content/${config.slug}`;
+    assertFloor(`document ${config.slug}: sections`, CMS_FLOORS.documentSections[config.slug] ?? 0, api.sections.length, source);
+    const itemFloor = CMS_FLOORS.documentItems[config.slug];
+    if (itemFloor !== undefined) {
+      const items = api.sections.reduce((n, s) => n + (s.items?.length ?? 0), 0);
+      assertFloor(`document ${config.slug}: listed items`, itemFloor, items, source);
+    }
+  }
+
+  // Referenced records (a person's designation is only on the record), fetched
+  // here so the merge stays synchronous. One request each, memoised like the
+  // document; a failure is a null the adapter falls back from.
+  const slugs = api && config ? referencedSlugs(api, config) : [];
+  const fetched = await Promise.all(
+    slugs.map((slug) => cmsFetch(`/public/content/${slug}`, isPublicContentResponse)),
+  );
+  const records = new Map(slugs.map((slug, i) => [slug, fetched[i] ?? null]));
+  const merged = api && config ? toPageResponse(api, fixture, config, records) : null;
   const { response, audit } = gatePage(merged?.response ?? fixture, {
     // The campus pages' detail-derived sections list records, so an unbuilt
     // link there stays as an unlinked row (route-gate.ts, STAGE-0-NOTES §58).

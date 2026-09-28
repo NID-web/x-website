@@ -167,3 +167,12 @@ export const ARTICLES: Record<string, PageResponse> = {
   [CONVOCATION.page.slug]: CONVOCATION,
   [NORTH_EAST_ARTISANS.page.slug]: NORTH_EAST_ARTISANS,
 };
+
+// Fixture slug → the CMS slug for the SAME story, where the two differ. Stated,
+// never matched on title: while the feed lists the CMS slug, the fixture slug
+// is a permanent redirect to it, not a second page (getArticle.ts). The
+// Convocation needs no entry — its fixture is keyed by the CMS slug already.
+export const ARTICLE_CMS_SLUG: Record<string, string> = {
+  [NORTH_EAST_ARTISANS.page.slug]:
+    "north-east-artisans-honoured-by-honble-president-of-india-at-rashtrapati-bhavan",
+};

@@ -100,7 +100,6 @@ export type HomeTile =
       labelPlacement?: "overlay" | "below";
       /** Campuses curves its right edge into a half-round arch. */
       shape?: "arch";
-      scrim?: boolean;
       bylineKey?: CopyKey;
       bylineAvatar?: MediaAsset;
       href?: string;
@@ -251,7 +250,6 @@ export const HOME_TILES: HomeTile[] = [
     titleKey: "campuses.title",
     labelPlacement: "overlay",
     shape: "arch",
-    scrim: false,
     // /about/campuses, not /campuses — the latter is in neither sitemap.json
     // nor the main menu, so the tile pointed at nothing.
     href: "/about/campuses",

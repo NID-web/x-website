@@ -11,6 +11,7 @@
 import type { LabelValue, Link, PageResponse, Section } from "@/lib/content-model";
 import type { HomeTile } from "@/lib/home-content";
 import { builtHref, cardHref, contactCta, ctaProps } from "@/lib/content/links";
+import { report } from "@/lib/api/build-mode";
 import { cardKind, pagePath } from "@/lib/content/pages";
 
 export interface RouteAudit {
@@ -195,6 +196,7 @@ export const auditSummary = (audit: RouteAudit) =>
 /** The page's share of the page-build backlog: distinct missing routes by
  *  prefix, most-linked first. Logged once per page render. */
 export function logMissingRoutes(path: string, audit: RouteAudit) {
+  report({ t: "gate", page: path, unlinked: audit.unlinked + audit.unlinkedRows, dropped: audit.dropped });
   if (!audit.missing.size) return;
   const list = [...audit.missing]
     .sort((a, b) => b[1].size - a[1].size || a[0].localeCompare(b[0]))

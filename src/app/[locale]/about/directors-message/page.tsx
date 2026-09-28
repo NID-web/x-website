@@ -46,9 +46,9 @@ export default async function DirectorsMessagePage() {
   const { page, derived } = response;
   const t = await getTranslations("Page");
 
-  // The Person card is the page's key info (role → name) and its only image.
-  const director = page.keyInfo[0];
-  const portrait = page.hero[0];
+  // The Person card: the rail section's one person, from the CMS's person
+  // record when it arrives (getPage.ts), the fixture's otherwise.
+  const director = page.sections.find((s) => s.type === "rail")?.items[0];
   const sections = page.sections.filter((s) => s.body?.trim());
 
   return (
@@ -69,14 +69,8 @@ export default async function DirectorsMessagePage() {
           {director && (
             <GridItem span={1} start={2}>
               <PersonCard
-                person={{
-                  id: "director",
-                  name: director.value,
-                  slug: "director",
-                  role: "staff",
-                  designation: director.label,
-                  ...(portrait ? { photo: portrait } : {}),
-                }}
+                person={director}
+                priority
                 overline
                 placeholder={false}
               />

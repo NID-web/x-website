@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { Tile } from "@/components/home/Tile";
 import { FlipMediaCard } from "@/components/home/tiles/FlipMediaCard";
 import { Overline } from "@/components/home/parts";
-import { TileImage } from "@/components/home/TileImage";
+import { PHOTO_SCRIM, PHOTO_TEXT, TileImage } from "@/components/home/TileImage";
 import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
 import type { HomeTile, Translate } from "@/lib/home-content";
@@ -48,7 +48,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         <span
           className={clsx(
             "font-primary text-overline uppercase",
-            onPhoto ? "text-white" : onDark ? "text-text-on-accent" : "text-text-tertiary",
+            onPhoto ? PHOTO_TEXT : onDark ? "text-text-on-accent" : "text-text-tertiary",
           )}
         >
           {t(tile.overlineKey)}
@@ -58,7 +58,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         className={clsx(
           // Overlay titles are Heading/3 (27/35) in the design, not Heading/5.
           isOverlay ? "font-primary text-h3" : "font-primary text-h5",
-          onPhoto ? "text-white" : onDark ? "text-text-on-accent" : "text-text-primary",
+          onPhoto ? PHOTO_TEXT : onDark ? "text-text-on-accent" : "text-text-primary",
         )}
       >
         {/* The TITLE is the link and `after:inset-0` stretches its target over
@@ -85,7 +85,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         <div className="h-0 overflow-hidden motion-safe:transition-[height] motion-safe:duration-400 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/tile:h-8 group-focus-within/tile:h-8">
           <Icon
             name="arrow-up-right"
-            className={clsx("mt-1 size-6", onPhoto ? "text-white" : "text-text-on-accent")}
+            className="mt-1 size-6 text-icon-on-accent"
           />
         </div>
       )}
@@ -93,7 +93,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         <p
           className={clsx(
             "font-body text-caption",
-            onPhoto ? "text-white" : onDark ? "text-text-on-accent" : "text-text-tertiary",
+            onPhoto ? PHOTO_TEXT : onDark ? "text-text-on-accent" : "text-text-tertiary",
           )}
         >
           {tile.date}
@@ -108,7 +108,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
               sizes="24px"
             />
           )}
-          <span className="font-body text-caption text-text-secondary">
+          <span className={clsx("font-body text-caption", onPhoto ? PHOTO_TEXT : "text-text-secondary")}>
             {t(tile.bylineKey)}
           </span>
         </div>
@@ -118,7 +118,6 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
 
   if (isOverlay && tile.media) {
     const isArch = tile.shape === "arch";
-    const scrim = tile.scrim ?? true;
     return (
       <Tile
         as="article"
@@ -129,13 +128,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         interactive
       >
         <TileImage media={tile.media} className="absolute inset-0 h-full w-full" />
-        {scrim && (
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-linear-to-b from-transparent from-45% to-[color-mix(in_srgb,var(--nid-white)_17%,var(--nid-black))]/70"
-          />
-        )}
-        <div className="relative mt-auto backdrop-blur-[1px]">{label}</div>
+        <div className={clsx("relative mt-auto backdrop-blur-[1px]", PHOTO_SCRIM)}>{label}</div>
       </Tile>
     );
   }

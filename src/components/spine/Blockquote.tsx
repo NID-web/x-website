@@ -10,12 +10,10 @@ export function Blockquote({ quote, attribution }: { quote: string; attribution?
     <GridItem span={2} start={2} as="figure" className="flex gap-6 py-8">
       <span aria-hidden="true" className="w-0.5 shrink-0 self-stretch rounded-[1px] bg-accent-primary" />
       <div className="flex min-w-0 flex-1 flex-col gap-6">
-        {/* TODO(review): designer — accent/pentenary is the board's colour and
-            clears 3:1 in no light theme (2.59–2.96 against surface/page, every
-            dark theme passes 4.5:1; STAGE-0-NOTES §60). CLAUDE.md reserves the
-            decorative accents for decoration, and a quote carries meaning.
-            Shipped as drawn pending that call. */}
-        <blockquote className="font-secondary text-display-quote italic text-accent-pentenary">
+        {/* text-quote, not the board's accent-pentenary: that accent is
+            decorative and reads 2.59–2.96:1 in every light theme. Display/Quote
+            is 20–22px below 3 columns, so 4.5:1 applies (STAGE-0-NOTES §61). */}
+        <blockquote className="font-secondary text-display-quote italic text-text-quote">
           {quote}
         </blockquote>
         {attribution && (

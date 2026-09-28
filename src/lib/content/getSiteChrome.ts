@@ -18,7 +18,9 @@
 // Footer renders `t(link.labelKey)`, so an API label is stored under an
 // `api.*` key that the page's translator resolves first. No component changes.
 import { cache } from "react";
+import { assertFloor } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
+import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import {
   isContactDetails,
   isContentItems,
@@ -135,6 +137,17 @@ export const getSiteChrome = cache(async (locale: string): Promise<SiteChrome> =
       isContentItems,
     ),
   ]);
+
+  // The menu and footer REPLACE the static ones whenever the API sends any, so
+  // a short list ships short on every page.
+  if (home) {
+    const nav = home.navigation;
+    assertFloor("header menu sections", CMS_FLOORS.menuSections, nav?.header.length ?? 0, api[0]);
+    assertFloor("footer links", CMS_FLOORS.footerLinks, nav?.footer.length ?? 0, api[0]);
+  }
+  if (collaborations) {
+    assertFloor("featured collaborations", CMS_FLOORS.collaborations, collaborations.items.length, api[3]);
+  }
 
   const fromApi: string[] = [];
   const fromStatic: string[] = [];

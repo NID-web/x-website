@@ -33,6 +33,27 @@ for line in open(os.path.join(ROOT, "_raw_semantic.txt")):
     sem_order.append(name)
     sem_raw[name] = {"light": light, "dark": dark}
 
+# ---- front-end semantic tokens: not in the Figma extract, so they live here
+# rather than in _raw_semantic.txt, where a fresh extract would silently drop
+# them (the same trap STAGE-0-NOTES §1 folds the four CSS corrections against).
+#
+# text/quote — pull-quote text (STAGE-0-NOTES §61). The board draws it in
+# accent/pentenary, a decorative accent that measures 2.59-2.96:1 on
+# surface/page in every light theme. Light takes pentenary/400: the first step
+# of the same ramp to clear 4.5:1 in all ten themes (Indigo is the tightest,
+# 4.51), and the "one step darker to 400" NID-CONTEXT §3.3 already prescribes
+# for informational use. 4.5 rather than the large-text 3: Display/Quote drops
+# to 22px at 2 columns and 20px at 1. Dark aliases accent/pentenary, which
+# already clears 7.9:1, so dark output is unchanged by construction.
+FRONT_END_SEMANTIC = [
+    # (name, light, dark, insert after)
+    ("text/quote", "pentenary/400", "@accent/pentenary", "text/on-accent"),
+]
+for name, light, dark, after in FRONT_END_SEMANTIC:
+    assert name not in sem_raw, "%s is now in the Figma extract — drop it from FRONT_END_SEMANTIC" % name
+    sem_order.insert(sem_order.index(after) + 1, name)
+    sem_raw[name] = {"light": light, "dark": dark}
+
 def resolve(name, appearance, seen=None):
     """Resolve a semantic token to a primitive name, following @aliases."""
     seen = seen or set()
@@ -255,7 +276,7 @@ w("     data-theme=\"peacock|lotus|indigo|henna|yoga|tanjore|khadi|terracotta|ik
 w("     data-appearance=\"light|dark\"")
 w("")
 w("   Layer 1  --nid-<ramp>-<step>   65 primitives, swapped by data-theme")
-w("   Layer 2  --nid-<semantic>      27 semantic tokens, swapped by data-appearance")
+w("   Layer 2  --nid-<semantic>      %d semantic tokens, swapped by data-appearance" % len(sem_order))
 w("   Components must only ever reference layer 2.")
 w("   ========================================================================== */")
 w("")

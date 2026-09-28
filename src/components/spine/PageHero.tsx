@@ -5,6 +5,7 @@
 // flat placeholder at the same crop, so nothing moves when one lands.
 import { GridItem } from "@/components/layout/GridItem";
 import { TileImage } from "@/components/home/TileImage";
+import { HideOnImageError } from "@/components/spine/HideOnImageError";
 import { ImagePlaceholder } from "@/components/spine/ImagePlaceholder";
 import type { MediaAsset } from "@/lib/content-model";
 
@@ -23,7 +24,7 @@ export function PageHero({
 }) {
   const first = hero[0];
   if (!first && !placeholder) return null;
-  return (
+  const slot = (
     <GridItem span="hero">
       {first ? (
         <TileImage
@@ -37,4 +38,6 @@ export function PageHero({
       )}
     </GridItem>
   );
+  // No placeholder means no box without a photo — including a photo that 404s.
+  return placeholder ? slot : <HideOnImageError>{slot}</HideOnImageError>;
 }

@@ -56,6 +56,10 @@ export interface SectionBlock {
   text: string | null;
   /** The file of an IMAGE or VIDEO block. */
   media: MediaRef | null;
+  /** The record a CONTENT_REFERENCE block points at, as a card: title,
+   *  thumbnail and content type inline, but not the record's typed `detail`
+   *  (a person's designation) — that takes a fetch of the record itself. */
+  referencedItem?: CardRef | null;
 }
 
 export interface Section {
@@ -186,7 +190,8 @@ function isBlock(v: unknown): v is SectionBlock {
     isObj(v) &&
     isStr(v.blockType) &&
     isStrOrNull(v.text) &&
-    (v.media === null || v.media === undefined || isMediaRef(v.media))
+    (v.media === null || v.media === undefined || isMediaRef(v.media)) &&
+    (v.referencedItem === null || v.referencedItem === undefined || isCardRef(v.referencedItem))
   );
 }
 
@@ -236,6 +241,18 @@ export function campusDetail(api: PublicContentResponse): CampusDetail | null {
     serviceCentres: (d.serviceCentres as CardRef[] | undefined) ?? [],
     labAndFacilities: (d.labAndFacilities as CardRef[] | undefined) ?? [],
   };
+}
+
+/** `detail` on a "person" record — only the fields the site renders. */
+export interface PersonDetail {
+  designation: string | null;
+}
+
+/** The record's person detail, or null when it has none or it is malformed. */
+export function personDetail(api: PublicContentResponse): PersonDetail | null {
+  const d = api.detail;
+  if (!isObj(d) || !isStrOrNull(d.designation ?? null)) return null;
+  return { designation: (d.designation as string | null | undefined) ?? null };
 }
 
 export function isPublicContentResponse(v: unknown): v is PublicContentResponse {

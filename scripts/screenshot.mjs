@@ -4,9 +4,17 @@
 // checklist. Home is here because its whole layout is a per-breakpoint reshape
 // (STAGE-0-NOTES.md §20); About because it is the template every editorial
 // page takes — the four boards are the only way to review either.
+//
+// A FIXTURE build, on purpose (`npm run screenshot` unsets CMS_API_URL): the
+// boards ARE the fixtures, so CMS-off is the mode to compare against Figma, and
+// it does not change when an editor does. It used to take whatever mode
+// .env.local gave it, and a build that lost the feed produced a fixture set by
+// accident. `npm run screenshot:live` (`--live`) is the CMS-on set, written to
+// docs/screenshots/live/ and never mixed with the board set. Each mode refuses
+// the other's build (read from .next/cms-build-report.jsonl).
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
-import { mkdirSync, openSync } from "node:fs";
+import { existsSync, mkdirSync, openSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -14,7 +22,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const PORT = 4175;
 const BASE = `http://localhost:${PORT}`;
-const OUT_DIR = path.join(ROOT, "docs", "screenshots");
+const LIVE = process.argv.includes("--live");
+const OUT_DIR = path.join(ROOT, "docs", "screenshots", ...(LIVE ? ["live"] : []));
 const SERVER_LOG = path.join(ROOT, ".next", "screenshot-server.log");
 
 const VIEWPORTS = [
@@ -37,9 +46,16 @@ const PAGES = [
   { name: "directors-message", path: "/en/about/directors-message" },
   { name: "history", path: "/en/about/history" },
   { name: "news-events", path: "/en/about/news-events" },
-  // The article template (STAGE-0-NOTES §59): the North-East Artisans board, a
-  // fixture-only slug, so it renders the same with or without the CMS.
-  { name: "article", path: "/en/about/news-events/north-east-artisans" },
+  // The article template (STAGE-0-NOTES §59). The board set takes the North-East
+  // Artisans FIXTURE; in a LIVE build that slug is a 308 to the CMS's version
+  // (§63), so the live set names the CMS slug instead. Either way a redirect
+  // fails the run rather than being photographed.
+  {
+    name: "article",
+    path: LIVE
+      ? "/en/about/news-events/north-east-artisans-honoured-by-honble-president-of-india-at-rashtrapati-bhavan"
+      : "/en/about/news-events/north-east-artisans",
+  },
   { name: "our-themes", path: "/en/about/our-themes" },
 ];
 
@@ -71,7 +87,22 @@ async function waitForServer(timeoutMs = 30_000) {
   throw new Error("Server did not become ready in time");
 }
 
+/** The mode the last build ran in, from the build's own report. */
+function builtMode() {
+  const report = path.join(ROOT, ".next", "cms-build-report.jsonl");
+  if (!existsSync(report)) return "fixture"; // nothing fetched, nothing reported
+  const first = readFileSync(report, "utf8").split("\n").find(Boolean);
+  return first ? JSON.parse(first).mode : "fixture";
+}
+
 async function main() {
+  const mode = builtMode();
+  if (mode !== (LIVE ? "live" : "fixture")) {
+    throw new Error(
+      `screenshot${LIVE ? ":live" : ""} needs a ${LIVE ? "LIVE" : "FIXTURE"} build and .next/ holds a ${mode.toUpperCase()} one. ` +
+        `Run it through npm (npm run screenshot${LIVE ? ":live" : ""}), which builds the right one.`,
+    );
+  }
   mkdirSync(OUT_DIR, { recursive: true });
   const server = startServer();
   let browser;
@@ -87,7 +118,10 @@ async function main() {
         // quiet, so that wait only ever times out (STAGE-0-NOTES.md §15). Wait
         // on the real precondition instead — stylesheet applied, grid rendered,
         // web fonts resolved — which is both deterministic and stricter.
-        await page.goto(`${BASE}${target.path}`, { waitUntil: "domcontentloaded" });
+        const res = await page.goto(`${BASE}${target.path}`, { waitUntil: "domcontentloaded" });
+        if (!res?.ok() || new URL(page.url()).pathname !== target.path) {
+          throw new Error(`${target.path} answered ${res?.status()} at ${page.url()} — not photographing a redirect or an error`);
+        }
         await page.waitForFunction(
           () =>
             getComputedStyle(document.documentElement)

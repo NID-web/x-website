@@ -68,6 +68,7 @@ These fail without an error. Most have already gone wrong once.
 **Rendering**
 - Static by default. Do not call `cookies()`/`headers()` in a layout — opts the whole app out of static rendering. The theme comes from the inline `<head>` script.
 - `src/styles/themes.css` is **generated** by `design/generate.py`. The four Stage 0 corrections are folded into it (STAGE-0-NOTES §1) — any *new* edit still needs the same treatment, or the next regeneration reverts it silently.
+- **A build is FIXTURE, LIVE or it fails, never a fourth thing** (`src/lib/api/build-mode.ts`). `CMS_API_URL` unset means FIXTURE, with a banner; production refuses it. Set means LIVE, and any document that doesn't arrive, or arrives below its floor in `src/lib/content/cms-floors.ts`, fails the build. Before 24 Sep 2026 a LIVE build that lost the CMS shipped a fraction of the site with exit 0 (STAGE-0-NOTES §65). Lowering a floor is a decision, not a fix.
 - **Deployed on Vercel** as a normal server build — no static export, no `basePath`, no `trailingSlash`. The GitHub Pages deploy is gone (STAGE-0-NOTES §53); don't reintroduce `output: "export"`, it can't run `src/proxy.ts`. Anything keyed by route still goes through `normalise()` in `src/lib/nav-trail.ts`, which strips a trailing slash — skipping it once left the back link missing site-wide on the deployed site while dev looked fine (§49).
 - **There is no `src/app/layout.tsx`.** `[locale]/layout.tsx` is the real root layout — `next/root-params` stops walking at the first layout module, so a wrapping layout above `[locale]` hides the param. `app/not-found.tsx` needs its own `<html>`; both share `head-shell.tsx`'s `HeadShell`. Exception: the global not-found can't run `THEME_SCRIPT` at all (STAGE-0-NOTES §4).
 
@@ -84,18 +85,21 @@ These fail without an error. Most have already gone wrong once.
 
 ```
 npm run dev              # dev server
-npm run build            # [locale] routes must be ○ or ● (static/SSG), never ƒ (dynamic)
+npm run build            # [locale] routes must be ○ or ● (static/SSG), never ƒ (dynamic);
+                         #   ends with a build summary box (mode, documents, floors)
 npm run lint             # eslint + scripts/lint-tokens.mjs (no-literal-hex rule)
                          #   + scripts/lint-fixtures.mjs (no fixture import outside src/lib/content/)
 npm run generate:tokens  # design/generate.py + copies outputs into src/ — use this,
                          #   not `python3 design/generate.py` directly, or the src/ copy
                          #   goes stale and nothing else notices
 npm run verify:parity    # fast, no-browser: design/tokens/* byte-matches its src/ copy
-npm run verify:tokens    # 627 assertions: 540 semantic + scoped-theme + grid + type
+npm run verify:tokens    # 667 assertions: 560 semantic + 20 quote-contrast + scoped-theme + grid + type
                          #   (runs verify:parity first, fails fast if that drifts)
 npm run verify:fonts     # every font family (Typekit + body face) loads + Bodoni opsz
 npm run verify:design    # re-checks design/tokens/ itself (python3 design/verify.py)
-npm run screenshot       # docs/screenshots/{swatch,home,about,charter,history,news-events,our-themes}-{1440,1024,768,390}.png
+npm run screenshot       # FIXTURE build on purpose (the boards are the fixtures) →
+                         #   docs/screenshots/<page>-{1440,1024,768,390}.png
+npm run screenshot:live  # LIVE build → docs/screenshots/live/, the CMS's own article
 npx tsc --noEmit
 ```
 

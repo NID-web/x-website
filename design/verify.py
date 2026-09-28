@@ -18,7 +18,7 @@ check("tokens.json parses", True)
 check("sitemap.json parses", True)
 check("10 themes", len(THEMES) == 10, str(len(THEMES)))
 check("65 primitives", len(tok["primitives"]) == 65, str(len(tok["primitives"])))
-check("27 semantic tokens", len(tok["semantic"]["aliases"]) == 27, str(len(tok["semantic"]["aliases"])))
+check("28 semantic tokens", len(tok["semantic"]["aliases"]) == 28, str(len(tok["semantic"]["aliases"])))
 check("22 text styles", len(tok["typography"]["styles"]) == 22, str(len(tok["typography"]["styles"])))
 
 # every primitive has a value for every theme, and it is a valid 6-digit hex
@@ -37,7 +37,7 @@ states = 0
 for theme in THEMES:
     for app in ("light", "dark"):
         vals = tok["semantic"]["byThemeAndAppearance"][theme][app]
-        assert len(vals) == 27, (theme, app, len(vals))
+        assert len(vals) == 28, (theme, app, len(vals))
         assert all(hexre.match(v) for v in vals.values()), (theme, app)
         states += 1
 check("20 theme x appearance states fully populated", states == 20, str(states))
@@ -70,8 +70,8 @@ for line in css.splitlines():
         if m2: sem_decl[cur][m2.group(1)] = m2.group(2)
 
 check("css declares both appearance blocks", set(sem_decl) == {"light", "dark"}, str(sorted(sem_decl)))
-check("each appearance block declares 27 tokens",
-      all(len(v) == 27 for v in sem_decl.values()),
+check("each appearance block declares 28 tokens",
+      all(len(v) == 28 for v in sem_decl.values()),
       str({k: len(v) for k, v in sem_decl.items()}))
 
 # resolve every semantic var through the cascade and compare with tokens.json
@@ -88,7 +88,7 @@ for theme in THEMES:
             if got is None: unresolved.append((theme, app, token, ref)); continue
             if got != expected: mismatch.append((theme, app, token, got, expected))
 check("every CSS semantic var resolves to a declared primitive", not unresolved, str(unresolved[:3]))
-check("CSS cascade matches tokens.json for all 540 pairs", not mismatch, str(mismatch[:3]))
+check("CSS cascade matches tokens.json for all 560 pairs", not mismatch, str(mismatch[:3]))
 
 # no raw hex outside the theme blocks (other than base black/white)
 stray = []
@@ -96,6 +96,22 @@ for line in css.splitlines():
     m = re.match(r"^\s*(--nid-(?!black|white|primary-|secondary-|tertiary-|quaternary-|pentenary-)[a-z0-9-]+):\s*(#[0-9A-Fa-f]{3,8});", line)
     if m: stray.append(m.group(0).strip())
 check("no stray hex values on non-primitive tokens", not stray, str(stray[:3]))
+
+# pull-quote text is meaning-bearing: WCAG 1.4.3 normal-text 4.5:1 in every
+# state. Not the large-text 3:1 — Display/Quote is 22px at 2 columns and 20px
+# at 1 (STAGE-0-NOTES §61).
+def _lum(h):
+    c = [int(h[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+    c = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in c]
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+def contrast(a, b):
+    hi, lo = sorted((_lum(a), _lum(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+low = [(t, a, round(contrast(v["text/quote"], v["surface/page"]), 2))
+       for t in THEMES for a in ("light", "dark")
+       for v in [tok["semantic"]["byThemeAndAppearance"][t][a]]
+       if contrast(v["text/quote"], v["surface/page"]) < 4.5]
+check("text/quote clears 4.5:1 on surface/page in all 20 states", not low, str(low[:3]))
 
 # type scale sanity
 ty = tok["typography"]["styles"]

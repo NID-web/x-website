@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Fragment } from "react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { GridItem } from "@/components/layout/GridItem";
 import { PageGrid } from "@/components/layout/PageGrid";
@@ -14,7 +14,8 @@ import { Title } from "@/components/spine/Title";
 import { ContactList } from "@/components/sections/parts";
 import { SectionRenderer, hasContent } from "@/components/sections/SectionRenderer";
 import { SiblingBand } from "@/components/sections/SiblingBand";
-import { articleSlugs, getArticle } from "@/lib/content/getArticle";
+import { permanentRedirect } from "@/i18n/navigation";
+import { articleRedirect, articleSlugs, getArticle } from "@/lib/content/getArticle";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -42,7 +43,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
  * differ only in which optional slots are filled.
  */
 export default async function ArticlePage({ params }: Params) {
-  const response = await getArticle((await params).slug);
+  const { slug } = await params;
+  // A fixture slug whose story the CMS serves under its own slug: 308 to that
+  // one page rather than render the same article twice (getArticle.ts).
+  const canonical = await articleRedirect(slug);
+  if (canonical) permanentRedirect({ href: canonical, locale: await getLocale() });
+  const response = await getArticle(slug);
   if (!response) notFound();
   const { page, derived } = response;
   const [t, tArticle] = await Promise.all([getTranslations("Page"), getTranslations("Article")]);

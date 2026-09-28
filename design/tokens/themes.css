@@ -7,7 +7,7 @@
      data-appearance="light|dark"
 
    Layer 1  --nid-<ramp>-<step>   65 primitives, swapped by data-theme
-   Layer 2  --nid-<semantic>      27 semantic tokens, swapped by data-appearance
+   Layer 2  --nid-<semantic>      28 semantic tokens, swapped by data-appearance
    Components must only ever reference layer 2.
    ========================================================================== */
 
@@ -842,6 +842,7 @@
   --nid-text-tertiary: var(--nid-primary-450);
   --nid-text-quaternary: var(--nid-primary-350);
   --nid-text-on-accent: var(--nid-primary-050);
+  --nid-text-quote: var(--nid-pentenary-400);
 
   /* icon */
   --nid-icon-primary: var(--nid-primary-650);
@@ -882,6 +883,7 @@
   --nid-text-tertiary: var(--nid-primary-250);
   --nid-text-quaternary: var(--nid-primary-350);
   --nid-text-on-accent: var(--nid-primary-650);
+  --nid-text-quote: var(--nid-pentenary-200);
 
   /* icon */
   --nid-icon-primary: var(--nid-primary-050);
@@ -920,6 +922,7 @@
     --nid-text-tertiary: var(--nid-primary-250);
     --nid-text-quaternary: var(--nid-primary-350);
     --nid-text-on-accent: var(--nid-primary-650);
+    --nid-text-quote: var(--nid-pentenary-200);
     --nid-icon-primary: var(--nid-primary-050);
     --nid-icon-secondary: var(--nid-primary-150);
     --nid-icon-tertiary: var(--nid-primary-250);
