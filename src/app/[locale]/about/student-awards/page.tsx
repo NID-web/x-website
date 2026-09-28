@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { Fragment } from "react";
-import { getLocale } from "next-intl/server";
-import { ArchiveRow } from "@/components/cards/ArchiveRow";
+import { AwardRow } from "@/components/cards/AwardRow";
 import { RowGroup } from "@/components/cards/RowGroup";
 import { GridItem } from "@/components/layout/GridItem";
 import { PageGrid } from "@/components/layout/PageGrid";
@@ -11,10 +9,10 @@ import { Footer } from "@/components/spine/Footer";
 import { Separator } from "@/components/spine/Separator";
 import { Title } from "@/components/spine/Title";
 import { SiblingBand } from "@/components/sections/SiblingBand";
-import { ARCHIVE_SECTION, getArchive } from "@/lib/content/getArchive";
+import { AWARDS_SECTION, getAwards } from "@/lib/content/getAwards";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { page } = await getArchive();
+  const { page } = await getAwards();
   return {
     title: page.seoTitle ?? page.title,
     description: page.seoDescription,
@@ -22,27 +20,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * News & Events Archive — every item by year, from the four Archive boards
- * (NID-CONTEXT §5.5). The years arrive grouped (getArchive.ts); nothing here
- * sorts or buckets.
+ * Student Awards Gallery — the archive's template with award rows, from the
+ * four gallery boards (NID-CONTEXT §5.5). The records arrive grouped
+ * (getAwards.ts); nothing here sorts or buckets.
  */
-export default async function NewsArchivePage() {
-  const [{ page, derived, groupedItems, siblingBandParent }, locale] = await Promise.all([
-    getArchive(),
-    getLocale(),
-  ]);
-  const years = groupedItems[ARCHIVE_SECTION] ?? [];
+export default async function StudentAwardsPage() {
+  const { page, derived, groupedItems, siblingBandParent } = await getAwards();
+  const groups = groupedItems[AWARDS_SECTION] ?? [];
 
   return (
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        {/* Before the title in the DOM: at 2 and 1 columns the boards draw the
-            back link ABOVE it (STAGE-0-NOTES §66). At 3 and 4 the page-utility
-            pin puts it in row 1's last column, so nothing moves visually there.
-            TODO(review): the article, News & Events, Our Themes and Director's
-            Message pages still render it below the title at 2 and 1 columns;
-            they probably should follow this board. */}
+        {/* Before the title in the DOM, as on the archive (STAGE-0-NOTES §66). */}
         {derived.backNav && (
           <GridItem span="full-then-1" place="page-utility">
             <Cta variant="primary" icon="arrow-left" label={derived.backNav.label} href={derived.backNav.href} />
@@ -51,15 +41,12 @@ export default async function NewsArchivePage() {
 
         <Title variant="page">{page.title}</Title>
 
-        {years.map((year, i) => (
-          <Fragment key={year.label}>
-            {i > 0 && <Separator />}
-            <RowGroup title={year.label} id={year.label} anchored>
-              {year.items.map((item) => (
-                <ArchiveRow key={item.id} item={item} locale={locale} />
-              ))}
-            </RowGroup>
-          </Fragment>
+        {groups.map((group, i) => (
+          <RowGroup key={group.label} title={group.label} id={`awards-${i + 1}`}>
+            {group.items.map((item) => (
+              <AwardRow key={item.id} item={item} />
+            ))}
+          </RowGroup>
         ))}
 
         {derived.siblingBand.length > 0 && (

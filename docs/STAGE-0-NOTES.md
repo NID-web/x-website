@@ -3197,3 +3197,63 @@ article a flat box reads as a broken photograph; in a list it holds the alignmen
 - Without the CMS, 2 of the fixture's 10 rows render: only North-East Artisans and the
   Convocation have article pages, and those two take their title and date from the article
   fixtures (19 May / 22 January), not the archive board (12 March / 04 February).
+
+## 67. Student Awards Gallery: the row shell is shared, one record per student, stand-in portraits derived
+
+`/about/student-awards` has all four boards (NID-CONTEXT §5.5). It is the archive's template (§66)
+with a different row, so this pass extracted what the two rows share before adding the second.
+
+### `LinkedRow`, `RowHeadline`, `RowGroup`
+
+`LinkedRow` (`cards/LinkedRow.tsx`) is the shell: the `<li>`, the one `<a>` per row, the 1px rule
+inside the height (`pt-2 pb-1.75`), `border/subtle` → `border/default` and the headline to
+`accent/primary` on hover, 150ms colour only, and the arrow slot. With no `href` it is a plain
+element with no arrow and no hover. The row's layout — flex or named grid areas per breakpoint —
+is the caller's `className`, emitted as its base utilities, then the shell, then its breakpoint
+overrides; `RowHeadline` is the hover-coloured slot, placeable anywhere in the row. `RowGroup` is
+the h2 pinned to column 1 plus the `<ul>` on `span="hero" start={2}`. `ArchiveRow` and `AwardRow`
+are compositions; there is no `kind` prop. **Proof:** the archive, the listing and every other
+page render byte-identical HTML to the pre-refactor build, FIXTURE and LIVE (a `<head>` preconnect
+moves between builds of the same tree too, in both modes; it is ordering, not content).
+
+### The data
+
+The CMS serves this page: the `student-awards` document's one CURATED section, "All Awards", lists
+eight `student_award` items in the board's order. A list item carries the project (`title`) and
+the detail (`heroText`); the award's name and the student are on each record's own `detail`
+(`awardName`, `recipient` as a person card), so each row is one document — 9 requests, 31 → 40
+distinct documents. The list endpoint's two other records (seed data) are not in the curated
+section and are not shown. `awardYear` is null on every record, so there is one group.
+
+Every recipient's thumbnail is the same image — the CMS's stand-in for "no photo". **A portrait
+media id shared by different recipient slugs is treated as absent** (`portrait stand-in N`),
+derived from the data, never the filename; one person winning twice with one photo is not a
+stand-in. A stand-in, absent or 404 portrait falls back to the fixture record for the same
+recipient slug (§64), then to the placeholder circle. Live today: 8 stand-ins, 2 from the fixture.
+
+### One record per student
+
+About's Student Awards section keeps its own selection (`ABOUT_AWARD_SLUGS`) and reads the
+students from `getAwards`, the same records the gallery renders — no second copy, and no extra
+requests (each award document is fetched once per build). With the CMS off both read
+`fixtures/student-awards.ts`, whose first two rows keep About's copy and portraits, so About's
+FIXTURE HTML changed only by the gallery link appearing. Live, About's two intros are now the CMS
+records' copy.
+
+### The row
+
+Grid areas, not a subgrid: `portrait story arrow` at 2–4 columns (portrait 120, then 80 at 4), and
+`[portrait ··· arrow] / story` on the phone. The portrait is decorative (the name is beside it) and
+`mix-blend-luminosity` over the page surface, no backer — legible in light, dark, Terracotta and
+Indigo dark. The detail is clamped to 2 lines on purpose (a summary); award, name and project are
+never clamped — a 90-character award wraps to 3 lines at 390.
+
+**The overline is cap-trimmed.** Its 12px line box on an ~8px cap made every row 4px taller than
+the board (100 / 118 against 96 / 114). `Overline` gained opt-in `capTrim`
+(`text-box: trim-both cap alphabetic`) and `wrap`; its colour choice already existed (`dark` is
+`text/tertiary`, used here because quaternary is below AA). Measured after: 96 / 114 at 1440,
+136 at 1024 and 768, 202 / 214 at 390 — the board's. Browsers without `text-box` keep 4px more.
+
+**Known limitation: rows do not link.** sitemap.json has no award route, so every row is the
+unlinked shell: no arrow, no hover, not focusable. The linked layout was measured with a temporary
+href (arrow beside the story at 2–4 columns, top-right above it on the phone; hover as the archive).

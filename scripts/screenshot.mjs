@@ -58,6 +58,7 @@ const PAGES = [
       : "/en/about/news-events/north-east-artisans",
   },
   { name: "our-themes", path: "/en/about/our-themes" },
+  { name: "student-awards", path: "/en/about/student-awards" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

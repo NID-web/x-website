@@ -9,6 +9,7 @@ import { assertFloor } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
 import { isPublicContentResponse } from "@/lib/api/types";
 import { withArchiveYears } from "@/lib/content/getArchive";
+import { withAwardRecords } from "@/lib/content/getAwards";
 import { articleFeed } from "@/lib/content/getArticle";
 import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import {
@@ -51,7 +52,9 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     sections: {
       "section-about-news": { structuredKey: "news", slugUnderParent: true },
       "section-about-campuses": { structuredKey: "campus" },
-      "section-about-student-awards": { structuredKey: "student_award", slugUnderParent: true },
+      // section-about-student-awards: the backend serves these records through
+      // the student-awards document, not about-nid; getAwards.ts reads them
+      // for both pages (withAwardRecords below).
     },
   },
   "/about/campuses": {
@@ -245,8 +248,14 @@ export const getPage = cache(async (path: string): Promise<PageResponse | null> 
   const records = new Map(slugs.map((slug, i) => [slug, fetched[i] ?? null]));
   const merged = api && config ? toPageResponse(api, fixture, config, records) : null;
   const built = merged?.response ?? fixture;
-  // The listing's Archive row names the archive's own years (getArchive.ts).
-  const page = path === "/about/news-events" ? await withArchiveYears(built) : built;
+  // The listing's Archive row names the archive's own years (getArchive.ts);
+  // About's award winners are the gallery's records (getAwards.ts).
+  const page =
+    path === "/about/news-events"
+      ? await withArchiveYears(built)
+      : path === "/about"
+        ? await withAwardRecords(built)
+        : built;
   const { response, audit } = gatePage(page, {
     // The campus pages' detail-derived sections list records, so an unbuilt
     // link there stays as an unlinked row (route-gate.ts, STAGE-0-NOTES §58).

@@ -23,6 +23,7 @@ import { PAGE_ID, pathOf } from "@/lib/content/pages";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ARCHIVE_SECTION, NEWS_ARCHIVE } from "@/lib/content/fixtures/news-archive";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
+import { ABOUT_BAND_PARENT, aboutChildrenBand } from "@/lib/content/sibling-bands";
 import { routeTitle } from "@/lib/nav-content";
 import { normalise } from "@/lib/nav-trail";
 
@@ -163,13 +164,8 @@ async function loadArchive(): Promise<ArchiveResponse> {
       // TODO(review): designer — the board labels it "Back to Latest"; CLAUDE.md
       // says a back link names its destination, which is News & Events.
       backNav: { label: routeTitle(PARENT) ?? NEWS_EVENTS.page.title, href: PARENT },
-      // The parent's own band plus the parent: About's children. Derived from
-      // News & Events' band, not copied from the board, whose five links omit
-      // Director's Message.
-      siblingBand: [
-        ...NEWS_EVENTS.derived.siblingBand,
-        { id: PAGE_ID.newsEvents, title: NEWS_EVENTS.page.title, href: PARENT },
-      ],
+      // About's children, shared with the gallery (sibling-bands.ts).
+      siblingBand: aboutChildrenBand(),
     },
   };
   const gated = gatePage(response);
@@ -193,7 +189,7 @@ async function loadArchive(): Promise<ArchiveResponse> {
   return {
     ...gated.response,
     groupedItems: { [ARCHIVE_SECTION]: groups },
-    siblingBandParent: NEWS_EVENTS.derived.backNav?.label ?? "About NID",
+    siblingBandParent: ABOUT_BAND_PARENT,
   };
 }
 

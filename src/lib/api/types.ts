@@ -255,6 +255,27 @@ export function personDetail(api: PublicContentResponse): PersonDetail | null {
   return { designation: (d.designation as string | null | undefined) ?? null };
 }
 
+/** `detail` on a "student_award" record. The recipient arrives as a card (name,
+ *  slug, thumbnail inline). `awardYear` is null on every record (28 Sep 2026). */
+export interface AwardDetail {
+  awardName: string | null;
+  awardYear: number | null;
+  recipient: CardRef | null;
+}
+
+/** The record's award detail, or null when it has none or it is malformed. */
+export function awardDetail(api: PublicContentResponse): AwardDetail | null {
+  const d = api.detail;
+  if (!isObj(d) || !isStrOrNull(d.awardName ?? null) || !isNumOrNull(d.awardYear)) return null;
+  const recipient = d.recipient ?? null;
+  if (recipient !== null && !isCardRef(recipient)) return null;
+  return {
+    awardName: (d.awardName as string | null | undefined) ?? null,
+    awardYear: (d.awardYear as number | null | undefined) ?? null,
+    recipient,
+  };
+}
+
 export function isPublicContentResponse(v: unknown): v is PublicContentResponse {
   return (
     isObj(v) &&

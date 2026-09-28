@@ -2,6 +2,7 @@
 import type { Page, PageResponse, Section } from "@/lib/content-model";
 import { PAGE_ID } from "@/lib/content/pages";
 import { mediaAsset } from "@/lib/media";
+import { AWARD_ENTRIES } from "@/lib/content/fixtures/student-awards";
 
 const PUBLISHED = "2026-07-23T00:00:00+05:30";
 
@@ -118,34 +119,20 @@ const CAMPUSES: Section = {
   contacts: [],
 };
 
+/** Which award records About features, by recipient slug. */
+export const ABOUT_AWARD_SLUGS = ["rishaya-palkhivala", "mayank-kumar"];
+
 const STUDENT_AWARDS: Section = {
   id: "section-about-student-awards",
   page: PAGE_ID.about,
   order: 3,
   type: "cards",
   title: "Student Awards",
-  // TODO(review): cards union lacks Person — name, bio and portrait ride on
-  // Page.title, Page.intro and Page.hero[0].
-  items: [
-    stub({
-      id: "student-rishaya-palkhivala",
-      title: "Rishaya Palkhivala",
-      slug: "rishaya-palkhivala",
-      parent: PAGE_ID.studentAwards,
-      intro:
-        "A short film — ‘Sorry For Your Loss’ — by film and video Communication (FVC) M Des student at the National Institute of Design (NID) Ahmedabad was awarded the best film under the National Category of the Satyajit Ray Centenary Student’s Short Film Competition on the theme ‘Realism’.",
-      hero: [mediaAsset("/about/alumni-palkhivala.png", "Portrait of Rishaya Palkhivala.", 276, 276)],
-    }),
-    stub({
-      id: "student-mayank-kumar",
-      title: "Mayank Kumar",
-      slug: "mayank-kumar",
-      parent: PAGE_ID.studentAwards,
-      intro:
-        "Mayank has been awarded the prestigious Dean's Excellence Award for developing an AI-powered accessibility tool that helps visually impaired students navigate campus independently.",
-      hero: [mediaAsset("/about/alumni-kumar.png", "Portrait of Mayank Kumar.", 172, 195)],
-    }),
-  ],
+  // Known limitation: the cards union lacks Person — name, bio and portrait
+  // ride on Page.title, Page.intro and Page.hero[0].
+  // The two it features are chosen here; who they are — name, detail,
+  // portrait — is the gallery's record (fixtures/student-awards.ts), live or not.
+  items: ABOUT_AWARD_SLUGS.map((slug) => AWARD_ENTRIES.find((a) => a.slug === slug)!),
   links: [
     {
       id: "link-student-awards",

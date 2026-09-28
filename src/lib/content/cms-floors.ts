@@ -19,6 +19,10 @@ export const CMS_FLOORS = {
    *  a row when an item lacks publishedAt — a CMS edit, not a lost response. */
   archiveItems: 11,
 
+  /** Award rows on /about/student-awards (records with a recipient), which
+   *  also feed About's two. Live: 8, all curated in one section. */
+  awardItems: 7,
+
   /** Sections per document, keyed by slug. `our-themes` is 0 because the
    *  document has none yet; raise it when its sections land. */
   documentSections: {
@@ -33,6 +37,7 @@ export const CMS_FLOORS = {
     history: 2,
     "news-events": 4,
     "our-themes": 0,
+    "student-awards": 1,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page

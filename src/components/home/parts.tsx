@@ -22,18 +22,30 @@ export function Overline({
   shortRule = false,
   dark = false,
   hoverDark = false,
+  wrap = false,
+  capTrim = false,
 }: {
   children: React.ReactNode;
   withRule?: boolean;
   shortRule?: boolean;
+  /** text/tertiary instead of text/quaternary — for an overline that carries
+   *  information (an award's name), since quaternary is below AA by design. */
   dark?: boolean;
   hoverDark?: boolean;
+  /** Let a long label wrap. Off by default: a tile's overline is one line. */
+  wrap?: boolean;
+  /** Trim the line box to cap height and baseline, as the award row's overline
+   *  is drawn: its 12px line box on an ~8px cap made each row 4px taller than
+   *  the board (100 vs 96). Browsers without `text-box` keep the full box. */
+  capTrim?: boolean;
 }) {
   return (
     <div className="flex items-stretch gap-2">
       <span
         className={clsx(
-          "whitespace-nowrap font-primary text-overline uppercase",
+          !wrap && "whitespace-nowrap",
+          "font-primary text-overline uppercase",
+          capTrim && "[text-box:trim-both_cap_alphabetic]",
           dark ? "text-text-tertiary" : "text-text-quaternary",
           hoverDark &&
             "transition-colors duration-150 ease-in-out group-hover/tile:text-text-primary",
