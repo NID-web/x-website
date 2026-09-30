@@ -18,7 +18,7 @@ import {
   toPageResponse,
   type PageMergeConfig,
 } from "@/lib/content/page-adapter";
-import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
+import { SUB_PAGE_RAIL, auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ABOUT } from "@/lib/content/fixtures/about";
 import { CAMPUSES } from "@/lib/content/fixtures/campuses";
 import { CAMPUS_AHMEDABAD } from "@/lib/content/fixtures/campus-ahmedabad";
@@ -29,6 +29,7 @@ import { DIRECTORS_MESSAGE } from "@/lib/content/fixtures/directors-message";
 import { HISTORY } from "@/lib/content/fixtures/history";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 import { OUR_THEMES } from "@/lib/content/fixtures/our-themes";
+import { PROGRAMMES } from "@/lib/content/fixtures/programmes";
 import { PAGE_ID } from "@/lib/content/pages";
 
 const FIXTURES: Record<string, PageResponse> = {
@@ -42,6 +43,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/about/history": HISTORY,
   "/about/news-events": NEWS_EVENTS,
   "/about/our-themes": OUR_THEMES,
+  "/programmes": PROGRAMMES,
 };
 
 // Keys are content-type keys from GET /public/content-types.
@@ -211,7 +213,38 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     intro: "heroText",
     sections: {},
   },
+  // About's shape (STAGE-0-NOTES §69). The document's two SPECIFIC sections
+  // both carry orderIndex 1, so nothing here reads it: the intro is the first
+  // SPECIFIC section no rule claims by title ("About", block 1; block 2 has no
+  // slot and is logged), and every slot keeps the fixture's order.
+  // TODO(review): backend — both SPECIFIC sections carry orderIndex 1 (logged
+  // on every build); and there is no STRUCTURED section listing the six
+  // children, nor `programme` records for FDP, Industry & Online or
+  // International (the three that exist have no altText and 404 thumbnails).
+  // TODO(review): content — the hero renders hero[0], a workshop photo; the
+  // board's hero is hero[1], the night film shoot. An editor swaps the two in
+  // the CMS; the front end adds no rule for picking a hero.
+  "/programmes": {
+    slug: "programmes",
+    // The document has no STRUCTURED section listing children, and the
+    // navigation gives Programmes none; switches over once one covers all six.
+    subPagesKey: "static",
+    sections: {
+      "section-programmes-curriculum": { textTitle: "Curriculum Objectives" },
+      // Inert on purpose, and leave it so: the CMS has 3 `programme` records
+      // (bachelor-of-design, master-of-design, doctorate) against the board's 6
+      // cards, and `doctorate` is not the `phd` page. None of those slugs is in
+      // PATH_BY_CMS_SLUG, so a programme section would route nothing and the
+      // fixture's six cards stay; mapping them would let 3 records replace 6.
+      "section-programmes-list": { structuredKey: "programme" },
+    },
+  },
 };
+
+// Pages whose sub-page rail keeps an unbuilt link as an unlinked row: a
+// navigation page whose children are all designed but unbuilt reads as broken
+// with an empty rail (route-gate.ts, STAGE-0-NOTES §69).
+const KEEP_UNBUILT_RAIL = new Set(["/programmes"]);
 
 // cache(): generateMetadata and the page both call this; one fetch and one log
 // line per render.
@@ -256,10 +289,12 @@ export const getPage = cache(async (path: string): Promise<PageResponse | null> 
       : path === "/about"
         ? await withAwardRecords(built)
         : built;
+  const keepUnbuilt = detailSections(config?.detail);
+  if (KEEP_UNBUILT_RAIL.has(path)) keepUnbuilt.add(SUB_PAGE_RAIL);
   const { response, audit } = gatePage(page, {
     // The campus pages' detail-derived sections list records, so an unbuilt
     // link there stays as an unlinked row (route-gate.ts, STAGE-0-NOTES §58).
-    keepUnbuilt: detailSections(config?.detail),
+    keepUnbuilt,
   });
   if (merged) {
     const { sources } = merged;

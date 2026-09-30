@@ -28,6 +28,7 @@ export function CardsSection({
   lead: leadVariant = "wide",
   patternSeed = 0,
   clamp,
+  thumbs = "two-up",
 }: {
   section: CardsSectionData;
   /** Presentation variant for the first news item. */
@@ -36,6 +37,10 @@ export function CardsSection({
   patternSeed?: number;
   /** For a section body, as TextSection's. */
   clamp?: BodyClamp;
+  /** Thumb cards in columns 2–3 with column 4 empty (the campus boards), or
+   *  three across in columns 2–4 (Programmes). The model has no field for it,
+   *  so the page names it (§40's precedent, STAGE-0-NOTES §69). */
+  thumbs?: "two-up" | "three-up";
 }) {
   const items = section.items.filter((item): item is Page => "parent" in item);
   const kind = items[0] ? cardKind(items[0]) : undefined;
@@ -89,10 +94,11 @@ export function CardsSection({
         <GridItem
           key={item.id}
           span={1}
-          // Thumbs are two-up in columns 2–3 at 3 and 4 columns, column 4 left
-          // empty (4260:264431…) — not the three-across field startIn draws —
-          // so every other card pins column 2, on the title row or below a body.
-          start={kind === "thumb" ? (i % 2 === 0 ? 2 : undefined) : startIn(i, field)}
+          // Two-up thumbs sit in columns 2–3 at 3 and 4 columns, column 4 left
+          // empty (the campus boards) — not the three-across field startIn
+          // draws — so every other card pins column 2, on the title row or
+          // below a body. Three-up thumbs ARE that field.
+          start={kind === "thumb" && thumbs === "two-up" ? (i % 2 === 0 ? 2 : undefined) : startIn(i, field)}
         >
           {kind === "news" ? (
             <NewsCard item={item} variant="square" />

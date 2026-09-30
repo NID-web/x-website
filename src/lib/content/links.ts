@@ -26,6 +26,7 @@ export const BUILT_ROUTES = [
   "/about/our-themes",
   "/about/student-awards",
   "/events/[slug]",
+  "/programmes",
   "/swatch",
 ] as const;
 

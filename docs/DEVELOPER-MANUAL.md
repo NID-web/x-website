@@ -74,7 +74,7 @@ NID-web/
 │   │   └── [locale]/                ← EVERY page lives under here
 │   │       ├── layout.tsx           ← the real root layout (<html>, header, providers)
 │   │       ├── page.tsx             ← "/"  — the Home bento (moved from /home, STAGE-0-NOTES §34)
-│   │       ├── about/page.tsx       ← "/about" — the primary-page template (R1b)
+│   │       ├── about/page.tsx       ← "/about" — a primary page: PrimaryTemplate (R1b)
 │   │       ├── about/news-events/   ← the secondary-page template (R1c)
 │   │       ├── about/our-themes/    ← the ten craft palettes, each scoped to its theme
 │   │       ├── swatch/page.tsx      ← "/swatch" — the QA surface, not a real page
@@ -283,7 +283,7 @@ Check the build output line for `/[locale]/about/history` says `●`, not `ƒ`.
 
 ### R1b — A content-model page (the way most of the ~110 pages go)
 
-The recipe above hand-writes the grid. A page that will one day come from the CMS does **not** — it asks `getPage()` for its data and lets the section components lay it out. `src/app/[locale]/about/page.tsx` is the worked example; copy it.
+The recipe above hand-writes the grid. A page that will one day come from the CMS does **not** — it asks `getPage()` for its data and lets the section components lay it out. A **primary** page (sitemap.json `"template": "primary"`: About, Programmes) is a fixture, a `getPage` entry and a five-line route that renders `PrimaryTemplate` (`src/components/sections/PrimaryTemplate.tsx`, STAGE-0-NOTES §69) — copy `src/app/[locale]/programmes/page.tsx`. The template's body is the pattern below.
 
 ```tsx
 const response = await getPage("/about");     // fixture now, API later
@@ -929,6 +929,7 @@ transition-colors duration-150 ease-in-out
 | `Separator` | `@/components/spine/Separator` | the 24px empty row between sections. Emits its own `GridItem`. |
 | `Standfirst` | `@/components/spine/Standfirst` | the intro paragraph; clamps to 7 lines behind "See more" on phones. Client component. |
 | `Footer` | `@/components/spine/Footer` | the site footer — four `GridItem`s. Render it inside the page's grid after a `Separator`, never in the layout. |
+| `PrimaryTemplate` | `@/components/sections/PrimaryTemplate` | a primary landing page's whole body from a `PageResponse` — title, sub-page rail, hero, standfirst, separated sections, footer. `thumbs="three-up"` sets Thumb cards across columns 2–4 (Programmes). |
 | `SectionRenderer` | `@/components/sections/SectionRenderer` | `section` → `TextSection` / `LinksSection` / `CardsSection`; renders nothing for an empty section. `files` / `rail` / `mosaic` are still `null` (Stages 3–5). `CardsSection` takes `lead="wide" \| "feature"` for its first card. |
 | `LinkStack`, `ContactList` | `@/components/sections/parts` | a rail of `primary` CTAs from content-model links (`twoUp="tablet-only"` for a rail, `"tablet-up"` for a band); a rail of contacts |
 | `NewsCard` `CampusCard` `AlumniCard` | `@/components/cards/*` | the three card types on `Tile`. `NewsCard` has `square`, `wide` and `feature` (3 columns, nested subgrid). `AlumniCard` is a square at 4 columns and the Person shape below. |

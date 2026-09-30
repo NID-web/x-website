@@ -41,7 +41,8 @@ export default async function LocaleLayout({
       <head>
         <HeadShell />
       </head>
-      <body>
+      {/* Browser extensions (Grammarly) add attributes to <body>; this covers only its own attributes, not its children. */}
+      <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             {/* Records the route on EVERY page so the next page's BackNav can

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { PrimaryTemplate } from "@/components/sections/PrimaryTemplate";
 import { getPage } from "@/lib/content/getPage";
 
-const PATH = "/about";
+const PATH = "/programmes";
 
 export async function generateMetadata(): Promise<Metadata> {
   const response = await getPage(PATH);
@@ -16,10 +16,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * About NID primary landing page.
+ * Programmes — the second primary landing page, About's template (STAGE-0-NOTES
+ * §69). Its cards section lays Thumbs three across in columns 2–4, where the
+ * campus boards set them two-up.
  */
-export default async function AboutPage() {
+export default async function ProgrammesPage() {
   const response = await getPage(PATH);
   if (!response) notFound();
-  return <PrimaryTemplate response={response} />;
+  return <PrimaryTemplate response={response} thumbs="three-up" />;
 }

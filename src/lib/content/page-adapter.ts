@@ -238,8 +238,17 @@ export function toPageResponse(
     // The standfirst is the first TEXT block of the first SPECIFIC section. The
     // model has one intro and no slot for the blocks after it, so they are
     // counted, not rendered — inventing a text section would add one the board
-    // does not have.
-    const introSection = api.sections.find((s) => s.type === "SPECIFIC");
+    // does not have. A section a rule claims by title is never the intro:
+    // "first" is array order (orderIndex can tie, as on Programmes), and a
+    // reordered array must not turn a named section into the standfirst.
+    const claimed = new Set(
+      Object.values(config.sections).flatMap((rule) =>
+        "textTitle" in rule ? [rule.textTitle] : "referencesTitle" in rule ? [rule.referencesTitle] : [],
+      ).map((title) => title.trim().toLowerCase()),
+    );
+    const introSection = api.sections.find(
+      (s) => s.type === "SPECIFIC" && !claimed.has((s.title ?? "").trim().toLowerCase()),
+    );
     const blocks = introSection?.blocks ?? [];
     const introBlock = blocks.find((b) => b.blockType === "TEXT" && b.text?.trim());
     const intro = introBlock?.text ? plainText(introBlock.text) : undefined;
@@ -712,6 +721,16 @@ export function toPageResponse(
   // page's back-nav and sibling band are always the fixture's.
   if (derived.backNav) log.static.push("backNav");
   if (derived.siblingBand.length) log.static.push("siblingBand");
+
+  // Page order is the fixture's; the API's orderIndex never reorders a slot.
+  // A tie is logged because it makes the API's own order ambiguous.
+  const byIndex = new Map<number, ApiSection[]>();
+  for (const s of api.sections) byIndex.set(s.orderIndex, [...(byIndex.get(s.orderIndex) ?? []), s]);
+  for (const [index, tied] of byIndex) {
+    if (tied.length > 1) {
+      log.notes.push(`orderIndex ${index} tie: ${tied.map((s) => `"${s.title ?? s.id}"`).join(", ")}`);
+    }
+  }
 
   const unused = api.sections.filter((s) => !consumed.has(s));
   log.notes.push(

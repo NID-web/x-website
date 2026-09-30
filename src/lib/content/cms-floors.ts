@@ -37,6 +37,7 @@ export const CMS_FLOORS = {
     history: 2,
     "news-events": 4,
     "our-themes": 0,
+    programmes: 2,
     "student-awards": 1,
   } as Record<string, number>,
 

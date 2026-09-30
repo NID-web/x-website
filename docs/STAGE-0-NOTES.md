@@ -3349,3 +3349,89 @@ as a private address, so `/_next/image` answers 400 and every CMS image fails �
 only, never Vercel) sets `images.unoptimized` so the browser fetches from the CMS directly. Not
 `dangerouslyAllowLocalIP`, which would open the optimizer to private addresses instead of skipping
 it. It changes every image's `src`, so unset it for any HTML baseline comparison.
+
+## 69. Programmes: `PrimaryTemplate` extracted from About, an unbuilt rail kept as rows
+
+`/programmes` is the second page sitemap.json calls `"template": "primary"`, and its one board
+(1440 only) has About's slots: title, the sub-page rail in column 1 beside the hero, the
+standfirst, then separated sections. Nothing below 1440 is drawn; 1024 / 768 / 390 are About's.
+
+### One template, two routes
+
+`PrimaryTemplate` (`sections/PrimaryTemplate.tsx`) is About's page body, extracted as §68
+extracted `ArticleTemplate`. Both routes read `getPage()` and differ only in data and one prop,
+`thumbs`. It adopted `ArticleTemplate`'s `hasContent` filter, so a section that renders nothing
+takes no separator with it (checked with an emptied Curriculum section: no h2, two `<hr>`).
+About has no content-less section, so nothing on it moved.
+
+**What "About is unchanged" means, measured.** Every page's DOM is byte-identical to the
+pre-extraction build, FIXTURE and LIVE. The RSC payload carries the same rows (compared with
+row ids and the dedup of repeated props normalised); on `/about` they stream in a different
+ORDER, because the template is one more async component than the inline JSX was. Moving the
+translations await back into the page, or making the template synchronous, reorders them
+differently and still not identically. Two builds of the unchanged tree also differ this way
+(Charter, then Campuses and News & Events), so whole-file bytes are not a usable test for RSC
+pages: compare the DOM, and the payload's rows as a multiset.
+
+### The board's drift
+
+The frame is drawn with a 32px margin and 326px columns; the site grid is 24 / 330. `PageGrid`
+wins: the hero is 1038 × 472 (the board's 1026 × 472.5 is the same photo ratio, 2.17, on the
+narrower columns), the cards 330 × 157 (board 155). The first separator is drawn 1392 wide
+against 1376 for the others. At 330 the rail's "Faculty Development Programme" fits on one line;
+the board wraps it at 326, so only row 6 is two lines (64) here.
+
+### Thumbs three across
+
+`CardsSection` lays Thumbs two-up in columns 2–3 (the campus boards). Programmes sets them three
+across in columns 2–4, which is exactly the field `startIn` already draws for other cards, so
+`thumbs="three-up"` only stops the two-up pin. The model has no field for it; the page names it
+(§40). Measured columns: 3 at 1440, 2 at 1024 and 768, 1 at 390; gaps 24 / 24 / 20 / 16.
+
+### The rail: six unbuilt routes kept as rows, the exemption widened by one list
+
+All six children (`/programmes/bdes` … `/international`) are designed and unbuilt. The gate
+would drop all six, leaving a navigation page with no rail. §58's exemption keeps an unbuilt
+link as an unlinked row in the lists `keepUnbuilt` names; it named section ids only. It now also
+accepts `SUB_PAGE_RAIL`, and `getPage` passes it for `/programmes` only (`KEEP_UNBUILT_RAIL`):
+every other page's rail still drops unbuilt links, and §58's site-wide decision stands. The rows
+use the campus style on purpose — `text/primary`, a transparent rule, no arrow, not focusable —
+because the board draws the linked state and an unbuilt row must not look like a link. Each row
+turns into a link on its own when its route joins `BUILT_ROUTES`.
+
+The Curriculum Objectives section's "Read more" (to `/programmes/curriculum-objectives`) is a
+CTA, so the gate DROPS it while the route is unbuilt; the body stands alone. With the route
+marked built it lands in column 4 of the title row at 1440 and below the body at 1024 and under.
+
+### The CMS
+
+The `programmes` document (Generic Page) sends a title, SEO, two alt-texted heroes and two
+SPECIFIC sections, **both at orderIndex 1**. Nothing reads orderIndex for placement: the page
+order is the fixture's, and the adapter now logs any tie (`orderIndex 1 tie: …`; Ahmedabad has
+one too). The standfirst is `firstTextBlock` — the first SPECIFIC section, which now skips any
+section a rule claims by title, so a reordered array cannot make "Curriculum Objectives" the
+intro. "About" block 1 is the standfirst and the section is consumed (it never renders below);
+block 2 has no slot and is logged. The hero is `hero[0]`, a workshop photo; the board's hero is
+`hero[1]` — an editor's fix in the CMS, and the front end picks no hero by rule. Curriculum
+Objectives' body is the CMS's one sentence live, the board's seven lines without it. One more
+document per LIVE build (39 → 40); floor `programmes: 2` sections.
+
+There is no sub-page list (no STRUCTURED section; the navigation gives Programmes no children)
+and no `programme` card section. The rule for one is wired and inert on purpose: the CMS has
+three `programme` records (bachelor-of-design, master-of-design, doctorate — not the `phd`
+page), none routed in `PATH_BY_CMS_SLUG`, so a section of them would route nothing and the six
+fixture cards stay. Mapping them would let 3 records replace 6.
+
+### Photos
+
+One set of real NID photographs, from the board. The hero is the same photograph as the CMS's
+`programmes-hero-2.jpg`, the Ph.D card photo is the CMS's `fdp-hero-1` (pixel matches); the
+B.Des and M.Des photos carry camera data, and the Industry & Online photo shares an export with
+the Ph.D one. The whole-frame download returned FDP and International at 380 × 175 only (it caps
+at 20 images); each card instance's own download returned its 1520 × 700 file, the same picture.
+
+### Back link
+
+The template keeps the session-trail `BackNav` though the board draws none (§68). `/programmes`
+is named for it in `UNLISTED_PAGES`: the menu's Programmes title is a disclosure, not a link, so
+nothing else gave the route a title. The menu itself is unchanged.

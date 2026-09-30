@@ -55,21 +55,31 @@ const keepResolved = (audit: RouteAudit) => (link: { href: string }) =>
 
 /** The exemption: an unbuilt link stays, counted as an unlinked row and logged
  *  with the backlog, and LinkStack draws it as plain text. */
-const keepAsRow = (audit: RouteAudit) => (link: Link) => {
-  const route = internalRoute(ctaProps(link));
+function keepRoute(audit: RouteAudit, route: string | undefined) {
   if (route && !builtHref(route)) {
     audit.unlinkedRows++;
     miss(audit, route, false);
   }
   return true;
-};
+}
+
+const keepAsRow = (audit: RouteAudit) => (link: Link) =>
+  keepRoute(audit, internalRoute(ctaProps(link)));
+
+const keepResolvedAsRow = (audit: RouteAudit) => (link: { href: string }) =>
+  keepRoute(audit, link.href);
+
+/** Names the page's sub-page rail in `keepUnbuilt`, beside section ids. Not a
+ *  section id, so it cannot collide with one. */
+export const SUB_PAGE_RAIL = "derived.subPageLinks";
 
 export interface GateOptions {
-  /** Sections whose links are RECORDS a page lists, not calls to action — the
-   *  campus pages' detail-derived sections (PAGE_CONFIG[path].detail). There an
+  /** Lists whose links are RECORDS a page lists, not calls to action: the
+   *  campus pages' detail-derived sections (PAGE_CONFIG[path].detail), by
+   *  section id, and Programmes' sub-page rail, by SUB_PAGE_RAIL. There an
    *  unbuilt link keeps its place as an unlinked row, the treatment the header
    *  gives cards and rows. Everywhere else it is still dropped: the site-wide
-   *  version was weighed and declined (STAGE-0-NOTES §58). */
+   *  version was weighed and declined (STAGE-0-NOTES §58, §69). */
   keepUnbuilt?: ReadonlySet<string>;
 }
 
@@ -123,7 +133,9 @@ export function gatePage(
       derived: {
         ...derived,
         backNav,
-        subPageLinks: derived.subPageLinks.filter(keepResolved(audit)),
+        subPageLinks: derived.subPageLinks.filter(
+          keepUnbuilt?.has(SUB_PAGE_RAIL) ? keepResolvedAsRow(audit) : keepResolved(audit),
+        ),
         siblingBand: derived.siblingBand.filter(keepResolved(audit)),
       },
     },

@@ -24,6 +24,7 @@ export function SectionRenderer({
   pattern,
   patternSeed,
   linksLayout,
+  thumbs,
 }: {
   section: Section;
   lead?: "wide" | "feature";
@@ -35,6 +36,8 @@ export function SectionRenderer({
   patternSeed?: number;
   /** Passed to LinksSection. */
   linksLayout?: "flow" | "two-up";
+  /** Passed to CardsSection. */
+  thumbs?: "two-up" | "three-up";
 }) {
   if (!hasContent(section)) return null;
   switch (section.type) {
@@ -52,7 +55,13 @@ export function SectionRenderer({
       return <LinksSection section={section} layout={linksLayout} />;
     case "cards":
       return (
-        <CardsSection section={section} lead={lead} patternSeed={patternSeed} clamp={clamp} />
+        <CardsSection
+          section={section}
+          lead={lead}
+          patternSeed={patternSeed}
+          clamp={clamp}
+          thumbs={thumbs}
+        />
       );
     case "rail":
       return <RailSection section={section} clamp={clamp} />;

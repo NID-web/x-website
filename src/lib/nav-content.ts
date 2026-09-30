@@ -132,12 +132,14 @@ export const MENU_SECTIONS: NavSection[] = [
 // page from the landing grid is the commonest way in.
 export const HOME_NAV: NavLink = { label: "Home", href: "/" };
 
-// Built pages the menu does not list but a visitor arrives FROM — the archive
-// links every event, About links the gallery — so the back link can name them.
-// Their labels are the pages' own titles.
+// Built pages the menu does not list as a link but a visitor arrives FROM — the
+// archive links every event, About links the gallery; Programmes is a menu
+// title, which is not a link — so the back link can name them. Their labels
+// are the pages' own titles.
 const UNLISTED_PAGES: NavLink[] = [
   { label: "News & Events Archive", href: "/about/news-events/archive" },
   { label: "Student Awards Gallery", href: "/about/student-awards" },
+  { label: "Programmes", href: "/programmes" },
 ];
 
 // Map of route path to display title derived from MENU_SECTIONS for BackNav labels.

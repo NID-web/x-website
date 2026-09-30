@@ -16,7 +16,8 @@ export default function GlobalNotFound() {
       <head>
         <HeadShell />
       </head>
-      <body>
+      {/* Browser extensions (Grammarly) add attributes to <body>; this covers only its own attributes, not its children. */}
+      <body suppressHydrationWarning>
         <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-page text-text-primary">
           <p className="font-body text-body">That page doesn&apos;t exist.</p>
           <Link href="/en" className="font-body text-body underline">
