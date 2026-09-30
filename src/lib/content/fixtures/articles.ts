@@ -8,6 +8,7 @@
 // state — so those slots are empty here and render nothing.
 import type { Page, PageResponse, Section } from "@/lib/content-model";
 import { PAGE_ID } from "@/lib/content/pages";
+import type { RailLink } from "@/lib/content/editorial";
 import { mediaAsset } from "@/lib/media";
 
 const PARENT_PATH = "/about/news-events";
@@ -175,4 +176,114 @@ export const ARTICLES: Record<string, PageResponse> = {
 export const ARTICLE_CMS_SLUG: Record<string, string> = {
   [NORTH_EAST_ARTISANS.page.slug]:
     "north-east-artisans-honoured-by-honble-president-of-india-at-rashtrapati-bhavan",
+};
+
+/** A fixture for the article or event template: the page, plus the rail's
+ *  buttons, which the model has no slot for (editorial.ts). */
+export interface ArticleFixture {
+  response: PageResponse;
+  railLinks?: RailLink[];
+}
+
+// /events/[slug] — the event board ("09 Events / Drawing Dialogues") as demo
+// content, the sample of every event page (STAGE-0-NOTES §68). Keyed by the
+// CMS record for the same story, so the live build renders the CMS's document
+// here and this only when it does not arrive. Its path is the short one
+// sitemap.json names, /events/drawing-dialogues (pages.ts).
+//
+// The hero is the board's own image (image 13), at its native 1891 × 831 —
+// about 1.8× the 1038 × 455 slot; the source is no larger. Live, the CMS's
+// poster replaces it. Its rail dates are written with the year, as the
+// formatter prints live ones
+// (the board omits it). Objectives are numbered as the board draws them; the
+// CMS authors the same list as bullets.
+const DRAWING_DIALOGUES_SLUG = "drawing-dialogues-calibration-and-celebration-of-drawing-in-design";
+
+const DRAWING_DIALOGUES: ArticleFixture = {
+  response: {
+    page: {
+      id: `article-${DRAWING_DIALOGUES_SLUG}`,
+      title: "Drawing Dialogues: Calibration and Celebration of Drawing in Design",
+      slug: DRAWING_DIALOGUES_SLUG,
+      parent: PAGE_ID.events,
+      template: "secondary",
+      utility: "none",
+      keyInfo: [
+        { label: "Call for proposals open", value: "8 May 2026" },
+        { label: "Abstract submission", value: "30 June 2026" },
+        { label: "Selection announcements", value: "30 July 2026" },
+        { label: "Symposium", value: "30–31 October 2026" },
+      ],
+      hero: [
+        mediaAsset(
+          "/events/drawing-dialogues-hero.jpg",
+          "A leaf on a deep blue ground: its left half photographed with every vein, its right half redrawn as fine dark linework over the same shape.",
+          1891,
+          831,
+        ),
+      ],
+      sections: [
+        {
+          title: "Introduction",
+          body: "Drawing remains central to design pedagogy across disciplines at NID. This conference aims to create a platform for discussing, practising, and rethinking drawing as a means of generating and visualising knowledge. It aims to bring together educators, practitioners, researchers, and students to reflect on the indispensable role of drawing in design education in the age of artificial reproductions.",
+        },
+        {
+          title: "Objectives",
+          body:
+            "<ol>" +
+            "<li>To explore the diverse functions that drawing serves in the design process—cognitive, expressive, communicative, analytical, and speculative.</li>" +
+            "<li>To investigate the scope of Drawing across traditional and emerging media, including analogue, digital, and hybrid forms.</li>" +
+            "<li>To explore how drawing improves basic visual thinking, idea development, and meaning creation in modern design teaching.</li>" +
+            "<li>To establish a platform for sharing pedagogical approaches, studio practices, and research related to Drawing.</li>" +
+            "<li>To celebrate Drawing as a dynamic and evolving language that bridges intuition and intellect, observation and imagination</li>" +
+            "</ol>",
+        },
+        {
+          title: "Presentation Themes",
+          body:
+            "<ul>" +
+            "<li>Pedagogy of Drawing in Design Education</li>" +
+            "<li>Drawing Research</li>" +
+            "<li>Traditions of Drawing</li>" +
+            "<li>Drawing Practice (Case Studies and Industry Experience)</li>" +
+            "<li>Drawing Futures</li>" +
+            "</ul>\n\n" +
+            "The conference will span two days, comprising Keynote Talks &amp; Panel Discussions, Hands-on workshops, Presentations, and a Drawing Exhibition.",
+        },
+        {
+          title: "Expected Outcomes",
+          body:
+            "<ul>" +
+            "<li>A deeper understanding of how drawing can be redefined and repositioned within contemporary design education and academic practice.</li>" +
+            "<li>Post-symposium documentation (compilation of keynotes and presentations) and dissemination of insights from the symposium.</li>" +
+            "<li>Enhancing dialogue and collaboration among design institutions, faculty, students, and practitioners centred on drawing-based practices.</li>" +
+            "</ul>\n\n" +
+            "An abstract of 150-200 words (600 Characters) for the proposed presentation at the symposium must be submitted by 30 June 2026. Selected abstracts will be invited to present.",
+        },
+      ].map((s, i) => ({
+        ...s,
+        id: `section-dd-${i + 1}`,
+        page: `article-${DRAWING_DIALOGUES_SLUG}`,
+        order: i + 1,
+        type: "text" as const,
+        links: [],
+        contacts: [],
+        items: [] as [],
+      })),
+      contacts: [{ label: "Email", value: "drawingdialogues@nid.edu" }],
+      publishedAt: "2026-05-08T00:00:00+05:30",
+    },
+    derived: { menuTree: [], breadcrumb: [], backNav: null, subPageLinks: [], siblingBand: [] },
+  },
+  railLinks: [
+    {
+      key: "apply",
+      url: "https://docs.google.com/forms/d/e/1FAIpQLSe79vwp4kkoq23a3DICav6klww2J9DtJI0rXi9xJNsyqlBjDg/viewform",
+    },
+  ],
+};
+
+/** Event fixtures, keyed by CMS slug; their pages are under /events. */
+export const EVENT_ARTICLES: Record<string, ArticleFixture> = {
+  [DRAWING_DIALOGUES_SLUG]: DRAWING_DIALOGUES,
 };

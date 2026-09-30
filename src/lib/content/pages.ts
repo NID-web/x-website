@@ -15,6 +15,7 @@ export const PAGE_ID = {
   history: "page-about-history",
   campuses: "page-about-campuses",
   newsEvents: "page-about-news-events",
+  events: "page-events",
   ourThemes: "page-about-our-themes",
   studentAwards: "page-about-student-awards",
   newsArchive: "page-about-news-archive",
@@ -46,6 +47,9 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.history]: "/about/history",
   [PAGE_ID.campuses]: "/about/campuses",
   [PAGE_ID.newsEvents]: "/about/news-events",
+  // Not a page (no /events landing is built); the parent path event cards and
+  // pages hang off.
+  [PAGE_ID.events]: "/events",
   [PAGE_ID.ourThemes]: "/about/our-themes",
   [PAGE_ID.studentAwards]: "/about/student-awards",
   [PAGE_ID.newsArchive]: "/about/news-events/archive",
@@ -96,6 +100,7 @@ export type CardKind = "news" | "campus" | "alumni" | "thumb";
 
 const CARD_KIND_BY_PARENT: Record<UUID, CardKind> = {
   [PAGE_ID.newsEvents]: "news",
+  [PAGE_ID.events]: "news",
   [PAGE_ID.campuses]: "campus",
   [PAGE_ID.studentAwards]: "alumni",
   // The campus pages' Disciplines: programme pages on the fixture, CMS
@@ -146,7 +151,22 @@ const PATH_BY_CMS_SLUG: Record<string, string> = {
   "privacy-policy": "/privacy",
   "terms-and-conditions": "/terms",
   sitemap: "/sitemap",
+  // The two events sitemap.json names by a short path (09 Events), stated
+  // rather than matched on title (STAGE-0-NOTES §68).
+  "drawing-dialogues-calibration-and-celebration-of-drawing-in-design": "/events/drawing-dialogues",
+  "shifting-paradigms-design-education-next": "/events/shifting-paradigms",
 };
+
+// One story, one page: a CMS record that tells the same story as another opens
+// the other's page, its own URLs 308 there, and no list shows it (§68). Stated,
+// never matched on title. The seed event "drawing-dialogues" (an "illustration
+// festival" on 15 Sep) collides by name with the Drawing Dialogues symposium.
+export const SAME_STORY: Record<string, string> = {
+  "drawing-dialogues": "drawing-dialogues-calibration-and-celebration-of-drawing-in-design",
+};
+
+/** Content types whose items are events, with their page under /events. */
+export const isEventType = (type: string | undefined) => type === "event" || type === "workshop";
 
 export function pathOfCmsSlug(slug: string): string | undefined {
   return PATH_BY_CMS_SLUG[slug];
@@ -157,4 +177,17 @@ export function pathOfCmsSlug(slug: string): string | undefined {
  *  the rule page-adapter.ts applies to the same collection as `slugUnderParent`. */
 export function newsArticlePath(slug: string): string {
   return pathOfCmsSlug(slug) ?? `${pathOf(PAGE_ID.newsEvents)}/${slug}`;
+}
+
+/** An event's route: /events/<slug>, or the short path sitemap.json names. */
+export function eventPath(slug: string): string {
+  return pathOfCmsSlug(slug) ?? `${pathOf(PAGE_ID.events)}/${slug}`;
+}
+
+/** The page a CMS collection item opens — THE rule for every card, archive row
+ *  and "More news" link: events under /events, news under /about/news-events,
+ *  a same-story duplicate at its canonical record's page. */
+export function itemPath(slug: string, type: string | undefined): string {
+  const canonical = SAME_STORY[slug] ?? slug;
+  return isEventType(type) ? eventPath(canonical) : newsArticlePath(canonical);
 }

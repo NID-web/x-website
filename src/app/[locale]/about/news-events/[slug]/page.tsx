@@ -1,21 +1,9 @@
 import type { Metadata } from "next";
-import { Fragment } from "react";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { GridItem } from "@/components/layout/GridItem";
-import { PageGrid } from "@/components/layout/PageGrid";
-import { BrandStrip } from "@/components/spine/BrandStrip";
-import { Cta } from "@/components/spine/Cta";
-import { Footer } from "@/components/spine/Footer";
-import { PageHero } from "@/components/spine/PageHero";
-import { Separator } from "@/components/spine/Separator";
-import { Standfirst } from "@/components/spine/Standfirst";
-import { Title } from "@/components/spine/Title";
-import { ContactList } from "@/components/sections/parts";
-import { SectionRenderer, hasContent } from "@/components/sections/SectionRenderer";
-import { SiblingBand } from "@/components/sections/SiblingBand";
+import { ArticleTemplate } from "@/components/sections/ArticleTemplate";
 import { permanentRedirect } from "@/i18n/navigation";
-import { articleRedirect, articleSlugs, getArticle } from "@/lib/content/getArticle";
+import { NEWS_ROUTE, articleRedirect, articlePath, articleSlugs, getArticle } from "@/lib/content/getArticle";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -24,11 +12,11 @@ type Params = { params: Promise<{ slug: string }> };
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  return (await articleSlugs()).map((slug) => ({ slug }));
+  return (await articleSlugs(NEWS_ROUTE)).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const response = await getArticle((await params).slug);
+  const response = await getArticle(articlePath((await params).slug));
   if (!response) return {};
   const { page } = response;
   return {
@@ -43,80 +31,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
  * differ only in which optional slots are filled.
  */
 export default async function ArticlePage({ params }: Params) {
-  const { slug } = await params;
-  // A fixture slug whose story the CMS serves under its own slug: 308 to that
-  // one page rather than render the same article twice (getArticle.ts).
-  const canonical = await articleRedirect(slug);
+  const path = articlePath((await params).slug);
+  // A URL that is another page's: a fixture slug the CMS serves under its own,
+  // or an event from before events moved to /events (§68). 308 there.
+  const canonical = await articleRedirect(path);
   if (canonical) permanentRedirect({ href: canonical, locale: await getLocale() });
-  const response = await getArticle(slug);
+  const response = await getArticle(path);
   if (!response) notFound();
-  const { page, derived } = response;
-  const [t, tArticle] = await Promise.all([getTranslations("Page"), getTranslations("Article")]);
-  // Skipped here, not only in SectionRenderer, so the separator goes with it.
-  const sections = page.sections.filter(hasContent);
-
-  return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
-      <BrandStrip />
-      <PageGrid>
-        <Title variant="page">{page.title}</Title>
-
-        {/* Always the listing, not the session trail BackNav follows: an
-            article is reached from Home, About and its siblings as often as from
-            its listing, and the boards name the parent (A5). */}
-        {derived.backNav && (
-          <GridItem span="full-then-1" place="page-utility">
-            <Cta variant="primary" icon="arrow-left" label={derived.backNav.label} href={derived.backNav.href} />
-          </GridItem>
-        )}
-
-        {page.keyInfo.length > 0 && (
-          <GridItem span="full-then-1" start={1}>
-            <ContactList contacts={page.keyInfo} />
-          </GridItem>
-        )}
-
-        <PageHero hero={page.hero} placeholder={false} />
-
-        {page.intro && (
-          <GridItem span={2} start={2}>
-            <Standfirst text={page.intro} seeMore={t("seeMore")} />
-          </GridItem>
-        )}
-
-        {sections.map((section) => (
-          <Fragment key={section.id}>
-            <Separator />
-            <SectionRenderer
-              section={section}
-              // TODO(review): every article body clamps at ClampedProse's
-              // existing nine lines — the model has no clamp field and an API
-              // section has no id to name, so the per-page CLAMP table other
-              // pages use cannot reach it. The control hides itself when nothing
-              // is clipped. The boards draw theirs at 7 and 9 lines; that is
-              // not taken as a spec.
-              clamp={{ seeMore: t("seeMore"), seeLess: t("seeLess") }}
-              pattern={false}
-            />
-          </Fragment>
-        ))}
-
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            <SiblingBand
-              items={derived.siblingBand}
-              parentTitle={derived.backNav?.label ?? page.title}
-              title={tArticle("moreNews")}
-              pattern={false}
-            />
-          </>
-        )}
-
-        <Separator />
-        <Footer />
-      </PageGrid>
-      <BrandStrip logo />
-    </main>
-  );
+  return <ArticleTemplate response={response} />;
 }

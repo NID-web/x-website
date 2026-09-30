@@ -1,5 +1,7 @@
-// The article seam, /about/news-events/[slug] — the one route where the CMS owns
-// page STRUCTURE (STAGE-0-NOTES §59). Every other page merges the API over a
+// The article seam, /about/news-events/[slug] and /events/[slug] — the routes
+// where the CMS owns page STRUCTURE (STAGE-0-NOTES §59, §68). One projection
+// for both: news items build under the first, events and workshops under the
+// second (itemPath in pages.ts). Every other page merges the API over a
 // fixture that decides which sections exist (page-adapter.ts); an article is a
 // collection item with no board of its own, so its sections, their order, titles
 // and count are the document's. The boards are the layout contract only.
@@ -20,17 +22,21 @@ import {
   type PublicContentResponse,
   type Section as ApiSection,
 } from "@/lib/api/types";
-import { formatEventDate, plainParagraphs, plainText } from "@/lib/content/format";
+import { formatEventDate, joinBlocks, plainText, richParagraphs } from "@/lib/content/format";
 import { registerBuiltParams } from "@/lib/content/links";
-import { PAGE_ID, newsArticlePath, pageIdOf, pathOf } from "@/lib/content/pages";
+import { PAGE_ID, SAME_STORY, isEventType, itemPath, pageIdOf, pathOf } from "@/lib/content/pages";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { CMS_FLOORS } from "@/lib/content/cms-floors";
-import { ARTICLE_CMS_SLUG, ARTICLES } from "@/lib/content/fixtures/articles";
+import { RAIL_LINK_ORDER, type RailLink } from "@/lib/content/editorial";
+import { ARTICLE_CMS_SLUG, ARTICLES, EVENT_ARTICLES, type ArticleFixture } from "@/lib/content/fixtures/articles";
 import { routeTitle } from "@/lib/nav-content";
 import { normalise } from "@/lib/nav-trail";
 
-const ROUTE = "/about/news-events/[slug]";
+export const NEWS_ROUTE = "/about/news-events/[slug]";
+export const EVENTS_ROUTE = "/events/[slug]";
+export type ArticleRoute = typeof NEWS_ROUTE | typeof EVENTS_ROUTE;
 const PARENT = normalise(pathOf(PAGE_ID.newsEvents) ?? "/about/news-events");
+const BASE: Record<ArticleRoute, string> = { [NEWS_ROUTE]: PARENT, [EVENTS_ROUTE]: pathOf(PAGE_ID.events)! };
 /** The listing document whose items are the articles the site links to. */
 const FEED_SLUG = "news-events";
 /** A slug that can be one URL segment as-is. The CMS derives slugs from titles
@@ -123,25 +129,39 @@ export function listedItems(): Promise<Listed> {
   return (listed ??= loadListed());
 }
 
+/** One page either route builds: the CMS record it renders, and/or the fixture
+ *  that stands in when that record's document does not arrive. */
+interface Entry {
+  slug: string;
+  route: ArticleRoute;
+  card?: CardRef;
+  fixture?: ArticleFixture;
+}
+
 interface Feed {
-  /** Routable feed items, newest first, one per slug. */
+  /** The listing document's routable items, newest first: "More news". */
   items: CardRef[];
-  /** Routable list-endpoint items the feed does not carry. They are built as
-   *  pages so the archive can link them, and are never "More news" siblings:
-   *  that stays the feed's, so no existing article changes. */
+  /** Routable list-endpoint items the document does not carry; built so the
+   *  archive can link them, never "More news" siblings. */
   listedOnly: Map<string, CardRef>;
-  /** Every slug the route builds: the feed's, the lists' and the fixtures'. */
-  slugs: Set<string>;
-  /** Fixture slug → the CMS slug of the same story, where the feed lists it. */
+  /** Every page either route builds, by its full path. */
+  pages: Map<string, Entry>;
+  /** Every other URL that builds, as a 308 to its page: an event's old
+   *  /about/news-events/ URL, an event's CMS-slug path where sitemap.json names
+   *  a short one, a same-story duplicate, a fixture slug the CMS serves under
+   *  its own (§63, §68). */
   redirects: Map<string, string>;
   dropped: string[];
+  /** Records that are another record's story (SAME_STORY), so no page. */
+  duplicates: string[];
 }
 
 // The listing document's items are the article index: every card on
 // /about/news-events comes from it, and it alone orders "More news". The
 // archive lists more — every news, event and workshop item the list endpoints
 // serve — so their non-calendar items are built too (STAGE-0-NOTES §66); a
-// calendar entry is not an article and nothing links one.
+// calendar entry is not an article and nothing links one. Events and workshops
+// build under /events, news under /about/news-events (itemPath, §68).
 //
 // Memoised per PROCESS, not per render (react `cache`): every article page and
 // every gate needs the same list, and one request per page would spend the
@@ -150,11 +170,14 @@ interface Feed {
 // restart to see an article added in the CMS.
 let feed: Promise<Feed> | undefined;
 
-/** Why a slug cannot be an article route, or null when it can. */
-function refusal(slug: string): string | null {
-  // The same rule the listing's cards are routed by (slugUnderParent).
-  const path = newsArticlePath(slug);
-  if (path !== articlePath(slug)) return `routes to ${path}`;
+const typeOf = (card: CardRef) => card.contentType?.key;
+const routeOfType = (type: string | undefined): ArticleRoute => (isEventType(type) ? EVENTS_ROUTE : NEWS_ROUTE);
+
+/** Why a record cannot have a page, or null when it can. */
+function refusal(slug: string, type: string | undefined): string | null {
+  const path = itemPath(slug, type);
+  const base = BASE[routeOfType(type)];
+  if (!path.startsWith(`${base}/`) || path.slice(base.length + 1).includes("/")) return `routes to ${path}`;
   if (!SEGMENT.test(slug)) return "not a URL segment";
   // A named page under the listing — `archive` is one — is a static segment
   // beside [slug]. Next would prefer the static page anyway; refusing here
@@ -174,7 +197,7 @@ async function loadFeed(): Promise<Feed> {
     if (section.type !== "STRUCTURED") continue;
     for (const item of section.items ?? []) {
       if (bySlug.has(item.slug)) continue;
-      const reason = refusal(item.slug);
+      const reason = refusal(item.slug, typeOf(item));
       if (reason) {
         dropped.push(`${item.slug} (${reason})`);
         continue;
@@ -187,7 +210,7 @@ async function loadFeed(): Promise<Feed> {
     if (bySlug.has(item.slug)) continue;
     // Built only so the archive can link it, and the archive has no year for
     // an undated item — so it would be a page nothing links to.
-    const reason = item.publishedAt ? refusal(item.slug) : "no publishedAt, not in the archive";
+    const reason = item.publishedAt ? refusal(item.slug, typeOf(item)) : "no publishedAt, not in the archive";
     if (reason) {
       dropped.push(`${item.slug} (${reason}, listed)`);
       continue;
@@ -199,17 +222,54 @@ async function loadFeed(): Promise<Feed> {
   // The case that throws nothing: a 200 whose sections are empty builds two
   // fixture routes and withholds every news link, with exit 0.
   assertFloor("article feed (routable items in news-events)", CMS_FLOORS.articleFeed, items.length, `/public/content/${FEED_SLUG}`);
-  const slugs = new Set([...items.map((i) => i.slug), ...listedOnly.keys(), ...Object.keys(ARTICLES)]);
-  // A fixture whose story the feed also carries under the CMS's slug would be
-  // the same article at two URLs, one of them unlinked. It still builds, as a
-  // permanent redirect: sitemap.json lists the fixture path and outside links
-  // may use it. With the CMS off the feed is empty and the fixture is the page.
-  const redirects = new Map(
-    Object.entries(ARTICLE_CMS_SLUG).filter(([, cms]) => bySlug.has(cms)),
-  );
-  // Still registered: a link to the old path is live and lands on the redirect.
-  registerBuiltParams(ROUTE, slugs);
-  return { items, listedOnly, slugs, redirects, dropped };
+
+  const pages = new Map<string, Entry>();
+  const redirects = new Map<string, string>();
+  const duplicates: string[] = [];
+  const records = [...items, ...listedOnly.values()];
+  // Canonical records first, so a same-story duplicate never claims the page.
+  for (const card of [...records.filter((c) => !SAME_STORY[c.slug]), ...records.filter((c) => SAME_STORY[c.slug])]) {
+    const type = typeOf(card);
+    const path = itemPath(card.slug, type);
+    if (pages.has(path)) duplicates.push(`${card.slug} → ${path}`);
+    else pages.set(path, { slug: card.slug, route: routeOfType(type), card });
+    if (isEventType(type)) {
+      // Its URL before events moved (built until §68), and its own CMS slug
+      // under /events where the page is a short path or another record's.
+      for (const from of [articlePath(card.slug), `${BASE[EVENTS_ROUTE]}/${card.slug}`]) {
+        if (from !== path) redirects.set(from, path);
+      }
+    }
+  }
+  // A fixture stands in for its record, or is the page where there is none. One
+  // whose story the CMS serves under another slug is a 308 there instead: the
+  // fixture path is still linked from outside (§63).
+  const fixtures: Array<[string, ArticleFixture, string]> = [
+    ...Object.entries(ARTICLES).map(([slug, response]) => [slug, { response }, "news"] as [string, ArticleFixture, string]),
+    ...Object.entries(EVENT_ARTICLES).map(([slug, f]) => [slug, f, "workshop"] as [string, ArticleFixture, string]),
+  ];
+  for (const [slug, fixture, type] of fixtures) {
+    const path = itemPath(slug, type);
+    const cms = ARTICLE_CMS_SLUG[slug];
+    const record = cms ? (bySlug.get(cms) ?? listedOnly.get(cms)) : undefined;
+    if (record) {
+      redirects.set(path, itemPath(record.slug, typeOf(record)));
+      continue;
+    }
+    const entry = pages.get(path);
+    if (entry) entry.fixture = fixture;
+    else pages.set(path, { slug, route: routeOfType(type), fixture });
+  }
+  for (const path of pages.keys()) redirects.delete(path);
+
+  for (const route of [NEWS_ROUTE, EVENTS_ROUTE] as const) {
+    const base = `${BASE[route]}/`;
+    registerBuiltParams(
+      route,
+      [...pages.keys(), ...redirects.keys()].filter((p) => p.startsWith(base)).map((p) => p.slice(base.length)),
+    );
+  }
+  return { items, listedOnly, pages, redirects, dropped, duplicates };
 }
 
 /** The article index, registered with the route gate. Every page that gates
@@ -219,29 +279,32 @@ export function articleFeed(): Promise<Feed> {
   return (feed ??= loadFeed());
 }
 
-/** generateStaticParams' slugs, with the one summary line for the build. */
-export async function articleSlugs(): Promise<string[]> {
-  const { items, listedOnly, slugs, redirects, dropped } = await articleFeed();
-  const fixtures = Object.keys(ARTICLES);
-  const shared = fixtures.filter((s) => items.some((i) => i.slug === s)).length;
-  const fixtureOnly = fixtures.length - shared - redirects.size;
+/** generateStaticParams' slugs for one route — its pages and its 308s — with
+ *  the one summary line for the build. */
+export async function articleSlugs(route: ArticleRoute): Promise<string[]> {
+  const { items, listedOnly, pages, redirects, dropped, duplicates } = await articleFeed();
+  const base = `${BASE[route]}/`;
+  const own = [...pages].filter(([p]) => p.startsWith(base));
+  const moves = [...redirects].filter(([p]) => p.startsWith(base));
+  const fromFeed = own.filter(([, e]) => e.card && items.includes(e.card)).length;
+  const fromLists = own.filter(([, e]) => e.card && listedOnly.has(e.card.slug)).length;
+  const fixtureOnly = own.filter(([, e]) => !e.card).length;
   report({
     t: "routes",
-    route: ROUTE,
-    count: slugs.size,
-    fromFeed: items.length,
-    fromLists: listedOnly.size,
+    route,
+    count: own.length + moves.length,
+    fromFeed,
+    fromLists,
     fixtureOnly,
-    redirects: [...redirects].map(([from, to]) => `${from} → ${to}`),
+    redirects: moves.map(([from, to]) => `${from} → ${to}`),
   });
   console.info(
-    `[cms] ${ROUTE}: ${slugs.size} routes — ${items.length} from the api feed, ` +
-      `${listedOnly.size} from the list endpoints only${listedOnly.size ? ` (${[...listedOnly.keys()].join(", ")})` : ""}, ` +
-      `${fixtureOnly} fixture-only, ${shared} fixture slug${shared === 1 ? "" : "s"} also in the feed` +
-      (redirects.size ? `, ${redirects.size} fixture slug${redirects.size === 1 ? "" : "s"} redirecting (${[...redirects].map(([f, c]) => `${f} → ${c}`).join(", ")})` : "") +
-      ` · dropped ${dropped.length} (no path)${dropped.length ? `: ${dropped.join(", ")}` : ""}`,
+    `[cms] ${route}: ${own.length} pages — ${fromFeed} from the api feed, ${fromLists} from the list endpoints only, ` +
+      `${fixtureOnly} fixture-only · ${moves.length} redirecting${moves.length ? ` (${moves.map(([f, t]) => `${f} → ${t}`).join(", ")})` : ""}` +
+      (route === EVENTS_ROUTE && duplicates.length ? ` · same story, no page: ${duplicates.join(", ")}` : "") +
+      (route === NEWS_ROUTE ? ` · dropped ${dropped.length} (no path)${dropped.length ? `: ${dropped.join(", ")}` : ""}` : ""),
   );
-  return [...slugs];
+  return [...own, ...moves].map(([p]) => p.slice(base.length));
 }
 
 type Obj = Record<string, unknown>;
@@ -249,17 +312,17 @@ const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined);
 
 /** The typed `detail` an item document carries, read defensively: `body` on
- *  news, `schedules` + stream/registration links on events, symposium dates +
- *  an apply link on workshops. Anything malformed is simply absent. */
+ *  news, `schedules` + stream/registration links on events, symposium and
+ *  milestone dates + an apply link on workshops. Anything malformed is absent. */
 function readDetail(api: PublicContentResponse) {
   const d = isObj(api.detail) ? api.detail : {};
   const schedule = Array.isArray(d.schedules) ? d.schedules.filter(isObj) : [];
   const first = schedule[0];
-  const links: Array<{ key: "liveStream" | "register" | "apply"; url: string }> = [];
+  const links: RailLink[] = [];
   for (const [field, key] of [
-    ["liveStreamLink", "liveStream"],
-    ["registrationLink", "register"],
     ["applyLink", "apply"],
+    ["registrationLink", "register"],
+    ["liveStreamLink", "liveStream"],
   ] as const) {
     const url = str(d[field]);
     if (url && /^https?:\/\//.test(url)) links.push({ key, url });
@@ -267,12 +330,23 @@ function readDetail(api: PublicContentResponse) {
   const known = new Set([
     "contentItemId", "body", "schedules", "liveStreamLink", "registrationLink", "applyLink",
     "symposiumStartDate", "symposiumEndDate",
+    "callForProposalOpenDate", "abstractSubmissionDate", "selectionAnnouncementDate",
   ]);
   return {
     body: str(d.body),
     start: str(first?.startDate) ?? str(d.symposiumStartDate),
     end: str(first?.endDate) ?? str(d.symposiumEndDate),
     dateFrom: first?.startDate ? "schedules" : d.symposiumStartDate ? "symposiumStartDate" : undefined,
+    scheduleStart: str(first?.startDate),
+    scheduleEnd: str(first?.endDate),
+    symposiumStart: str(d.symposiumStartDate),
+    symposiumEnd: str(d.symposiumEndDate),
+    /** A workshop's milestones, in the order the event board's rail lists them. */
+    milestones: ([
+      ["callForProposals", str(d.callForProposalOpenDate)],
+      ["abstractSubmission", str(d.abstractSubmissionDate)],
+      ["selectionAnnouncement", str(d.selectionAnnouncementDate)],
+    ] as const).filter((m): m is readonly [(typeof m)[0], string] => Boolean(m[1])),
     venue: str(first?.venue),
     schedules: schedule.length,
     links,
@@ -301,7 +375,7 @@ function toSection(as: ApiSection, pageId: string, log: Log): Section | null {
     // as a string so the comparison type-checks.
     const type: string = block.blockType;
     if (type === "TEXT") {
-      const text = block.text ? plainParagraphs(block.text).text : "";
+      const text = block.text ? richParagraphs(block.text).text : "";
       if (text) texts.push(text);
     } else if (type === "IMAGE") {
       const media = toMediaAsset(block.media);
@@ -328,7 +402,8 @@ function toSection(as: ApiSection, pageId: string, log: Log): Section | null {
   const title = as.title?.trim() ?? "";
   const name = `"${title || `section ${as.id}`}"`;
   if (dropped.length) log.notes.push(`${name}: dropped ${dropped.join(", ")}`);
-  const body = texts.join("\n\n");
+  const { body, lists } = joinBlocks(texts);
+  if (lists) log.notes.push(`${name}: ${lists} list${lists === 1 ? "" : "s"} from "- " blocks`);
   if (!body && !image && !links.length) {
     // CLAUDE.md: the front end refuses to render a section with no content.
     log.notes.push(`${name}: no content, not rendered`);
@@ -348,13 +423,22 @@ function toSection(as: ApiSection, pageId: string, log: Log): Section | null {
   };
 }
 
+type ArticleKey =
+  | "date" | "venue" | "liveStream" | "register" | "apply" | "allNews"
+  | "callForProposals" | "abstractSubmission" | "selectionAnnouncement" | "symposium";
+
+/** An article or event page: the PageResponse, plus the detail links the rail
+ *  draws as buttons (the model has no slot for a page-level link, §33). */
+export type ArticleResponse = PageResponse & { railLinks: RailLink[] };
+
 function toArticle(
   api: PublicContentResponse,
   card: CardRef | undefined,
-  t: (key: "date" | "venue" | "liveStream" | "register" | "apply" | "allNews") => string,
+  t: (key: ArticleKey) => string,
   locale: string,
   log: Log,
-): PageResponse {
+  route: ArticleRoute,
+): ArticleResponse {
   const pageId = `article-${api.slug}`;
   const detail = readDetail(api);
 
@@ -362,30 +446,59 @@ function toArticle(
   if (str(api.title)) log.api.push("title");
 
   const keyInfo: LabelValue[] = [];
-  // TODO(review): an event's Date is its schedule's startDate and a workshop's
-  // its symposium dates — the date the board draws (22 January 2026 is the
-  // Convocation itself). Everything else falls back to publishedAt, which is
-  // the ANNOUNCEMENT date and, on several records, a seed timestamp (B4).
   const published = api.publishedAt ?? card?.publishedAt ?? null;
-  if (detail.start) {
-    keyInfo.push({ label: t("date"), value: formatEventDate(detail.start, locale, detail.end) });
-    log.api.push(`date(${detail.dateFrom})`);
-  } else if (published) {
-    keyInfo.push({ label: t("date"), value: formatEventDate(published, locale) });
-    log.api.push("date(publishedAt)");
-  }
-  if (detail.schedules > 1) log.notes.push(`${detail.schedules} schedules, first used`);
-  if (detail.venue) {
-    keyInfo.push({ label: t("venue"), value: detail.venue });
-    log.api.push("venue(schedules)");
-  } else {
-    log.absent.push("venue(no location field)");
-  }
-
   const contacts = api.contacts ?? [];
-  // The board draws the contact CTA under the rail's rows.
-  keyInfo.push(...contacts.map(({ label, value }) => ({ label, value })));
-  if (contacts.length) log.api.push(`contacts(${contacts.length})`);
+  if (route === EVENTS_ROUTE) {
+    // An event's rail is its own dates: a schedule's date and venue, or a
+    // workshop's milestones and symposium. publishedAt is the ANNOUNCEMENT
+    // (A2), never an event's date, so no fallback to it: no data, no row.
+    // TODO(review): designer — dates carry the year ("8 May 2026"); the event
+    // board omits it, but the archive of events reaches back to 2020.
+    // TODO(review): content — the Drawing Dialogues and Shifting Paradigms
+    // documents have an "Important Dates" section repeating these rows. The CMS
+    // owns an article's sections, so it stays (matching it by title is the
+    // fragile pattern).
+    if (detail.scheduleStart) {
+      keyInfo.push({ label: t("date"), value: formatEventDate(detail.scheduleStart, locale, detail.scheduleEnd) });
+      log.api.push("date(schedules)");
+    }
+    if (detail.schedules > 1) log.notes.push(`${detail.schedules} schedules, first used`);
+    if (detail.venue) {
+      keyInfo.push({ label: t("venue"), value: detail.venue });
+      log.api.push("venue(schedules)");
+    }
+    for (const [key, date] of detail.milestones) keyInfo.push({ label: t(key), value: formatEventDate(date, locale) });
+    if (detail.milestones.length) log.api.push(`milestones(${detail.milestones.length})`);
+    if (detail.symposiumStart) {
+      keyInfo.push({ label: t("symposium"), value: formatEventDate(detail.symposiumStart, locale, detail.symposiumEnd) });
+      log.api.push("symposium");
+    }
+    if (!keyInfo.length) log.absent.push("dates(no schedules or milestones)");
+    // The contacts follow the buttons, so they are the page's, not rail rows.
+    if (contacts.length) log.api.push(`contacts(${contacts.length})`);
+  } else {
+    // TODO(review): an event's Date is its schedule's startDate and a workshop's
+    // its symposium dates — the date the board draws (22 January 2026 is the
+    // Convocation itself). Everything else falls back to publishedAt, which is
+    // the ANNOUNCEMENT date and, on several records, a seed timestamp (B4).
+    if (detail.start) {
+      keyInfo.push({ label: t("date"), value: formatEventDate(detail.start, locale, detail.end) });
+      log.api.push(`date(${detail.dateFrom})`);
+    } else if (published) {
+      keyInfo.push({ label: t("date"), value: formatEventDate(published, locale) });
+      log.api.push("date(publishedAt)");
+    }
+    if (detail.schedules > 1) log.notes.push(`${detail.schedules} schedules, first used`);
+    if (detail.venue) {
+      keyInfo.push({ label: t("venue"), value: detail.venue });
+      log.api.push("venue(schedules)");
+    } else {
+      log.absent.push("venue(no location field)");
+    }
+    // The board draws the contact CTA under the rail's rows.
+    keyInfo.push(...contacts.map(({ label, value }) => ({ label, value })));
+    if (contacts.length) log.api.push(`contacts(${contacts.length})`);
+  }
 
   // Non-decorative, and no fallback alt: a page title names the page, not the
   // picture (media.ts). A rejected hero renders no hero at all.
@@ -401,7 +514,7 @@ function toArticle(
   if (detail.body) {
     // A news item's body is one untitled block of prose in `detail`, not a
     // section; it opens the article, before any titled section.
-    const body = plainParagraphs(detail.body).text;
+    const body = richParagraphs(detail.body).text;
     if (body) {
       sections.push({
         id: "section-body",
@@ -432,24 +545,11 @@ function toArticle(
   }
   if (fromSections) log.api.push(`sections(${fromSections})`);
 
-  // The typed detail's links (live stream, registration, apply) join the first
-  // section's column-4 slot — where the Convocation board draws "Watch the live
-  // stream". With no section to carry them they are logged, not rendered.
-  if (detail.links.length) {
-    const first = sections[0];
-    const links: Link[] = detail.links.map(({ key, url }) => ({
-      id: `link-detail-${key}`,
-      label: t(key),
-      targetType: "external",
-      url,
-    }));
-    if (first) {
-      sections[0] = { ...first, links: [...first.links, ...links] };
-      log.api.push(`detailLinks(${links.length})`);
-    } else {
-      log.notes.push(`detail links dropped (no section): ${detail.links.map((l) => l.key).join(",")}`);
-    }
-  }
+  // The typed detail's links (apply, registration, live stream) are the rail's
+  // filled buttons, in that order, and nowhere else (§68). Before events had
+  // their own route they were the first section's column-4 links.
+  const railLinks = RAIL_LINK_ORDER.flatMap((key) => detail.links.filter((l) => l.key === key));
+  if (railLinks.length) log.api.push(`railLinks(${railLinks.map((l) => l.key).join(",")})`);
   if (!sections.some((s) => s.links.length)) log.absent.push("sectionLinks(A4)");
   if (!sections.some((s) => s.image)) log.absent.push("sectionImages(5.2)");
   if (detail.unused.length) log.notes.push(`detail unused: ${detail.unused.join(", ")}`);
@@ -464,19 +564,20 @@ function toArticle(
       id: pageId,
       title,
       slug: api.slug,
-      parent: PAGE_ID.newsEvents,
+      parent: route === EVENTS_ROUTE ? PAGE_ID.events : PAGE_ID.newsEvents,
       template: "secondary",
-      utility: "back",
+      utility: route === EVENTS_ROUTE ? "none" : "back",
       keyInfo,
       hero: heroes,
       ...(intro ? { intro } : {}),
       sections: sections.map((s, i) => ({ ...s, order: i + 1 })),
-      contacts: [],
+      contacts: route === EVENTS_ROUTE ? contacts.map(({ label, value }) => ({ label, value })) : [],
       ...(seoTitle ? { seoTitle } : {}),
       ...(seoDescription ? { seoDescription } : {}),
       publishedAt: published,
     },
     derived: { menuTree: [], breadcrumb: [], backNav: null, subPageLinks: [], siblingBand: [] },
+    railLinks,
   };
 }
 
@@ -490,39 +591,37 @@ function nextInFeed(items: CardRef[], slug: string): CardRef | undefined {
   return undefined;
 }
 
-/** The canonical path for a fixture slug the feed carries under another slug,
- *  or undefined when `slug` is its own page. */
-export async function articleRedirect(slug: string): Promise<string | undefined> {
-  const cms = (await articleFeed()).redirects.get(slug);
-  return cms ? articlePath(cms) : undefined;
+/** The page a built URL 308s to, or undefined when the URL is its own page. */
+export async function articleRedirect(path: string): Promise<string | undefined> {
+  return (await articleFeed()).redirects.get(path);
 }
 
-/** One article as the PageResponse the renderer consumes, or null for a slug the
- *  route does not build as a page (unknown, or a redirect). */
-export const getArticle = cache(async (slug: string): Promise<PageResponse | null> => {
+/** One article or event page, by its full path, as the renderer consumes it —
+ *  or null for a path neither route builds as a page (unknown, or a 308). */
+export const getArticle = cache(async (path: string): Promise<ArticleResponse | null> => {
   const index = await articleFeed();
-  if (!index.slugs.has(slug) || index.redirects.has(slug)) return null;
-  const path = articlePath(slug);
-  const card = index.items.find((i) => i.slug === slug) ?? index.listedOnly.get(slug);
-  const fixture = ARTICLES[slug];
+  const entry = index.pages.get(path);
+  if (!entry) return null;
+  const { card, fixture, route } = entry;
+  const events = route === EVENTS_ROUTE;
 
-  // Only a slug the feed lists is asked for: a fixture-only slug has no document
-  // to fetch, and asking would print a 404 warning on every build.
-  const api = card ? await cmsFetch(`/public/content/${slug}`, isPublicContentResponse) : null;
+  // Only a record the feed or lists carry is asked for: a fixture-only page has
+  // no document to fetch, and asking would print a 404 warning on every build.
+  const api = card ? await cmsFetch(`/public/content/${card.slug}`, isPublicContentResponse) : null;
 
   const [locale, t] = await Promise.all([getLocale(), getTranslations("Article")]);
   const log: Log = { api: [], absent: [], notes: [], rejected: [] };
 
-  let response: PageResponse;
+  let response: ArticleResponse;
   let source: string;
   if (api) {
-    response = toArticle(api, card, t, locale, log);
+    response = toArticle(api, card, t, locale, log, route);
     source = fixture ? "fixture=replaced" : "fixture=none";
   } else if (fixture) {
-    response = fixture;
+    response = { ...fixture.response, railLinks: fixture.railLinks ?? [] };
     source = card ? "fixture (api document unavailable)" : "fixture (no api document)";
   } else {
-    // In the feed, so the listing links here, but the document did not arrive
+    // Listed, so a card or row links here, but the document did not arrive
     // (a warning above says why). The card's own fields keep the route from
     // becoming a 404 behind a live link; the next build fills it in.
     response = toArticle(
@@ -531,38 +630,45 @@ export const getArticle = cache(async (slug: string): Promise<PageResponse | nul
       t,
       locale,
       log,
+      route,
     );
     source = "listing card only (api document unavailable)";
   }
 
-  // "More news": one sibling and the listing. A fixture keeps the sibling its
-  // board draws; an API article takes the next item in the feed.
-  const next = api || !fixture ? nextInFeed(index.items, slug) : undefined;
-  // A fixture's own sibling may name a slug that now redirects; link the
-  // canonical path so "More news" costs no extra hop.
-  const canonical = (href: string) => {
-    const cms = index.redirects.get(href.slice(PARENT.length + 1));
-    return href.startsWith(`${PARENT}/`) && cms ? articlePath(cms) : href;
-  };
-  const sibling = next
-    ? [{ id: `article-${next.slug}`, title: next.title, href: articlePath(next.slug) }]
-    : response.derived.siblingBand.map((s) => ({ ...s, href: canonical(s.href) }));
-  const all = { id: PAGE_ID.newsEvents, title: t("allNews"), href: PARENT };
-  // A5: a document has no parent, so the back link is the route's own parent,
-  // named by its destination — never "Back".
-  const backLabel = routeTitle(PARENT) ?? "News & Events";
-  const derived = {
-    ...response.derived,
-    backNav: { label: backLabel, href: PARENT },
-    siblingBand: [...sibling.filter((s) => s.href !== path), all],
-  };
+  let derived: PageResponse["derived"];
+  let next: CardRef | undefined;
+  if (events) {
+    // No fixed back link and no sibling band: /events has no landing to go
+    // back to, so the page uses the session-trail link (BackNav) instead (§68).
+    derived = { ...response.derived, backNav: null, siblingBand: [] };
+  } else {
+    // "More news": one sibling and the listing. A fixture keeps the sibling its
+    // board draws; an API article takes the next item in the feed. A same-story
+    // duplicate is never a sibling (§68).
+    next = api || !fixture ? nextInFeed(index.items.filter((i) => !SAME_STORY[i.slug]), card?.slug ?? entry.slug) : undefined;
+    // A fixture's own sibling may name a URL that now redirects; link the
+    // canonical path so "More news" costs no extra hop.
+    const canonical = (href: string) => index.redirects.get(href) ?? href;
+    const sibling = next
+      ? [{ id: `article-${next.slug}`, title: next.title, href: itemPath(next.slug, typeOf(next)) }]
+      : response.derived.siblingBand.map((s) => ({ ...s, href: canonical(s.href) }));
+    const all = { id: PAGE_ID.newsEvents, title: t("allNews"), href: PARENT };
+    // A5: a document has no parent, so the back link is the route's own parent,
+    // named by its destination — never "Back".
+    const backLabel = routeTitle(PARENT) ?? "News & Events";
+    derived = {
+      ...response.derived,
+      backNav: { label: backLabel, href: PARENT },
+      siblingBand: [...sibling.filter((s) => s.href !== path), all],
+    };
+  }
 
   const gated = gatePage({ ...response, derived });
   if (api || !fixture) {
     const reject = [...new Set(log.rejected)];
     console.info(
       `[cms] ${path}: api=${log.api.join(",") || "none"}` +
-        ` · static=backNav,${next ? "siblingLink(feed)" : "siblingLink(none)"},allNewsLink` +
+        (events ? " · static=none" : ` · static=backNav,${next ? "siblingLink(feed)" : "siblingLink(none)"},allNewsLink`) +
         (log.absent.length ? ` · absent=${log.absent.join(",")}` : "") +
         (reject.length ? ` · media rejected ${log.rejected.length} (${reject.join("; ")})` : "") +
         (log.notes.length ? ` · ${log.notes.join(" · ")}` : "") +
@@ -572,5 +678,5 @@ export const getArticle = cache(async (slug: string): Promise<PageResponse | nul
     console.info(`[cms] ${path}: ${source} · all slots static · ${auditSummary(gated.audit)}`);
   }
   logMissingRoutes(path, gated.audit);
-  return gated.response;
+  return { ...gated.response, railLinks: response.railLinks };
 });

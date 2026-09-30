@@ -3257,3 +3257,95 @@ the board (100 / 118 against 96 / 114). `Overline` gained opt-in `capTrim`
 **Known limitation: rows do not link.** sitemap.json has no award route, so every row is the
 unlinked shell: no arrow, no hover, not focusable. The linked layout was measured with a temporary
 href (arrow beside the story at 2–4 columns, top-right above it on the phone; hover as the archive).
+
+## 68. Events: the article template at /events/[slug], one story one URL, lists in the one prose renderer
+
+The "09 Events / Drawing Dialogues" board (1440 only) is the sample of every event page, as the
+two article boards are of every article — so it is a template, and it is the article template.
+
+### One template, two routes
+
+`ArticleTemplate` (`sections/ArticleTemplate.tsx`) is the article page's body, extracted.
+`/about/news-events/[slug]` and `/events/[slug]` both render it; the differences are props and
+data: events pass a split title, `standfirst="without-sections"`, the session-trail back link
+instead of a fixed parent, and no sibling band (`/events` has no landing to be a parent). Both use `getArticle`'s one
+projection, now keyed by full path: `Feed.pages` (every page either route builds) and
+`Feed.redirects` (every other URL that builds, as a 308). News articles' HTML is unchanged except
+where intended below.
+
+### Where events live, and one story one URL
+
+`itemPath(slug, type)` (`pages.ts`) is THE rule for every card, archive row and "More news" link:
+`event`/`workshop` → `/events/…`, news → `/about/news-events/…`. Two events take the short path
+sitemap.json names, from an explicit CMS-slug table (`PATH_BY_CMS_SLUG`), never matched on title:
+Drawing Dialogues and Shifting Paradigms. `SAME_STORY` states that the seed event
+`drawing-dialogues` (an "illustration festival", 15 Sep) is the Drawing Dialogues symposium's
+story: it has no page, its URLs 308 to the symposium's, and no list shows it — the archive went
+from 13 rows to 12. Every event URL that existed under `/about/news-events/` (all seven) 308s to
+its `/events/` page through the existing `articleRedirect` → `permanentRedirect` path, and the
+two long CMS slugs 308 under `/events` too. Checked with `curl -sI` against `next start`: ten
+308s, six 200s; no internal href points at an old URL.
+
+### The rail is generic, and the milestones are CMS data
+
+The board's milestone rows are NOT fixture-only: workshops carry `callForProposalOpenDate`,
+`abstractSubmissionDate`, `selectionAnnouncementDate` and `symposiumStart/EndDate`, and the
+Drawing Dialogues record's values are the board's. An event's rail is its schedule's date and
+venue, or those milestones and the symposium — no publishedAt fallback (it is the announcement,
+A2). Dates keep their year (RSD9 is 2020); `formatEventDate` already prints a single day, a
+same-month and a cross-month range. Then the item's apply, registration and live-stream links as
+filled buttons in that order — moved from the first section's column-4 links, so never twice —
+then its contacts. Labels are UI strings.
+
+`Cta variant="filled"` is the library's "Subtle" button on `accent/primary`: white on
+`accent/secondary` is 3.32:1 at worst (Terracotta light), under AA for Heading/5 at its 18px
+phone size; on `accent/primary` it is 4.83:1 at worst, and 6.25:1 on the hover's `accent/strong`.
+
+### Lists and inline emphasis: one renderer, an allowlist
+
+`Prose.tsx` is the one body renderer (ClampedProse and SectionBody's unclamped branch both call
+it). A body string carries a closed set of tags — p, ul, ol, li, strong, em — parsed into React
+elements; nothing is ever set as HTML, and text between tags is entity-escaped at the seam, so a
+literal "<strong>" typed as text stays text. At the seam (`richParagraphs`, `joinBlocks` in
+format.ts) CMS HTML keeps only `<strong>`/`<em>`; `<script>`/`<style>` go with their content,
+other tags go and keep their text. **The CMS authors a list as a run of TEXT blocks led by "- "**
+— no document uses `<ul>` — so a run of TWO or more consecutive "- " or "• " blocks becomes a
+`<ul>`, markers stripped; a lone dash-led block stays a paragraph; nothing is ever numbered. An
+HTML list inside one TEXT block is flattened to a paragraph. Lists sit at the body's type, discs
+in the body colour, a 30px indent; the nine-line clamp counts list lines (302 → 588px on open).
+
+Pages whose CMS text carries the tags changed on purpose: Director's Message (`<em>`), North-East
+Artisans (`<strong>`) and the invitation-kit article (`<em>`, `<strong>`) — markup only, visible
+text byte-identical. Every fixture body is tag-free, so FIXTURE HTML changed nowhere but the
+Drawing Dialogues stub cards (now linked) and the new demo page.
+
+### Where the sample and the build differ
+
+- Separators between sections and before the footer (the template's); the sample has none.
+- Dates carry the year; the sample's rail omits it.
+- Live, the page is the CMS's: its About section opens with a title line and a date line, the
+  demo's "Introduction" is its fourth paragraph; Objectives are bullets (the CMS's "- "), the
+  demo's numbered; "Abstract Submission" and "Important Dates" are sections of their own, the
+  latter repeating the rail. The hero is the CMS's poster; the demo carries the board's leaf.
+- The four thin records (no sections) show their heroText as the standfirst.
+
+### The event back link follows the visitor, and falls back to Home
+
+Events use `BackNav` — the session trail (§45) — not the article's fixed "News & Events": an event
+is reached from Home, the archive and the listing, and has no landing of its own. It renders
+before the h1 (§66). `BackNav` gained an opt-in `fallback` route for "no previous page, or one the
+site cannot name": Home for events. That needed the trail to tell "not worked out yet" (server
+render, first frame) from "nowhere": `previousRoute` now returns null for the first and "" for the
+second, so the static HTML still carries no label and the fallback never flashes before the real
+link. Pages without a fallback behave exactly as before. The archive and the gallery are now
+named for the back link (`UNLISTED_PAGES` in nav-content.ts) — built pages a visitor arrives
+from that the menu does not list.
+
+### Local CMS images on a NAT64 network
+
+On a DNS64/NAT64 network the CMS host resolves to `64:ff9b::…`, which Next 16's optimizer refuses
+as a private address, so `/_next/image` answers 400 and every CMS image fails — and on articles
+`HideOnImageError` removes the hero. `NEXT_IMAGE_UNOPTIMIZED=1` (next.config.ts; `.env.local`
+only, never Vercel) sets `images.unoptimized` so the browser fetches from the CMS directly. Not
+`dangerouslyAllowLocalIP`, which would open the optimizer to private addresses instead of skipping
+it. It changes every image's `src`, so unset it for any HTML baseline comparison.

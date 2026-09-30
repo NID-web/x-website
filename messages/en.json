@@ -130,7 +130,11 @@
     "allNews": "All News & Events",
     "liveStream": "Watch the live stream",
     "register": "Register",
-    "apply": "Apply"
+    "apply": "Apply",
+    "callForProposals": "Call for proposals open",
+    "abstractSubmission": "Abstract submission",
+    "selectionAnnouncement": "Selection announcements",
+    "symposium": "Symposium"
   },
   "Cards": {
     "latest": "Latest"

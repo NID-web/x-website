@@ -50,8 +50,9 @@ const NEWS: Section = {
     stub({
       id: "news-drawing-dialogues-2026",
       title: "Drawing Dialogues happening at NID very soon. Register!",
-      slug: "drawing-dialogues-2026",
-      parent: PAGE_ID.newsEvents,
+      slug: "drawing-dialogues",
+      // The event's own page (§68).
+      parent: PAGE_ID.events,
       hero: [
         mediaAsset(
           "/about/news-drawing-dialogues.jpg",
@@ -66,8 +67,9 @@ const NEWS: Section = {
       // board (4199:303914) names it, on a byte-identical photo.
       id: "news-incubation-centre",
       title: "Inauguration of the Incubation and Innovation Centre at NID Gandhinagar Campus",
-      slug: "incubation-innovation-centre",
-      parent: PAGE_ID.newsEvents,
+      slug: "inauguration-of-the-incubation-and-innovation-centre-at-nid-gandhinagar-campus",
+      // The event's own page (§68).
+      parent: PAGE_ID.events,
       hero: [
         mediaAsset(
           "/about/news-address.jpg",

@@ -93,16 +93,95 @@ export function plainText(html: string): { text: string; tags: string[] } {
 // newlines, other block tags and every inline tag are plainText's, unchanged.
 const PARAGRAPH_BREAK = /\n[^\S\n]*\n\s*|<\/p\s*>\s*<p\b[^>]*>|(?:<br\s*\/?>\s*){2,}/gi;
 
-/** A section body: plainText per authored paragraph, joined by the blank line
- *  that ClampedProse and SectionBody split on. Carries across the breaks an
- *  editor wrote and invents none — never a sentence splitter. Single-paragraph
- *  fields (a standfirst, a tile's statement) stay on plainText. */
-export function plainParagraphs(html: string): { text: string; tags: string[]; breaks: number } {
-  const parts = html.split(PARAGRAPH_BREAK).map(plainText);
+// ── Rich section bodies ────────────────────────────────────────────────────
+// A section body may carry a closed set of tags, rendered by Prose.tsx and
+// nothing else: p, ul, ol, li, strong, em. We set the list ourselves (the
+// backend is frozen). The CMS sends only <strong> and <em> inline, and lists
+// as runs of "- " TEXT blocks (joinBlocks below); no document uses <ul>.
+//
+// The body STRING is markup-safe: text between allowed tags is entity-escaped
+// (&, <, >), so a literal "<strong>" typed as text stays text. Prose decodes
+// exactly those entities after it has parsed the tags.
+
+const INLINE = new Set(["strong", "em"]);
+const escapeText = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** One authored paragraph of CMS HTML as body markup: <strong>/<em> kept
+ *  (attributes dropped), every other tag dropped, script and style with their
+ *  content, text decoded then re-escaped. Whitespace as plainText. */
+function richText(html: string): { text: string; tags: string[] } {
+  const tags = new Set<string>();
+  const cleaned = html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, (_, t: string) => {
+    tags.add(t.toLowerCase());
+    return " ";
+  });
+  let out = "";
+  let last = 0;
+  for (const m of cleaned.matchAll(/<(\/?)([a-z][a-z0-9]*)\b[^>]*>/gi)) {
+    out += escapeText(decodeRaw(cleaned.slice(last, m.index)));
+    const name = m[2]!.toLowerCase();
+    tags.add(name);
+    if (INLINE.has(name)) out += `<${m[1]}${name}>`;
+    else out += /^(p|div|br|li|ul|ol|h[1-6]|blockquote)$/.test(name) ? " " : "";
+    last = m.index! + m[0].length;
+  }
+  out += escapeText(decodeRaw(cleaned.slice(last)));
+  // Collapse whitespace as plainText does, then pull it out of the tag edges
+  // ("<strong> NID</strong>" reads the same, and keeps the output stable).
+  const text = out
+    .replace(/\s+/g, " ")
+    .replace(/<(strong|em)> /g, " <$1>")
+    .replace(/ <\/(strong|em)>/g, "</$1> ")
+    .replace(/\s+/g, " ")
+    .replace(/<(strong|em)><\/\1>/g, "")
+    .trim();
+  return { text, tags: [...tags] };
+}
+
+/** Entities decoded, tags untouched (there are none in a text run). */
+function decodeRaw(s: string): string {
+  return s
+    .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h: string) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&([a-z]+);/gi, (m, e: string) => ENTITIES[e.toLowerCase()] ?? m);
+}
+
+/** A section body: each authored paragraph (PARAGRAPH_BREAK) as body markup,
+ *  <strong>/<em> kept, joined by the blank line Prose splits on. Carries
+ *  across the breaks an editor wrote and invents none — never a sentence
+ *  splitter. Single-paragraph fields (a standfirst, a tile's statement) stay
+ *  on plainText. */
+export function richParagraphs(html: string): { text: string; tags: string[]; breaks: number } {
+  const parts = html.split(PARAGRAPH_BREAK).map(richText);
   const kept = parts.filter((p) => p.text);
   return {
     text: kept.map((p) => p.text).join("\n\n"),
     tags: [...new Set(parts.flatMap((p) => p.tags))],
     breaks: kept.length - 1,
   };
+}
+
+const LIST_ITEM = /^(?:-|•)\s+/;
+
+/** TEXT blocks (each already richParagraphs'd) joined into one body. A run of
+ *  TWO or more consecutive single-paragraph blocks led by "- " or "• " is one
+ *  <ul>, markers stripped: that is how the CMS authors a list. A lone dash-led
+ *  block stays a paragraph — one is not a list, and it may be a dash. No
+ *  numbering is ever inferred. */
+export function joinBlocks(texts: string[]): { body: string; lists: number } {
+  const out: string[] = [];
+  let lists = 0;
+  for (let i = 0; i < texts.length; ) {
+    let j = i;
+    while (j < texts.length && LIST_ITEM.test(texts[j]!) && !texts[j]!.includes("\n\n")) j++;
+    if (j - i >= 2) {
+      out.push(`<ul>${texts.slice(i, j).map((t) => `<li>${t.replace(LIST_ITEM, "")}</li>`).join("")}</ul>`);
+      lists++;
+      i = j;
+    } else {
+      out.push(texts[i]!);
+      i++;
+    }
+  }
+  return { body: out.filter(Boolean).join("\n\n"), lists };
 }

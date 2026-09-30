@@ -7,6 +7,7 @@
 import clsx from "clsx";
 import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "@/components/spine/Icon";
+import { Prose } from "@/components/spine/Prose";
 
 // Complete class strings, because Tailwind scans source text and never sees a
 // name that was assembled at runtime. `body` clamps, `button` hides the control
@@ -94,9 +95,7 @@ export function ClampedProse({
         // gap, so a gap-spaced stack loses its rhythm the moment it clamps.
         className={clsx("[&>p+p]:mt-4", className, !open && body)}
       >
-        {text.split(/\n{2,}/).map((paragraph, i) => (
-          <p key={i}>{paragraph}</p>
-        ))}
+        <Prose text={text} />
       </div>
       {showButton && (
         <button

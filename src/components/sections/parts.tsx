@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { GridItem, type GridStart } from "@/components/layout/GridItem";
 import { ClampedProse, type Clamp } from "@/components/spine/ClampedProse";
+import { Prose } from "@/components/spine/Prose";
 import { Cta } from "@/components/spine/Cta";
 import { Overline } from "@/components/home/parts";
 import type { LabelValue, Link } from "@/lib/content-model";
@@ -172,11 +173,7 @@ export function SectionBody({ body, clamp }: { body: string; clamp?: BodyClamp }
     </GridItem>
   ) : (
     <GridItem span={2} start={2} className="flex flex-col gap-4">
-      {body.split(/\n{2,}/).map((paragraph, i) => (
-        <p key={i} className="font-body text-body-lg text-text-primary">
-          {paragraph}
-        </p>
-      ))}
+      <Prose text={body} blockClassName="font-body text-body-lg text-text-primary" spacing="gap" />
     </GridItem>
   );
 }

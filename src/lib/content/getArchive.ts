@@ -19,7 +19,7 @@ import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import { yearInIndia } from "@/lib/content/format";
 import { LISTED_TYPES, articleFeed, listedItems } from "@/lib/content/getArticle";
 import { cardHref } from "@/lib/content/links";
-import { PAGE_ID, pathOf } from "@/lib/content/pages";
+import { PAGE_ID, SAME_STORY, isEventType, itemPath, pathOf } from "@/lib/content/pages";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ARCHIVE_SECTION, NEWS_ARCHIVE } from "@/lib/content/fixtures/news-archive";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
@@ -44,6 +44,8 @@ const PARENT = normalise(pathOf(PAGE_ID.newsEvents)!);
 /** The listing's Archive row, whose year links are this page's years. */
 const LISTING_ARCHIVE_SECTION = "section-news-archive";
 
+const segmentOf = (item: CardRef) => itemPath(item.slug, item.contentType?.key).replace(/^.*\//, "");
+
 function toRow(item: CardRef & { publishedAt: string }): { row: Page; thumb: "ok" | "none" | string } {
   // Decorative, as Home's news rows: the headline sits beside the photo inside
   // the same link, so alt text would read the headline twice. A row thumbnail is
@@ -53,8 +55,10 @@ function toRow(item: CardRef & { publishedAt: string }): { row: Page; thumb: "ok
     row: {
       id: `archive-${item.id}`,
       title: item.title,
-      slug: item.slug,
-      parent: PAGE_ID.newsEvents,
+      // The row opens the item's page: events under /events, news under
+      // /about/news-events (itemPath, §68). The slug is that page's segment.
+      slug: segmentOf(item),
+      parent: isEventType(item.contentType?.key) ? PAGE_ID.events : PAGE_ID.newsEvents,
       template: "secondary",
       utility: "back",
       keyInfo: [],
@@ -90,6 +94,8 @@ async function loadArchive(): Promise<ArchiveResponse> {
   const live = listed.ok;
 
   const noDate: string[] = [];
+  /** A row's CMS record; a fixture row is its own (its slug). */
+  const recordOf = new Map<Page, string>();
   const thumbs = { rejected: [] as string[], none: 0 };
   let groups: ArchiveGroup[];
   if (live) {
@@ -101,6 +107,7 @@ async function loadArchive(): Promise<ArchiveResponse> {
         continue;
       }
       const { row, thumb } = toRow({ ...item, publishedAt: item.publishedAt });
+      recordOf.set(row, item.slug);
       if (thumb === "none") thumbs.none++;
       else if (thumb !== "ok") thumbs.rejected.push(`${item.slug}: ${thumb}`);
       rows.push(row);
@@ -110,18 +117,23 @@ async function loadArchive(): Promise<ArchiveResponse> {
     groups = NEWS_ARCHIVE.groupedItems[ARCHIVE_SECTION] ?? [];
   }
 
-  // No dead links and no dead rows: a row is kept only when its article route is
-  // built. `slugs` as well as cardHref, because a slug the article route refused
-  // can still resolve to a built page — an item slugged "archive" would link
-  // here, to the archive itself.
+  // No dead links and no dead rows: a row is kept only when the page it opens
+  // is built — and is ITS page. A slug the article route refused can still
+  // resolve to a built page (an item slugged "archive" would link here), and a
+  // same-story duplicate resolves to its canonical record's page, which that
+  // record's own row already opens: one story, one row (§68).
   const noPage: string[] = [];
+  const duplicate: string[] = [];
   groups = groups
     .map((g) => ({
       ...g,
       items: g.items.filter((item) => {
-        const keep = feed.slugs.has(item.slug) && !feed.redirects.has(item.slug) && Boolean(cardHref(item));
-        if (!keep) noPage.push(item.slug);
-        return keep;
+        const record = recordOf.get(item) ?? item.slug;
+        const path = cardHref(item);
+        const page = path ? feed.pages.get(path) : undefined;
+        if (page && page.slug !== record && SAME_STORY[record]) duplicate.push(record);
+        else if (!page || page.slug !== record) noPage.push(record);
+        return Boolean(page && page.slug === record);
       }),
     }))
     // CLAUDE.md: no empty section — a year with nothing left has no heading.
@@ -177,7 +189,7 @@ async function loadArchive(): Promise<ArchiveResponse> {
         ? `api=items(${LISTED_TYPES.map((t) => `${t} ${listed.served[t]}`).join(", ")})`
         : "api=none") +
       ` · years=${groups.map((g) => `${g.label}(${g.items.length})`).join(",") || "none"}` +
-      ` · dropped: ${live ? `calendar ${listed.calendar}, ` : ""}no article page ${noPage.length}, no publishedAt ${noDate.length}` +
+      ` · dropped: ${live ? `calendar ${listed.calendar}, ` : ""}no article page ${noPage.length}, same story ${duplicate.length}${duplicate.length ? ` (${duplicate.join(", ")})` : ""}, no publishedAt ${noDate.length}` +
       (noDate.length ? ` (${noDate.join(", ")})` : "") +
       (live ? ` · thumb none ${thumbs.none}, thumb missing ${missing.length}${reject}` : "") +
       ` · static=title,backNav,siblingBand · fixture=${live ? "none" : "all rows"}` +

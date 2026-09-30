@@ -11,11 +11,27 @@ import { noPreviousRoute, normalise, previousRoute, subscribe } from "@/lib/nav-
  * Back navigation link rendered in the page utility slot.
  * Resolves previous route dynamically from client session storage.
  */
-export function BackNav() {
+export function BackNav({
+  fallback,
+}: {
+  /** Where the link goes when there is no previous page, or one the site
+   *  cannot name (a direct visit, a new tab, an outside referrer). Events use
+   *  Home: /events has no landing to go back to (STAGE-0-NOTES §68). Without
+   *  it, no previous page renders no link, as §45 decided. */
+  fallback?: string;
+} = {}) {
   const here = normalise(usePathname());
-  const route = useSyncExternalStore(subscribe, () => previousRoute(here), noPreviousRoute);
+  const known = useSyncExternalStore(subscribe, () => previousRoute(here), noPreviousRoute);
+  // Not worked out yet: render nothing, so the static HTML carries no label
+  // and the first frame never shows the fallback before the real link.
+  if (known === null) return null;
 
-  const label = route ? routeTitle(route) : undefined;
+  let route: string | undefined = known ? normalise(known) : undefined;
+  let label = route ? routeTitle(route) : undefined;
+  if ((!route || !label) && fallback) {
+    route = normalise(fallback);
+    label = routeTitle(route);
+  }
   if (!route || !label) return null;
 
   return (

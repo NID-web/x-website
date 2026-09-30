@@ -132,9 +132,18 @@ export const MENU_SECTIONS: NavSection[] = [
 // page from the landing grid is the commonest way in.
 export const HOME_NAV: NavLink = { label: "Home", href: "/" };
 
+// Built pages the menu does not list but a visitor arrives FROM — the archive
+// links every event, About links the gallery — so the back link can name them.
+// Their labels are the pages' own titles.
+const UNLISTED_PAGES: NavLink[] = [
+  { label: "News & Events Archive", href: "/about/news-events/archive" },
+  { label: "Student Awards Gallery", href: "/about/student-awards" },
+];
+
 // Map of route path to display title derived from MENU_SECTIONS for BackNav labels.
 const ROUTE_TITLE: Record<string, string> = Object.fromEntries([
   [HOME_NAV.href, HOME_NAV.label],
+  ...UNLISTED_PAGES.map((page) => [page.href, page.label] as const),
   ...MENU_SECTIONS.flatMap((section) => [
     ...(section.href ? [[section.href, section.title] as const] : []),
     ...section.links.map((link) => [link.href, link.label] as const),

@@ -27,3 +27,10 @@ export function awardOf(item: Page): { award: string; project: string } | undefi
   const { award, project } = item as Partial<AwardEntry>;
   return award && project ? { award, project } : undefined;
 }
+
+/** A page-level link the article/event rail draws as a filled button, in this
+ *  order: an item's apply, registration and live-stream links (§68). The model
+ *  has no page-level link slot, so it rides beside the PageResponse. The label
+ *  is a UI string, keyed. */
+export const RAIL_LINK_ORDER = ["apply", "register", "liveStream"] as const;
+export type RailLink = { key: (typeof RAIL_LINK_ORDER)[number]; url: string };

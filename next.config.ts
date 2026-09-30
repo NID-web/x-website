@@ -117,9 +117,18 @@ export default async function config(phase: string): Promise<NextConfig> {
   // against a deployed CMS.
   const dangerouslyAllowLocalIP = mediaHosts.some(isLoopback);
 
+  // Opt-in, local only (DEVELOPER-MANUAL troubleshooting): on a network with
+  // DNS64/NAT64 the CMS host resolves to 64:ff9b::…, which /_next/image refuses
+  // as a private address, so every CMS image fails and HideOnImageError hides
+  // the hero. Unoptimized images are fetched by the browser straight from the
+  // CMS instead. Never set on Vercel: it turns resizing off for every image.
+  // Not dangerouslyAllowLocalIP, which would open the optimizer to any private
+  // address rather than skip it.
+  const unoptimized = process.env.NEXT_IMAGE_UNOPTIMIZED === "1";
+
   return withNextIntl({
     // Read back by src/lib/api/media.ts. Hostnames, not secrets.
     env: { CMS_MEDIA_HOSTS: mediaHosts.join(",") },
-    images: { remotePatterns, dangerouslyAllowLocalIP },
+    images: { remotePatterns, dangerouslyAllowLocalIP, ...(unoptimized ? { unoptimized } : {}) },
   });
 }

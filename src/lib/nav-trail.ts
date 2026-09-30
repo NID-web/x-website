@@ -102,9 +102,13 @@ export function subscribe(onChange: () => void) {
   };
 }
 
-/** Where the visitor came from, but only if that was worked out for `here`. */
+/** Where the visitor came from, as three states: null while it has not been
+ *  worked out for `here` yet (the server, and the first client frame after a
+ *  navigation), "" once it has and there is no previous page, else the route.
+ *  "Not yet" and "nowhere" must differ, or a page with a fallback link would
+ *  flash the fallback before the real one. */
 export function previousRoute(here: string): string | null {
-  return store.route === here ? store.back : null;
+  return store.route === here ? (store.back ?? "") : null;
 }
 
 /** The server renders no back link — see the module comment. */

@@ -13,7 +13,7 @@ import {
   type Section as ApiSection,
 } from "@/lib/api/types";
 import { toMediaAsset } from "@/lib/api/media";
-import { plainParagraphs, plainText } from "@/lib/content/format";
+import { joinBlocks, plainText, richParagraphs } from "@/lib/content/format";
 import { contactCta } from "@/lib/content/links";
 import { PAGE_ID, pageIdOf, pathOf, pathOfCmsSlug } from "@/lib/content/pages";
 
@@ -455,7 +455,7 @@ export function toPageResponse(
       return fs;
     }
     const blocks = as.blocks ?? [];
-    let texts = blocks.flatMap((b) => (b.blockType === "TEXT" && b.text?.trim() ? [plainParagraphs(b.text)] : []));
+    let texts = blocks.flatMap((b) => (b.blockType === "TEXT" && b.text?.trim() ? [richParagraphs(b.text)] : []));
     if (rule.blocks) {
       if (texts.length !== rule.of) {
         log.static.push(`${name}(block count ${texts.length} ≠ ${rule.of})`);
@@ -464,7 +464,9 @@ export function toPageResponse(
       const [from, to] = rule.blocks;
       texts = texts.slice(from - 1, to);
     }
-    const body = texts.map((t) => t.text).filter(Boolean).join("\n\n");
+    // The body keeps its <strong>/<em>, and a run of "- " blocks is a list
+    // (format.ts; Prose.tsx renders both).
+    const body = joinBlocks(texts.map((t) => t.text).filter(Boolean)).body;
     if (!body) {
       log.static.push(`${name}(api section "${rule.textTitle}" has no TEXT)`);
       return fs;

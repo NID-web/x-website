@@ -25,6 +25,7 @@ export const BUILT_ROUTES = [
   "/about/news-events/[slug]",
   "/about/our-themes",
   "/about/student-awards",
+  "/events/[slug]",
   "/swatch",
 ] as const;
 

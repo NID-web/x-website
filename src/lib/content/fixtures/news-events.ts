@@ -43,8 +43,9 @@ const ARTICLES: Page[] = [
   stub({
     id: "news-incubation-centre",
     title: "Inauguration of the Incubation and Innovation Centre at NID Gandhinagar Campus",
-    slug: "incubation-innovation-centre",
-    parent: PAGE_ID.newsEvents,
+    slug: "inauguration-of-the-incubation-and-innovation-centre-at-nid-gandhinagar-campus",
+    // The event's own page (§68).
+    parent: PAGE_ID.events,
     hero: [
       mediaAsset(
         "/news/incubation-centre.jpg",
@@ -58,8 +59,9 @@ const ARTICLES: Page[] = [
     id: "news-drawing-dialogues",
     title:
       "Drawing Dialogues • Calibration and Celebration of Drawing in Design NID Gandhinagar Campus",
-    slug: "drawing-dialogues-2026",
-    parent: PAGE_ID.newsEvents,
+    slug: "drawing-dialogues",
+    // The event's own page (§68).
+    parent: PAGE_ID.events,
     hero: [
       mediaAsset(
         "/news/drawing-dialogues.jpg",
@@ -73,7 +75,8 @@ const ARTICLES: Page[] = [
     id: "news-shifting-paradigms",
     title: "Shifting Paradigms • Design Education Next",
     slug: "shifting-paradigms",
-    parent: PAGE_ID.newsEvents,
+    // The event's own page (§68).
+    parent: PAGE_ID.events,
     hero: [
       mediaAsset(
         "/news/shifting-paradigms.jpg",

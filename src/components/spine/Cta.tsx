@@ -5,7 +5,7 @@ import { Icon, type IconName } from "@/components/spine/Icon";
 /**
  * Call to Action link component supporting 'uppercase' and 'primary' variants.
  */
-export type CtaVariant = "uppercase" | "primary";
+export type CtaVariant = "uppercase" | "primary" | "filled";
 
 export interface CtaProps {
   label: string;
@@ -28,6 +28,13 @@ const VARIANT: Record<CtaVariant, string> = {
   // 8 / 24 / 6 + the 2px rule = the board's 40px row: the rule is INSIDE the
   // box, not under it, so the 64px stack pitch holds.
   primary: "w-full gap-2 border-b-2 border-border-subtle pt-2 pb-1.5 text-h5",
+  // The library's "Subtle" call to action, for time-critical actions (Apply,
+  // Register): a filled pill, 8/16 padding, the full width of its column.
+  // TODO(review): designer — the component fills it with accent/secondary,
+  // which is decorative-only here and gives white text 3.32:1 at worst
+  // (Terracotta light), under AA for Heading/5 at its 18px phone size.
+  // accent/primary gives 4.83:1 at worst across all twenty states.
+  filled: "w-full gap-2 rounded-pill bg-accent-primary px-4 py-2 text-h5 text-text-on-accent",
 };
 
 export function Cta({
@@ -41,6 +48,7 @@ export function Cta({
 }: CtaProps) {
   const iconName = icon === "none" ? null : icon;
   const primary = variant === "primary";
+  const filled = variant === "filled";
   // Which SIDE a glyph takes is read off its NAME, never off a prop: the content
   // model derives the icon from targetType and forbids authoring it, so a caller
   // has nothing to set a side from (STAGE-0-NOTES §40).
@@ -61,18 +69,24 @@ export function Cta({
     <Icon
       name={name}
       className={clsx(
-        "shrink-0 text-icon-quaternary transition-colors duration-150 ease-in-out",
+        "shrink-0",
+        filled ? "text-icon-on-accent" : "text-icon-quaternary",
+        "transition-colors duration-150 ease-in-out",
         size,
-        hoverLabel && "group-hover:text-icon-secondary",
+        hoverLabel && !filled && "group-hover:text-icon-secondary",
       )}
     />
   );
 
   const classes = clsx(
-    "group inline-flex items-center font-primary text-text-secondary no-underline transition-colors duration-150 ease-in-out",
+    "group inline-flex items-center font-primary",
+    !filled && "text-text-secondary",
+    "no-underline transition-colors duration-150 ease-in-out",
     VARIANT[variant],
-    hoverLabel && "hover:text-text-primary",
+    hoverLabel && !filled && "hover:text-text-primary",
     hoverLabel && primary && "hover:border-border-default",
+    // Colour only, as every hover: the fill deepens to the accent's hover step.
+    filled && "hover:bg-accent-strong",
     className,
   );
   // The trailing arrow is a 16px glyph inside the Icon Button's 24px box; a
@@ -82,8 +96,8 @@ export function Cta({
   const inner = (
     <>
       {lead}
-      <span className={clsx(primary && "flex-1")}>{label}</span>
-      {primary ? (
+      <span className={clsx((primary || filled) && "flex-1")}>{label}</span>
+      {primary || filled ? (
         arrow && <span className="flex size-6 shrink-0 items-center justify-center">{arrow}</span>
       ) : (
         arrow
