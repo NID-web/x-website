@@ -3,14 +3,31 @@
 // right. NID-CONTEXT §7.6 — the `Minimal` variant, meta in one string.
 import { TileImage } from "@/components/home/TileImage";
 import { Link } from "@/i18n/navigation";
-import type { Page } from "@/lib/content-model";
+import type { MediaAsset, Page } from "@/lib/content-model";
 import { cardHref } from "@/lib/content/links";
 
 export function ThumbCard({ item }: { item: Page }) {
-  const image = item.hero[0];
   // Unlinked, not dropped, when the record has no built route (links.ts) —
   // which is every discipline today.
-  const href = cardHref(item);
+  return <ThumbCardView title={item.title} meta={item.intro} image={item.hero[0]} href={cardHref(item)} />;
+}
+
+/** The card itself, for items that are not a Page — a programme page's
+ *  disciplines (GroupedCards), whose meta line is composed by the caller. */
+export function ThumbCardView({
+  title,
+  meta,
+  image,
+  href,
+  heading: Heading = "h3",
+}: {
+  title: string;
+  meta?: string;
+  image?: MediaAsset;
+  href?: string;
+  /** h4 under a group's h3 title. */
+  heading?: "h3" | "h4";
+}) {
   return (
     <article className="group/thumb relative flex items-center gap-4">
       {image ? (
@@ -23,21 +40,19 @@ export function ThumbCard({ item }: { item: Page }) {
         <span aria-hidden="true" className="block aspect-square flex-1 bg-accent-subtle" />
       )}
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
-        <h3 className="font-primary text-h6 text-text-primary">
+        <Heading className="font-primary text-h6 text-text-primary">
           {href ? (
             <Link
               href={href}
               className="no-underline transition-colors duration-150 ease-in-out after:absolute after:inset-0 group-hover/thumb:text-text-secondary"
             >
-              {item.title}
+              {title}
             </Link>
           ) : (
-            item.title
+            title
           )}
-        </h3>
-        {item.intro && (
-          <p className="font-primary text-micro text-text-secondary">{item.intro}</p>
-        )}
+        </Heading>
+        {meta && <p className="font-primary text-micro text-text-secondary">{meta}</p>}
       </div>
     </article>
   );

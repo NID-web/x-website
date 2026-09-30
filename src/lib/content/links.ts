@@ -27,6 +27,12 @@ export const BUILT_ROUTES = [
   "/about/student-awards",
   "/events/[slug]",
   "/programmes",
+  "/programmes/bdes",
+  "/programmes/curriculum-objectives",
+  "/programmes/fdp",
+  "/programmes/international",
+  "/programmes/mdes",
+  "/programmes/phd",
   "/swatch",
 ] as const;
 

@@ -11,6 +11,7 @@ import {
   type CardRef,
   type PublicContentResponse,
   type Section as ApiSection,
+  type SectionBlock,
 } from "@/lib/api/types";
 import { toMediaAsset } from "@/lib/api/media";
 import { joinBlocks, plainText, richParagraphs } from "@/lib/content/format";
@@ -41,8 +42,19 @@ export interface SectionMergeRule {
  *  the cheapest thing available until Section carries a stable `key`. Never a
  *  synthetic key made from the title. */
 export type TextMergeRule = { textTitle: string } & (
-  | { blocks?: never; of?: never }
+  | { blocks?: never; of?: never; afterIntro?: never }
   | {
+      /** Only the section's TEXT blocks after the one the standfirst took
+       *  (`intro: "firstTextBlock"` from this same section): "About" block 1
+       *  is the standfirst, blocks 2… a body below it. Without this rule
+       *  those blocks are dropped and logged. If the intro did not come from
+       *  this section, or nothing follows it, the fixture body stays. */
+      afterIntro: true;
+      blocks?: never;
+      of?: never;
+    }
+  | {
+      afterIntro?: never;
       /** Only TEXT blocks `from`–`to` (1-based, inclusive) of that section,
        *  for a document that runs several board sections' prose together in
        *  one section. Several rules may slice the same section. Ordinal, so it
@@ -225,6 +237,8 @@ export function toPageResponse(
   }
 
   const introSource = config.intro ?? "firstTextBlock";
+  // The section and block the standfirst came from, for `afterIntro` rules.
+  let introPick: { section: ApiSection; block: SectionBlock } | undefined;
   if (introSource === "heroText") {
     const intro = api.heroText?.trim() ? plainText(api.heroText) : undefined;
     if (intro?.text) {
@@ -241,9 +255,12 @@ export function toPageResponse(
     // does not have. A section a rule claims by title is never the intro:
     // "first" is array order (orderIndex can tie, as on Programmes), and a
     // reordered array must not turn a named section into the standfirst.
+    // An `afterIntro` rule names the intro's own section, so it claims nothing.
     const claimed = new Set(
       Object.values(config.sections).flatMap((rule) =>
-        "textTitle" in rule ? [rule.textTitle] : "referencesTitle" in rule ? [rule.referencesTitle] : [],
+        "textTitle" in rule
+          ? rule.afterIntro ? [] : [rule.textTitle]
+          : "referencesTitle" in rule ? [rule.referencesTitle] : [],
       ).map((title) => title.trim().toLowerCase()),
     );
     const introSection = api.sections.find(
@@ -254,11 +271,18 @@ export function toPageResponse(
     const intro = introBlock?.text ? plainText(introBlock.text) : undefined;
     if (introSection && intro?.text) {
       consumed.add(introSection);
+      introPick = { section: introSection, block: introBlock! };
       page.intro = intro.text;
       log.api.push("intro");
       if (intro.tags.length) log.notes.push(`intro: stripped <${intro.tags.join(">, <")}>`);
       const rest = blocks.filter((b) => b !== introBlock);
-      if (rest.length) {
+      const restRuled = Object.values(config.sections).some(
+        (rule) =>
+          "textTitle" in rule &&
+          rule.afterIntro &&
+          rule.textTitle.trim().toLowerCase() === (introSection.title ?? "").trim().toLowerCase(),
+      );
+      if (rest.length && !restRuled) {
         const types = [...new Set(rest.map((b) => b.blockType))].join("/");
         log.notes.push(`dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
       }
@@ -452,8 +476,13 @@ export function toPageResponse(
       return fs;
     }
     // A slice may share its section with other slices, never with a whole-
-    // section rule.
-    if (consumed.has(as) && !(rule.blocks && sliced.has(as))) {
+    // section rule; an `afterIntro` rule shares it with the standfirst.
+    const afterIntro = Boolean(rule.afterIntro);
+    if (afterIntro && introPick?.section !== as) {
+      log.static.push(`${name}(standfirst did not come from "${rule.textTitle}")`);
+      return fs;
+    }
+    if (consumed.has(as) && !afterIntro && !(rule.blocks && sliced.has(as))) {
       log.static.push(`${name}(api section "${rule.textTitle}" already used)`);
       return fs;
     }
@@ -463,7 +492,7 @@ export function toPageResponse(
       log.static.push(`${name}(fixture section is ${fs.type}, not text)`);
       return fs;
     }
-    const blocks = as.blocks ?? [];
+    const blocks = (as.blocks ?? []).filter((b) => !afterIntro || b !== introPick?.block);
     let texts = blocks.flatMap((b) => (b.blockType === "TEXT" && b.text?.trim() ? [richParagraphs(b.text)] : []));
     if (rule.blocks) {
       if (texts.length !== rule.of) {
@@ -491,7 +520,9 @@ export function toPageResponse(
       const types = [...new Set(rest.map((b) => b.blockType))].join("/");
       log.notes.push(`${name}: dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
     }
-    log.api.push(rule.blocks ? `${name}(blocks ${rule.blocks[0]}–${rule.blocks[1]})` : name);
+    log.api.push(
+      rule.blocks ? `${name}(blocks ${rule.blocks[0]}–${rule.blocks[1]})` : afterIntro ? `${name}(after the standfirst)` : name,
+    );
     return { ...fs, body };
   };
 

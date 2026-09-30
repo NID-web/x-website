@@ -130,5 +130,13 @@ export default async function config(phase: string): Promise<NextConfig> {
     // Read back by src/lib/api/media.ts. Hostnames, not secrets.
     env: { CMS_MEDIA_HOSTS: mediaHosts.join(",") },
     images: { remotePatterns, dangerouslyAllowLocalIP, ...(unoptimized ? { unoptimized } : {}) },
+    // STAGE-0-NOTES §70: during a build the CMS rate-limits (HTTP 429,
+    // Retry-After 60s) and client.ts waits it out, so a page can take more than
+    // a minute. At the default 60s Next restarted nine such pages mid-fetch, and
+    // one restart left a corrupted file (bytes after </html>) in a build that
+    // exited 0. 360s covers the worst case — four 60s waits plus five 10s
+    // request timeouts and queueing. Read by the export worker in seconds
+    // (checked in next 16.3.2's export/worker.js; the bundled docs omit it).
+    staticPageGenerationTimeout: 360,
   });
 }

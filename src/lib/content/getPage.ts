@@ -4,10 +4,14 @@
 // (src/lib/content/page-adapter.ts); every other page is its fixture. Nothing
 // outside src/lib/content/ may import a fixture (scripts/lint-fixtures.mjs).
 import { cache } from "react";
-import type { PageResponse } from "@/lib/content-model";
+import { getTranslations } from "next-intl/server";
+import type { LabelValue, PageResponse, Section } from "@/lib/content-model";
 import { assertFloor } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
-import { isPublicContentResponse } from "@/lib/api/types";
+import { isPublicContentResponse, type PublicContentResponse } from "@/lib/api/types";
+import { campusName } from "@/lib/content/campus-names";
+import type { RailLink } from "@/lib/content/editorial";
+import { programmeDisciplines, type ProgrammeLevel } from "@/lib/content/getDisciplines";
 import { withArchiveYears } from "@/lib/content/getArchive";
 import { withAwardRecords } from "@/lib/content/getAwards";
 import { articleFeed } from "@/lib/content/getArticle";
@@ -30,6 +34,13 @@ import { HISTORY } from "@/lib/content/fixtures/history";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 import { OUR_THEMES } from "@/lib/content/fixtures/our-themes";
 import { PROGRAMMES } from "@/lib/content/fixtures/programmes";
+import { BDES_KEY_INFO, PROGRAMME_BDES } from "@/lib/content/fixtures/programme-bdes";
+import { PROGRAMME_MDES } from "@/lib/content/fixtures/programme-mdes";
+import { PROGRAMME_PHD } from "@/lib/content/fixtures/programme-phd";
+import { PROGRAMME_FDP } from "@/lib/content/fixtures/programme-fdp";
+import { PROGRAMME_INTERNATIONAL } from "@/lib/content/fixtures/programme-international";
+import { CURRICULUM_OBJECTIVES } from "@/lib/content/fixtures/programme-curriculum-objectives";
+import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
 import { PAGE_ID } from "@/lib/content/pages";
 
 const FIXTURES: Record<string, PageResponse> = {
@@ -44,6 +55,12 @@ const FIXTURES: Record<string, PageResponse> = {
   "/about/news-events": NEWS_EVENTS,
   "/about/our-themes": OUR_THEMES,
   "/programmes": PROGRAMMES,
+  "/programmes/bdes": PROGRAMME_BDES,
+  "/programmes/mdes": PROGRAMME_MDES,
+  "/programmes/phd": PROGRAMME_PHD,
+  "/programmes/fdp": PROGRAMME_FDP,
+  "/programmes/international": PROGRAMME_INTERNATIONAL,
+  "/programmes/curriculum-objectives": CURRICULUM_OBJECTIVES,
 };
 
 // Keys are content-type keys from GET /public/content-types.
@@ -239,7 +256,96 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-programmes-list": { structuredKey: "programme" },
     },
   },
+  // The programme pages (STAGE-0-NOTES §70): Generic Page documents, "About"
+  // block 1 the standfirst as on /programmes. Five have no board; their fixtures
+  // are snapshots of these documents.
+  // TODO(review): content — the CMS title is "Bachelor of Design (B.Des.)" and
+  // wins live; the board and the /programmes card say "Bachelor of Design".
+  // TODO(review): content — the hero renders hero[0], the handmade paper; the
+  // board's glaze tiles are hero[1]. An editor swaps them in the CMS.
+  "/programmes/bdes": {
+    slug: "bdes",
+    sections: {
+      // About block 2 is the admissions line: it becomes the Apply section's
+      // body, so the DAT is not said twice. The board's Disciplines prose is
+      // unused — the cards are the records (DISCIPLINES below).
+      "section-bdes-apply": { textTitle: "About", afterIntro: true },
+    },
+  },
+  "/programmes/mdes": {
+    slug: "mdes",
+    // The prose is the fallback; the records replace it (DISCIPLINES).
+    sections: { "section-mdes-disciplines": { textTitle: "Disciplines" } },
+  },
+  "/programmes/phd": {
+    slug: "phd",
+    // TODO(review): designer — "About" is the CMS section's own title for the
+    // blocks after the standfirst (Ph.D 2–4, FDP 2); no board names them.
+    sections: { "section-phd-about": { textTitle: "About", afterIntro: true } },
+  },
+  "/programmes/fdp": {
+    slug: "fdp",
+    // The Centre's email and phone, in the rail beside the hero.
+    contactsTo: "keyInfo",
+    sections: { "section-fdp-about": { textTitle: "About", afterIntro: true } },
+  },
+  "/programmes/international": {
+    slug: "international",
+    sections: {
+      "section-international-models": { textTitle: "Collaboration Models" },
+      "section-international-partners": { textTitle: "Partner Institutions" },
+    },
+  },
+  "/programmes/curriculum-objectives": {
+    slug: "curriculum-objectives",
+    // No "About" section: the standfirst is the document's summary line, and
+    // Objectives renders whole.
+    intro: "heroText",
+    sections: { "section-curriculum-objectives": { textTitle: "Objectives" } },
+  },
 };
+
+
+// A programme's disciplines as grouped cards (getDisciplines.ts), replacing the
+// named fixture section when the records arrive: B.Des's board cards, M.Des's
+// prose. Without the CMS the fixture's section stands.
+const DISCIPLINES: Record<string, { level: ProgrammeLevel; section: string }> = {
+  "/programmes/bdes": { level: "bdes", section: "section-bdes-disciplines" },
+  "/programmes/mdes": { level: "mdes", section: "section-mdes-disciplines" },
+};
+
+// The rail's Apply button (a filled Cta, the events rail's `apply` link). Only
+// a real URL renders it: the CMS's own LINK block in the named section where it
+// has one (Ph.D), else the fixture's (Ph.D's is the snapshot of that link).
+// TODO(review): the header's Apply points at /study/admission (APPLY_HREF,
+// nav-content.ts), which is not built; these point at the admissions site.
+const APPLY: Record<string, { href: string; linkIn?: string }> = {
+  "/programmes/bdes": { href: ADMISSIONS_URL },
+  "/programmes/mdes": { href: ADMISSIONS_URL },
+  "/programmes/phd": { href: ADMISSIONS_URL, linkIn: "About" },
+};
+
+// Key info a board draws that the CMS does not serve (B.Des only; a page with no
+// board gets no invented rows). Used only when the page has none of its own.
+const KEY_INFO: Record<string, typeof BDES_KEY_INFO> = {
+  "/programmes/bdes": BDES_KEY_INFO,
+};
+
+/** The first absolute LINK block in the SPECIFIC section titled `title`. LINK
+ *  is served but not in types.ts's block union (§59), so it is read loosely. */
+function linkBlockUrl(api: PublicContentResponse, title: string): string | undefined {
+  const wanted = title.trim().toLowerCase();
+  const section = api.sections.find((s) => s.type === "SPECIFIC" && (s.title ?? "").trim().toLowerCase() === wanted);
+  for (const block of section?.blocks ?? []) {
+    const url = (block as unknown as { url?: unknown }).url;
+    if ((block.blockType as string) === "LINK" && typeof url === "string" && /^https?:\/\//.test(url)) return url;
+  }
+  return undefined;
+}
+
+/** What a page render gets: the model's response, plus the rail's filled
+ *  buttons, which the model has no page-level slot for (editorial.ts). */
+export type PageData = PageResponse & { railLinks?: RailLink[] };
 
 // Pages whose sub-page rail keeps an unbuilt link as an unlinked row: a
 // navigation page whose children are all designed but unbuilt reads as broken
@@ -248,7 +354,7 @@ const KEEP_UNBUILT_RAIL = new Set(["/programmes"]);
 
 // cache(): generateMetadata and the page both call this; one fetch and one log
 // line per render.
-export const getPage = cache(async (path: string): Promise<PageResponse | null> => {
+export const getPage = cache(async (path: string): Promise<PageData | null> => {
   const fixture = FIXTURES[path];
   if (!fixture) return null;
   const config = PAGE_CONFIG[path];
@@ -283,12 +389,13 @@ export const getPage = cache(async (path: string): Promise<PageResponse | null> 
   const built = merged?.response ?? fixture;
   // The listing's Archive row names the archive's own years (getArchive.ts);
   // About's award winners are the gallery's records (getAwards.ts).
-  const page =
+  const withRecords =
     path === "/about/news-events"
       ? await withArchiveYears(built)
       : path === "/about"
         ? await withAwardRecords(built)
         : built;
+  const page = await withProgrammeParts(path, withRecords, api);
   const keepUnbuilt = detailSections(config?.detail);
   if (KEEP_UNBUILT_RAIL.has(path)) keepUnbuilt.add(SUB_PAGE_RAIL);
   const { response, audit } = gatePage(page, {
@@ -307,5 +414,65 @@ export const getPage = cache(async (path: string): Promise<PageResponse | null> 
     );
   }
   logMissingRoutes(path, audit);
-  return response;
+  // The gate returns page + derived only; the grouped cards and the rail's
+  // buttons ride beside them.
+  const apply = APPLY[path];
+  const applyUrl = apply && ((apply.linkIn && api ? linkBlockUrl(api, apply.linkIn) : undefined) ?? apply.href);
+  return {
+    ...response,
+    ...(page.groupedItems ? { groupedItems: page.groupedItems } : {}),
+    ...(applyUrl ? { railLinks: [{ key: "apply" as const, url: applyUrl }] } : {}),
+  };
 });
+
+/** A programme page's parts from outside its document: the discipline records
+ *  as grouped cards, and the board's key-info rows where the CMS has none. */
+async function withProgrammeParts(
+  path: string,
+  response: PageResponse,
+  api: PublicContentResponse | null,
+): Promise<PageResponse> {
+  let out = response;
+  const rows = KEY_INFO[path];
+  if (rows && out.page.keyInfo.length === 0) {
+    const t = await getTranslations("KeyInfo");
+    const keyInfo: LabelValue[] = rows.flatMap((row) => {
+      const value = row.key === "campus" ? campusName(row.campus) : row.value;
+      return value ? [{ label: t(row.key), value }] : [];
+    });
+    out = { ...out, page: { ...out.page, keyInfo } };
+  }
+  const disciplines = DISCIPLINES[path];
+  if (disciplines && api) {
+    const result = await programmeDisciplines(disciplines.level);
+    const at = out.page.sections.findIndex((s) => s.id === disciplines.section);
+    const fs = out.page.sections[at];
+    const count = result?.groups.reduce((n, g) => n + g.items.length, 0) ?? 0;
+    if (result && fs && count > 0) {
+      const cards: Section = {
+        id: fs.id,
+        page: fs.page,
+        order: fs.order,
+        type: "cards",
+        title: fs.title,
+        items: result.groups.flatMap((g) => g.items),
+        links: fs.links,
+        contacts: fs.contacts,
+      };
+      const sections = out.page.sections.map((s, i) => (i === at ? cards : s));
+      out = {
+        ...out,
+        page: { ...out.page, sections },
+        groupedItems: { ...out.groupedItems, [fs.id]: result.groups },
+      };
+    }
+    console.info(
+      `[cms] ${path} disciplines: ` +
+        (result
+          ? `${count} records in ${result.groups.length} faculties (${result.groups.map((g) => `${g.label} ${g.items.length}`).join(", ")})` +
+            (result.notes.length ? ` · ${result.notes.join(" · ")}` : "")
+          : "list unavailable, fixture section stands"),
+    );
+  }
+  return out;
+}

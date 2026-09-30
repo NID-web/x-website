@@ -3435,3 +3435,114 @@ at 20 images); each card instance's own download returned its 1520 × 700 file, 
 The template keeps the session-trail `BackNav` though the board draws none (§68). `/programmes`
 is named for it in `UNLISTED_PAGES`: the menu's Programmes title is a disclosure, not a link, so
 nothing else gave the route a title. The menu itself is unchanged.
+
+## 70. The programme pages: `SecondaryTemplate`, grouped disciplines, and a build that waits out the rate limit
+
+`/programmes/{bdes,mdes,phd,fdp,international,curriculum-objectives}` are built from one board, the
+1440 Bachelor of Design, drawn on the real 24 / 330 grid. `/programmes/industry-online` has no CMS
+document and no board, so it is not built: it stays an unlinked row on /programmes and the gate
+withholds it from every band until it exists.
+
+### One secondary template
+
+`CampusPage` became `sections/SecondaryTemplate.tsx`: title, the back link in column 4, the key-info
+rail, the hero, the standfirst, sections and the sibling band. The three campus pages and the six
+programme pages render it through thin route files (no `[slug]` folder, §57). Everything a page
+differs by is a `SecondaryLayout` prop: the campus tables (`clamp`, `imaged`, `twoUpLinks`, the "Other
+campuses" title) moved to `components/campus/layout.ts`, and the programme routes pass
+`backFallback="/programmes"` (BackNav's fallback, "Programmes") and `heroPlaceholder={false}` (no
+hero, no box, and a 404 hero removed, the article rule; the campus boards keep their flat
+placeholder). A client component's prop that is merely `undefined` is still serialized, so the
+template renders `<BackNav />` and `<PageHero hero>` exactly as the campus pages always did when a
+programme prop is absent, and loads the Article strings only when there are rail buttons. The campus
+pages pass R unchanged.
+
+Charter and History are not moved. History is close to a drop-in (its CLAMP and IMAGED tables as
+props; the template's `hasContent` filter would drop a separator if a LIVE section arrived empty).
+Charter takes more: its rail is `page.contacts`, not keyInfo (a prop, or `contactsTo: "keyInfo"` in
+its config), every section draws a placeholder with its own pattern seed, pattern tiles are on
+(band included), and it has no `hasContent` filter.
+
+### The data
+
+Six Generic Page documents, no keyInfo and no typed detail. The standfirst is "About" block 1, as on
+/programmes; a new text rule, `afterIntro`, renders "this section's TEXT blocks after the one the
+intro took" (Ph.D 2–4, FDP 2, titled "About"; `<strong>` kept by the prose renderer). On B.Des the
+remainder is the admissions line, and it is the Apply section's body instead, so the DAT is never
+said twice. Curriculum Objectives has no "About": its standfirst is heroText and Objectives renders
+whole. The Apply button (a filled Cta, the events rail's `apply` RailLink) renders only with a real
+URL: Ph.D's CMS LINK block, else `ADMISSIONS_URL` (https://admissions.nid.edu/, the same site the
+CMS links) on B.Des and M.Des. B.Des alone has the Apply section (title, body, button in column 4).
+Key info: FDP's CMS contacts go to the rail; B.Des's Duration and Campus are the board's (labels UI
+strings, the campus named from the campus pages' data); no other page gets invented rows.
+
+The five pages with no board have fixtures that are verbatim snapshots of today's documents,
+produced with the adapter's own `format.ts`, so FIXTURE and LIVE show the same content. Their heroes
+are the CMS's hero[0], copied to `public/programmes/<page>/` (FDP's is byte-identical to the
+/programmes Ph.D card photo and reuses that file). B.Des's fixture is the board's copy with CMS
+photos: the hero is `bdes-hero-2` (the glaze tiles), the cards the discipline records' images.
+
+### Disciplines, grouped once
+
+No document lists them. `getDisciplines.ts` reads the discipline list and then each record (faculty,
+campuses and seats are only on a record's `detail`), keeps the programme's by sitemap.json's slug
+pattern `{discipline}-{bdes|mdes}`, excludes the Foundation Programme (the common first year, not a
+chosen discipline) by one stated slug, and groups by faculty ONCE, at build, into
+`PageResponse.groupedItems`, with faculties and disciplines alphabetical (the CMS has no order field;
+the board's faculty order is alphabetical too, its disciplines are not). Items are the model's
+`Discipline` plus every campus (`DisciplineCard`, editorial.ts). `GroupedCards` renders them: section
+title column 1, group title column 2 (Heading/5, `text/tertiary`), cards two across in columns 3–4,
+a separator between groups; at three columns the cards reflow two across into columns 2–3 below
+their title. The meta line is "{campus} / {n} seats" from the record, never the board's filler "13
+seats". B.Des: 8 records in 3 faculties; M.Des: 19 in 5. With no CMS, B.Des shows the board's 8
+cards and M.Des its prose Disciplines section.
+
+Known limitation: the list endpoint carries no detail, so the cards cost one request per record (28).
+A list that returned faculty, campuses and seats would remove them; the backend is frozen.
+
+### A LIVE build waits out the rate limit
+
+With those requests a LIVE build makes 110 (86 document fetches, 74 distinct — each worker re-fetches
+the shared ones — plus 24 media HEADs), and the API allows 100 a minute. A second build inside the
+first one's window got five HTTP 429s and failed. So `client.ts` now sends every CMS request of a
+build through ONE limiter, at most four in flight per worker (media.ts's HEADs too), and waits out a
+429: Retry-After, else 2s, 4s, 8s…, at most five attempts, then fails as §65 requires, naming the
+URL. The media HEADs share that retry, and only a real 404 or 410 means a file is missing: a
+429, 5xx or timeout left after retries fails a LIVE build naming the URL, so an image that exists is
+never quietly dropped (`next dev` keeps it, with a warning). `next dev` and FIXTURE builds neither
+queue nor wait. The build summary adds `RATE LIMIT
+n 429s retried, s waited` (waits summed across workers, not wall time).
+
+The server answers 429 with `Retry-After: 60`, and Next's default `staticPageGenerationTimeout` is
+60s. In the first back-to-back run nine pages crossed it, Next restarted them in other workers, and
+one restart left `/en/about/student-awards.html` with a stale tail after `</html>` — in a build that
+exited 0. So `next.config.ts` sets it to 360s (four 60s waits, five 10s timeouts and queueing), and
+`scripts/verify-built-html.mjs` runs after every `next build` in package.json (Vercel's too): it
+fails the build if any prerendered page has anything but whitespace after its LAST `</html>`, or no
+`</html>` at all.
+
+Measured, back to back: 0 then 3 429s, 0s then 180s waited, 18s then 78s wall (HEAD's static
+generation: 3.0s), no page restarted, the guard clean, both identical. At ~140 requests, after the
+discipline pages, a first build waits one 60s window and a back-to-back build two or three; the
+bound is five attempts per request, about four and a half minutes. If that is not enough, the next
+step is a build-wide snapshot fetched once, before the discipline pages.
+
+### R when a UI string is added
+
+The locale layout hands `NextIntlClientProvider` the whole messages file, so any new UI string
+changes one row of every page's RSC payload. The standing rule: §69's method (DOM byte-identical,
+RSC rows equal as a set, ignoring order and row ids), plus the client messages row may differ ONLY
+by the keys the change adds, and must be byte-identical once they are removed. Here: `Page.seats`
+and `KeyInfo`. Every existing page passes, FIXTURE and LIVE, apart from the hrefs that now resolve:
+/programmes' five rail rows, five cards and "Read more", and Ahmedabad's three FIXTURE programme
+cards (LIVE shows discipline records there).
+
+### Where the B.Des board and the build differ
+
+- Live, the title is the CMS's "Bachelor of Design (B.Des.)" and the hero is hero[0], the handmade
+  paper; the board's glaze tiles are hero[1]. Content, in the CMS.
+- Live, the cards are the CMS's shortNames, alphabetical ("Ceramic & Glass Design", "Furniture &
+  Interior Design"; the board: "Ceramic Design", "Furniture Design") with real seats (13 or 19).
+- The hero is PageHero's 2.2:1 (1038 × 472); the board's 1200:628 is the photo's own ratio.
+- The standfirst is Regular from 768 up; the board sets it Bold. The rail stacks at 24px, not 32.
+- The band has 4 links: Industry & Online is withheld until its page exists.

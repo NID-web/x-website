@@ -38,6 +38,12 @@ export const CMS_FLOORS = {
     "news-events": 4,
     "our-themes": 0,
     programmes: 2,
+    bdes: 2,
+    mdes: 2,
+    phd: 1,
+    fdp: 1,
+    international: 3,
+    "curriculum-objectives": 1,
     "student-awards": 1,
   } as Record<string, number>,
 
@@ -47,6 +53,10 @@ export const CMS_FLOORS = {
     "about-nid": 4,
     campuses: 3,
   } as Record<string, number>,
+
+  /** A programme's discipline records that become cards (getDisciplines.ts):
+   *  live 30 Sep 2026, B.Des 8 (the Foundation Programme excluded), M.Des 19. */
+  disciplines: { bdes: 8, mdes: 19 },
 
   /** The header menu's top-level sections (home document). Live: 7. */
   menuSections: 7,

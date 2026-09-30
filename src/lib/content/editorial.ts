@@ -1,4 +1,4 @@
-import type { Page, Section } from "@/lib/content-model";
+import type { Discipline, Page, Section, UUID } from "@/lib/content-model";
 
 /**
  * A section as an editorial page may carry it: the model's Section plus a pull
@@ -34,3 +34,14 @@ export function awardOf(item: Page): { award: string; project: string } | undefi
  *  is a UI string, keyed. */
 export const RAIL_LINK_ORDER = ["apply", "register", "liveStream"] as const;
 export type RailLink = { key: (typeof RAIL_LINK_ORDER)[number]; url: string };
+
+/**
+ * A discipline as a Thumb card on a programme page: the model's Discipline, plus
+ * every campus it is offered at — the model's `campus` holds one, and the meta
+ * line names them all. Front-end only, like AwardEntry. `campus` is the first.
+ */
+export type DisciplineCard = Discipline & { campuses: UUID[] };
+
+export function isDisciplineCard(item: unknown): item is DisciplineCard {
+  return typeof item === "object" && item !== null && "programme" in item && "campuses" in item;
+}

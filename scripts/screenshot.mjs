@@ -62,6 +62,8 @@ const PAGES = [
   // The event template's demo: the Drawing Dialogues fixture (STAGE-0-NOTES §68).
   { name: "events", path: "/en/events/drawing-dialogues" },
   { name: "programmes", path: "/en/programmes" },
+  // The programme page template's board (STAGE-0-NOTES §70).
+  { name: "programme-bdes", path: "/en/programmes/bdes" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

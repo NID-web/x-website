@@ -1,10 +1,11 @@
-// Ahmedabad campus page — the shared campus template (src/components/campus/CampusPage.tsx).
-import { CampusPage, campusMetadata } from "@/components/campus/CampusPage";
+// Ahmedabad campus page — the secondary template with the campus pages' layout.
+import { CAMPUS_LAYOUT } from "@/components/campus/layout";
+import { SecondaryTemplate, secondaryMetadata } from "@/components/sections/SecondaryTemplate";
 
 const PATH = "/about/campuses/ahmedabad";
 
-export const generateMetadata = () => campusMetadata(PATH);
+export const generateMetadata = () => secondaryMetadata(PATH);
 
 export default function AhmedabadCampusPage() {
-  return <CampusPage path={PATH} />;
+  return <SecondaryTemplate path={PATH} {...CAMPUS_LAYOUT[PATH]} />;
 }

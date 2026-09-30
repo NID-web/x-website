@@ -1,6 +1,8 @@
 import type { Section } from "@/lib/content-model";
+import { isDisciplineCard } from "@/lib/content/editorial";
 import type { BodyClamp } from "@/components/sections/parts";
 import { CardsSection } from "@/components/sections/CardsSection";
+import { GroupedCards } from "@/components/sections/GroupedCards";
 import { LinksSection } from "@/components/sections/LinksSection";
 import { RailSection } from "@/components/sections/RailSection";
 import { TextSection } from "@/components/sections/TextSection";
@@ -25,6 +27,8 @@ export function SectionRenderer({
   patternSeed,
   linksLayout,
   thumbs,
+  groups,
+  filledLinks,
 }: {
   section: Section;
   lead?: "wide" | "feature";
@@ -38,6 +42,11 @@ export function SectionRenderer({
   linksLayout?: "flow" | "two-up";
   /** Passed to CardsSection. */
   thumbs?: "two-up" | "three-up";
+  /** This section's groups from `PageResponse.groupedItems`, already grouped:
+   *  a cards section with groups renders as GroupedCards. */
+  groups?: Array<{ label: string; items: unknown[] }>;
+  /** Passed to TextSection. */
+  filledLinks?: boolean;
 }) {
   if (!hasContent(section)) return null;
   switch (section.type) {
@@ -49,11 +58,20 @@ export function SectionRenderer({
           imagePlaceholder={imagePlaceholder}
           pattern={pattern}
           patternSeed={patternSeed}
+          filledLinks={filledLinks}
         />
       );
     case "links":
       return <LinksSection section={section} layout={linksLayout} />;
     case "cards":
+      if (groups?.length) {
+        return (
+          <GroupedCards
+            title={section.title}
+            groups={groups.map((g) => ({ label: g.label, items: g.items.filter(isDisciplineCard) }))}
+          />
+        );
+      }
       return (
         <CardsSection
           section={section}

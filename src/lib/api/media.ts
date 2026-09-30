@@ -12,8 +12,8 @@
 import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import type { MediaAsset } from "@/lib/content-model";
-import { IS_BUILD, report } from "@/lib/api/build-mode";
-import { cmsBaseUrl } from "@/lib/api/client";
+import { IS_BUILD, report, strictBuild } from "@/lib/api/build-mode";
+import { cmsBaseUrl, retrying429, withCmsSlot } from "@/lib/api/client";
 import type { MediaRef } from "@/lib/api/types";
 
 export type MediaResult =
@@ -85,18 +85,25 @@ export function toMediaAsset(
 
 const HEAD_TIMEOUT_MS = 10_000;
 
-function head(url: URL): Promise<number> {
+/** HEAD a URL: the status and Retry-After, or status 0 with the reason when
+ *  there was no answer (network error, timeout). */
+function head(url: URL): Promise<{ status: number; retryAfter?: string; error?: string }> {
   const request = url.protocol === "http:" ? httpRequest : httpsRequest;
   return new Promise((resolve) => {
     const req = request(url, { method: "HEAD", signal: AbortSignal.timeout(HEAD_TIMEOUT_MS) }, (res) => {
       res.resume();
-      resolve(res.statusCode ?? 0);
+      const retryAfter = res.headers["retry-after"];
+      resolve({ status: res.statusCode ?? 0, ...(retryAfter ? { retryAfter } : {}) });
     });
-    // A network failure reads as "not there": the caller draws its placeholder.
-    req.on("error", () => resolve(0));
+    req.on("error", (err) =>
+      resolve({ status: 0, error: err.name === "AbortError" ? `no response in ${HEAD_TIMEOUT_MS / 1000}s` : err.message }),
+    );
     req.end();
   });
 }
+
+/** Only a real 404 or 410 says a file is missing. */
+const GONE = new Set([404, 410]);
 
 // One HEAD per URL per build, kept per worker process like cmsFetch's documents
 // (client.ts): every page that asks about the same file shares the answer.
@@ -122,10 +129,26 @@ export function mediaExists(asset: MediaAsset): Promise<boolean> {
   const key = url.href;
   let pending = IS_BUILD ? headMemo.get(key) : undefined;
   if (!pending) {
-    pending = head(url).then((status) => {
-      const ok = status >= 200 && status < 300;
-      report({ t: "head", url: key, ok, status });
-      return ok;
+    // The build's one CMS limiter and 429 retry (client.ts). Only a 404 or 410
+    // is "missing"; anything else once retries run out — a 429, a 5xx, no
+    // answer — is not evidence the file is gone, so a LIVE build stops rather
+    // than quietly drop an image that exists (§70). `next dev` keeps the image.
+    pending = withCmsSlot(() => retrying429(() => head(url), key)).then((res) => {
+      if (res.status >= 200 && res.status < 300) {
+        report({ t: "head", url: key, ok: true, status: res.status });
+        return true;
+      }
+      if (GONE.has(res.status)) {
+        report({ t: "head", url: key, ok: false, status: res.status });
+        return false;
+      }
+      const reason =
+        res.error ?? `HTTP ${res.status}${res.status === 429 ? ` after ${res.attempt} attempts, ${res.waited / 1000}s waited` : ""}`;
+      report({ t: "head", url: key, ok: false, status: res.status, reason });
+      const message = `[cms] MEDIA CHECK FAILED — ${key}: ${reason}. Only a 404 or 410 means a file is missing`;
+      if (strictBuild()) throw new Error(`${message}; a LIVE build does not guess. Retry, or check the CMS.`);
+      console.warn(`${message}; the image is kept.`);
+      return true;
     });
     if (IS_BUILD) headMemo.set(key, pending);
   }

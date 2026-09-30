@@ -255,6 +255,37 @@ export function personDetail(api: PublicContentResponse): PersonDetail | null {
   return { designation: (d.designation as string | null | undefined) ?? null };
 }
 
+/** `detail` on a "discipline" record (probed 30 Sep 2026). `seats` arrives as a
+ *  string ("19"); the faculty is a card (`academic_faculty`), the campuses a card
+ *  list. Only the fields the programme pages read are typed; facultyMembers and
+ *  studentWorks are for the discipline pages. */
+export interface DisciplineDetail {
+  seats: string | null;
+  shortName: string | null;
+  faculty: CardRef | null;
+  campuses: CardRef[];
+}
+
+/** The record's discipline detail, or null when it has none or it is malformed. */
+export function disciplineDetail(api: PublicContentResponse): DisciplineDetail | null {
+  const d = api.detail;
+  if (!isObj(d)) return null;
+  const seats = d.seats ?? null;
+  const faculty = d.faculty ?? null;
+  const ok =
+    (seats === null || isStr(seats) || typeof seats === "number") &&
+    isStrOrNull(d.shortName ?? null) &&
+    (faculty === null || isCardRef(faculty)) &&
+    isCardList(d.campuses ?? []);
+  if (!ok) return null;
+  return {
+    seats: seats === null ? null : String(seats),
+    shortName: (d.shortName as string | null | undefined) ?? null,
+    faculty: faculty as CardRef | null,
+    campuses: (d.campuses as CardRef[] | undefined) ?? [],
+  };
+}
+
 /** `detail` on a "student_award" record. The recipient arrives as a card (name,
  *  slug, thumbnail inline). `awardYear` is null on every record (28 Sep 2026). */
 export interface AwardDetail {

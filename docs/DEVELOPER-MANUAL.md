@@ -150,7 +150,7 @@ npm run dev      # http://localhost:3000/en
 | `npm run dev` | dev server | always |
 | `npx tsc --noEmit` | type check | before every commit |
 | `npm run lint` | ESLint **+ the no-hex rule + the no-fixture-import rule** | before every commit |
-| `npm run build` | production build, then a **build summary** (mode, documents, floors, routes, withheld links) | before every commit |
+| `npm run build` | production build, then the **built-HTML guard** (fails on any page with bytes after its `</html>`, §70) and a **build summary** (mode, documents, rate-limit retries, floors, routes, withheld links) | before every commit |
 | `npm run verify:tokens` | FIXTURE build (no CMS — tokens don't need it), then 667 assertions in a real browser: all 20 theme states, the grid at the four artboard widths **and** at 1600 / 1200 / 900 / 430 between them | after touching `themes.css`, `globals.css`, `PageGrid`, `GridItem` |
 | `npm run verify:parity` | checks `design/tokens/*` still matches its `src/` copy | fast; runs inside `verify:tokens` |
 | `npm run verify:fonts` | confirms all four font families actually loaded | after font changes |
@@ -182,7 +182,7 @@ A build is exactly one of these (`src/lib/api/build-mode.ts`):
 | `CMS_API_URL` | the CMS origin, no trailing slash, no `/api` | same, if previews should show CMS content; unset for a FIXTURE preview |
 | `CMS_REQUIRED` | `true` (belt and braces — `VERCEL_ENV=production` already implies it) | leave unset |
 
-The Build Command must be `npm run build` (the Vercel default when `package.json` has a `build` script), not `next build`, or the summary box never prints. A production build without `CMS_API_URL` is refused before a page is built: `[cms] BUILD REFUSED — CMS_API_URL is not set, and this build requires the CMS (VERCEL_ENV=production)`.
+The Build Command must be `npm run build` (the Vercel default when `package.json` has a `build` script), not `next build`, or neither the built-HTML guard (§70) runs nor the summary box prints. A production build without `CMS_API_URL` is refused before a page is built: `[cms] BUILD REFUSED — CMS_API_URL is not set, and this build requires the CMS (VERCEL_ENV=production)`.
 
 **Reading `npm run build` output:** your route must show `○` or `●` (static). If it shows `ƒ` (dynamic), something in your page called `cookies()` or `headers()` and you've made the whole site render per-request. Find it and remove it.
 
@@ -303,6 +303,10 @@ const { page, derived } = response;
   <Footer />
 </PageGrid>
 ```
+
+A **secondary** page (a child: the campus pages, the programme pages) renders `SecondaryTemplate` (`src/components/sections/SecondaryTemplate.tsx`, STAGE-0-NOTES §70) from a thin route; per-page presentation — clamps, placeholders, the back link's fallback — is `SecondaryLayout` props, never a branch inside the template.
+
+**Proving a change left other pages alone (test R).** Build the old and new trees (`NEXT_IMAGE_UNOPTIMIZED` unset, or every image `src` differs) and compare each page's HTML: the DOM must be byte-identical, and the RSC payload's rows equal as a set, ignoring their order and row ids — two builds of the same tree reorder them (§69). If the change adds a UI string, the client messages row may differ ONLY by the added keys and must be byte-identical once they are removed (§70).
 
 Three rules that come with it:
 
@@ -929,6 +933,8 @@ transition-colors duration-150 ease-in-out
 | `Separator` | `@/components/spine/Separator` | the 24px empty row between sections. Emits its own `GridItem`. |
 | `Standfirst` | `@/components/spine/Standfirst` | the intro paragraph; clamps to 7 lines behind "See more" on phones. Client component. |
 | `Footer` | `@/components/spine/Footer` | the site footer — four `GridItem`s. Render it inside the page's grid after a `Separator`, never in the layout. |
+| `SecondaryTemplate` | `@/components/sections/SecondaryTemplate` | a child page's whole body from a path: title + back link, key-info rail and filled rail buttons, hero, standfirst, sections, sibling band. `SecondaryLayout` props carry the per-page presentation. |
+| `GroupedCards` | `@/components/sections/GroupedCards` | a cards section that arrives grouped (`groupedItems`): group title in column 2, Thumbs two across in 3–4. |
 | `PrimaryTemplate` | `@/components/sections/PrimaryTemplate` | a primary landing page's whole body from a `PageResponse` — title, sub-page rail, hero, standfirst, separated sections, footer. `thumbs="three-up"` sets Thumb cards across columns 2–4 (Programmes). |
 | `SectionRenderer` | `@/components/sections/SectionRenderer` | `section` → `TextSection` / `LinksSection` / `CardsSection`; renders nothing for an empty section. `files` / `rail` / `mosaic` are still `null` (Stages 3–5). `CardsSection` takes `lead="wide" \| "feature"` for its first card. |
 | `LinkStack`, `ContactList` | `@/components/sections/parts` | a rail of `primary` CTAs from content-model links (`twoUp="tablet-only"` for a rail, `"tablet-up"` for a band); a rail of contacts |

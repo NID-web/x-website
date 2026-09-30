@@ -3,6 +3,7 @@ import { TileImage } from "@/components/home/TileImage";
 import { PatternTile } from "@/components/home/tiles/PatternTile";
 import { HideOnImageError } from "@/components/spine/HideOnImageError";
 import { ImagePlaceholder } from "@/components/spine/ImagePlaceholder";
+import { Cta } from "@/components/spine/Cta";
 import { Title } from "@/components/spine/Title";
 import {
   ContactList,
@@ -11,6 +12,7 @@ import {
   type BodyClamp,
 } from "@/components/sections/parts";
 import type { Section } from "@/lib/content-model";
+import { ctaProps } from "@/lib/content/links";
 
 type TextSectionData = Extract<Section, { type: "text" }>;
 
@@ -23,6 +25,7 @@ export function TextSection({
   imagePlaceholder = false,
   pattern = true,
   patternSeed = 0,
+  filledLinks = false,
 }: {
   section: TextSectionData;
   /** Render the body behind a "See more" disclosure. Nothing in the model says
@@ -46,8 +49,14 @@ export function TextSection({
    *  PatternField1 is Patternimate-2, PatternField2 is Patternimate-3,
    *  PatternField3 is Patternimate-1. Read that table before setting one. */
   patternSeed?: number;
+  /** The section's links as filled buttons — the programme page's Apply
+   *  section (the events rail's button, §68). */
+  filledLinks?: boolean;
 }) {
-  const rail = section.links.length > 0 || section.contacts.length > 0;
+  // Filled buttons are drawn only for links that resolve: an Apply link with
+  // no URL leaves no empty cell in column 4.
+  const links = filledLinks ? section.links.filter((link) => ctaProps(link)) : section.links;
+  const rail = links.length > 0 || section.contacts.length > 0;
   const imageRow = Boolean(section.image) || imagePlaceholder;
   const image = (
     <>
@@ -93,7 +102,15 @@ export function TextSection({
       {section.body && <SectionBody body={section.body} clamp={clamp} />}
       {rail && (
         <GridItem span={1} className="flex flex-col gap-6">
-          {section.links.length > 0 && <LinkStack links={section.links} />}
+          {links.length > 0 &&
+            (filledLinks ? (
+              links.map((link) => {
+                const cta = ctaProps(link);
+                return cta && <Cta key={link.id} variant="filled" {...cta} />;
+              })
+            ) : (
+              <LinkStack links={links} />
+            ))}
           {section.contacts.length > 0 && <ContactList contacts={section.contacts} />}
         </GridItem>
       )}

@@ -74,6 +74,10 @@ for (const [src, n] of bySrc) {
 line(`REDIRECTS  ${redirects.length ? redirects.join("; ") : "none"}`);
 if (mode === "live") {
   line(`DOCUMENTS  ${docs.size} fetched, ${failedDocs.length} failed`);
+  // client.ts waits out a 429 during a build; every worker reports its own.
+  const retries = events.filter((e) => e.t === "retry");
+  const waited = retries.reduce((n, e) => n + e.waitedMs, 0) / 1000;
+  line(`RATE LIMIT ${retries.length} 429s retried, ${waited}s waited`);
   for (const d of [...docs.values()].sort((a, b) => a.path.localeCompare(b.path))) {
     const size = d.ok
       ? [d.sections !== undefined && `${d.sections} sections`, d.items !== undefined && `${d.items} items`].filter(Boolean).join(", ")
