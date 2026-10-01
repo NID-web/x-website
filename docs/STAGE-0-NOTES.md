@@ -3837,3 +3837,115 @@ Known limitations: LIVE `<head>` order and `crossorigin` vary between builds; ca
 (thought to be which build process renders which page while waiting on the CMS). The notices are
 static and partly past. The menu says "Admission Notifications" where the sitemap's children and
 the board say "Academic Notifications" (TODO(review), content).
+
+## 74. Admission Process: the secondary template, a CMS-first merge by meaning, and "See more" without JavaScript
+
+`/study/admission` is Study at NID's first child, from one 1440 board ("04 Study at NID / Admission
+Process"), drawn on the real 24 / 330 grid with the programme pages' layout. It renders
+`SecondaryTemplate` through a thin route: back link (fallback `/study`, "Study at NID"), the
+key-info rail beside the hero, the standfirst, four text sections, the sibling band. No hero
+placeholder. Every image on the board is a placeholder.
+
+### The data, mapped by meaning
+
+The `admission-process` document (Generic Page) sends a title, SEO, heroText, one hero (alt text
+"National Institute of Design") and two SPECIFIC sections, **both at orderIndex 1**: "Admissions"
+(a text block — "kindly visit the NID Admissions portal" — and a LINK block to
+`https://admissions.nid.edu/`) and "How to Apply" (one sentence: register, DAT, studio test,
+interview). Titles alone would cross them, so the page config claims "Admissions" by title for the
+board's "How to Apply" section and leaves "How to Apply" to the standfirst rule (the first SPECIFIC
+section no rule claims, §69), which consumes it.
+
+The CMS section wins whole: LIVE, "How to Apply" is the CMS's text and its portal link
+(`linkBlocks`, a new `TextMergeRule` option: the section's absolute LINK blocks replace the
+fixture's external links, in place; email, phone and document links stay). The board's dates
+paragraph and fake-website warning are the fixture's and never mix into it, so the closed 2025
+cycle does not reach LIVE. heroText is logged, unused. TODO(review): the CMS titles the section
+"Admissions"; LIVE, the portal CTA takes the CMS's label "NID Admissions Portal", FIXTURE the
+board's "admissions.nid.edu".
+
+B.Des, M.Des and Ph.D have no CMS data and are the fixture's in both modes (TODO(review)), as are
+the "Apply at" row, `admissions@nid.edu`, `079-26623462` (dialled as `tel:+917926623462`) and
+`info@nid.edu` (TODO(review): confirm they are current). The Ph.D text is the board's visible
+copy, which clips at "Both full…"; the end of that sentence ("…full-time and part-time routes are
+offered.") is the board's hidden "Full text" layer, read with one Figma call. Two things in that
+layer are not used, because the fixture ships to LIVE here: its "reinvent" (the visible copy says
+"reinvigorate") and its third paragraph — "Note — the most recent published handbook is 2024–25;
+no Ph.D intake is currently listed for 2026–27." — which the CMS's own Ph.D 2027 call (deadline
+01 October 2026) contradicts. One more document per LIVE build: **209 → 210 distinct**; no media or
+file HEADs. Floor `admission-process: 2`.
+
+**Not built, on purpose:** the "Applications open" rail row (no data, and false today); the three
+handbooks (no file URL anywhere — a link needs a target); the four section photos (placeholders on
+the board, none in the CMS, and reusing the programme pages' would show one photo twice). The hero
+is the CMS's `admission-process-hero-1.jpg`, copied for the fixture with our own alt text
+(TODO(review)).
+
+### Stale admissions copy
+
+The board's rail says "B.Des & M.Des 2026–27 open"; its How to Apply says the cycle closed on
+1 December 2025. The CMS's news item "Admissions 2026-27 for B.Des. & M.Des." (1 June 2026) says
+both: "is now OPEN" and "last Date … Monday, 01 December 2025". Rendered as received, FIXTURE only
+for the board's paragraph; corrections belong in the CMS.
+
+### Links and the sibling band
+
+The How to Apply slot holds three kinds of `Link` the model already has — external (arrow, new
+tab: Cta's existing rule for external links), email and phone (no icon) — through `LinkStack`. No
+`files` section and no contract change were needed. "Apply at" is plain text: `contactCta` does not
+link a bare domain, and the How to Apply CTA carries the link.
+
+"More in Study at NID" is sitemap.json's other four children, in its order (`studyBand`,
+`sibling-bands.ts`); TODO(designer): the board lists PM Vidyalaxmi Scheme first. All four are
+unbuilt. `SIBLING_BAND` (`route-gate.ts`) keeps them as unlinked rows in the rail style, passed for
+`/study/admission` only (`KEEP_UNBUILT_BAND`); every other band still drops an unbuilt link. Mocked
+with `/study/pm-vidyalaxmi` built: that row becomes a link with its arrow, the others stay text.
+
+Building the page relinks `/study`'s "Admission Process" rail row. The menu entry and the header's
+Apply (`APPLY_HREF`) already pointed here and 404ed; they now resolve, with no HTML change.
+
+### "See more" without JavaScript, everywhere
+
+Ph.D's body clips behind "See more" because the board draws it, named by the route
+(`clamp: { "section-admission-phd": 7 }`): seven lines of text, measured 226px at 1440 against the
+board's 224. ClampedProse already had the control (a real button, `aria-expanded`,
+`aria-controls`, the existing `Page.seeMore` / `seeLess` strings, no button when the text fits, no
+animation). What it lacked: the clamp was in the server HTML, so with JavaScript off the text stayed
+clipped behind a button that could not open it — on every page with a clamp.
+
+`globals.css` gains `@custom-variant scripting (@media (scripting: enabled))`, and every clamp and
+the button are gated on it: `scripting:line-clamp-[n]`, `scripting:max-tablet:line-clamp-[7]`
+(the standfirst), and the button `hidden scripting:inline-flex` (`scripting:tablet:hidden` for the
+standfirst's). With JavaScript the HTML is clamped from the first paint, as before; without it the
+text is whole and there is no button. A browser that does not know the query gets the same. Checked
+with JavaScript off on Admission Process, History and Charter; with it on, History's three clamps,
+Charter's phone standfirst and its 768 state are as before.
+
+### R
+
+The §70 rule as amended in §73. FIXTURE: 19 existing pages' HTML changed, **only** in the clamp and
+button classes — compared after mapping the baseline's classes to their `scripting:` form, byte-
+identical — and their payloads are unchanged (ClampedProse is a client component; its classes are
+not in the payload). /study changed only by the "Admission Process" row becoming a link (the one
+new href, `/en/study/admission`; the visible text is the same). Everything else identical. LIVE:
+54 pages clamp-only, /study the same, the rest identical. No message keys changed.
+
+LIVE builds this round: three, one failed on a CMS timeout (`/public/content/ahmedabad-campus`, no
+response in 10s, the baseline's first attempt) and passed on retry. The baseline's passing build
+reported `fetched 210, distinct 209`: `next.config.ts`'s media-host probe of `/public/content/home`
+got two 429s, and a failure is not stored (§71), so it was fetched twice. Not this change; the new
+build is 210 / 210, 81s wall (12 429s, 720s summed).
+
+### Open, not this pass
+
+The primary template places a text section's links by rule (`flow-utility`, §73); the secondary
+template still lets them flow into the next free cell. With no section photos here it changes
+nothing, but the two templates disagree.
+
+### Where the board and the build differ
+
+- No "Applications open" row, no handbooks, no section photos.
+- LIVE: the standfirst and How to Apply are the CMS's (above); the portal CTA reads "NID Admissions
+  Portal".
+- The hero is the CMS's photograph at the template's 2.2:1; the standfirst is Regular from 768 up.
+- Sibling order is sitemap.json's.

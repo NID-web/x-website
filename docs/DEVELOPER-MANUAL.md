@@ -76,6 +76,7 @@ NID-web/
 │   │       ├── page.tsx             ← "/"  — the Home bento (moved from /home, STAGE-0-NOTES §34)
 │   │       ├── about/page.tsx       ← "/about" — a primary page: PrimaryTemplate (R1b)
 │   │       ├── study/page.tsx       ← "/study" — the third primary page (STAGE-0-NOTES §73)
+│   │       ├── study/admission/     ← a secondary page; the CMS merged by meaning (§74)
 │   │       ├── about/news-events/   ← the secondary-page template (R1c)
 │   │       ├── about/our-themes/    ← the ten craft palettes, each scoped to its theme
 │   │       ├── swatch/page.tsx      ← "/swatch" — the QA surface, not a real page
@@ -305,7 +306,7 @@ const { page, derived } = response;
 </PageGrid>
 ```
 
-A **secondary** page (a child: the campus pages, the programme pages) renders `SecondaryTemplate` (`src/components/sections/SecondaryTemplate.tsx`, STAGE-0-NOTES §70) from a thin route; per-page presentation — clamps, placeholders, the back link's fallback — is `SecondaryLayout` props, never a branch inside the template.
+A **secondary** page (a child: the campus pages, the programme pages, Admission Process) renders `SecondaryTemplate` (`src/components/sections/SecondaryTemplate.tsx`, STAGE-0-NOTES §70) from a thin route; per-page presentation — clamps, placeholders, the back link's fallback — is `SecondaryLayout` props, never a branch inside the template. A clamp is a line count per section id (`clamp: { "section-…": 7 }`), named because a board draws "See more", never applied by text length; `ClampedProse` gates it on `scripting:`, so without JavaScript the text shows whole and there is no button (§74). A sibling band whose pages are all unbuilt can keep them as unlinked rows: `KEEP_UNBUILT_BAND` in `getPage.ts`, per page (§74).
 
 A **collection item** (an article, a discipline) is built from its record, not from a per-page fixture: `getArticle.ts`, `getDiscipline.ts`. Its route is one `[param]` folder with `dynamicParams = false`, and the same list feeds `generateStaticParams` and `registerBuiltParams`, so a link only reaches a page that was built (§59, §72).
 
@@ -316,6 +317,8 @@ Three rules that come with it:
 1. **Only `src/lib/content/` may import a fixture.** `getPage` is the seam; `npm run lint` fails on any other import (`scripts/lint-fixtures.mjs`). When the API arrives, `getPage.ts` is the only file that changes.
 2. **Page prose lives in the fixture, not `messages/en.json`** — it is CMS content. `en.json` keeps UI strings only (`Page.subPages`, `Page.seeMore`, `Cards.latest`, `Footer.*`).
 3. **`Title`, `Separator` and `Footer` emit their own `GridItem`s** into the page's one grid. Don't wrap them.
+
+Map CMS sections to board slots by what they say, not by their titles: a text rule claims a CMS section by title for whichever fixture section it means (`textTitle`), the standfirst takes the first section no rule claims, and `linkBlocks: true` takes a section's portal links with its text (§74). A CMS-filled section is the CMS's whole — never mix fixture paragraphs into it.
 
 If the board needs a field the model doesn't have, use the closest existing field and leave a `TODO(review):` naming the proposed field. Never edit `content-model.ts` to make a page fit — it's the backend contract.
 

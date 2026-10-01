@@ -36,6 +36,7 @@ export const BUILT_ROUTES = [
   "/programmes/mdes/[discipline]",
   "/programmes/phd",
   "/study",
+  "/study/admission",
   "/swatch",
 ] as const;
 

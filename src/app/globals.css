@@ -8,6 +8,12 @@
    already inverts. This exists for the few places that need a real branch. */
 @custom-variant dark (&:where([data-appearance="dark"], [data-appearance="dark"] *));
 
+/* Only where scripts run. A "See more" clamp is applied under this, so with
+   JavaScript off the text shows in full and the button, which could not work,
+   is not drawn (ClampedProse, STAGE-0-NOTES §74). A browser that does not know
+   the query also gets the full text and no button. */
+@custom-variant scripting (@media (scripting: enabled));
+
 /* Non-referencing values and namespace resets. */
 @theme {
   /* Replace Tailwind's sm/md/lg/xl/2xl with the four Figma breakpoint modes.

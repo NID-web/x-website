@@ -4,6 +4,7 @@
 import type { DerivedPageContext } from "@/lib/content-model";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 import { PROGRAMMES } from "@/lib/content/fixtures/programmes";
+import { STUDY } from "@/lib/content/fixtures/study";
 import { PAGE_ID, pageIdOf, pathOf } from "@/lib/content/pages";
 
 /** About's children: News & Events' own band (About's children minus itself)
@@ -25,6 +26,14 @@ export const ABOUT_BAND_PARENT = NEWS_EVENTS.derived.backNav?.label ?? "About NI
  *  appears when its page ships. */
 export function programmesBand(path: string): DerivedPageContext["siblingBand"] {
   return PROGRAMMES.derived.subPageLinks
+    .filter((link) => link.href !== path)
+    .map((link) => ({ id: pageIdOf(link.href) ?? link.href, title: link.label, href: link.href }));
+}
+
+/** "More in Study at NID": the /study rail — sitemap.json's five children, in its
+ *  order — minus `path` (§74). */
+export function studyBand(path: string): DerivedPageContext["siblingBand"] {
+  return STUDY.derived.subPageLinks
     .filter((link) => link.href !== path)
     .map((link) => ({ id: pageIdOf(link.href) ?? link.href, title: link.label, href: link.href }));
 }

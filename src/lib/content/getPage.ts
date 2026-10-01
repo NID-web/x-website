@@ -23,7 +23,7 @@ import {
   toPageResponse,
   type PageMergeConfig,
 } from "@/lib/content/page-adapter";
-import { SUB_PAGE_RAIL, auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
+import { SIBLING_BAND, SUB_PAGE_RAIL, auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ABOUT } from "@/lib/content/fixtures/about";
 import { CAMPUSES } from "@/lib/content/fixtures/campuses";
 import { CAMPUS_AHMEDABAD } from "@/lib/content/fixtures/campus-ahmedabad";
@@ -42,6 +42,7 @@ import { PROGRAMME_FDP } from "@/lib/content/fixtures/programme-fdp";
 import { PROGRAMME_INTERNATIONAL } from "@/lib/content/fixtures/programme-international";
 import { CURRICULUM_OBJECTIVES } from "@/lib/content/fixtures/programme-curriculum-objectives";
 import { STUDY } from "@/lib/content/fixtures/study";
+import { STUDY_ADMISSION } from "@/lib/content/fixtures/study-admission";
 import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
 import { PAGE_ID } from "@/lib/content/pages";
 
@@ -64,6 +65,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/programmes/international": PROGRAMME_INTERNATIONAL,
   "/programmes/curriculum-objectives": CURRICULUM_OBJECTIVES,
   "/study": STUDY,
+  "/study/admission": STUDY_ADMISSION,
 };
 
 // Keys are content-type keys from GET /public/content-types.
@@ -322,6 +324,20 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     subPagesKey: "static",
     sections: {},
   },
+  // Study at NID's first child (STAGE-0-NOTES §74). Mapped by meaning, not by
+  // title: the CMS's "How to Apply" (register, DAT, studio test, interview) is
+  // the standfirst — the first SPECIFIC section no rule claims — and is
+  // consumed; its "Admissions" section is the board's "How to Apply", whole:
+  // the text block is the body, the portal LINK block the CTA. The board's
+  // dates and fake-website paragraphs are fixture-only and never mix into it.
+  // heroText is logged, unused. B.Des, M.Des and Ph.D have no CMS data.
+  // TODO(review): backend — the CMS titles the section "Admissions"; both
+  // sections carry orderIndex 1; no handbook files, contacts, section images
+  // or an admissions-status field.
+  "/study/admission": {
+    slug: "admission-process",
+    sections: { "section-admission-how": { textTitle: "Admissions", linkBlocks: true } },
+  },
 };
 
 
@@ -336,8 +352,8 @@ const DISCIPLINES: Record<string, { level: ProgrammeLevel; section: string }> = 
 // The rail's Apply button (a filled Cta, the events rail's `apply` link). Only
 // a real URL renders it: the CMS's own LINK block in the named section where it
 // has one (Ph.D), else the fixture's (Ph.D's is the snapshot of that link).
-// TODO(review): the header's Apply points at /study/admission (APPLY_HREF,
-// nav-content.ts), which is not built; these point at the admissions site.
+// The header's Apply points at /study/admission (APPLY_HREF, nav-content.ts),
+// the page that explains admissions; these buttons go straight to the portal.
 const APPLY: Record<string, { href: string; linkIn?: string }> = {
   "/programmes/bdes": { href: ADMISSIONS_URL },
   "/programmes/mdes": { href: ADMISSIONS_URL },
@@ -372,6 +388,11 @@ export type PageData = PageResponse & { railLinks?: RailLink[] };
 // "Read more" pointers to those children are the same records (§73). Every
 // other page still drops an unbuilt link (§58).
 const KEEP_UNBUILT = new Set(["/programmes", "/study"]);
+
+// Pages whose sibling band keeps an unbuilt sibling as an unlinked row: Admission
+// Process is the first Study at NID child built, so all four of its siblings are
+// unbuilt and the band would vanish (§74). Its pattern, not a site-wide one.
+const KEEP_UNBUILT_BAND = new Set(["/study/admission"]);
 
 // cache(): generateMetadata and the page both call this; one fetch and one log
 // line per render.
@@ -422,6 +443,7 @@ export const getPage = cache(async (path: string): Promise<PageData | null> => {
     keepUnbuilt.add(SUB_PAGE_RAIL);
     for (const section of page.page.sections) keepUnbuilt.add(section.id);
   }
+  if (KEEP_UNBUILT_BAND.has(path)) keepUnbuilt.add(SIBLING_BAND);
   const { response, audit } = gatePage(page, {
     // The campus pages' detail-derived sections list records, so an unbuilt
     // link there stays as an unlinked row (route-gate.ts, STAGE-0-NOTES §58).

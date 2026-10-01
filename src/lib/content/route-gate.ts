@@ -73,14 +73,19 @@ const keepResolvedAsRow = (audit: RouteAudit) => (link: { href: string }) =>
  *  section id, so it cannot collide with one. */
 export const SUB_PAGE_RAIL = "derived.subPageLinks";
 
+/** Names the page's sibling band in `keepUnbuilt`, as SUB_PAGE_RAIL does the
+ *  rail. */
+export const SIBLING_BAND = "derived.siblingBand";
+
 export interface GateOptions {
   /** Lists whose links are RECORDS a page lists, not calls to action: the
    *  campus pages' detail-derived sections (PAGE_CONFIG[path].detail), by
    *  section id; and on Programmes and Study at NID, the sub-page rail (by
-   *  SUB_PAGE_RAIL) and every section's links (by section id). There an
+   *  SUB_PAGE_RAIL) and every section's links (by section id); and on Admission
+   *  Process, the sibling band (by SIBLING_BAND). There an
    *  unbuilt link keeps its place as an unlinked row, the treatment the header
    *  gives cards and rows. Everywhere else it is still dropped: the site-wide
-   *  version was weighed and declined (STAGE-0-NOTES §58, §69, §73). */
+   *  version was weighed and declined (STAGE-0-NOTES §58, §69, §73, §74). */
   keepUnbuilt?: ReadonlySet<string>;
 }
 
@@ -137,7 +142,9 @@ export function gatePage(
         subPageLinks: derived.subPageLinks.filter(
           keepUnbuilt?.has(SUB_PAGE_RAIL) ? keepResolvedAsRow(audit) : keepResolved(audit),
         ),
-        siblingBand: derived.siblingBand.filter(keepResolved(audit)),
+        siblingBand: derived.siblingBand.filter(
+          keepUnbuilt?.has(SIBLING_BAND) ? keepResolvedAsRow(audit) : keepResolved(audit),
+        ),
       },
     },
     audit,

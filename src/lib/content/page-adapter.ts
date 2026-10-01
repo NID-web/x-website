@@ -41,7 +41,14 @@ export interface SectionMergeRule {
  *  drops the page back to its fixture body. Safe (it falls back and logs), and
  *  the cheapest thing available until Section carries a stable `key`. Never a
  *  synthetic key made from the title. */
-export type TextMergeRule = { textTitle: string } & (
+export type TextMergeRule = {
+  textTitle: string;
+  /** The section's LINK blocks with an absolute URL become its external links,
+   *  replacing the fixture's external ones; its email, phone and document links
+   *  stay. LINK is served but not in types.ts's block union (§59), so it is
+   *  read loosely. Admission Process's "Admissions" portal link (§74). */
+  linkBlocks?: true;
+} & (
   | { blocks?: never; of?: never; afterIntro?: never }
   | {
       /** Only the section's TEXT blocks after the one the standfirst took
@@ -515,15 +522,29 @@ export function toPageResponse(
     if (breaks) log.notes.push(`${name}: ${breaks} authored paragraph break${breaks === 1 ? "" : "s"} kept`);
     const tags = [...new Set(texts.flatMap((t) => t.tags))];
     if (tags.length) log.notes.push(`${name}: stripped <${tags.join(">, <")}>`);
-    const rest = blocks.filter((b) => b.blockType !== "TEXT");
+    const linked: Link[] = rule.linkBlocks
+      ? blocks.flatMap((b) => {
+          const url = (b as unknown as { url?: unknown }).url;
+          const label = b.text?.trim();
+          return (b.blockType as string) === "LINK" && typeof url === "string" && /^https?:\/\//.test(url) && label
+            ? [{ id: `link-cms-${b.id}`, label, targetType: "external" as const, url }]
+            : [];
+        })
+      : [];
+    const rest = blocks.filter((b) => b.blockType !== "TEXT" && !(linked.length && (b.blockType as string) === "LINK"));
     if (rest.length && !rule.blocks) {
       const types = [...new Set(rest.map((b) => b.blockType))].join("/");
       log.notes.push(`${name}: dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
     }
     log.api.push(
-      rule.blocks ? `${name}(blocks ${rule.blocks[0]}–${rule.blocks[1]})` : afterIntro ? `${name}(after the standfirst)` : name,
+      (rule.blocks ? `${name}(blocks ${rule.blocks[0]}–${rule.blocks[1]})` : afterIntro ? `${name}(after the standfirst)` : name) +
+        (linked.length ? ` + ${linked.length} link block${linked.length === 1 ? "" : "s"}` : ""),
     );
-    return { ...fs, body };
+    // The CMS's links replace the fixture's external ones in the same place, in
+    // block order; with none, the fixture's stand.
+    return linked.length
+      ? { ...fs, body, links: [...linked, ...fs.links.filter((l) => l.targetType !== "external")] }
+      : { ...fs, body };
   };
 
   /** A fixture rail section's people from a STRUCTURED section. Title, body

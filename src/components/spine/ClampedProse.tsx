@@ -11,13 +11,16 @@ import { Prose } from "@/components/spine/Prose";
 
 // Complete class strings, because Tailwind scans source text and never sees a
 // name that was assembled at runtime. `body` clamps, `button` hides the control
-// outside the range the clamp applies to.
+// outside the range the clamp applies to. Every clamp is `scripting:`-gated: the
+// server HTML is clamped from the first paint where JavaScript runs, and full,
+// with no button, where it does not — a clip behind a button that cannot open
+// it hides the text from that reader for good (STAGE-0-NOTES §74).
 //   phone-7    the standfirst: clamped on phones only (4361:190044)
 //   always-9   a section body: clamped at every width. Nine lines of
 //              Body/Large/Regular at 30px is the board's 270px "Focus body".
 const CLAMP = {
-  "phone-7": { body: "max-tablet:line-clamp-[7]", button: "tablet:hidden" },
-  "always-9": { body: "line-clamp-[9]", button: "" },
+  "phone-7": { body: "scripting:max-tablet:line-clamp-[7]", button: "scripting:tablet:hidden" },
+  "always-9": { body: "scripting:line-clamp-[9]", button: "" },
 } as const;
 
 // A section body clamped at every width, by TEXT line count. Count the lines of
@@ -27,12 +30,12 @@ const CLAMP = {
 // text, not ten (STAGE-0-NOTES §55). Same constraint as above: one complete
 // class string per count, never `line-clamp-[${n}]`.
 const LINES = {
-  4: "line-clamp-[4]",
-  6: "line-clamp-[6]",
-  7: "line-clamp-[7]",
-  8: "line-clamp-[8]",
-  9: "line-clamp-[9]",
-  10: "line-clamp-[10]",
+  4: "scripting:line-clamp-[4]",
+  6: "scripting:line-clamp-[6]",
+  7: "scripting:line-clamp-[7]",
+  8: "scripting:line-clamp-[8]",
+  9: "scripting:line-clamp-[9]",
+  10: "scripting:line-clamp-[10]",
 } as const;
 
 export type ClampLines = keyof typeof LINES;
@@ -104,7 +107,7 @@ export function ClampedProse({
           aria-controls={id}
           onClick={() => setOpen((was) => !was)}
           className={clsx(
-            "mt-4 inline-flex items-center gap-2 py-2 font-primary text-body font-medium text-text-secondary transition-colors duration-150 ease-in-out hover:text-text-primary",
+            "mt-4 hidden items-center gap-2 py-2 scripting:inline-flex font-primary text-body font-medium text-text-secondary transition-colors duration-150 ease-in-out hover:text-text-primary",
             button,
           )}
         >
