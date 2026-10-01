@@ -121,9 +121,15 @@ const headMemo = new Map<string, Promise<boolean>>();
  *  JavaScript it still draws its box (ARTICLE-API-STATUS decision 3). Not wired
  *  in here on purpose. */
 export function mediaExists(asset: MediaAsset): Promise<boolean> {
+  return fileServes(asset.file);
+}
+
+/** mediaExists for any file URL — a CMS-linked download (getPage, §76). The
+ *  same one HEAD per build, the same "only 404 or 410 is missing" rule. */
+export function fileServes(href: string): Promise<boolean> {
   let url: URL;
   try {
-    url = new URL(asset.file);
+    url = new URL(href);
   } catch {
     return Promise.resolve(true); // a local public/ path: in the repo, so it exists
   }

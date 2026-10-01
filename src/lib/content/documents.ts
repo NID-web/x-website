@@ -3,7 +3,7 @@
 // `PageResponse` does not resolve it — the same gap `pages.ts` covers for pages.
 // This is the static half of that derivation and goes the day the API resolves
 // a document link to a path.
-import type { UUID } from "@/lib/content-model";
+import type { Link, UUID } from "@/lib/content-model";
 
 export const DOCUMENT_ID = {
   nidAct: "document-nid-act-and-statutes",
@@ -25,4 +25,19 @@ const PATH: Record<UUID, string> = {
 
 export function documentPath(id: UUID | undefined): string | undefined {
   return id === undefined ? undefined : PATH[id];
+}
+
+/**
+ * A document link the CMS made: a LINK block with no url and its file in
+ * `media` (Young Designers' "Download Young Designers", STAGE-0-NOTES §76). The
+ * model's `document` is the media id, as it should be; the API does not resolve
+ * an id to a path (see the header), so the file's URL rides beside it until it
+ * does. Front-end only, like editorial.ts's types — not a change to
+ * content-model.ts.
+ */
+export type CmsFileLink = Link & { targetType: "document"; file: string };
+
+/** A document link's href: a known document's path, else a CMS file's URL. */
+export function documentHref(link: Link): string | undefined {
+  return documentPath(link.document) ?? (link as Partial<CmsFileLink>).file;
 }

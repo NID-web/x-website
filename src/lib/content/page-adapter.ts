@@ -15,6 +15,7 @@ import {
 } from "@/lib/api/types";
 import { toMediaAsset } from "@/lib/api/media";
 import { joinBlocks, plainText, richParagraphs } from "@/lib/content/format";
+import type { CmsFileLink } from "@/lib/content/documents";
 import { contactCta } from "@/lib/content/links";
 import { PAGE_ID, pageIdOf, pathOf, pathOfCmsSlug } from "@/lib/content/pages";
 
@@ -43,10 +44,12 @@ export interface SectionMergeRule {
  *  synthetic key made from the title. */
 export type TextMergeRule = {
   textTitle: string;
-  /** The section's LINK blocks with an absolute URL become its external links,
-   *  replacing the fixture's external ones; its email, phone and document links
-   *  stay. LINK is served but not in types.ts's block union (§59), so it is
-   *  read loosely. Admission Process's "Admissions" portal link (§74). */
+  /** The section's LINK blocks become links: an absolute `url` an external
+   *  link, a block with no url but a `media` file a document link (§76). In a
+   *  `text` section they replace the fixture's external and document links;
+   *  its email, phone and page links stay (§74). In a `links` section they ARE
+   *  the items, in CMS order with CMS labels — a list of documents (§76). LINK
+   *  is served but not in types.ts's block union (§59), so it is read loosely. */
   linkBlocks?: true;
 } & (
   | { blocks?: never; of?: never; afterIntro?: never }
@@ -111,6 +114,29 @@ function personRefs(as: ApiSection | undefined): CardRef[] {
     );
 }
 
+/** A section's LINK blocks as links (TextMergeRule.linkBlocks): an absolute
+ *  `url` is an external link; no url but a `media` file is a document link
+ *  carrying the file's URL (documents.ts). A block with neither, or no label,
+ *  is counted as unusable. Ids are `link-cms-<block id>`: getPage checks the
+ *  files among them before the page renders (§76). */
+function linkBlockLinks(blocks: SectionBlock[]): { links: Link[]; unusable: number } {
+  const links: Link[] = [];
+  let unusable = 0;
+  for (const b of blocks) {
+    if ((b.blockType as string) !== "LINK") continue;
+    const url = (b as unknown as { url?: unknown }).url;
+    const label = b.text?.trim();
+    const file = b.media?.url;
+    if (label && typeof url === "string" && /^https?:\/\//.test(url)) {
+      links.push({ id: `link-cms-${b.id}`, label, targetType: "external", url });
+    } else if (label && b.media && file && /^https?:\/\//.test(file)) {
+      const link: CmsFileLink = { id: `link-cms-${b.id}`, label, targetType: "document", document: b.media.id, file };
+      links.push(link);
+    } else unusable++;
+  }
+  return { links, unusable };
+}
+
 export interface PageMergeConfig {
   /** The document at /public/content/{slug}. */
   slug: string;
@@ -120,6 +146,10 @@ export interface PageMergeConfig {
    *  for a page whose first SPECIFIC section is a body, not a standfirst.
    *  `static` keeps the fixture's. */
   intro?: "firstTextBlock" | "heroText" | "static";
+  /** `static` keeps the fixture's hero (none, if it has none) whatever the
+   *  document sends — for a CMS hero that cannot serve as one: Young Designers'
+   *  banner has its text baked in, and the hero crop cuts it (§76). */
+  hero?: "static";
   /** The page field the document's `contacts` feed. `contacts` by default;
    *  `keyInfo` for a page whose rail block beside the hero is the model's
    *  key info rather than a first section's contacts. */
@@ -230,10 +260,12 @@ export function toPageResponse(
     log.api.push("title");
   } else log.static.push("title(api empty)");
 
-  const heroes = api.hero.map((ref) => toMediaAsset(ref));
+  const heroes = config.hero === "static" ? [] : api.hero.map((ref) => toMediaAsset(ref));
   const accepted = heroes.flatMap((h) => ("asset" in h ? [h.asset] : []));
   const rejected = [...new Set(heroes.flatMap((h) => ("rejected" in h ? [h.rejected] : [])))];
-  if (accepted.length) {
+  if (config.hero === "static") {
+    log.static.push(`hero(config${api.hero.length ? `; api sent ${api.hero.length}` : ""})`);
+  } else if (accepted.length) {
     // Every accepted image is mapped (the model's >1 is a slider); the page
     // still renders hero[0] only.
     page.hero = accepted;
@@ -495,11 +527,28 @@ export function toPageResponse(
     }
     consumed.add(as);
     if (rule.blocks) sliced.add(as);
+    const blocks = (as.blocks ?? []).filter((b) => !afterIntro || b !== introPick?.block);
+    const { links: linked, unusable } = rule.linkBlocks ? linkBlockLinks(blocks) : { links: [], unusable: 0 };
+    if (unusable) log.notes.push(`${name}: dropped ${unusable} LINK block${unusable === 1 ? "" : "s"} with no url or file`);
+    if (fs.type === "links" && rule.linkBlocks) {
+      // A list of documents (§76): the LINK blocks are the items, whole. A links
+      // section has no body slot, so its TEXT blocks are logged, not rendered.
+      if (!linked.length) {
+        log.static.push(`${name}(api section "${rule.textTitle}" has no usable LINK block)`);
+        return fs;
+      }
+      const other = blocks.filter((b) => (b.blockType as string) !== "LINK");
+      if (other.length) {
+        const types = [...new Set(other.map((b) => b.blockType))].join("/");
+        log.notes.push(`${name}: dropped ${other.length} ${types} block${other.length === 1 ? "" : "s"} (a list has no body)`);
+      }
+      log.api.push(`${name}(${linked.length} link block${linked.length === 1 ? "" : "s"})`);
+      return { ...fs, items: linked };
+    }
     if (fs.type !== "text") {
       log.static.push(`${name}(fixture section is ${fs.type}, not text)`);
       return fs;
     }
-    const blocks = (as.blocks ?? []).filter((b) => !afterIntro || b !== introPick?.block);
     let texts = blocks.flatMap((b) => (b.blockType === "TEXT" && b.text?.trim() ? [richParagraphs(b.text)] : []));
     if (rule.blocks) {
       if (texts.length !== rule.of) {
@@ -522,16 +571,7 @@ export function toPageResponse(
     if (breaks) log.notes.push(`${name}: ${breaks} authored paragraph break${breaks === 1 ? "" : "s"} kept`);
     const tags = [...new Set(texts.flatMap((t) => t.tags))];
     if (tags.length) log.notes.push(`${name}: stripped <${tags.join(">, <")}>`);
-    const linked: Link[] = rule.linkBlocks
-      ? blocks.flatMap((b) => {
-          const url = (b as unknown as { url?: unknown }).url;
-          const label = b.text?.trim();
-          return (b.blockType as string) === "LINK" && typeof url === "string" && /^https?:\/\//.test(url) && label
-            ? [{ id: `link-cms-${b.id}`, label, targetType: "external" as const, url }]
-            : [];
-        })
-      : [];
-    const rest = blocks.filter((b) => b.blockType !== "TEXT" && !(linked.length && (b.blockType as string) === "LINK"));
+    const rest = blocks.filter((b) => b.blockType !== "TEXT" && !(rule.linkBlocks && (b.blockType as string) === "LINK"));
     if (rest.length && !rule.blocks) {
       const types = [...new Set(rest.map((b) => b.blockType))].join("/");
       log.notes.push(`${name}: dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
@@ -540,10 +580,10 @@ export function toPageResponse(
       (rule.blocks ? `${name}(blocks ${rule.blocks[0]}–${rule.blocks[1]})` : afterIntro ? `${name}(after the standfirst)` : name) +
         (linked.length ? ` + ${linked.length} link block${linked.length === 1 ? "" : "s"}` : ""),
     );
-    // The CMS's links replace the fixture's external ones in the same place, in
-    // block order; with none, the fixture's stand.
+    // The CMS's links replace the fixture's external and document ones in the
+    // same place, in block order; with none, the fixture's stand.
     return linked.length
-      ? { ...fs, body, links: [...linked, ...fs.links.filter((l) => l.targetType !== "external")] }
+      ? { ...fs, body, links: [...linked, ...fs.links.filter((l) => l.targetType !== "external" && l.targetType !== "document")] }
       : { ...fs, body };
   };
 

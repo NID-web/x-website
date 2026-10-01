@@ -322,6 +322,8 @@ Map CMS sections to board slots by what they say, not by their titles: a text ru
 
 If the board needs a field the model doesn't have, use the closest existing field and leave a `TODO(review):` naming the proposed field. Never edit `content-model.ts` to make a page fit — it's the backend contract.
 
+**A page that is a list of documents** (Academic Notifications today; Tenders, RTI, Careers next) is a `links` section rendered with `SecondaryLayout.documentLists`: one full-width row per document across columns 2–3, the section's `contacts` in column 4. Feed it from the CMS with a text rule plus `linkBlocks: true`: the section's LINK blocks become the items, in CMS order with CMS labels — a block with a `url` an external link, a block with no url but a `media` file a document link. Every CMS-linked file is HEAD-checked once per build and dropped if it 404s (`withServedFiles`, `getPage.ts`); fixture links are never checked. STAGE-0-NOTES §76.
+
 ### R1c — A secondary page (anything with a parent)
 
 Same as R1b plus two things from `derived`, both already built. `src/app/[locale]/about/news-events/page.tsx` is the worked example.
@@ -946,6 +948,7 @@ transition-colors duration-150 ease-in-out
 | `PrimaryTemplate` | `@/components/sections/PrimaryTemplate` | a primary landing page's whole body from a `PageResponse` — title, sub-page rail, hero, standfirst, separated sections, footer. `thumbs="three-up"` sets Thumb cards across columns 2–4 (Programmes). A section photo gets no craft tile beside it, and a text section's links go by the utility rule (`GridItem place="flow-utility"`), never into a free cell beside a photo (§73). |
 | `SectionRenderer` | `@/components/sections/SectionRenderer` | `section` → `TextSection` / `LinksSection` / `CardsSection`; renders nothing for an empty section. `files` / `rail` / `mosaic` are still `null` (Stages 3–5). `CardsSection` takes `lead="wide" \| "feature"` for its first card. |
 | `LinkStack`, `ContactList` | `@/components/sections/parts` | a rail of `primary` CTAs from content-model links (`twoUp="tablet-only"` for a rail, `"tablet-up"` for a band); a rail of contacts |
+| `LinksSection` | `@/components/sections/LinksSection` | a `links` section: `flow` (one link per column), `two-up` (two across in columns 2–3) or `documents` (one full-width row each in columns 2–3, §76). The two column-2–3 layouts draw the section's contacts in column 4. |
 | `NewsCard` `CampusCard` `AlumniCard` | `@/components/cards/*` | the three card types on `Tile`. `NewsCard` has `square`, `wide` and `feature` (3 columns, nested subgrid). `AlumniCard` is a square at 4 columns and the Person shape below. |
 | `Tile` | `@/components/home/Tile` | the base card primitive |
 | `TileImage` | `@/components/home/TileImage` | `next/image` wrapper |

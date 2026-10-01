@@ -48,6 +48,9 @@ export const CMS_FLOORS = {
     "study-at-nid": 2,
     "admission-process": 2,
     "pm-vidyalaxmi-scheme": 2,
+    "life-at-nid": 8,
+    "academic-notifications": 1,
+    "young-designers": 3,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page

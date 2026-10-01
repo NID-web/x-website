@@ -34,6 +34,9 @@ export interface SecondaryLayout {
   imaged?: ReadonlySet<string>;
   /** Links sections laid two-up across columns 2–3. */
   twoUpLinks?: ReadonlySet<string>;
+  /** Links sections that are lists of documents: one row each across columns
+   *  2–3, contacts in column 4 (§76). */
+  documentLists?: ReadonlySet<string>;
   /** A text section whose links render as filled buttons (Apply). */
   filledLinks?: string;
   /** The band's own title where a board names it ("Other campuses"); otherwise
@@ -71,6 +74,7 @@ export async function SecondaryTemplate({
   clamp = {},
   imaged,
   twoUpLinks,
+  documentLists,
   filledLinks,
   siblingTitle,
   backFallback,
@@ -174,7 +178,9 @@ export async function SecondaryTemplate({
                 clamp={sectionClamp ? { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp: sectionClamp } : undefined}
                 imagePlaceholder={imaged?.has(section.id) ?? false}
                 pattern={false}
-                linksLayout={twoUpLinks?.has(section.id) ? "two-up" : undefined}
+                linksLayout={
+                  documentLists?.has(section.id) ? "documents" : twoUpLinks?.has(section.id) ? "two-up" : undefined
+                }
                 groups={response.groupedItems?.[section.id]}
                 filledLinks={section.id === filledLinks}
                 railThreeUp={railThreeUp}

@@ -5,8 +5,10 @@
 // outside src/lib/content/ may import a fixture (scripts/lint-fixtures.mjs).
 import { cache } from "react";
 import { getTranslations } from "next-intl/server";
-import type { LabelValue, PageResponse, Section } from "@/lib/content-model";
+import type { LabelValue, Link, PageResponse, Section } from "@/lib/content-model";
 import { assertFloor } from "@/lib/api/build-mode";
+import { fileServes } from "@/lib/api/media";
+import { documentHref } from "@/lib/content/documents";
 import { cmsFetch } from "@/lib/api/client";
 import { isPublicContentResponse, type PublicContentResponse } from "@/lib/api/types";
 import { campusName } from "@/lib/content/campus-names";
@@ -44,6 +46,9 @@ import { CURRICULUM_OBJECTIVES } from "@/lib/content/fixtures/programme-curricul
 import { STUDY } from "@/lib/content/fixtures/study";
 import { STUDY_ADMISSION } from "@/lib/content/fixtures/study-admission";
 import { STUDY_PM_VIDYALAXMI } from "@/lib/content/fixtures/study-pm-vidyalaxmi";
+import { STUDY_LIFE_AT_NID } from "@/lib/content/fixtures/study-life-at-nid";
+import { STUDY_NOTIFICATIONS } from "@/lib/content/fixtures/study-notifications";
+import { STUDY_YOUNG_DESIGNERS } from "@/lib/content/fixtures/study-young-designers";
 import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
 import { PAGE_ID } from "@/lib/content/pages";
 
@@ -68,6 +73,9 @@ const FIXTURES: Record<string, PageResponse> = {
   "/study": STUDY,
   "/study/admission": STUDY_ADMISSION,
   "/study/pm-vidyalaxmi": STUDY_PM_VIDYALAXMI,
+  "/study/life-at-nid": STUDY_LIFE_AT_NID,
+  "/study/notifications": STUDY_NOTIFICATIONS,
+  "/study/young-designers": STUDY_YOUNG_DESIGNERS,
 };
 
 // Keys are content-type keys from GET /public/content-types.
@@ -353,7 +361,80 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     intro: "static",
     sections: { "section-pmv-about": { textTitle: "About", linkBlocks: true } },
   },
+  // The last three Study at NID children (STAGE-0-NOTES §76), the same pattern.
+  // Life at NID: the standfirst is "Overview" (the first section no rule
+  // claims); each board section is its same-titled CMS section, whole.
+  // TODO(review): editor — the document also has "Extracurricular Activities"
+  // (orderIndex 7), a one-line duplicate of "Extra Curricular Activities";
+  // unused and logged.
+  "/study/life-at-nid": {
+    slug: "life-at-nid",
+    sections: {
+      "section-life-hostel": { textTitle: "Hostel" },
+      "section-life-dining": { textTitle: "Dining" },
+      "section-life-guest-house": { textTitle: "Guest House" },
+      "section-life-health-care": { textTitle: "Health Care" },
+      "section-life-counselling": { textTitle: "Counselling" },
+      "section-life-extra-curricular": { textTitle: "Extra Curricular Activities" },
+    },
+  },
+  // Academic Notifications: the standfirst is heroText (the text block would
+  // otherwise render twice); "Notifications" is the board's "Downloads", a list
+  // of documents fed from its LINK blocks. TODO(review): the CMS titles it
+  // "Notifications".
+  "/study/notifications": {
+    slug: "academic-notifications",
+    intro: "heroText",
+    sections: { "section-notifications-downloads": { textTitle: "Notifications", linkBlocks: true } },
+  },
+  // Young Designers: no hero — the CMS's is a banner with its text baked in
+  // (hero: "static" keeps the fixture's none). The standfirst is the fixture's.
+  // TODO(review): backend — a photograph with alt text for the hero; the board's
+  // sentence in heroText (it is the SEO description).
+  "/study/young-designers": {
+    slug: "young-designers",
+    intro: "static",
+    hero: "static",
+    sections: {
+      "section-yd-about": { textTitle: "About", linkBlocks: true },
+      "section-yd-disciplines": { textTitle: "Disciplines" },
+      "section-yd-convocation": { textTitle: "Convocation Messages" },
+    },
+  },
 };
+
+/** The links the adapter made from CMS LINK blocks (ids `link-cms-…`) that
+ *  point at a FILE — a document link, or a URL ending .pdf — each checked once
+ *  per build with media.ts's HEAD rule; a file that 404s or 410s is dropped and
+ *  logged, so a list never offers a dead download (§76). Fixture links are never
+ *  checked: they are the repo's, and a FIXTURE build stays offline. */
+async function withServedFiles(path: string, response: PageResponse): Promise<PageResponse> {
+  const fileOf = (link: Link) =>
+    link.id.startsWith("link-cms-")
+      ? link.targetType === "document"
+        ? documentHref(link)
+        : link.targetType === "external" && link.url && /\.pdf$/i.test(new URL(link.url).pathname)
+          ? link.url
+          : undefined
+      : undefined;
+  const files = response.page.sections.flatMap((s) => [...s.links, ...(s.type === "links" ? s.items : [])]).flatMap((l) => {
+    const href = fileOf(l);
+    return href ? [href] : [];
+  });
+  if (!files.length) return response;
+  const served = new Map(await Promise.all(files.map(async (href) => [href, await fileServes(href)] as const)));
+  const gone = [...served].filter(([, ok]) => !ok).map(([href]) => href);
+  if (!gone.length) return response;
+  console.info(`[cms] ${path}: dropped ${gone.length} linked file${gone.length === 1 ? "" : "s"} that 404 (${gone.join(", ")})`);
+  const keep = (l: Link) => {
+    const href = fileOf(l);
+    return !href || served.get(href) !== false;
+  };
+  const sections = response.page.sections.map((s): Section =>
+    s.type === "links" ? { ...s, items: s.items.filter(keep), links: s.links.filter(keep) } : { ...s, links: s.links.filter(keep) },
+  );
+  return { ...response, page: { ...response.page, sections } };
+}
 
 
 // A programme's disciplines as grouped cards (getDisciplines.ts), replacing the
@@ -453,7 +534,7 @@ export const getPage = cache(async (path: string): Promise<PageData | null> => {
       : path === "/about"
         ? await withAwardRecords(built)
         : built;
-  const page = await withProgrammeParts(path, withRecords, api);
+  const page = await withServedFiles(path, await withProgrammeParts(path, withRecords, api));
   const keepUnbuilt = detailSections(config?.detail);
   if (KEEP_UNBUILT.has(path)) {
     keepUnbuilt.add(SUB_PAGE_RAIL);

@@ -45,7 +45,7 @@ export function SectionRenderer({
   pattern?: boolean;
   patternSeed?: number;
   /** Passed to LinksSection. */
-  linksLayout?: "flow" | "two-up";
+  linksLayout?: "flow" | "two-up" | "documents";
   /** Passed to CardsSection. */
   thumbs?: "two-up" | "three-up";
   /** This section's groups from `PageResponse.groupedItems`, already grouped:

@@ -3997,3 +3997,111 @@ Known limitations:
   (→ `/industry/placements`), `/right-to-information` (→ `/regulatory/rti`), `/privacy-policy`
   (→ `/privacy`). Fixing them changes every FIXTURE page's footer; a separate pass.
 - The hero 404 is invisible to the build (above).
+
+## 76. The last three Study at NID pages, and the list of documents
+
+`/study/life-at-nid`, `/study/notifications` and `/study/young-designers` (1440 boards only) are
+Admission Process's pattern (§74, §75): `SecondaryTemplate`, Information rows, ClampedProse through
+the route's `clamp`, LinkStack CTAs, `linkBlocks`, `studyBand()`. With them every Study at NID link
+resolves: `/study`'s five rail rows and its "All notifications" and "Read more", every sibling band,
+Home's Young Designers tile and the convocation article's "Young Designers 2026" link (which the
+gate dropped until now). Three more documents per LIVE build (211 → 214), plus a HEAD for each
+CMS-linked file (below). Floors: `life-at-nid: 8`, `academic-notifications: 1`, `young-designers: 3`
+sections. `academic-notifications` maps to `/study/notifications` in the CMS slug table.
+
+### What is new, and only this
+
+**A list of documents.** Academic Notifications' six downloads are full-width rows in columns 2–3
+with contacts in column 4; no renderer drew that. `LinksSection` gained a `documents` layout (one
+LinkStack row per item across columns 2–3) and draws the section's `contacts` in column 4 — in
+`documents` and `two-up`, the two layouts that leave column 4 free. A page names it per section
+(`SecondaryLayout.documentLists`). The CMS feeds it: `linkBlocks` on a `links` section makes the
+section's LINK blocks its items, in CMS order with CMS labels (a links section has no body slot, so
+the section's TEXT block is logged). **This is the pattern for every future document page —
+Tenders, RTI, Careers:** a `links` section, `documentLists`, a text rule with `linkBlocks`.
+
+A first version drew `two-up`'s contacts as `{contacts.length > 0 && …}`; the empty slot reached
+the RSC payload and changed Ahmedabad's (HTML identical). It now returns the original element tree
+when there are no contacts; R shows no other page changed.
+
+**A CMS file as a document link.** A LINK block with no `url` and its file in `media` (Young
+Designers' "Download Young Designers") becomes a document link: `document` is the media id, and
+the file's URL rides beside it as front-end-only `file` (`CmsFileLink`, documents.ts) because the
+API resolves no document id to a path. It renders in the document style (file glyph and ↗, new
+tab). A block with neither url nor file is dropped and logged. The admission handbooks will arrive
+the same way.
+
+**Every CMS-linked file is checked.** `withServedFiles` (getPage.ts) HEADs each link the adapter
+made from a LINK block (`link-cms-…`) that points at a file — a document link, or a URL ending
+`.pdf` — once per build with media.ts's rule (`fileServes`; only 404/410 is missing, anything else
+after retries fails a LIVE build). A missing file is dropped and logged. Fixture links are never
+checked, so FIXTURE stays offline. Site links (the portals, the microsite) are not files and are
+not checked.
+
+**`hero: "static"`** (`PageMergeConfig`) keeps the fixture's hero whatever the document sends.
+Young Designers' CMS hero is a 1298 × 337 banner with its text baked in ("45th Convocation… Dr. V
+Narayanan"): the 2.2:1 crop cuts the text, and the alt text does not carry it. No hero, the
+closed-up state.
+
+### The data, mapped by meaning
+
+- **Life at NID:** the standfirst is "Overview" (the first section no rule claims); Hostel, Dining,
+  Guest House, Health Care, Counselling and Extra Curricular Activities are their same-titled CMS
+  sections, whole. The CMS's one-line "Extracurricular Activities" (orderIndex 7) duplicates the
+  last and is logged unused (TODO(review), editor). Hero: the CMS's hero[0], the photograph /study's
+  Life at NID section also shows. The rail and Hostel's CTAs are the fixture's (TODO(review)).
+  Hostel's CTAs are one stack in board order — email, phone, Ahmedabad Campus, Gandhinagar Campus;
+  the board puts the campus links at the photo's row (TODO(designer)). "Contact NID" and
+  "Alpavirama" have no built route and no URL: no rows.
+- **Academic Notifications:** the standfirst is heroText (the section's TEXT block would otherwise
+  render twice); "Notifications" is the board's "Downloads" (TODO(review): the CMS title). The six
+  rows are external PDF links, so they take the plain ↗ — as the board draws them. No "Last updated"
+  row: there is no `updatedAt`, `publishedAt` is a publish date, and a hard-coded date goes stale.
+  Type and the contacts (edudoc@nid.edu, +91 79 2662 9500) are the fixture's (TODO(review)).
+- **Young Designers:** the standfirst is the fixture's (heroText says something else; the board's
+  sentence is the SEO description). About, Disciplines and Convocation Messages are the CMS's,
+  whole; About's LINK blocks are its CTAs — the PDF (the 2025 edition, TODO(review)) and the
+  microsite. The quote is an ordinary paragraph: a pull quote would print it twice in LIVE. No
+  section photos: the CMS's are square portraits the 684:330 row would crop. The rail is the
+  fixture's (a past convocation, TODO(review)).
+
+FIXTURE copy is the board's, with clipped lines left out, never completed: Life at NID's second
+Extra Curricular paragraph and Young Designers' third Convocation line.
+
+### Inert, and kept
+
+With all five children built, `/study`'s `KEEP_UNBUILT` entry and the Study sibling rule
+(`KEEP_UNBUILT_BAND`) withhold nothing. Both stay: a child page removed later falls back to an
+unlinked row instead of a dropped one.
+
+### Clamps, measured
+
+Seven lines for Hostel and Extra Curricular (224px, §74); six for Disciplines and Convocation
+Messages (196px = 6 × 30 + one 16px paragraph gap). Where "See more" shows, by ClampedProse's own
+fits-means-no-button rule:
+
+| Section | LIVE (the CMS's copy) | FIXTURE (the board's) |
+|---|---|---|
+| Hostel | every width | 390 only |
+| Extra Curricular Activities | every width | 390 only |
+| Disciplines | 390 only | 390 only |
+| Convocation Messages | never — three short lines | never |
+
+The board draws "See more" on all four at 1440; its copy runs on past what the CMS or the visible
+board text holds.
+
+### R and the mocks
+
+FIXTURE and LIVE: Home (the Young Designers tile now links), `/study` (three rail rows, "All
+notifications", "Read more"), and the bands on `/study/admission` and `/study/pm-vidyalaxmi` (three
+rows each) changed, by those hrefs only; FIXTURE also the convocation-2026 article (its "Young
+Designers 2026" link, which the CMS's version of the article does not carry). Every other page
+identical; LIVE, some pages differ in `<head>` order only (§73). LIVE: fetched 221, distinct 221 —
+214 documents and 7 file HEADs. Four LIVE builds, one CMS timeout
+(`/public/content/gandhinagar-campus`, the baseline's first attempt).
+
+Mocks: a CMS-made download whose file 404s is dropped and logged (`dropped 1 linked file that
+404`), the other rows stay; a LINK block with neither url nor file is no row
+(`dropped 1 LINK block with no url or file`); no `updatedAt` is no "Last updated" row (the
+shipping state); Hostel is a section with two CTA groups and no photo; bodies that fit have no
+button; Young Designers has no hero.

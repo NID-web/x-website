@@ -160,6 +160,7 @@ const PATH_BY_CMS_SLUG: Record<string, string> = {
   "study-at-nid": "/study",
   "admission-process": "/study/admission",
   "life-at-nid": "/study/life-at-nid",
+  "academic-notifications": "/study/notifications",
   "pm-vidyalaxmi-scheme": "/study/pm-vidyalaxmi",
   "young-designers": "/study/young-designers",
   people: "/people",

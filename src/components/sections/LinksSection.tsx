@@ -1,7 +1,7 @@
 import { GridItem } from "@/components/layout/GridItem";
 import { Title } from "@/components/spine/Title";
 import { Cta } from "@/components/spine/Cta";
-import { LinkStack, startOf } from "@/components/sections/parts";
+import { ContactList, LinkStack, startOf } from "@/components/sections/parts";
 import type { Section } from "@/lib/content-model";
 import { ctaProps } from "@/lib/content/links";
 
@@ -17,16 +17,51 @@ export function LinksSection({
   section: LinksSectionData;
   /** `flow`: one link per column across the content field (the News archive,
    *  4123:240894). `two-up`: a two-column stack in columns 2–3, column 4 left
-   *  empty — Ahmedabad's Centre links (4132:246478), SiblingBand's figure. */
-  layout?: "flow" | "two-up";
+   *  empty — Ahmedabad's Centre links (4132:246478), SiblingBand's figure.
+   *  `documents`: a list of documents — one full-width row per item in columns
+   *  2–3, the section's contacts in column 4 (Academic Notifications, §76; the
+   *  pattern for Tenders, RTI, Careers). Both column-2–3 layouts draw the
+   *  section's contacts in column 4; `flow` fills column 4 with links. */
+  layout?: "flow" | "two-up" | "documents";
 }) {
   const links = section.items.flatMap((item) => {
     const cta = ctaProps(item);
     return cta ? [{ id: item.id, cta }] : [];
   });
 
-  if (layout === "two-up") {
+  if (layout === "documents") {
     return (
+      <>
+        <Title variant="section">{section.title}</Title>
+        <GridItem span={2} start={2}>
+          <LinkStack links={section.items} />
+        </GridItem>
+        {/* Column 4 at four columns, as a text section's: the cell the rows
+            leave free on the title row; stacked after them narrower. */}
+        {section.contacts.length > 0 && (
+          <GridItem span={1}>
+            <ContactList contacts={section.contacts} />
+          </GridItem>
+        )}
+      </>
+    );
+  }
+
+  if (layout === "two-up") {
+    // Two return shapes, not a `contacts && …` child: an empty slot would still
+    // reach the RSC payload and change every two-up page (Ahmedabad) that has no
+    // contacts (§76).
+    return section.contacts.length > 0 ? (
+      <>
+        <Title variant="section">{section.title}</Title>
+        <GridItem span={2} start={2}>
+          <LinkStack links={section.items} twoUp="tablet-up" />
+        </GridItem>
+        <GridItem span={1}>
+          <ContactList contacts={section.contacts} />
+        </GridItem>
+      </>
+    ) : (
       <>
         <Title variant="section">{section.title}</Title>
         <GridItem span={2} start={2}>

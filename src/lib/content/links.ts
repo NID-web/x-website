@@ -1,5 +1,5 @@
 import { linkIcon, linkNewTab, type LabelValue, type Link } from "@/lib/content-model";
-import { documentPath } from "@/lib/content/documents";
+import { documentHref } from "@/lib/content/documents";
 import { pagePath, pathOf } from "@/lib/content/pages";
 import { normalise } from "@/lib/nav-trail";
 import type { CtaProps } from "@/components/spine/Cta";
@@ -37,7 +37,10 @@ export const BUILT_ROUTES = [
   "/programmes/phd",
   "/study",
   "/study/admission",
+  "/study/life-at-nid",
+  "/study/notifications",
   "/study/pm-vidyalaxmi",
+  "/study/young-designers",
   "/swatch",
 ] as const;
 
@@ -90,7 +93,7 @@ export function ctaProps(link: Link): ResolvedCta | null {
     link.targetType === "page" && link.page
       ? pathOf(link.page)
       : link.targetType === "document"
-        ? documentPath(link.document)
+        ? documentHref(link)
         : link.targetType === "external"
           ? link.url
           : link.targetType === "email"
