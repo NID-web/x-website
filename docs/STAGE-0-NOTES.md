@@ -3908,7 +3908,8 @@ Apply (`APPLY_HREF`) already pointed here and 404ed; they now resolve, with no H
 
 Ph.D's body clips behind "See more" because the board draws it, named by the route
 (`clamp: { "section-admission-phd": 7 }`): seven lines of text, measured 226px at 1440 against the
-board's 224. ClampedProse already had the control (a real button, `aria-expanded`,
+board's 224. The two paragraphs run to eight lines at 1440, so one line is hidden and the button
+stays (115px hidden at 390); were the copy to fit, the button would go by ClampedProse's own rule. ClampedProse already had the control (a real button, `aria-expanded`,
 `aria-controls`, the existing `Page.seeMore` / `seeLess` strings, no button when the text fits, no
 animation). What it lacked: the clamp was in the server HTML, so with JavaScript off the text stayed
 clipped behind a button that could not open it — on every page with a clamp.
