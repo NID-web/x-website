@@ -1,4 +1,4 @@
-import type { Discipline, Page, Section, UUID } from "@/lib/content-model";
+import type { Discipline, MediaAsset, Page, Section, UUID } from "@/lib/content-model";
 
 /**
  * A section as an editorial page may carry it: the model's Section plus a pull
@@ -8,7 +8,7 @@ import type { Discipline, Page, Section, UUID } from "@/lib/content-model";
  * name is the field the backend is asked for; delete this type the day
  * `Section` carries it.
  */
-export type EditorialSection = Section & { pullQuote?: string };
+export type EditorialSection = Section & { pullQuote?: string; subtitle?: string };
 
 export function pullQuoteOf(section: Section): string | undefined {
   return (section as EditorialSection).pullQuote;
@@ -44,4 +44,29 @@ export type DisciplineCard = Discipline & { campuses: UUID[] };
 
 export function isDisciplineCard(item: unknown): item is DisciplineCard {
   return typeof item === "object" && item !== null && "programme" in item && "campuses" in item;
+}
+
+/** A section's sub-title above its body — the discipline board's Resources ("The
+ *  Animation Film Lab"). Front-end only, like the pull quote. */
+export function subtitleOf(section: Section): string | undefined {
+  return (section as EditorialSection).subtitle;
+}
+
+/**
+ * A student work as a cards item on a discipline page: the first is the feature,
+ * the rest thumbs. The model's cards union has no work; front-end only, like
+ * AwardEntry. `description` and `url` render only with text / a real URL.
+ */
+export interface StudentWorkCard {
+  id: string;
+  title: string;
+  student?: string;
+  description?: string;
+  url?: string;
+  image?: MediaAsset;
+  work: true;
+}
+
+export function isStudentWorkCard(item: unknown): item is StudentWorkCard {
+  return typeof item === "object" && item !== null && (item as { work?: unknown }).work === true;
 }

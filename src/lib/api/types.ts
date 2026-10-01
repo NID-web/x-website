@@ -246,13 +246,17 @@ export function campusDetail(api: PublicContentResponse): CampusDetail | null {
 /** `detail` on a "person" record — only the fields the site renders. */
 export interface PersonDetail {
   designation: string | null;
+  email: string | null;
 }
 
 /** The record's person detail, or null when it has none or it is malformed. */
 export function personDetail(api: PublicContentResponse): PersonDetail | null {
   const d = api.detail;
-  if (!isObj(d) || !isStrOrNull(d.designation ?? null)) return null;
-  return { designation: (d.designation as string | null | undefined) ?? null };
+  if (!isObj(d) || !isStrOrNull(d.designation ?? null) || !isStrOrNull(d.email ?? null)) return null;
+  return {
+    designation: (d.designation as string | null | undefined) ?? null,
+    email: (d.email as string | null | undefined) ?? null,
+  };
 }
 
 /** `detail` on a "discipline" record (probed 30 Sep 2026). `seats` arrives as a
@@ -264,6 +268,11 @@ export interface DisciplineDetail {
   shortName: string | null;
   faculty: CardRef | null;
   campuses: CardRef[];
+  /** People as cards: the role line is the card's heroText. */
+  facultyMembers: CardRef[];
+  /** Works as cards; the student's name is only on each work's record. */
+  studentWorks: CardRef[];
+  studentWorkDescription: string | null;
 }
 
 /** The record's discipline detail, or null when it has none or it is malformed. */
@@ -276,14 +285,27 @@ export function disciplineDetail(api: PublicContentResponse): DisciplineDetail |
     (seats === null || isStr(seats) || typeof seats === "number") &&
     isStrOrNull(d.shortName ?? null) &&
     (faculty === null || isCardRef(faculty)) &&
-    isCardList(d.campuses ?? []);
+    isCardList(d.campuses ?? []) &&
+    isCardList(d.facultyMembers ?? []) &&
+    isCardList(d.studentWorks ?? []) &&
+    isStrOrNull(d.studentWorkDescription ?? null);
   if (!ok) return null;
   return {
     seats: seats === null ? null : String(seats),
     shortName: (d.shortName as string | null | undefined) ?? null,
     faculty: faculty as CardRef | null,
     campuses: (d.campuses as CardRef[] | undefined) ?? [],
+    facultyMembers: (d.facultyMembers as CardRef[] | undefined) ?? [],
+    studentWorks: (d.studentWorks as CardRef[] | undefined) ?? [],
+    studentWorkDescription: (d.studentWorkDescription as string | null | undefined) ?? null,
   };
+}
+
+/** `detail` on a "student_work" record: the student, named only here. */
+export function studentWorkDetail(api: PublicContentResponse): { studentName: string | null } | null {
+  const d = api.detail;
+  if (!isObj(d) || !isStrOrNull(d.studentName ?? null)) return null;
+  return { studentName: (d.studentName as string | null | undefined) ?? null };
 }
 
 /** `detail` on a "student_award" record. The recipient arrives as a card (name,

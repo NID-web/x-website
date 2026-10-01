@@ -126,7 +126,20 @@
   },
   "KeyInfo": {
     "duration": "Duration",
-    "campus": "Campus"
+    "campus": "Campus",
+    "faculty": "Faculty",
+    "programme": "Programme",
+    "seats": "Seats"
+  },
+  "Discipline": {
+    "overview": "Overview",
+    "faculty": "Faculty",
+    "resources": "Resources",
+    "studentWork": "Student Work",
+    "programme": {
+      "bdes": "Bachelor's (B.Des)",
+      "mdes": "Master's (M.Des)"
+    }
   },
   "Article": {
     "date": "Date",

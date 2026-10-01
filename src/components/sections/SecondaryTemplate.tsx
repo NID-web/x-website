@@ -23,7 +23,7 @@ import { Title } from "@/components/spine/Title";
 import { ContactList } from "@/components/sections/parts";
 import { SectionRenderer, hasContent } from "@/components/sections/SectionRenderer";
 import { SiblingBand } from "@/components/sections/SiblingBand";
-import { getPage } from "@/lib/content/getPage";
+import { getPage, type PageData } from "@/lib/content/getPage";
 
 /** Per-page presentation the model has no field for, named by section id (the
  *  §40 / §52 precedent). */
@@ -46,6 +46,14 @@ export interface SecondaryLayout {
    *  boards draw the flat placeholder as a designed empty state, so it stays
    *  on by default. */
   heroPlaceholder?: boolean;
+  /** A title in column 1 beside the standfirst — the discipline board's
+   *  "Overview". The standfirst itself is unchanged. */
+  introTitle?: string;
+  /** Rail sections three across with the role overline (the discipline
+   *  board's Faculty, STAGE-0-NOTES §72). */
+  railThreeUp?: boolean;
+  /** A text section in the split layout: sub-title and prose beside a photo. */
+  split?: string;
 }
 
 export async function secondaryMetadata(path: string): Promise<Metadata> {
@@ -67,8 +75,16 @@ export async function SecondaryTemplate({
   siblingTitle,
   backFallback,
   heroPlaceholder = true,
-}: { path: string } & SecondaryLayout) {
-  const response = await getPage(path);
+  introTitle,
+  railThreeUp = false,
+  split,
+  response: given,
+}: {
+  path: string;
+  /** The page, when it does not come from getPage (a discipline, getDiscipline.ts). */
+  response?: PageData;
+} & SecondaryLayout) {
+  const response = given ?? (await getPage(path));
   if (!response) notFound();
   const { page, derived } = response;
   const t = await getTranslations("Page");
@@ -130,11 +146,23 @@ export async function SecondaryTemplate({
 
         {/* TODO(review): designer — the B.Des board sets the standfirst in
             Body/Large/Bold; Standfirst is Regular from 768 up, as every page. */}
-        {page.intro && (
-          <GridItem span={2} start={2}>
-            <Standfirst text={page.intro} seeMore={t("seeMore")} />
-          </GridItem>
-        )}
+        {/* Without a title, the element every page has always rendered; an
+            extra child slot would still reach the RSC payload. */}
+        {page.intro &&
+          (introTitle ? (
+            [
+              <Title key="intro-title" variant="section" start={1}>
+                {introTitle}
+              </Title>,
+              <GridItem key="intro" span={2} start={2}>
+                <Standfirst text={page.intro} seeMore={t("seeMore")} />
+              </GridItem>,
+            ]
+          ) : (
+            <GridItem span={2} start={2}>
+              <Standfirst text={page.intro} seeMore={t("seeMore")} />
+            </GridItem>
+          ))}
 
         {sections.map((section) => {
           const sectionClamp = clamp[section.id];
@@ -149,6 +177,9 @@ export async function SecondaryTemplate({
                 linksLayout={twoUpLinks?.has(section.id) ? "two-up" : undefined}
                 groups={response.groupedItems?.[section.id]}
                 filledLinks={section.id === filledLinks}
+                railThreeUp={railThreeUp}
+                railOverline={railThreeUp}
+                split={section.id === split}
               />
             </Fragment>
           );

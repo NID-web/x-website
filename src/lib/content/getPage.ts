@@ -12,6 +12,7 @@ import { isPublicContentResponse, type PublicContentResponse } from "@/lib/api/t
 import { campusName } from "@/lib/content/campus-names";
 import type { RailLink } from "@/lib/content/editorial";
 import { programmeDisciplines, type ProgrammeLevel } from "@/lib/content/getDisciplines";
+import { disciplineIndex } from "@/lib/content/getDiscipline";
 import { withArchiveYears } from "@/lib/content/getArchive";
 import { withAwardRecords } from "@/lib/content/getAwards";
 import { articleFeed } from "@/lib/content/getArticle";
@@ -443,6 +444,9 @@ async function withProgrammeParts(
     out = { ...out, page: { ...out.page, keyInfo } };
   }
   const disciplines = DISCIPLINES[path];
+  // The discipline pages this build makes, registered with the route gate so
+  // the cards link exactly those (getDiscipline.ts, STAGE-0-NOTES §72).
+  if (disciplines) await disciplineIndex(disciplines.level);
   if (disciplines && api) {
     const result = await programmeDisciplines(disciplines.level);
     const at = out.page.sections.findIndex((s) => s.id === disciplines.section);

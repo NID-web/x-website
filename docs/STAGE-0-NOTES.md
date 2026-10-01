@@ -3621,3 +3621,79 @@ requests — one 60s rate window per build, ~2 back to back.
 Known limitations: the wrapper imports `@next/env` as Next installs it (same version, 16.3.2) rather
 than as a declared dependency, which Next's docs suggest. A SIGKILLed wrapper leaves its directory
 (unread; removed after a day) and its ledger never reaches the summary.
+
+## 72. Discipline pages: 27 pages from their records, one demo, the secondary template
+
+`/programmes/{bdes|mdes}/{discipline}` — one page for each of the 27 discipline records the B.Des
+and M.Des pages list (the Foundation Programme stays excluded, §70). One board (Animation Film
+Design, 1440 only, the real 24 / 330 grid) is the demo.
+
+### The record owns the page
+
+A discipline is a collection item, so — as an article (§59) — its record decides what the page
+has; there is no fixture per page and nothing is invented for the other 26. `getDiscipline.ts`
+projects the record (a Generic Page document with a typed `detail`) and the demo fixture through
+the same `DisciplineSource`:
+
+- **Rail**: Faculty (the faculty reference's title), Programme ("Bachelor's (B.Des)" / "Master's
+  (M.Des)", UI strings, from the slug suffix), Seats, Campus (campus-names). No data, no row.
+- **Overview**: every TEXT block of the record's "About" section, as the template's standfirst
+  with an `introTitle` beside it in column 1. Not the `afterIntro` split.
+- **Faculty**: `detail.facultyMembers` (the record ties its people; no name matching), each with
+  their person record for email and designation. The overline is the card's role line with
+  exactly ", {discipline title}" removed from its end, else the whole line, else the record's
+  designation; nothing else is parsed. A `rail` section, three across (`threeUp`), overline on;
+  the role wraps (a 45-character role overflowed a phone card by 192px). Email only from the CMS.
+- **Student Work**: `detail.studentWorks`, each with its work record for the student's name; the
+  first (CMS order) is the feature, the rest Thumbs three across. A work whose image has no alt
+  text is dropped (Strategic Design Management's only one, Interaction Design's third). The
+  feature's description is `studentWorkDescription` and its arrow a real URL — neither exists
+  today, so neither renders. `StudentWorkSection` is new: NewsCard's feature is news-specific.
+- **Resources**: no record ties a lab to a discipline (twenty lab records exist), so on no page
+  but the demo, which carries the board's as a LIVE supplement. TextSection's `split` layout,
+  with the section's `subtitle` (editorial.ts, like the pull quote).
+- **Social links**: not built — no URL exists in the CMS or on the board.
+- **Siblings**: the programme's other disciplines in its card order, through the gate.
+
+### Routes and the gate
+
+Two `[discipline]` folders (`bdes` and `mdes` already have pages), `dynamicParams = false`, and
+one list — `disciplineIndex()` — for `generateStaticParams`, `registerBuiltParams`, the B.Des /
+M.Des cards (GroupedCards now links through `builtHref`) and the band. The CMS slug loses its
+`-bdes` / `-mdes` suffix. The live NID site keeps it (`/academics/programmes/
+bachelor-of-design-bdes/animation-film-design-bdes`); no redirects in this pass (TODO).
+
+**FIXTURE builds only the demo, so its band is empty and does not render — separator included.**
+That is expected, not a bug: every sibling is unbuilt and the gate withholds an unbuilt band link
+(§58). In LIVE all 27 build and the demo's band has its 7 links.
+
+### The template
+
+`SecondaryTemplate` takes, all optional: `response` (a page that is not getPage's), `introTitle`,
+`railThreeUp`, `split`. A page passing none renders exactly as before — the titled standfirst and
+PersonCard's email are written so that no empty child slot reaches the RSC payload.
+
+### Requests and time
+
+The 27 records and the list are the programme pages' own (§70, cached §71), so the new requests
+are the work records (59) and person records (65): 87 → 208 distinct per LIVE build, fetched once
+each. Measured: a build after another's window 79s wall (8 429s), back to back 140s (11 429s, 660s
+summed across workers) against HEAD's 23s — about two rate windows, just under the 2-minute bar.
+
+### Mocks (E)
+
+A discipline with no hero, no faculty, no seats and no works renders only the rail it has, the
+Overview and the band (no hero box, no empty sections). A sibling left unbuilt loses its band link,
+the other six stay. An unknown faculty reference shows its own title, in the rail and as a group on
+the programme page. A record with NO faculty is dropped from the programme's list and the LIVE
+build fails on the discipline floor (B.Des 7 < 8) — loudly, as §65 requires.
+
+### Where the demo and the board differ
+
+- The back link follows the visitor (here "Bachelor of Design"); the board says "All Bachelor
+  Courses". The hero is the template's 2.2:1; the board's 1200:628 is the photo's ratio.
+- The Overview is Regular from 768 up, as every standfirst; the board sets it Bold.
+- LIVE: the CMS's three works, not the board's seven; the CMS's role lines ("Discipline Faculty").
+- The Silent Echo's image was not in the board download (it stopped at 20 images); the thumb
+  shows the placeholder. It is a board work, not one of the CMS works without alt text.
+- No Social Links; no arrow on the feature (no URL).

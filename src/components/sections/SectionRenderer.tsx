@@ -1,8 +1,9 @@
 import type { Section } from "@/lib/content-model";
-import { isDisciplineCard } from "@/lib/content/editorial";
+import { isDisciplineCard, isStudentWorkCard } from "@/lib/content/editorial";
 import type { BodyClamp } from "@/components/sections/parts";
 import { CardsSection } from "@/components/sections/CardsSection";
 import { GroupedCards } from "@/components/sections/GroupedCards";
+import { StudentWorkSection } from "@/components/sections/StudentWorkSection";
 import { LinksSection } from "@/components/sections/LinksSection";
 import { RailSection } from "@/components/sections/RailSection";
 import { TextSection } from "@/components/sections/TextSection";
@@ -29,6 +30,9 @@ export function SectionRenderer({
   thumbs,
   groups,
   filledLinks,
+  railThreeUp,
+  railOverline,
+  split,
 }: {
   section: Section;
   lead?: "wide" | "feature";
@@ -47,6 +51,11 @@ export function SectionRenderer({
   groups?: Array<{ label: string; items: unknown[] }>;
   /** Passed to TextSection. */
   filledLinks?: boolean;
+  /** Passed to RailSection (the discipline pages' Faculty). */
+  railThreeUp?: boolean;
+  railOverline?: boolean;
+  /** Passed to TextSection (the discipline pages' Resources). */
+  split?: boolean;
 }) {
   if (!hasContent(section)) return null;
   switch (section.type) {
@@ -59,11 +68,19 @@ export function SectionRenderer({
           pattern={pattern}
           patternSeed={patternSeed}
           filledLinks={filledLinks}
+          split={split}
         />
       );
     case "links":
       return <LinksSection section={section} layout={linksLayout} />;
     case "cards":
+      // A discipline's student works (editorial.ts): the feature and thumbs.
+      {
+        const works = (section.items as unknown[]).filter(isStudentWorkCard);
+        if (works.length && works.length === section.items.length) {
+          return <StudentWorkSection title={section.title} body={section.body} works={works} />;
+        }
+      }
       if (groups?.length) {
         return (
           <GroupedCards
@@ -82,7 +99,7 @@ export function SectionRenderer({
         />
       );
     case "rail":
-      return <RailSection section={section} clamp={clamp} />;
+      return <RailSection section={section} clamp={clamp} threeUp={railThreeUp} overline={railOverline} />;
     case "files":
     case "mosaic":
       return null;

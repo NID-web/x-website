@@ -4,6 +4,7 @@ import { PatternTile } from "@/components/home/tiles/PatternTile";
 import { HideOnImageError } from "@/components/spine/HideOnImageError";
 import { ImagePlaceholder } from "@/components/spine/ImagePlaceholder";
 import { Cta } from "@/components/spine/Cta";
+import { Prose } from "@/components/spine/Prose";
 import { Title } from "@/components/spine/Title";
 import {
   ContactList,
@@ -12,6 +13,7 @@ import {
   type BodyClamp,
 } from "@/components/sections/parts";
 import type { Section } from "@/lib/content-model";
+import { subtitleOf } from "@/lib/content/editorial";
 import { ctaProps } from "@/lib/content/links";
 
 type TextSectionData = Extract<Section, { type: "text" }>;
@@ -26,6 +28,7 @@ export function TextSection({
   pattern = true,
   patternSeed = 0,
   filledLinks = false,
+  split = false,
 }: {
   section: TextSectionData;
   /** Render the body behind a "See more" disclosure. Nothing in the model says
@@ -52,7 +55,37 @@ export function TextSection({
   /** The section's links as filled buttons — the programme page's Apply
    *  section (the events rail's button, §68). */
   filledLinks?: boolean;
+  /** Sub-title and prose in column 2, the photo beside them in columns 3–4
+   *  (column 3 at three columns; stacked below that) — the discipline board's
+   *  Resources (STAGE-0-NOTES §72). */
+  split?: boolean;
 }) {
+  if (split) {
+    const subtitle = subtitleOf(section);
+    return (
+      <>
+        {section.title && <Title variant="section">{section.title}</Title>}
+        <GridItem span="full-then-1" start={2} className="flex flex-col gap-4">
+          {subtitle && <h3 className="font-primary text-h5 text-text-tertiary">{subtitle}</h3>}
+          {section.body && (
+            <Prose text={section.body} blockClassName="font-body text-body-lg text-text-primary" spacing="gap" />
+          )}
+        </GridItem>
+        {section.image && (
+          <HideOnImageError>
+            <GridItem span="full-then-1" className="desktop:col-span-2" as="figure">
+              {/* 684 × 430 on the board. */}
+              <TileImage
+                media={section.image}
+                className="relative aspect-[684/430] w-full"
+                sizes="(min-width: 1280px) 684px, (min-width: 1024px) 32vw, 96vw"
+              />
+            </GridItem>
+          </HideOnImageError>
+        )}
+      </>
+    );
+  }
   // Filled buttons are drawn only for links that resolve: an Apply link with
   // no URL leaves no empty cell in column 4.
   const links = filledLinks ? section.links.filter((link) => ctaProps(link)) : section.links;

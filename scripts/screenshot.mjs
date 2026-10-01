@@ -64,6 +64,8 @@ const PAGES = [
   { name: "programmes", path: "/en/programmes" },
   // The programme page template's board (STAGE-0-NOTES §70).
   { name: "programme-bdes", path: "/en/programmes/bdes" },
+  // The discipline board's demo (STAGE-0-NOTES §72).
+  { name: "discipline-afd", path: "/en/programmes/bdes/animation-film-design" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

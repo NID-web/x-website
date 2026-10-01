@@ -306,6 +306,8 @@ const { page, derived } = response;
 
 A **secondary** page (a child: the campus pages, the programme pages) renders `SecondaryTemplate` (`src/components/sections/SecondaryTemplate.tsx`, STAGE-0-NOTES §70) from a thin route; per-page presentation — clamps, placeholders, the back link's fallback — is `SecondaryLayout` props, never a branch inside the template.
 
+A **collection item** (an article, a discipline) is built from its record, not from a per-page fixture: `getArticle.ts`, `getDiscipline.ts`. Its route is one `[param]` folder with `dynamicParams = false`, and the same list feeds `generateStaticParams` and `registerBuiltParams`, so a link only reaches a page that was built (§59, §72).
+
 **Proving a change left other pages alone (test R).** Build the old and new trees (`NEXT_IMAGE_UNOPTIMIZED` unset, or every image `src` differs) and compare each page's HTML: the DOM must be byte-identical, and the RSC payload's rows equal as a set, ignoring their order and row ids — two builds of the same tree reorder them (§69). If the change adds a UI string, the client messages row may differ ONLY by the added keys and must be byte-identical once they are removed (§70).
 
 Three rules that come with it:
@@ -934,6 +936,7 @@ transition-colors duration-150 ease-in-out
 | `Standfirst` | `@/components/spine/Standfirst` | the intro paragraph; clamps to 7 lines behind "See more" on phones. Client component. |
 | `Footer` | `@/components/spine/Footer` | the site footer — four `GridItem`s. Render it inside the page's grid after a `Separator`, never in the layout. |
 | `SecondaryTemplate` | `@/components/sections/SecondaryTemplate` | a child page's whole body from a path: title + back link, key-info rail and filled rail buttons, hero, standfirst, sections, sibling band. `SecondaryLayout` props carry the per-page presentation. |
+| `StudentWorkSection` | `@/components/sections/StudentWorkSection` | a discipline's works: prose, the first work as a feature (panel in column 1, image in 2–4), the rest as Thumbs three across (§72). |
 | `GroupedCards` | `@/components/sections/GroupedCards` | a cards section that arrives grouped (`groupedItems`): group title in column 2, Thumbs two across in 3–4. |
 | `PrimaryTemplate` | `@/components/sections/PrimaryTemplate` | a primary landing page's whole body from a `PageResponse` — title, sub-page rail, hero, standfirst, separated sections, footer. `thumbs="three-up"` sets Thumb cards across columns 2–4 (Programmes). |
 | `SectionRenderer` | `@/components/sections/SectionRenderer` | `section` → `TextSection` / `LinksSection` / `CardsSection`; renders nothing for an empty section. `files` / `rail` / `mosaic` are still `null` (Stages 3–5). `CardsSection` takes `lead="wide" \| "feature"` for its first card. |

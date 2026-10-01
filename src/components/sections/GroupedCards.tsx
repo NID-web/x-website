@@ -6,6 +6,8 @@ import { Separator } from "@/components/spine/Separator";
 import { Title } from "@/components/spine/Title";
 import { campusName } from "@/lib/content/campus-names";
 import type { DisciplineCard } from "@/lib/content/editorial";
+import { disciplinePath } from "@/lib/content/getDiscipline";
+import { builtHref } from "@/lib/content/links";
 
 /**
  * A cards section that arrives grouped (`PageResponse.groupedItems`, built in
@@ -46,8 +48,14 @@ export async function GroupedCards({
               // three (below the group title). Flow below that.
               className={i % 2 === 0 ? "laptop:col-start-2 desktop:col-start-3" : undefined}
             >
-              {/* Unlinked: no discipline page is built yet (`page` unset). */}
-              <ThumbCardView title={item.name} meta={meta(item)} image={item.image} heading="h4" />
+              {/* Linked only to a discipline page this build made (§72). */}
+              <ThumbCardView
+                title={item.name}
+                meta={meta(item)}
+                image={item.image}
+                heading="h4"
+                href={builtHref(disciplinePath(item.slug, item.programme))}
+              />
             </GridItem>
           ))}
         </Fragment>

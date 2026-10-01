@@ -2,6 +2,7 @@
 // History's Faculty Stalwarts band (4374:188728 body, 4374:188741… cards,
 // 4374:188729 CTA) is the first to render one; the faculty directory's four
 // groupings are Stage 3.
+import clsx from "clsx";
 import { GridItem } from "@/components/layout/GridItem";
 import { PersonCard } from "@/components/cards/PersonCard";
 import { Title } from "@/components/spine/Title";
@@ -13,9 +14,16 @@ type RailSectionData = Extract<Section, { type: "rail" }>;
 export function RailSection({
   section,
   clamp,
+  threeUp = false,
+  overline = false,
 }: {
   section: RailSectionData;
   clamp?: BodyClamp;
+  /** Three across in columns 2–4 at four columns, two in 2–3 at three — the
+   *  discipline board's Faculty (STAGE-0-NOTES §72). Two-up otherwise. */
+  threeUp?: boolean;
+  /** Each person's designation as the overline above the name (§60). */
+  overline?: boolean;
 }) {
   // TODO(review): Stage 3 — a grouped rail. Its data arrives already bucketed
   // in `PageResponse.groupedItems` (top-level, keyed by section id), and each
@@ -40,11 +48,26 @@ export function RailSection({
           `tablet` up `contents` dissolves it so each card sits on the page's
           own tracks. The even cards pin column 2 wherever a rail exists. */}
       <div className="col-span-full grid grid-cols-2 gap-x-gutter gap-y-rowgutter tablet:contents">
-        {section.items.map((person, i) => (
-          <GridItem key={person.id} span={1} start={i % 2 === 0 ? 2 : undefined}>
-            <PersonCard person={person} />
-          </GridItem>
-        ))}
+        {section.items.map((person, i) =>
+          threeUp ? (
+            // Each row opens at column 2: every second card at three columns,
+            // every third at four.
+            <GridItem
+              key={person.id}
+              span={1}
+              className={clsx(
+                i % 2 === 0 ? "laptop:col-start-2" : "laptop:col-start-auto",
+                i % 3 === 0 ? "desktop:col-start-2" : "desktop:col-start-auto",
+              )}
+            >
+              <PersonCard person={person} overline={overline} wrapOverline />
+            </GridItem>
+          ) : (
+            <GridItem key={person.id} span={1} start={i % 2 === 0 ? 2 : undefined}>
+              <PersonCard person={person} overline={overline} />
+            </GridItem>
+          ),
+        )}
       </div>
 
       {/* After the cards in source order: stacked below them at 1–2 columns

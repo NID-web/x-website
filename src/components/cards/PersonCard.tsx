@@ -11,6 +11,7 @@ export function PersonCard({
   overline = false,
   placeholder = true,
   priority = false,
+  wrapOverline = false,
 }: {
   person: Person;
   /** Draw `designation` as the overline above the name. Off on History's band,
@@ -23,7 +24,27 @@ export function PersonCard({
   /** Eager-load the portrait. Only where it sits above the fold — the
    *  Director's Message portrait is row 2 of the page; History's band is not. */
   priority?: boolean;
+  /** Let a long role wrap: the CMS's role lines run to "Activity Chairperson,
+   *  Research & Publications", which overflowed a 171px phone card by 192px. */
+  wrapOverline?: boolean;
 }) {
+  // Keyed only beside an email; alone it is the element it always was.
+  const name = (key?: string) => (
+    <h3 key={key} className="font-primary text-h6 text-text-secondary">
+      {person.name}
+    </h3>
+  );
+  // Label/Micro under the name (the discipline board); only when the person
+  // record carries one — no person shown before had an email.
+  const email = person.email && (
+    <a
+      key="email"
+      href={`mailto:${person.email}`}
+      className="font-primary text-micro text-text-secondary no-underline transition-colors duration-150 ease-in-out hover:text-text-primary"
+    >
+      {person.email}
+    </a>
+  );
   return (
     <article className="flex flex-col gap-4 py-3">
       {/* 144px on the board at every width (330 and 171 wide alike).
@@ -44,15 +65,19 @@ export function PersonCard({
           <span aria-hidden="true" className="block size-36 shrink-0 rounded-full bg-accent-subtle" />
         )
       )}
+      {/* With no email, exactly the elements a person always rendered: an
+          empty child slot would still reach the RSC payload. */}
       {overline && person.designation ? (
         <div className="flex flex-col gap-0.5">
           <div className="py-2">
-            <Overline>{person.designation}</Overline>
+            <Overline wrap={wrapOverline}>{person.designation}</Overline>
           </div>
-          <h3 className="font-primary text-h6 text-text-secondary">{person.name}</h3>
+          {email ? [name("name"), email] : name()}
         </div>
+      ) : email ? (
+        [name("name"), email]
       ) : (
-        <h3 className="font-primary text-h6 text-text-secondary">{person.name}</h3>
+        name()
       )}
     </article>
   );
