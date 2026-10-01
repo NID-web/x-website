@@ -149,10 +149,10 @@ export const HOME_TILES: HomeTile[] = [
     headingKey: "study.heading",
     gradient: true,
     links: [
-      { labelKey: "study.bdes", metaKey: "study.bdesMeta", href: "/study/bdes" },
-      { labelKey: "study.mdes", metaKey: "study.mdesMeta", href: "/study/mdes" },
-      { labelKey: "study.phd", metaKey: "study.phdMeta", href: "/study/phd" },
-      { labelKey: "study.fdp", metaKey: "study.fdpMeta", href: "/study/fdp" },
+      { labelKey: "study.bdes", metaKey: "study.bdesMeta", href: "/programmes/bdes" },
+      { labelKey: "study.mdes", metaKey: "study.mdesMeta", href: "/programmes/mdes" },
+      { labelKey: "study.phd", metaKey: "study.phdMeta", href: "/programmes/phd" },
+      { labelKey: "study.fdp", metaKey: "study.fdpMeta", href: "/programmes/fdp" },
     ],
   },
   // ── row 2 ──────────────────────────────────────────────────────────────
