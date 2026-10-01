@@ -3950,3 +3950,50 @@ nothing, but the two templates disagree.
   Portal".
 - The hero is the CMS's photograph at the template's 2.2:1; the standfirst is Regular from 768 up.
 - Sibling order is sitemap.json's.
+
+## 75. PM Vidyalaxmi Scheme: Admission Process's pattern with one section, and the Study band rule
+
+`/study/pm-vidyalaxmi` ("04 Study at NID / PM Vidyalaxmi Scheme", 1440 only) is built from §74's
+pieces and nothing else: `SecondaryTemplate` (back link with fallback `/study`, no hero placeholder),
+the rail's Information rows, ClampedProse at seven lines through the route's `clamp`, LinkStack CTAs
+(external and email), the `linkBlocks` text rule and `studyBand()`. One more document per LIVE
+build: **210 → 211 distinct**. Floor `pm-vidyalaxmi-scheme: 2`.
+
+**The data, mapped by meaning.** The document's "About" section (two text blocks with `<strong>`,
+and a LINK block to `https://pmvidyalaxmi.co.in/`) is the board's "About the Scheme", whole:
+`textTitle: "About"` plus `linkBlocks`. The document also has a section TITLED "About the Scheme",
+one different sentence; it is not the scheme's description, has no slot, and is logged unused
+(TODO(review), backend). The standfirst is the fixture's (`intro: "static"`): heroText says
+something else, and the board's sentence is only the SEO description, which is not read into the
+intro (TODO(review), backend: put it in heroText). The rail's Type and Introduced rows and
+`info@nid.edu` are the fixture's (TODO(review)). LIVE, the portal CTA takes the CMS's label "PM
+Vidyalaxmi Scheme"; FIXTURE, the board's "pmvidyalaxmi.co.in" (TODO(review): confirm the URL).
+
+The FIXTURE body is the board's two paragraphs, without its third sentence ("For more information,
+the students can access the…"), which clips on the board and is in no source here; the CMS stops at
+the same place. So the body fits its seven lines at 1440, 1024 and 768 and there is no "See more"
+(ClampedProse's own rule); at 390 it is eleven lines and the button shows. Measured with and
+without the CMS's `<strong>`, the same. The board's "See more" at 1440 assumed the missing
+sentence.
+
+**No hero.** The board's is a placeholder, and the CMS's `pm-vidyalaxmi-hero.jpg` has no alt text,
+so the adapter's alt rule rejects it before any request (`hero(media rejected: no altText)`) — and
+the file returns 404, which no build check sees: page heroes are not HEAD-checked (only archive and
+award thumbnails are). Backend ask: the file, with alt text.
+
+**The Study band rule, widened.** §74 kept unbuilt siblings as unlinked rows on `/study/admission`
+only. `KEEP_UNBUILT_BAND` is now Study at NID's children, read from `/study`'s own rail
+(`STUDY.derived.subPageLinks`) — one list, so the remaining children need no change. A built
+sibling links as usual: here Admission Process links with its arrow, the other three are text.
+
+Building the page relinks three hrefs: `/study`'s rail row "PM Vidyalaxmi Scheme" and its "Learn
+more" CTA, and `/study/admission`'s sibling row. The menu and the LIVE footer already pointed here
+(ungated) and now resolve.
+
+Known limitations:
+- **The FIXTURE footer's paths are not sitemap.json's** (LIVE builds them from the CMS slug table
+  and is right). Six stale: `/pm-vidyalaxmi` (→ `/study/pm-vidyalaxmi`), `/young-designers`
+  (→ `/study/young-designers`), `/integrated-design-services` (→ `/consulting/ids`), `/placements`
+  (→ `/industry/placements`), `/right-to-information` (→ `/regulatory/rti`), `/privacy-policy`
+  (→ `/privacy`). Fixing them changes every FIXTURE page's footer; a separate pass.
+- The hero 404 is invisible to the build (above).

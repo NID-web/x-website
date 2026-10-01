@@ -43,6 +43,7 @@ import { PROGRAMME_INTERNATIONAL } from "@/lib/content/fixtures/programme-intern
 import { CURRICULUM_OBJECTIVES } from "@/lib/content/fixtures/programme-curriculum-objectives";
 import { STUDY } from "@/lib/content/fixtures/study";
 import { STUDY_ADMISSION } from "@/lib/content/fixtures/study-admission";
+import { STUDY_PM_VIDYALAXMI } from "@/lib/content/fixtures/study-pm-vidyalaxmi";
 import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
 import { PAGE_ID } from "@/lib/content/pages";
 
@@ -66,6 +67,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/programmes/curriculum-objectives": CURRICULUM_OBJECTIVES,
   "/study": STUDY,
   "/study/admission": STUDY_ADMISSION,
+  "/study/pm-vidyalaxmi": STUDY_PM_VIDYALAXMI,
 };
 
 // Keys are content-type keys from GET /public/content-types.
@@ -338,6 +340,19 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     slug: "admission-process",
     sections: { "section-admission-how": { textTitle: "Admissions", linkBlocks: true } },
   },
+  // Admission Process's pattern with one section (STAGE-0-NOTES §75). The CMS's
+  // "About" is the board's "About the Scheme", whole — text blocks and the
+  // portal LINK block. The standfirst is the fixture's: heroText says something
+  // else, and the SEO description is not read into it.
+  // TODO(review): backend — the board's sentence belongs in heroText (it is
+  // already the SEO description); the document has two sections, and the one
+  // titled "About the Scheme" is not the scheme's description (unused, logged);
+  // the hero has no alt text and its file returns 404.
+  "/study/pm-vidyalaxmi": {
+    slug: "pm-vidyalaxmi-scheme",
+    intro: "static",
+    sections: { "section-pmv-about": { textTitle: "About", linkBlocks: true } },
+  },
 };
 
 
@@ -389,10 +404,11 @@ export type PageData = PageResponse & { railLinks?: RailLink[] };
 // other page still drops an unbuilt link (§58).
 const KEEP_UNBUILT = new Set(["/programmes", "/study"]);
 
-// Pages whose sibling band keeps an unbuilt sibling as an unlinked row: Admission
-// Process is the first Study at NID child built, so all four of its siblings are
-// unbuilt and the band would vanish (§74). Its pattern, not a site-wide one.
-const KEEP_UNBUILT_BAND = new Set(["/study/admission"]);
+// Pages whose sibling band keeps an unbuilt sibling as an unlinked row: Study at
+// NID's children, read from its own rail — the band of a landing whose children
+// are built one at a time would otherwise thin out or vanish (§74, §75). A
+// sibling that is built links as usual.
+const KEEP_UNBUILT_BAND = new Set(STUDY.derived.subPageLinks.map((link) => link.href));
 
 // cache(): generateMetadata and the page both call this; one fetch and one log
 // line per render.

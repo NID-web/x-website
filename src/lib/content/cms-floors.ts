@@ -47,6 +47,7 @@ export const CMS_FLOORS = {
     "student-awards": 1,
     "study-at-nid": 2,
     "admission-process": 2,
+    "pm-vidyalaxmi-scheme": 2,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page
