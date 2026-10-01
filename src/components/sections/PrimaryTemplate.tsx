@@ -16,8 +16,8 @@ import type { PageResponse } from "@/lib/content-model";
 /**
  * The primary template (sitemap.json's `"template": "primary"`): a section
  * landing — title, the sub-page rail in column 1 beside the hero, the
- * standfirst, then separated sections. /about and /programmes both render it;
- * every difference is data or a prop (STAGE-0-NOTES §69).
+ * standfirst, then separated sections. /about, /programmes and /study render
+ * it; every difference is data or a prop (STAGE-0-NOTES §69, §73).
  */
 export async function PrimaryTemplate({
   response,
@@ -80,7 +80,10 @@ export async function PrimaryTemplate({
         {sections.map((section) => (
           <Fragment key={section.id}>
             <Separator />
-            <SectionRenderer section={section} thumbs={thumbs} />
+            {/* No craft tile beside a section photo: /study's Life at NID, the
+                first primary page with one, draws none. A text section's links
+                go by the utility rule, not into a free cell beside it (§73). */}
+            <SectionRenderer section={section} thumbs={thumbs} pattern={false} utilityLinks />
           </Fragment>
         ))}
 

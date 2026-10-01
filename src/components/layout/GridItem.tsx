@@ -53,6 +53,14 @@ const START = {
 //                    serve sections whose second row differs. Pinning the row
 //                    instead would drop News's link on top of a card: grid
 //                    overlaps explicitly-placed items, it does not push them.
+//   flow-utility  -> `utility`'s columns for a section that is NOT a subgrid
+//                    (TextSection: a run of siblings on the page grid, where
+//                    row 1 is the page's, so no row can be named). The body
+//                    leaves the title row's last cell free at 4 columns and the
+//                    links take it; at 3 a definite column 2 cannot share the
+//                    body's row, so they go below the body — never into column 1
+//                    beside a section image, where free-cell flow put them
+//                    (STAGE-0-NOTES §73).
 //   page-utility  -> the PAGE's own slot, back-nav or filter. Last column of
 //                    row 1 at 3 and 4 columns (CLAUDE.md § Layout). Needs no
 //                    subgrid — the page title is the grid's first child, so row
@@ -66,6 +74,7 @@ const START = {
 //                    rail and the tile spans the row instead.
 const PLACE = {
   utility: "laptop:col-start-2 desktop:-col-start-2 desktop:row-start-1",
+  "flow-utility": "laptop:col-start-2 desktop:-col-start-2",
   "page-utility": "laptop:-col-start-2 laptop:row-start-1",
   rail: "laptop:col-start-1 laptop:row-start-2",
 } as const;

@@ -3697,3 +3697,143 @@ build fails on the discipline floor (B.Des 7 < 8) — loudly, as §65 requires.
 - The Silent Echo's image was not in the board download (it stopped at 20 images); the thumb
   shows the placeholder. It is a board work, not one of the CMS works without alt text.
 - No Social Links; no arrow on the feature (no URL).
+
+## 73. Study at NID: the third primary page, notices as a cards section, and R for LIVE builds
+
+`/study` is the third page sitemap.json calls `"template": "primary"`, from one 1440 board ("04 Study
+at NID — Landing"), drawn on the old 32 / 326 grid as Programmes was; `PageGrid` (24 / 330) wins.
+It renders `PrimaryTemplate` through a thin route, like About and Programmes, and reads only the
+`study-at-nid` document.
+
+### The data
+
+The document (Generic Page) sends a title, SEO, two alt-texted heroes and two SPECIFIC sections,
+**both at orderIndex 1** (logged, as Programmes'). The standfirst is "About" block 1 (§69's rule);
+block 2 and the one-line "Overview" section have no slot and are logged. Nothing else on the board
+is in this document: no child list (the navigation gives Study at NID three children, not the
+board's five), no notices, no Life at NID or PM Vidyalaxmi section. Those are the fixture's, LIVE
+too. The children's own documents carry that copy (the Vidyalaxmi paragraphs are `pm-vidyalaxmi-
+scheme`'s "About" blocks 1–2), but the landing does not read across documents. One more document per
+LIVE build: **208 → 209 distinct**, fetched once each. Floor `study-at-nid: 2` sections.
+
+The fixture's standfirst is a copy of "About" block 1, so FIXTURE and LIVE read the same sentence;
+the board's Lorem ipsum is never rendered. The hero is Programmes' photograph (the board's), the
+file shared rather than copied; LIVE renders `hero[0]`, a drawing class — an editor's fix in the
+CMS, as on Programmes.
+
+### Academic Notifications: a cards section of front-end notices
+
+The board's four rows are not `notification` records. That type has two (a Circular and a
+Guideline: no date but publishedAt, no file URL) and they are `/study/notifications`' content. The
+rows are the academic calendar: `event` records `calendar-01`, `-02`, `-03` and `-05`
+(calendar-04, Graduation Jury Week, is on neither board), with a display date in heroText and real
+dates only in `detail.schedules[]`. No CMS list says which entries a page shows or in what order.
+
+The six section types stay six. `links` would need a target on every row (the model forbids a
+link with none) and `files` a file; neither exists. So the section is `cards` and its items a
+front-end-only `NoticeEntry` (`editorial.ts`, `{ id, title, date, notice: true }`), recognised in
+`SectionRenderer` and drawn by `NoticesSection`, as Student Work did (§72). Rows are the unlinked
+`LinkedRow` shell in a `ul`: title in Label, `text/primary`; date in Micro, `text/tertiary`; 1px
+rule. Measured 55.5px rows at a 71.5px pitch (board 56 / 72) at every width, no overflow at 390.
+No row is a link and no date is a `<time>`: the dates are display strings and are never parsed.
+TODO(designer): the board sets the date in an accent; no accent is AA for text at that size in
+every theme, so it is `text/tertiary`, as Home's calendar row and ArchiveRow.
+
+**One list.** Home's Academic Calendar tile showed the same four rows from `home-content.ts`, with
+the titles in `messages/en.json`. Both now read `ACADEMIC_CALENDAR` (`src/lib/content/academic-
+calendar.ts`); the four titles left `messages/en.json`, because they are content. Home's spelling
+won: the last row reads "Oct 16". The board's "Oct16" is not reproduced.
+
+**Backend ask (not made):** a `calendar` content type or flag (the `calendar-` slug prefix
+getArticle.ts already filters on); a curated STRUCTURED section on study-at-nid naming which
+entries to show, in order; the record in the cards union with `startDate`, optional `endDate`, a
+display date and an optional `url`. Also a Life at NID and a PM Vidyalaxmi summary section on
+study-at-nid, so the landing does not duplicate its children by hand. Until then the rows are
+static, and three of the four are already past (Home shares this).
+
+### Life at NID and PM Vidyalaxmi
+
+The board's Life at NID prose is Curriculum Objectives' text word for word — a placeholder. The
+fixture carries the CMS's life-at-nid "Overview" sentence instead (TODO(designer)). The photo is
+the CMS's `life-at-nid-hero-1.jpg` (a student at a dress form, 1280 × 628, the board's ratio),
+copied to `public/study/`; its alt text is ours (TODO(review)), the CMS's is generic. It renders in
+TextSection's image row at 684:330, not the board's 2.04:1 (684 × 336 here): 6px, no new prop.
+`PrimaryTemplate` now passes `pattern={false}`: no craft tile beside a section photo, which the
+board does not draw. No other primary page has a section image, so nothing else moved.
+
+PM Vidyalaxmi Scheme is the board's two paragraphs, plain. At 330 its title takes two lines inside
+its column (measured text right edge 249 of 354).
+
+### CTAs and the rail
+
+"All notifications", "Read more" and "Learn more" are fixture `Link`s (labels are content, as
+Programmes' "Read more"), to `/study/notifications`, `/study/life-at-nid` and
+`/study/pm-vidyalaxmi`. The five rail rows are sitemap.json's children, by its names. `/study` is
+named in `UNLISTED_PAGES` for the back link; the menu is unchanged. No existing href changed:
+nothing linked `/study`, and the LIVE menu already pointed its Study at NID title there.
+
+**§69's exemption, widened to section links on primary pages.** All three CTA targets are unbuilt,
+and the gate dropped them at first, leaving a landing page with no way on to its children but the
+rail. They are the same records the rail lists, so they get the rail's treatment: `KEEP_UNBUILT`
+(was `KEEP_UNBUILT_RAIL`, `getPage.ts`) names `/programmes` and `/study`, and on those two pages the
+sub-page rail AND every section's links keep an unbuilt link as an unlinked row. Every other page
+still drops an unbuilt link (§58 stands). Nothing new draws it: section links already render
+through `LinkStack`, whose unbuilt branch is the rail row's — a `<p>` in `text/primary` with a
+transparent rule holding the 40px row, no anchor, no arrow, no hover, not focusable. No `href="#"`,
+no disabled button, no tooltip. The day a route joins `BUILT_ROUTES` the row becomes the normal
+linked CTA (mocked with `/study/pm-vidyalaxmi` built: `<a>`, arrow, `text/secondary`, the
+`border/subtle` rule). Programmes gains nothing today: its "Read more" points at
+`/programmes/curriculum-objectives`, built since §70.
+
+**Placement by rule.** A text section is a run of siblings on the page grid, not a subgrid, so its
+links column went to the next free cell. At 3 columns that was column 1 of the next row, and on
+/study's Life at NID the photo then took columns 2–3 of the same row: "Read more" sat beside the
+photo. `GridItem` gained `flow-utility` (`utility`'s columns with no row, since a non-subgrid
+cannot name one), and the primary template's text sections use it (`TextSection utilityLinks`):
+column 4 of the title row at 4 columns (the body leaves that cell free), **column 2 directly below
+the body at 3** (a definite column 2 cannot share the body's row), stacked after the body at 2 and
+1. The photo follows below. This moved Programmes' "Read more" at 1024 from column 1 to column 2,
+still below the body; at the other widths nothing moved. Secondary pages keep free flow.
+
+TODO(designer): the board puts "Read more" in column 4 at the photo's top. The utility rule places
+it on the title row at 4 columns; one page's placement does not fork the template. Revisit when
+`/study/life-at-nid` is built.
+
+### R for LIVE builds, amended
+
+Compared on the HEAD tree, LIVE against itself: 1 page's `<head>` differed. This change against
+HEAD: 32 pages, reproduced in a second build; the change with only the `/study` route file
+removed: 4. On every one the `<body>` is byte-identical and the `<head>` holds the same tags; only
+`crossorigin=""` on some script tags and the Typekit preconnect's position move. It is existing
+variation between live builds, and it grows as pages are added — not this change. **From now on,
+for LIVE builds only:** the `<body>` must be byte-identical, and the `<head>` must hold the same
+set of tags once `crossorigin=""` is removed from script tags; only their order may differ. FIXTURE
+keeps the strict rule (HTML byte-identical), and passes it here. Not investigated further.
+
+**One-time exceptions for this change only**, not part of the rule: the client messages row lost
+exactly the four calendar title keys (`Home.academic.r1`–`r4`), and Home's payload differs only by
+the four calendar rows' React keys (`"academic.r1"` … → the titles), which are not in the HTML.
+Nothing reads the removed keys (searched `src/` and `messages/`; a missing next-intl key does not
+fail tsc). Everything else: identical, FIXTURE and LIVE.
+
+### Mocks (E)
+
+No notices: the section and its separator go. A notice carrying a `url` and a machine date: still
+an unlinked row with no `<time>`, the URL nowhere in the HTML (NoticeEntry has no such fields
+yet). No Life at NID photo: no image row, no box. No hero: the standfirst rises beside the rail. A
+two-line rail label: that row is 64px, the pitch holds.
+
+### Where the board and the build differ
+
+- The 24 / 330 grid: hero 1038 × 472 (board 1026 × 472.5), Life at NID photo 684 × 330 (676 × 332).
+- The standfirst is CMS copy, not Lorem; Regular from 768 up, as every standfirst.
+- Life at NID's prose is the CMS's Overview, not the duplicated Curriculum Objectives text.
+- The three CTAs are unlinked text while their pages are unbuilt; notice dates in
+  `text/tertiary`; "Oct 16".
+- The footer is the site's; the board ends in the Footer Single Block, Programmes' in a Brand
+  Strip.
+
+Known limitations: LIVE `<head>` order and `crossorigin` vary between builds; cause not proven
+(thought to be which build process renders which page while waiting on the CMS). The notices are
+static and partly past. The menu says "Admission Notifications" where the sitemap's children and
+the board say "Academic Notifications" (TODO(review), content).

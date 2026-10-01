@@ -70,3 +70,21 @@ export interface StudentWorkCard {
 export function isStudentWorkCard(item: unknown): item is StudentWorkCard {
   return typeof item === "object" && item !== null && (item as { work?: unknown }).work === true;
 }
+
+/**
+ * A notice row as a cards item — /study's Academic Notifications (STAGE-0-NOTES
+ * §73). The rows are academic-calendar event records, which no section type
+ * carries; front-end only, like StudentWorkCard. `date` is a display string,
+ * never parsed: no `<time>` and no link until the record brings a machine date
+ * and a URL (the backend ask in academic-calendar.ts).
+ */
+export interface NoticeEntry {
+  id: string;
+  title: string;
+  date: string;
+  notice: true;
+}
+
+export function isNoticeEntry(item: unknown): item is NoticeEntry {
+  return typeof item === "object" && item !== null && (item as { notice?: unknown }).notice === true;
+}

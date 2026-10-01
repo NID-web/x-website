@@ -39,6 +39,11 @@ export const PAGE_ID = {
   researchIcic: "page-research-icic",
   researchBamboo: "page-research-bamboo",
   researchHandloom: "page-research-handloom",
+  study: "page-study",
+  studyAdmission: "page-study-admission",
+  studyLifeAtNid: "page-study-life-at-nid",
+  studyNotifications: "page-study-notifications",
+  studyPmVidyalaxmi: "page-study-pm-vidyalaxmi",
   youngDesigners: "page-study-young-designers",
   // The parent a CMS discipline card hangs off. It has NO path on purpose: no
   // per-discipline route exists in sitemap.json, so a discipline card renders
@@ -79,6 +84,11 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.researchIcic]: "/research/icic",
   [PAGE_ID.researchBamboo]: "/research/bamboo",
   [PAGE_ID.researchHandloom]: "/research/handloom",
+  [PAGE_ID.study]: "/study",
+  [PAGE_ID.studyAdmission]: "/study/admission",
+  [PAGE_ID.studyLifeAtNid]: "/study/life-at-nid",
+  [PAGE_ID.studyNotifications]: "/study/notifications",
+  [PAGE_ID.studyPmVidyalaxmi]: "/study/pm-vidyalaxmi",
   [PAGE_ID.youngDesigners]: "/study/young-designers",
 };
 

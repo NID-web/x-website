@@ -41,6 +41,7 @@ import { PROGRAMME_PHD } from "@/lib/content/fixtures/programme-phd";
 import { PROGRAMME_FDP } from "@/lib/content/fixtures/programme-fdp";
 import { PROGRAMME_INTERNATIONAL } from "@/lib/content/fixtures/programme-international";
 import { CURRICULUM_OBJECTIVES } from "@/lib/content/fixtures/programme-curriculum-objectives";
+import { STUDY } from "@/lib/content/fixtures/study";
 import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
 import { PAGE_ID } from "@/lib/content/pages";
 
@@ -62,6 +63,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/programmes/fdp": PROGRAMME_FDP,
   "/programmes/international": PROGRAMME_INTERNATIONAL,
   "/programmes/curriculum-objectives": CURRICULUM_OBJECTIVES,
+  "/study": STUDY,
 };
 
 // Keys are content-type keys from GET /public/content-types.
@@ -304,6 +306,22 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     intro: "heroText",
     sections: { "section-curriculum-objectives": { textTitle: "Objectives" } },
   },
+  // The third primary page (STAGE-0-NOTES §73). The standfirst is "About" block
+  // 1, as on /programmes; block 2 and the "Overview" section have no slot and
+  // are logged. Nothing else on the board is in this document, so the notices,
+  // Life at NID and PM Vidyalaxmi are the fixture's, LIVE too. /study reads
+  // only this document — never its children's.
+  // TODO(review): backend — "About" and "Overview" both carry orderIndex 1
+  // (logged); there is no STRUCTURED section listing the five children (the
+  // navigation gives three); and no Life at NID or PM Vidyalaxmi summary
+  // section, so the landing duplicates its children by hand.
+  // TODO(review): content — hero[0] is a drawing class; the board's hero is the
+  // night film shoot (Programmes' photograph). An editor's fix in the CMS.
+  "/study": {
+    slug: "study-at-nid",
+    subPagesKey: "static",
+    sections: {},
+  },
 };
 
 
@@ -348,10 +366,12 @@ function linkBlockUrl(api: PublicContentResponse, title: string): string | undef
  *  buttons, which the model has no page-level slot for (editorial.ts). */
 export type PageData = PageResponse & { railLinks?: RailLink[] };
 
-// Pages whose sub-page rail keeps an unbuilt link as an unlinked row: a
-// navigation page whose children are all designed but unbuilt reads as broken
-// with an empty rail (route-gate.ts, STAGE-0-NOTES §69).
-const KEEP_UNBUILT_RAIL = new Set(["/programmes"]);
+// Primary pages that keep an unbuilt link as an unlinked row, in the sub-page
+// rail AND in their sections' own links: a landing whose children are all
+// designed but unbuilt reads as broken with an empty rail (§69), and its
+// "Read more" pointers to those children are the same records (§73). Every
+// other page still drops an unbuilt link (§58).
+const KEEP_UNBUILT = new Set(["/programmes", "/study"]);
 
 // cache(): generateMetadata and the page both call this; one fetch and one log
 // line per render.
@@ -398,7 +418,10 @@ export const getPage = cache(async (path: string): Promise<PageData | null> => {
         : built;
   const page = await withProgrammeParts(path, withRecords, api);
   const keepUnbuilt = detailSections(config?.detail);
-  if (KEEP_UNBUILT_RAIL.has(path)) keepUnbuilt.add(SUB_PAGE_RAIL);
+  if (KEEP_UNBUILT.has(path)) {
+    keepUnbuilt.add(SUB_PAGE_RAIL);
+    for (const section of page.page.sections) keepUnbuilt.add(section.id);
+  }
   const { response, audit } = gatePage(page, {
     // The campus pages' detail-derived sections list records, so an unbuilt
     // link there stays as an unlinked row (route-gate.ts, STAGE-0-NOTES §58).

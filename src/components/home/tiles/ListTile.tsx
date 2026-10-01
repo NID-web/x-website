@@ -54,7 +54,7 @@ export function ListTile({ tile, t }: { tile: ListTileData; t: Translate }) {
                 <>
                   <span className="min-w-0 flex-1">
                     <span className="block font-primary text-label text-text-primary">
-                      {t(row.labelKey)}
+                      {row.label}
                     </span>
                     <span className="mt-0.5 block font-primary text-label text-text-tertiary">
                       {row.date}
@@ -65,7 +65,7 @@ export function ListTile({ tile, t }: { tile: ListTileData; t: Translate }) {
               );
               return (
                 <li
-                  key={row.labelKey}
+                  key={row.label}
                   className={clsx(
                     calendarRowRule,
                     i > 0 && rowGap,

@@ -1,10 +1,11 @@
 import type { Section } from "@/lib/content-model";
-import { isDisciplineCard, isStudentWorkCard } from "@/lib/content/editorial";
+import { isDisciplineCard, isNoticeEntry, isStudentWorkCard } from "@/lib/content/editorial";
 import type { BodyClamp } from "@/components/sections/parts";
 import { CardsSection } from "@/components/sections/CardsSection";
 import { GroupedCards } from "@/components/sections/GroupedCards";
 import { StudentWorkSection } from "@/components/sections/StudentWorkSection";
 import { LinksSection } from "@/components/sections/LinksSection";
+import { NoticesSection } from "@/components/sections/NoticesSection";
 import { RailSection } from "@/components/sections/RailSection";
 import { TextSection } from "@/components/sections/TextSection";
 
@@ -33,6 +34,7 @@ export function SectionRenderer({
   railThreeUp,
   railOverline,
   split,
+  utilityLinks,
 }: {
   section: Section;
   lead?: "wide" | "feature";
@@ -56,6 +58,8 @@ export function SectionRenderer({
   railOverline?: boolean;
   /** Passed to TextSection (the discipline pages' Resources). */
   split?: boolean;
+  /** Passed to TextSection (the primary template's sections). */
+  utilityLinks?: boolean;
 }) {
   if (!hasContent(section)) return null;
   switch (section.type) {
@@ -69,6 +73,7 @@ export function SectionRenderer({
           patternSeed={patternSeed}
           filledLinks={filledLinks}
           split={split}
+          utilityLinks={utilityLinks}
         />
       );
     case "links":
@@ -79,6 +84,11 @@ export function SectionRenderer({
         const works = (section.items as unknown[]).filter(isStudentWorkCard);
         if (works.length && works.length === section.items.length) {
           return <StudentWorkSection title={section.title} body={section.body} works={works} />;
+        }
+        // A list of notices (editorial.ts), /study's Academic Notifications.
+        const notices = (section.items as unknown[]).filter(isNoticeEntry);
+        if (notices.length && notices.length === section.items.length) {
+          return <NoticesSection title={section.title} notices={notices} links={section.links} />;
         }
       }
       if (groups?.length) {

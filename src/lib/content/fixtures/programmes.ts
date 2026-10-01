@@ -43,8 +43,8 @@ const CURRICULUM: Section = {
   title: "Curriculum Objectives",
   body: "NID's education programmes, at both undergraduate and postgraduate levels, foster flexible, student-centred learning that integrates experiential exploration with creative innovation. Grounded in cultural, social and technological awareness, they build interdisciplinary knowledge alongside focused specialisation, critical problem-solving skills, technical and managerial fundamentals, real-world exposure, and a strong sense of social and professional responsibility.",
   items: [],
-  // The route gate drops it while /programmes/curriculum-objectives is unbuilt
-  // (a CTA that does nothing reads as broken); it returns when the page ships.
+  // Linked since /programmes/curriculum-objectives was built (§70). Had it
+  // been unbuilt, it would show as an unlinked row (§73).
   links: [
     {
       id: "link-curriculum-read-more",

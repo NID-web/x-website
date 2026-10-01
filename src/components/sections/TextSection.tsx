@@ -29,6 +29,7 @@ export function TextSection({
   patternSeed = 0,
   filledLinks = false,
   split = false,
+  utilityLinks = false,
 }: {
   section: TextSectionData;
   /** Render the body behind a "See more" disclosure. Nothing in the model says
@@ -59,6 +60,10 @@ export function TextSection({
    *  (column 3 at three columns; stacked below that) — the discipline board's
    *  Resources (STAGE-0-NOTES §72). */
   split?: boolean;
+  /** Place the links column by the utility rule (GridItem's `flow-utility`)
+   *  rather than the next free cell — the primary template's sections, where
+   *  free flow put /study's "Read more" beside its photo at 3 columns (§73). */
+  utilityLinks?: boolean;
 }) {
   if (split) {
     const subtitle = subtitleOf(section);
@@ -134,7 +139,7 @@ export function TextSection({
       {section.title && <Title variant="section">{section.title}</Title>}
       {section.body && <SectionBody body={section.body} clamp={clamp} />}
       {rail && (
-        <GridItem span={1} className="flex flex-col gap-6">
+        <GridItem span={1} place={utilityLinks ? "flow-utility" : undefined} className="flex flex-col gap-6">
           {links.length > 0 &&
             (filledLinks ? (
               links.map((link) => {

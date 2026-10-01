@@ -75,6 +75,7 @@ NID-web/
 │   │       ├── layout.tsx           ← the real root layout (<html>, header, providers)
 │   │       ├── page.tsx             ← "/"  — the Home bento (moved from /home, STAGE-0-NOTES §34)
 │   │       ├── about/page.tsx       ← "/about" — a primary page: PrimaryTemplate (R1b)
+│   │       ├── study/page.tsx       ← "/study" — the third primary page (STAGE-0-NOTES §73)
 │   │       ├── about/news-events/   ← the secondary-page template (R1c)
 │   │       ├── about/our-themes/    ← the ten craft palettes, each scoped to its theme
 │   │       ├── swatch/page.tsx      ← "/swatch" — the QA surface, not a real page
@@ -283,7 +284,7 @@ Check the build output line for `/[locale]/about/history` says `●`, not `ƒ`.
 
 ### R1b — A content-model page (the way most of the ~110 pages go)
 
-The recipe above hand-writes the grid. A page that will one day come from the CMS does **not** — it asks `getPage()` for its data and lets the section components lay it out. A **primary** page (sitemap.json `"template": "primary"`: About, Programmes) is a fixture, a `getPage` entry and a five-line route that renders `PrimaryTemplate` (`src/components/sections/PrimaryTemplate.tsx`, STAGE-0-NOTES §69) — copy `src/app/[locale]/programmes/page.tsx`. The template's body is the pattern below.
+The recipe above hand-writes the grid. A page that will one day come from the CMS does **not** — it asks `getPage()` for its data and lets the section components lay it out. A **primary** page (sitemap.json `"template": "primary"`: About, Programmes, Study at NID) is a fixture, a `getPage` entry and a five-line route that renders `PrimaryTemplate` (`src/components/sections/PrimaryTemplate.tsx`, STAGE-0-NOTES §69) — copy `src/app/[locale]/study/page.tsx`. If its children are designed but unbuilt, add the path to `KEEP_UNBUILT` in `getPage.ts` so the rail and the sections' own links keep them as unlinked rows (§69, §73), and name the page in `UNLISTED_PAGES` (`nav-content.ts`) when the menu does not link it, so the back link can. The template's body is the pattern below.
 
 ```tsx
 const response = await getPage("/about");     // fixture now, API later
@@ -308,7 +309,7 @@ A **secondary** page (a child: the campus pages, the programme pages) renders `S
 
 A **collection item** (an article, a discipline) is built from its record, not from a per-page fixture: `getArticle.ts`, `getDiscipline.ts`. Its route is one `[param]` folder with `dynamicParams = false`, and the same list feeds `generateStaticParams` and `registerBuiltParams`, so a link only reaches a page that was built (§59, §72).
 
-**Proving a change left other pages alone (test R).** Build the old and new trees (`NEXT_IMAGE_UNOPTIMIZED` unset, or every image `src` differs) and compare each page's HTML: the DOM must be byte-identical, and the RSC payload's rows equal as a set, ignoring their order and row ids — two builds of the same tree reorder them (§69). If the change adds a UI string, the client messages row may differ ONLY by the added keys and must be byte-identical once they are removed (§70).
+**Proving a change left other pages alone (test R).** Build the old and new trees (`NEXT_IMAGE_UNOPTIMIZED` unset, or every image `src` differs) and compare each page's HTML: the DOM must be byte-identical, and the RSC payload's rows equal as a set, ignoring their order and row ids — two builds of the same tree reorder them (§69). If the change adds a UI string, the client messages row may differ ONLY by the added keys and must be byte-identical once they are removed (§70). Normalise the build id and the chunk hashes first, and split the payload into rows by its own framing: a text row (`T<hex length>,`) has no newline after it. **LIVE builds only** (§73): the `<body>` must be byte-identical, and the `<head>` must hold the same set of tags once `crossorigin=""` is removed from script tags — only their order may differ, because live builds already vary there. FIXTURE keeps the strict rule.
 
 Three rules that come with it:
 
@@ -507,7 +508,7 @@ case "timeline":
 | `statement` | big headline; every full stop rendered in the accent colour |
 | `hero` | the 2-column photo |
 | `linkList` | heading + list of links with meta lines ("Study at NID") |
-| `calendar` / `news` | overline + hairline-separated rows + a bottom CTA |
+| `calendar` / `news` | overline + hairline-separated rows + a bottom CTA. The calendar's rows are `ACADEMIC_CALENDAR` (`src/lib/content/academic-calendar.ts`), the same list /study shows — edit it there, not in `messages/en.json` (§73) |
 | `feature` | gradient disc with centred serif text |
 | `portrait` | overline + circular photo + name + bio |
 | `pattern` | decorative craft field. Shown at every breakpoint, like the boards. |
@@ -937,8 +938,9 @@ transition-colors duration-150 ease-in-out
 | `Footer` | `@/components/spine/Footer` | the site footer — four `GridItem`s. Render it inside the page's grid after a `Separator`, never in the layout. |
 | `SecondaryTemplate` | `@/components/sections/SecondaryTemplate` | a child page's whole body from a path: title + back link, key-info rail and filled rail buttons, hero, standfirst, sections, sibling band. `SecondaryLayout` props carry the per-page presentation. |
 | `StudentWorkSection` | `@/components/sections/StudentWorkSection` | a discipline's works: prose, the first work as a feature (panel in column 1, image in 2–4), the rest as Thumbs three across (§72). |
+| `NoticesSection` | `@/components/sections/NoticesSection` | a cards section whose items are all `NoticeEntry` (`editorial.ts`): title in column 1, unlinked `LinkedRow`s (title over a display date) in columns 2–3, links in the utility slot (§73). |
 | `GroupedCards` | `@/components/sections/GroupedCards` | a cards section that arrives grouped (`groupedItems`): group title in column 2, Thumbs two across in 3–4. |
-| `PrimaryTemplate` | `@/components/sections/PrimaryTemplate` | a primary landing page's whole body from a `PageResponse` — title, sub-page rail, hero, standfirst, separated sections, footer. `thumbs="three-up"` sets Thumb cards across columns 2–4 (Programmes). |
+| `PrimaryTemplate` | `@/components/sections/PrimaryTemplate` | a primary landing page's whole body from a `PageResponse` — title, sub-page rail, hero, standfirst, separated sections, footer. `thumbs="three-up"` sets Thumb cards across columns 2–4 (Programmes). A section photo gets no craft tile beside it, and a text section's links go by the utility rule (`GridItem place="flow-utility"`), never into a free cell beside a photo (§73). |
 | `SectionRenderer` | `@/components/sections/SectionRenderer` | `section` → `TextSection` / `LinksSection` / `CardsSection`; renders nothing for an empty section. `files` / `rail` / `mosaic` are still `null` (Stages 3–5). `CardsSection` takes `lead="wide" \| "feature"` for its first card. |
 | `LinkStack`, `ContactList` | `@/components/sections/parts` | a rail of `primary` CTAs from content-model links (`twoUp="tablet-only"` for a rail, `"tablet-up"` for a band); a rail of contacts |
 | `NewsCard` `CampusCard` `AlumniCard` | `@/components/cards/*` | the three card types on `Tile`. `NewsCard` has `square`, `wide` and `feature` (3 columns, nested subgrid). `AlumniCard` is a square at 4 columns and the Person shape below. |

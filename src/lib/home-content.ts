@@ -3,6 +3,7 @@
  */
 import type { MediaAsset } from "@/lib/content-model";
 import { mediaAsset } from "@/lib/media";
+import { ACADEMIC_CALENDAR } from "@/lib/content/academic-calendar";
 
 /** A dotted key into the "Home" message namespace, e.g. "study.heading". */
 export type CopyKey = string;
@@ -27,7 +28,7 @@ export interface HomeLink {
 }
 
 export interface CalendarRow {
-  labelKey: CopyKey;
+  label: string; // content, not a UI string — see academic-calendar.ts
   date: string; // pre-formatted, editorial ranges — data, not translated
   /** Optional destination. A row with one becomes a link and takes the hover
    *  treatment — rule to border/default, arrow revealed at the right. Without
@@ -160,12 +161,8 @@ export const HOME_TILES: HomeTile[] = [
     id: "academic",
     kind: "calendar",
     overlineKey: "academic.overline",
-    rows: [
-      { labelKey: "academic.r1", date: "June 1 to June 5 2026" },
-      { labelKey: "academic.r2", date: "July 9 & 10 2026" },
-      { labelKey: "academic.r3", date: "Mon, July 13 2026" },
-      { labelKey: "academic.r4", date: "Fri, Aug 7 2026  &  Fri, Oct 16 2026" },
-    ],
+    // The list /study shows too (academic-calendar.ts).
+    rows: ACADEMIC_CALENDAR.map(({ title, date }) => ({ label: title, date })),
     cta: { labelKey: "cta.allEvents", href: "/events" },
   },
   {

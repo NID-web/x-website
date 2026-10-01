@@ -76,10 +76,11 @@ export const SUB_PAGE_RAIL = "derived.subPageLinks";
 export interface GateOptions {
   /** Lists whose links are RECORDS a page lists, not calls to action: the
    *  campus pages' detail-derived sections (PAGE_CONFIG[path].detail), by
-   *  section id, and Programmes' sub-page rail, by SUB_PAGE_RAIL. There an
+   *  section id; and on Programmes and Study at NID, the sub-page rail (by
+   *  SUB_PAGE_RAIL) and every section's links (by section id). There an
    *  unbuilt link keeps its place as an unlinked row, the treatment the header
    *  gives cards and rows. Everywhere else it is still dropped: the site-wide
-   *  version was weighed and declined (STAGE-0-NOTES §58, §69). */
+   *  version was weighed and declined (STAGE-0-NOTES §58, §69, §73). */
   keepUnbuilt?: ReadonlySet<string>;
 }
 
