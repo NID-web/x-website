@@ -3546,3 +3546,78 @@ cards (LIVE shows discipline records there).
 - The hero is PageHero's 2.2:1 (1038 × 472); the board's 1200:628 is the photo's own ratio.
 - The standfirst is Regular from 768 up; the board sets it Bold. The rail stacks at 24px, not 32.
 - The band has 4 links: Industry & Online is withheld until its page exists.
+
+## 71. One fetch per CMS URL per build: a shared cache that cannot outlive its build
+
+### Why
+
+`cmsFetch`'s memo is per process, and a build renders pages in several. Measured on one LIVE
+build through a logging proxy: 113 requests for 87 distinct URLs — every duplicate the same URL
+once in each rendering process (the chrome, the article feed lists, News & Events, twelve
+thumbnail HEADs) — plus `next.config.ts`'s own media-host probe of `/public/content/home`, three
+times, outside the build report. With the CMS allowing 100 requests a minute, every duplicate
+brings the next 429 closer (§70).
+
+### How
+
+`scripts/with-cms-cache.mjs` wraps every `next build` in package.json. In a LIVE build — decided
+with `@next/env`, the loader Next uses, so `CMS_API_URL` from `.env.local` counts and an explicit
+`CMS_API_URL=` still means FIXTURE — it creates a new, randomly named directory in the OS temp
+dir, writes its own pid into it (`owner.json`), and names it in `NID_CMS_BUILD_CACHE`. It deletes
+the directory when the command ends: success, failure, Ctrl+C or SIGTERM (forwarded to the
+build first; exit 130 on Ctrl+C). It removes any inherited `NID_CMS_BUILD_CACHE`, and deletes
+`nid-cms-build-*` directories older than a day (left by a SIGKILLed build).
+
+`src/lib/api/build-cache.ts` (Node built-ins only, so `next.config.ts` can import it):
+`onceAcrossBuild(key, fetchOnce)`. Per URL, a process reads the stored response if there is one;
+else it takes the URL's lock (an exclusive create holding its pid and start time) and fetches —
+through the §70 limiter and 429 retry, which therefore belong to the fetching process only — or
+waits, polling every 100ms, without holding a limiter slot. Only a success or a real 404/410 is
+stored, as status and body, written to a temporary name and renamed, so a reader sees all of a
+file or none of it. A failure is not stored: the lock is released empty, and a waiter fetches
+for itself. Documents, list pages, records, media HEADs and the config probe all go through it;
+a stored 404/410 is read exactly as a fresh one, so the hero-drop rule is unchanged.
+
+A lock is taken over when its process is dead or it is older than 360s (the page timeout). A
+legitimately slow holder overtaken means one duplicate fetch of the same body, written
+atomically over an identical file — accepted.
+
+### Why a stale cache is impossible
+
+The directory is never under `.next/` (Vercel keeps `.next/cache` between deploys); its name is
+new for every build; the wrapper removes it at the end; and `build-cache.ts` uses a directory
+only while the pid in its `owner.json` is running, so a leftover — even one a stale
+`NID_CMS_BUILD_CACHE` points at — is never read. With no variable (`next dev`, FIXTURE, a bare
+`next build`) every call is a pass-through, exactly as before. A CMS edit shows on the next build.
+
+### Counting
+
+Every fetch and every read from the shared cache is a line in the directory's ledger; the wrapper
+appends it to `.next/cms-build-report.jsonl` before deleting the directory, and the summary prints
+`CACHE fetched N, distinct N, served from cache N` (fetched counts a fetch once however many 429s
+it took; those are the RATE LIMIT line). `fetched == distinct` is the property; a bare `next build`
+prints `CACHE off`.
+
+### Measured
+
+| | requests | distinct | from cache | 429s | waited (summed) | wall |
+|---|---|---|---|---|---|---|
+| HEAD | 113 | 87 | — | 0 | 0s | 14s |
+| this, build 1 | 87 | 87 | 30 | 0 | 0s | 15s |
+| this, build 2 (back to back) | 87 | 87 | 26 | 4 | 240s | 76s |
+
+Every page identical to HEAD, FIXTURE and LIVE (§69/§70 rule, no expected differences); the
+built-HTML guard clean. Mocks: a lock holder SIGKILLed mid-fetch — the waiter waited, then took
+over and refetched (a refetch, not a failure); a lock older than 360s with a live holder — taken
+over; leftover directories, wrapped or pointed at directly — never read, the day-old one removed;
+a 429-then-200 URL from two processes — one fetch (two HTTP requests), one cache read; three
+processes racing on 200 URLs of 300 KB — no wrong body, 200 fetches, no temporary file left;
+Ctrl+C during a wrapped build — exit 130, directory gone.
+
+Headroom: the discipline pages' 27 records are the ones the programme pages already fetch, so
+they cost nothing more; their media and referenced people bring a build to ~150–220 distinct
+requests — one 60s rate window per build, ~2 back to back.
+
+Known limitations: the wrapper imports `@next/env` as Next installs it (same version, 16.3.2) rather
+than as a declared dependency, which Next's docs suggest. A SIGKILLed wrapper leaves its directory
+(unread; removed after a day) and its ledger never reaches the summary.

@@ -13,6 +13,7 @@ import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import type { MediaAsset } from "@/lib/content-model";
 import { IS_BUILD, report, strictBuild } from "@/lib/api/build-mode";
+import { onceAcrossBuild } from "@/lib/api/build-cache";
 import { cmsBaseUrl, retrying429, withCmsSlot } from "@/lib/api/client";
 import type { MediaRef } from "@/lib/api/types";
 
@@ -133,7 +134,11 @@ export function mediaExists(asset: MediaAsset): Promise<boolean> {
     // is "missing"; anything else once retries run out — a 429, a 5xx, no
     // answer — is not evidence the file is gone, so a LIVE build stops rather
     // than quietly drop an image that exists (§70). `next dev` keeps the image.
-    pending = withCmsSlot(() => retrying429(() => head(url), key)).then((res) => {
+    // One HEAD per file for the whole build (build-cache.ts): a stored 404/410
+    // reads exactly as a fresh one.
+    pending = onceAcrossBuild(`HEAD ${key}`, () =>
+      withCmsSlot(() => retrying429(() => head(url), key)).then((res) => ({ ...res, body: "" })),
+    ).then((res: { status: number; error?: string; attempt?: number; waited?: number }) => {
       if (res.status >= 200 && res.status < 300) {
         report({ t: "head", url: key, ok: true, status: res.status });
         return true;
@@ -143,7 +148,8 @@ export function mediaExists(asset: MediaAsset): Promise<boolean> {
         return false;
       }
       const reason =
-        res.error ?? `HTTP ${res.status}${res.status === 429 ? ` after ${res.attempt} attempts, ${res.waited / 1000}s waited` : ""}`;
+        res.error ??
+        `HTTP ${res.status}${res.status === 429 ? ` after ${res.attempt ?? 1} attempts, ${(res.waited ?? 0) / 1000}s waited` : ""}`;
       report({ t: "head", url: key, ok: false, status: res.status, reason });
       const message = `[cms] MEDIA CHECK FAILED — ${key}: ${reason}. Only a 404 or 410 means a file is missing`;
       if (strictBuild()) throw new Error(`${message}; a LIVE build does not guess. Retry, or check the CMS.`);

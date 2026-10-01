@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
+import { onceAcrossBuild } from "./src/lib/api/build-cache";
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -26,14 +27,20 @@ async function deriveMediaHosts(): Promise<string[]> {
   if (!cmsUrl) return [];
   const hosts = new Set<string>([cmsUrl.host]);
   try {
-    const res = await fetch(`${cmsUrl.href.replace(/\/$/, "")}/public/content/home`, {
-      signal: AbortSignal.timeout(10_000),
-      // This one request is the config's own, not a page's: it must not land in
-      // Next's build-time fetch cache and be served back to the next build.
-      cache: "no-store",
+    // The config loads in the build's main process and again in its workers;
+    // the build cache (STAGE-0-NOTES §71) makes that one request per build.
+    const probe = `${cmsUrl.href.replace(/\/$/, "")}/public/content/home`;
+    const res = await onceAcrossBuild(`GET ${probe}`, async () => {
+      const r = await fetch(probe, {
+        signal: AbortSignal.timeout(10_000),
+        // This one request is the config's own, not a page's: it must not land in
+        // Next's build-time fetch cache and be served back to the next build.
+        cache: "no-store",
+      });
+      return { status: r.status, body: await r.text() };
     });
-    if (res.ok) {
-      const body = await res.text();
+    if (res.status >= 200 && res.status < 300) {
+      const body = res.body;
       for (const match of body.matchAll(MEDIA_URL)) {
         const url = match[1];
         if (!url) continue;

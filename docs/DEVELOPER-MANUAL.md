@@ -150,7 +150,7 @@ npm run dev      # http://localhost:3000/en
 | `npm run dev` | dev server | always |
 | `npx tsc --noEmit` | type check | before every commit |
 | `npm run lint` | ESLint **+ the no-hex rule + the no-fixture-import rule** | before every commit |
-| `npm run build` | production build, then the **built-HTML guard** (fails on any page with bytes after its `</html>`, §70) and a **build summary** (mode, documents, rate-limit retries, floors, routes, withheld links) | before every commit |
+| `npm run build` | production build — wrapped by `scripts/with-cms-cache.mjs`, so a LIVE build fetches each CMS URL once across all its processes (§71) — then the **built-HTML guard** (fails on any page with bytes after its `</html>`, §70) and a **build summary** (mode, documents, rate-limit retries, floors, routes, withheld links) | before every commit |
 | `npm run verify:tokens` | FIXTURE build (no CMS — tokens don't need it), then 667 assertions in a real browser: all 20 theme states, the grid at the four artboard widths **and** at 1600 / 1200 / 900 / 430 between them | after touching `themes.css`, `globals.css`, `PageGrid`, `GridItem` |
 | `npm run verify:parity` | checks `design/tokens/*` still matches its `src/` copy | fast; runs inside `verify:tokens` |
 | `npm run verify:fonts` | confirms all four font families actually loaded | after font changes |
@@ -182,7 +182,7 @@ A build is exactly one of these (`src/lib/api/build-mode.ts`):
 | `CMS_API_URL` | the CMS origin, no trailing slash, no `/api` | same, if previews should show CMS content; unset for a FIXTURE preview |
 | `CMS_REQUIRED` | `true` (belt and braces — `VERCEL_ENV=production` already implies it) | leave unset |
 
-The Build Command must be `npm run build` (the Vercel default when `package.json` has a `build` script), not `next build`, or neither the built-HTML guard (§70) runs nor the summary box prints. A production build without `CMS_API_URL` is refused before a page is built: `[cms] BUILD REFUSED — CMS_API_URL is not set, and this build requires the CMS (VERCEL_ENV=production)`.
+The Build Command must be `npm run build` (the Vercel default when `package.json` has a `build` script), not `next build`, or neither the per-build CMS cache (§71) nor the built-HTML guard (§70) runs, and the summary box does not print. A production build without `CMS_API_URL` is refused before a page is built: `[cms] BUILD REFUSED — CMS_API_URL is not set, and this build requires the CMS (VERCEL_ENV=production)`.
 
 **Reading `npm run build` output:** your route must show `○` or `●` (static). If it shows `ƒ` (dynamic), something in your page called `cookies()` or `headers()` and you've made the whole site render per-request. Find it and remove it.
 

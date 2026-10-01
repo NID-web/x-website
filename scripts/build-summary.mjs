@@ -74,6 +74,16 @@ for (const [src, n] of bySrc) {
 line(`REDIRECTS  ${redirects.length ? redirects.join("; ") : "none"}`);
 if (mode === "live") {
   line(`DOCUMENTS  ${docs.size} fetched, ${failedDocs.length} failed`);
+  // build-cache.ts: one fetch per URL across every process of the build. The
+  // wrapper (with-cms-cache.mjs) appends its ledger here; without it (a bare
+  // `next build`) the cache is off and duplicates are possible.
+  const fetched = events.filter((e) => e.t === "fetch");
+  const cached = events.filter((e) => e.t === "cached");
+  line(
+    fetched.length
+      ? `CACHE      fetched ${fetched.length}, distinct ${new Set(fetched.map((e) => e.key)).size}, served from cache ${cached.length}`
+      : "CACHE      off (next build ran without scripts/with-cms-cache.mjs)",
+  );
   // client.ts waits out a 429 during a build; every worker reports its own.
   const retries = events.filter((e) => e.t === "retry");
   const waited = retries.reduce((n, e) => n + e.waitedMs, 0) / 1000;

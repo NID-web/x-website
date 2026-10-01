@@ -12,6 +12,7 @@ import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { cache } from "react";
 import { IS_BUILD, report, strictBuild } from "@/lib/api/build-mode";
+import { onceAcrossBuild } from "@/lib/api/build-cache";
 
 const TIMEOUT_MS = 10_000;
 
@@ -170,17 +171,19 @@ async function fetchDocument<T>(path: `/${string}`, guard: (v: unknown) => v is 
   if (!base) return null;
 
   const url = new URL(`${base.href.replace(/\/$/, "")}${path}`);
-  let res: Awaited<ReturnType<typeof get>> & { attempt: number; waited: number };
+  // One fetch per URL for the whole build (build-cache.ts); the slot and the
+  // 429 retry belong to the process that fetches, not to those that wait.
+  let res: { status: number; body: string; attempt?: number; waited?: number };
   try {
-    res = await withCmsSlot(() => retrying429(() => get(url), path));
+    res = await onceAcrossBuild(`GET ${url.href}`, () => withCmsSlot(() => retrying429(() => get(url), path)));
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
       return fail(path, `no response in ${TIMEOUT_MS / 1000}s`);
     }
     return fail(path, err instanceof Error ? err.message : String(err));
   }
-  if (res.status === 429 && res.attempt > 1) {
-    return fail(path, `HTTP 429 after ${res.attempt} attempts, ${res.waited / 1000}s waited (${url.href})`);
+  if (res.status === 429 && (res.attempt ?? 1) > 1) {
+    return fail(path, `HTTP 429 after ${res.attempt} attempts, ${(res.waited ?? 0) / 1000}s waited (${url.href})`);
   }
   if (res.status < 200 || res.status >= 300) return fail(path, `HTTP ${res.status}`);
 
