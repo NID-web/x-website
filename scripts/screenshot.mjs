@@ -68,6 +68,8 @@ const PAGES = [
   { name: "discipline-afd", path: "/en/programmes/bdes/animation-film-design" },
   // The third primary page (STAGE-0-NOTES §73).
   { name: "study", path: "/en/study" },
+  // The fourth primary page (STAGE-0-NOTES §78).
+  { name: "research", path: "/en/research" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

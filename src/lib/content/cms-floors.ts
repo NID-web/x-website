@@ -51,13 +51,16 @@ export const CMS_FLOORS = {
     "life-at-nid": 8,
     "academic-notifications": 1,
     "young-designers": 3,
+    "research-publications": 3,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page
-   *  shows them as cards. Live: about-nid 5 (news), campuses 3. */
+   *  shows them as cards. Live: about-nid 5 (news), campuses 3,
+   *  research-publications 7 (the centres, §78). */
   documentItems: {
     "about-nid": 4,
     campuses: 3,
+    "research-publications": 7,
   } as Record<string, number>,
 
   /** A programme's discipline records that become cards (getDisciplines.ts):

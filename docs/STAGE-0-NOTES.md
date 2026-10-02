@@ -4229,3 +4229,179 @@ A copy with the API altered in getPage, deleted after:
   404`.
 - **Young Designers with a photograph under a new id ahead of the banner:** it replaces the hero
   box at the same size; the banner is still refused (`hero: 1 rejected (rejectMedia …)`).
+
+## 78. Research & Publications: the fourth primary page, one section from three CMS sections
+
+`/research` is sitemap.json's fourth `"template": "primary"` page, from one 1440 board ("05 Research
+& Publications — Landing"). It renders `PrimaryTemplate` through a thin route, as About, Programmes
+and Study do. It has the title, the eight-row sub-page rail beside the hero, the standfirst, and
+one section: Research at NID. That section is prose behind "See more", the page's two contacts in
+column 4, and seven centres as title-only Thumb tiles two-up.
+
+### The data: one page section, three CMS sections
+
+The `research-publications` document (Generic Page) sends:
+- a title and SEO;
+- two heroes, both with alt text;
+- two page-level contacts;
+- two SPECIFIC sections, **both at orderIndex 1** (logged);
+- a STRUCTURED `research_center` list (CURATED, 7 items).
+
+Mapped by meaning, as §74 did:
+
+| Board slot | CMS source |
+|---|---|
+| Standfirst | the SPECIFIC section titled "Research at NID": one sentence on the centres, the first section no rule claims |
+| Research at NID: title | the board's (`keepTitle`); the list is titled "Research Centres & Publications" |
+| Research at NID: body | the SPECIFIC "About" (`bodyTitle`) |
+| Research at NID: tiles | the `research_center` list, in CMS order |
+| Contacts | the document's contacts, moved into the section by the route (`contactsIn`) |
+
+`SectionMergeRule` gains `bodyTitle` and `keepTitle`; `bodyTitle` counts as claimed, so "About" is
+never the standfirst. `textBody` now also gives a `cards` section its body. CardsSection already
+rendered a cards body (Ahmedabad's Disciplines).
+
+**The body differs by mode.** The FIXTURE body is the board's hidden full text, verbatim: two
+paragraphs, "NID’s" with the curly apostrophe. LIVE is the CMS's "About", a one-paragraph
+paraphrase without the four Research Chairs and with "1960s" for "mid-1960s".
+TODO(review), backend: "About" should carry the board's text.
+
+**The clamp** is eight lines of text, the board's cut at "…in partnership with…", four lines per
+paragraph at 684 (§55's count). "See more" shows only when the text overflows, by ClampedProse's
+own rule:
+- FIXTURE: at every width.
+- LIVE: the shorter CMS text fits at 768 and up, so the button shows at 390 only.
+
+Without JavaScript the text is whole and there is no button (§74).
+
+One more document per LIVE build, and 4 HEADs (below): **221 → 226 distinct**, fetched == distinct.
+Floors: `research-publications`, 3 sections and 7 listed items.
+
+### Photos
+
+- **Hero.** Neither CMS hero is the board's photograph. Hero 1 is a railway-coach render; hero 2
+  is the bamboo-furniture room the board puts on two tiles. Both are refused by id
+  (`rejectMedia`, §77), so FIXTURE and LIVE show the board's file,
+  `public/research/hero-red-string-acrylic.jpg`, taken from the board with one `download_assets`
+  call. Its alt text is ours (TODO(review)). A new upload has a new id and shows with no code
+  change. Backend ask: the board's photo as the landing's hero 1.
+- **Tiles: each centre's own CMS hero-1, never the board's tile photos.** Compared byte for byte
+  with the board's files:
+  - The board's Nation Building tile is IPR's CMS hero, a brass gong.
+  - Its IPR and Bamboo tiles are both the landing's bamboo room.
+
+  So Nation Building, which has no photo anywhere, draws ThumbCard's existing empty box. That box
+  does not depend on `SHOW_IMAGE_PLACEHOLDERS`. IPR shows its own gong, Bamboo its own workshop
+  group.
+- **`photoFallback`.** The list's thumbnails for Natural Fiber and Railway are a different file
+  that 404s and has no alt text, so the adapter refuses them. The rule, applied in
+  `getPage.withPhotoFallback`, gives a CMS card whose photo was refused, never sent, or does not
+  serve the fixture card's photo at the same route. It logs one `[cms]` line per fallback:
+  `[cms] /research: /research/railway photo from the fixture — no usable CMS photo`.
+  - The fixture's photos are copies of each centre's own CMS hero-1 in `public/research/`, which
+    is the only reason the rule is acceptable.
+  - Only cards that HAVE a fallback are checked: one HEAD each per build, 4 today (ICIC, Bamboo,
+    Handloom, IPR). So a CMS photo wins as soon as it is accepted and serves, and a FIXTURE build
+    stays offline.
+
+  Backend ask: fix both list thumbnails.
+- **Alt text.** The CMS's alt texts name the centre, which the tile's title already says.
+  TODO(review).
+
+### New, and only this
+
+- **`PrimaryTemplate` props**, each with SecondaryTemplate's shape:
+  - `clamp`, keyed by section id;
+  - `thumbMeta={false}`, passed to CardsSection and ThumbCard: the title alone. LIVE items carry
+    heroText as `intro`, and Nation Building's begins "PLACEHOLDER —";
+  - `contactsIn`: the page's contacts in that section's column 4, not under the standfirst.
+    SecondaryTemplate already does this for its first section.
+- **CardsSection draws section contacts** in the utility slot, with the section's links if it has
+  any, placed before the cards in source order:
+  - column 4 of the title row at 4 columns;
+  - column 2 under the body at 3. The title row has no free cell there, since the body takes
+    columns 2–3 (§37, §73). TODO(designer): the board draws them on the title row; at 3 columns
+    it cannot.
+  - after the body at 1–2 columns.
+
+  A first version added the slot as `{contacts.length > 0 && …}`. The empty slot reached the RSC
+  payload of every cards section on the site (About, Programmes, the campus pages, News & Events):
+  HTML identical, payload not, the §76 trap again. A section without contacts now renders exactly
+  the element it always did.
+- **Card data.** `PAGE_ID.research` → "/research", mapped to `thumb`. Three ids are added
+  (`researchNationBuilding`, `researchIpr`, `researchNidPress`), plus the eight centres' CMS slugs
+  at sitemap.json's paths. The CMS slugs `innovation-center-natural-fiber` and
+  `railway-design-center` are not the routes' last segments.
+
+### The gate, and what links
+
+- `/research` joins `BUILT_ROUTES` and `KEEP_UNBUILT`. All eight rail rows and seven tiles point
+  at unbuilt centre pages. They render as unlinked rows (§69) and unlinked tiles (`cardHref`):
+  no anchor, not focusable, no `href="#"`.
+- `UNLISTED_PAGES` names "/research", so the back link can name it.
+- Mocked with `/research/railway` built: its rail row and its tile both link, and nothing else on
+  the page changes. Ahmedabad's "Railway Design Centre" row (a detail list) links too.
+- **Hrefs that changed:** Home's Research tile only (FIXTURE and LIVE), which now links
+  `/en/research` with the arrow reveal. The LIVE menu already linked `/research` (ungated, §34);
+  the FIXTURE menu gives Research no title link.
+
+### Board drift
+
+- **Four orders.** The board's rail, the board's tiles, sitemap.json's children and the menu
+  (NID Press before IPR) all differ. The rail and the fixture's tiles follow sitemap.json; LIVE
+  tiles follow the CMS list, which today is the same order. TODO(designer).
+- **Labels.**
+  - The rail and tiles say "International Centre for Indian Crafts (ICIC)", as sitemap.json and
+    the CMS do; the board drops "(ICIC)".
+  - "Center"/"Centre" spellings are sitemap.json's.
+- **NID Press has no tile:** 7 tiles for 8 centres, as drawn. TODO(designer).
+- **The rail rows wrap less than on the board.** At 1440 only ICIC and Nation Building take two
+  lines (64px); the board also wraps Natural Fiber and Handloom. Its rows are linked and carry the
+  ↗ arrow, while unlinked rows have no arrow and so more width. They will match once the centre
+  pages are built.
+- **Hero size.** 1038 × 472 at the template's 2.2:1; the board's is 1038 × 584.
+- **Standfirst.**
+  - The board's is History's opening paragraph, a placeholder never rendered.
+  - Regular from 768 up, as every standfirst.
+- **Body colour.** `text/primary`; the board draws `text/secondary` (the template TODO).
+- **Contacts at 3 columns:** below the body, as above.
+
+### R
+
+The §70 rule as amended in §73 and §77.
+
+- **FIXTURE:** only Home changed, by its Research tile's link. HTML outside the tile is
+  byte-identical, and the three payload rows that differ (one removed, two added) are all the
+  tile's. Every other page is identical. `/en/research` is new and builds as `●`.
+- **LIVE:** the same.
+
+LIVE builds of this change:
+- 145s, 141s, two failures on CMS timeouts not this page's (`/public/content-items?contentType=news`,
+  `/public/content/jignesh-khakhar`), then 79s.
+- HEAD on the same machine: 93s and 146s.
+
+The page does not measurably move a build that already straddles the 2-minute bar.
+
+### Mocks (E)
+
+A copy with the merged page altered in getPage, deleted after:
+- **No contacts:** none anywhere.
+- **No body:** the tiles rise to the title row (columns 2–3), the contacts stay in column 4, and
+  at 1024 the contacts take column 2 of the title row.
+- **No tile photos:** seven boxes.
+- **One tile:** one tile, two-up position.
+- **No hero:** the rail and standfirst close up.
+- **The CMS list reversed:** the tiles render reversed, in CMS order and never re-sorted.
+
+Playwright, FIXTURE and LIVE at 1440 / 1024 / 768 / 390:
+- no horizontal overflow;
+- the rail beside the hero at 1024 and up;
+- tiles two-up at 768 and up (157px tall at 1440, as the board) and one-up at 390, with no title
+  overflow, including "Design Research & Innovation Centre for Nation Building" at 390;
+- "See more" opens (316 → 406px at 1440, FIXTURE);
+- the only tab stops in the page body are "See more" (where shown) and the two contacts.
+
+Known limitations:
+- The CMS's centre alt texts are names.
+- Nation Building has no photo and a "PLACEHOLDER —" heroText (hidden by `thumbMeta`).
+- The SEO description says "Six research centres"; the list has seven. TODO(review), backend.

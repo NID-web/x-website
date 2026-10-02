@@ -29,6 +29,7 @@ export function SectionRenderer({
   patternSeed,
   linksLayout,
   thumbs,
+  thumbMeta,
   groups,
   filledLinks,
   railThreeUp,
@@ -48,6 +49,7 @@ export function SectionRenderer({
   linksLayout?: "flow" | "two-up" | "documents";
   /** Passed to CardsSection. */
   thumbs?: "two-up" | "three-up";
+  thumbMeta?: boolean;
   /** This section's groups from `PageResponse.groupedItems`, already grouped:
    *  a cards section with groups renders as GroupedCards. */
   groups?: Array<{ label: string; items: unknown[] }>;
@@ -106,6 +108,7 @@ export function SectionRenderer({
           patternSeed={patternSeed}
           clamp={clamp}
           thumbs={thumbs}
+          thumbMeta={thumbMeta}
         />
       );
     case "rail":

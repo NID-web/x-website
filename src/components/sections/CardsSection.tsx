@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { GridItem } from "@/components/layout/GridItem";
 import { Title } from "@/components/spine/Title";
 import { PatternTile } from "@/components/home/tiles/PatternTile";
@@ -6,6 +7,7 @@ import { CampusCard, type ArchSide } from "@/components/cards/CampusCard";
 import { NewsCard } from "@/components/cards/NewsCard";
 import { ThumbCard } from "@/components/cards/ThumbCard";
 import {
+  ContactList,
   LinkStack,
   SectionBody,
   startIn,
@@ -29,6 +31,7 @@ export function CardsSection({
   patternSeed = 0,
   clamp,
   thumbs = "two-up",
+  thumbMeta = true,
 }: {
   section: CardsSectionData;
   /** Presentation variant for the first news item. */
@@ -41,10 +44,13 @@ export function CardsSection({
    *  three across in columns 2–4 (Programmes). The model has no field for it,
    *  so the page names it (§40's precedent, STAGE-0-NOTES §69). */
   thumbs?: "two-up" | "three-up";
+  /** False: Thumb cards draw their title alone, no meta line (§78). */
+  thumbMeta?: boolean;
 }) {
   const items = section.items.filter((item): item is Page => "parent" in item);
   const kind = items[0] ? cardKind(items[0]) : undefined;
   const links = section.links.length > 0 && <LinkStack links={section.links} />;
+  const body = section.body && <SectionBody body={section.body} clamp={clamp} />;
   const lead = kind === "news" ? items[0] : undefined;
   const rest = kind === "news" ? items.slice(1) : items;
 
@@ -74,7 +80,22 @@ export function CardsSection({
       <Title variant="section">{section.title}</Title>
       {/* A lead-in above the cards (Ahmedabad's Disciplines, 4119:227463). No
           other cards section carries a body, so none changes. */}
-      {section.body && <SectionBody body={section.body} clamp={clamp} />}
+      {/* The section's contacts, with its links if it has any, in the utility
+          slot: column 4 of the title row at 4 columns, column 2 under the body
+          at 3, after the body below that — Research at NID (§78). Before the
+          cards in source order, so at 3 columns flow puts it above them. A
+          section without contacts renders exactly the element it always did
+          (an extra empty slot still reaches the RSC payload, §76), and keeps
+          its links cell at the end. */}
+      {section.contacts.length > 0
+        ? [
+            <Fragment key="body">{body}</Fragment>,
+            <GridItem key="contacts" span={1} place="utility" className="flex flex-col gap-6">
+              {links}
+              <ContactList contacts={section.contacts} />
+            </GridItem>,
+          ]
+        : body}
       {lead &&
         (feature ? (
           <GridItem span="hero" subgrid>
@@ -107,11 +128,11 @@ export function CardsSection({
           ) : kind === "alumni" ? (
             <AlumniCard item={item} />
           ) : kind === "thumb" ? (
-            <ThumbCard item={item} />
+            <ThumbCard item={item} meta={thumbMeta} />
           ) : null}
         </GridItem>
       ))}
-      {links && (
+      {links && section.contacts.length === 0 && (
         <GridItem span={1} place="utility">
           {kind === "news" ? links : <PatternTile seed={1} cta={links} />}
         </GridItem>

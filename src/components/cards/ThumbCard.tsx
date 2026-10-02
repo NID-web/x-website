@@ -6,10 +6,20 @@ import { Link } from "@/i18n/navigation";
 import type { MediaAsset, Page } from "@/lib/content-model";
 import { cardHref } from "@/lib/content/links";
 
-export function ThumbCard({ item }: { item: Page }) {
+export function ThumbCard({
+  item,
+  meta = true,
+}: {
+  item: Page;
+  /** False: the title alone, vertically centred — a board that draws no meta
+   *  line, whatever the record's intro says (Research's centres, §78). */
+  meta?: boolean;
+}) {
   // Unlinked, not dropped, when the record has no built route (links.ts) —
   // which is every discipline today.
-  return <ThumbCardView title={item.title} meta={item.intro} image={item.hero[0]} href={cardHref(item)} />;
+  return (
+    <ThumbCardView title={item.title} meta={meta ? item.intro : undefined} image={item.hero[0]} href={cardHref(item)} />
+  );
 }
 
 /** The card itself, for items that are not a Page — a programme page's

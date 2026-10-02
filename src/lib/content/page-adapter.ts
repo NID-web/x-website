@@ -34,6 +34,19 @@ export interface SectionMergeRule {
    *  /about/news-events/[slug] template), wrong for one whose routes are named
    *  differently (campuses: `ahmedabad-campus` is /about/campuses/ahmedabad). */
   slugUnderParent?: boolean;
+  /** The section's body from the SPECIFIC section with this title (matched as
+   *  TextMergeRule.textTitle, with its failure mode), so one page section
+   *  merges a list and its prose — Research at NID: the centres plus "About"
+   *  (§78). The title counts as claimed, so it is never the standfirst. */
+  bodyTitle?: string;
+  /** The fixture's title stands instead of the API section's: a section merged
+   *  from several CMS sections is named by none of them (§78). */
+  keepTitle?: true;
+  /** An item whose CMS photo is missing, refused or does not serve keeps the
+   *  fixture item's photo at the same route, so the fixture's photos must be
+   *  copies of each record's own CMS photo — never one record's on another.
+   *  Applied by getPage (it HEADs the CMS photos); logged one line each (§78). */
+  photoFallback?: true;
 }
 
 /** A SPECIFIC section's TEXT blocks feed a fixture `text` section's body.
@@ -308,7 +321,9 @@ export function toPageResponse(
       Object.values(config.sections).flatMap((rule) =>
         "textTitle" in rule
           ? rule.afterIntro ? [] : [rule.textTitle]
-          : "referencesTitle" in rule ? [rule.referencesTitle] : [],
+          : "referencesTitle" in rule
+            ? [rule.referencesTitle]
+            : rule.bodyTitle ? [rule.bodyTitle] : [],
       ).map((title) => title.trim().toLowerCase()),
     );
     const introSection = api.sections.find(
@@ -555,7 +570,8 @@ export function toPageResponse(
       log.api.push(`${name}(${linked.length} link block${linked.length === 1 ? "" : "s"})`);
       return { ...fs, items: linked };
     }
-    if (fs.type !== "text") {
+    // A cards section takes a body too: the lead-in above its cards (§78).
+    if (fs.type !== "text" && fs.type !== "cards") {
       log.static.push(`${name}(fixture section is ${fs.type}, not text)`);
       return fs;
     }
@@ -722,6 +738,12 @@ export function toPageResponse(
     }
     if ("textTitle" in rule) return textBody(fs, rule, name);
     if ("referencesTitle" in rule) return referenceRail(fs, rule, name);
+    const listed = structuredSection(fs, rule, name);
+    return rule.bodyTitle ? textBody(listed, { textTitle: rule.bodyTitle }, `${name}.body`) : listed;
+  });
+
+  /** A fixture rail or cards section from its STRUCTURED section. */
+  function structuredSection(fs: Section, rule: SectionMergeRule, name: string): Section {
     const as = structured(api, rule, consumed);
     if (typeof as === "string") {
       log.static.push(`${name}(${as})`);
@@ -744,12 +766,13 @@ export function toPageResponse(
     const items = toCards(as, rule, parent, name);
     if (!items) return fs;
 
-    // An API-fed section takes the API's title. The fixture's links stay: the
-    // API has no link model for a section.
-    const title = as.title?.trim() || fs.title;
+    // An API-fed section takes the API's title, unless the rule keeps the
+    // fixture's. The fixture's links stay: the API has no link model for a
+    // section.
+    const title = (!rule.keepTitle && as.title?.trim()) || fs.title;
     log.api.push(`${name}${title === fs.title ? "" : `→"${title}"`}(${items.length})`);
     return { ...fs, title, items };
-  });
+  }
 
   if (detail) {
     const lists = config.detail?.lists ?? {};

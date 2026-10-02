@@ -76,6 +76,7 @@ NID-web/
 │   │       ├── page.tsx             ← "/"  — the Home bento (moved from /home, STAGE-0-NOTES §34)
 │   │       ├── about/page.tsx       ← "/about" — a primary page: PrimaryTemplate (R1b)
 │   │       ├── study/page.tsx       ← "/study" — the third primary page (STAGE-0-NOTES §73)
+│   │       ├── research/page.tsx    ← "/research" — the fourth: one cards section with prose + contacts (§78)
 │   │       ├── study/admission/     ← a secondary page; the CMS merged by meaning (§74)
 │   │       ├── about/news-events/   ← the secondary-page template (R1c)
 │   │       ├── about/our-themes/    ← the ten craft palettes, each scoped to its theme
@@ -287,7 +288,7 @@ Check the build output line for `/[locale]/about/history` says `●`, not `ƒ`.
 
 ### R1b — A content-model page (the way most of the ~110 pages go)
 
-The recipe above hand-writes the grid. A page that will one day come from the CMS does **not** — it asks `getPage()` for its data and lets the section components lay it out. A **primary** page (sitemap.json `"template": "primary"`: About, Programmes, Study at NID) is a fixture, a `getPage` entry and a five-line route that renders `PrimaryTemplate` (`src/components/sections/PrimaryTemplate.tsx`, STAGE-0-NOTES §69) — copy `src/app/[locale]/study/page.tsx`. If its children are designed but unbuilt, add the path to `KEEP_UNBUILT` in `getPage.ts` so the rail and the sections' own links keep them as unlinked rows (§69, §73), and name the page in `UNLISTED_PAGES` (`nav-content.ts`) when the menu does not link it, so the back link can. The template's body is the pattern below.
+The recipe above hand-writes the grid. A page that will one day come from the CMS does **not** — it asks `getPage()` for its data and lets the section components lay it out. A **primary** page (sitemap.json `"template": "primary"`: About, Programmes, Study at NID, Research & Publications) is a fixture, a `getPage` entry and a five-line route that renders `PrimaryTemplate` (`src/components/sections/PrimaryTemplate.tsx`, STAGE-0-NOTES §69) — copy `src/app/[locale]/study/page.tsx`. If its children are designed but unbuilt, add the path to `KEEP_UNBUILT` in `getPage.ts` so the rail and the sections' own links keep them as unlinked rows (§69, §73), and name the page in `UNLISTED_PAGES` (`nav-content.ts`) when the menu does not link it, so the back link can. Per-page presentation is a `PrimaryTemplate` prop, as on the secondary template: `clamp` (a line count per section id), `thumbMeta={false}` (Thumb tiles with the title alone), `contactsIn` (the page's contacts in a named section's column 4 instead of under the standfirst) — `src/app/[locale]/research/page.tsx` uses all three (§78). The template's body is the pattern below.
 
 ```tsx
 const response = await getPage("/about");     // fixture now, API later
@@ -320,7 +321,7 @@ Three rules that come with it:
 2. **Page prose lives in the fixture, not `messages/en.json`** — it is CMS content. `en.json` keeps UI strings only (`Page.subPages`, `Page.seeMore`, `Cards.latest`, `Footer.*`).
 3. **`Title`, `Separator` and `Footer` emit their own `GridItem`s** into the page's one grid. Don't wrap them.
 
-Map CMS sections to board slots by what they say, not by their titles: a text rule claims a CMS section by title for whichever fixture section it means (`textTitle`), the standfirst takes the first section no rule claims, and `linkBlocks: true` takes a section's portal links with its text (§74). A CMS-filled section is the CMS's whole — never mix fixture paragraphs into it.
+Map CMS sections to board slots by what they say, not by their titles: a text rule claims a CMS section by title for whichever fixture section it means (`textTitle`), the standfirst takes the first section no rule claims, and `linkBlocks: true` takes a section's portal links with its text (§74). A CMS-filled section is the CMS's whole — never mix fixture paragraphs into it. One page section may merge several CMS sections when the board draws them as one block: a `structuredKey` rule for its cards plus `bodyTitle` for its prose and `keepTitle` for the board's title (Research at NID, §78). `rejectMedia` refuses a CMS image by id (the next upload shows); `photoFallback` gives a CMS card whose photo is refused or 404s the fixture card's photo at the same route — only where the fixture's photos are copies of each record's own CMS photo (§77, §78).
 
 If the board needs a field the model doesn't have, use the closest existing field and leave a `TODO(review):` naming the proposed field. Never edit `content-model.ts` to make a page fit — it's the backend contract.
 

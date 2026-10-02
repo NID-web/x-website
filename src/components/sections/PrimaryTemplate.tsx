@@ -5,6 +5,7 @@ import { GridItem } from "@/components/layout/GridItem";
 import { TileImage } from "@/components/home/TileImage";
 import { BackNav } from "@/components/spine/BackNav";
 import { BrandStrip } from "@/components/spine/BrandStrip";
+import type { Clamp } from "@/components/spine/ClampedProse";
 import { Footer } from "@/components/spine/Footer";
 import { Separator } from "@/components/spine/Separator";
 import { Standfirst } from "@/components/spine/Standfirst";
@@ -16,22 +17,38 @@ import type { PageResponse } from "@/lib/content-model";
 /**
  * The primary template (sitemap.json's `"template": "primary"`): a section
  * landing — title, the sub-page rail in column 1 beside the hero, the
- * standfirst, then separated sections. /about, /programmes and /study render
- * it; every difference is data or a prop (STAGE-0-NOTES §69, §73).
+ * standfirst, then separated sections. /about, /programmes, /study and
+ * /research render it; every difference is data or a prop (STAGE-0-NOTES §69,
+ * §73, §78).
  */
 export async function PrimaryTemplate({
   response,
   thumbs,
+  thumbMeta,
+  clamp = {},
+  contactsIn,
 }: {
   response: PageResponse;
   /** How a cards section lays out Thumb cards; see CardsSection. */
   thumbs?: "two-up" | "three-up";
+  /** False: Thumb cards without the meta line; see CardsSection. */
+  thumbMeta?: boolean;
+  /** Which section bodies clamp behind "See more", and at how many lines —
+   *  SecondaryTemplate's prop. */
+  clamp?: Record<string, Clamp>;
+  /** The section whose column 4 holds the page's contacts, instead of the slot
+   *  under the standfirst — the board's place for them on Research (§78), the
+   *  model's on every secondary page. */
+  contactsIn?: string;
 }) {
   const { page, derived } = response;
   const t = await getTranslations("Page");
   const hero = page.hero[0];
+  const moved = contactsIn !== undefined && page.sections.some((s) => s.id === contactsIn);
   // Skipped here, not only in SectionRenderer, so the separator goes with it.
-  const sections = page.sections.filter(hasContent);
+  const sections = page.sections
+    .map((s) => (moved && s.id === contactsIn ? { ...s, contacts: [...s.contacts, ...page.contacts] } : s))
+    .filter(hasContent);
 
   return (
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
@@ -68,7 +85,7 @@ export async function PrimaryTemplate({
             <Standfirst text={page.intro} seeMore={t("seeMore")} />
           </GridItem>
         )}
-        {page.contacts.length > 0 && (
+        {!moved && page.contacts.length > 0 && (
           <GridItem span={1} start="2-laptop">
             <ContactList contacts={page.contacts} />
           </GridItem>
@@ -83,7 +100,14 @@ export async function PrimaryTemplate({
             {/* No craft tile beside a section photo: /study's Life at NID, the
                 first primary page with one, draws none. A text section's links
                 go by the utility rule, not into a free cell beside it (§73). */}
-            <SectionRenderer section={section} thumbs={thumbs} pattern={false} utilityLinks />
+            <SectionRenderer
+              section={section}
+              thumbs={thumbs}
+              thumbMeta={thumbMeta}
+              clamp={clamp[section.id] && { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp: clamp[section.id] }}
+              pattern={false}
+              utilityLinks
+            />
           </Fragment>
         ))}
 

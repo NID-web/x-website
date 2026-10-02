@@ -49,8 +49,9 @@ import { STUDY_PM_VIDYALAXMI } from "@/lib/content/fixtures/study-pm-vidyalaxmi"
 import { STUDY_LIFE_AT_NID } from "@/lib/content/fixtures/study-life-at-nid";
 import { STUDY_NOTIFICATIONS } from "@/lib/content/fixtures/study-notifications";
 import { STUDY_YOUNG_DESIGNERS } from "@/lib/content/fixtures/study-young-designers";
+import { RESEARCH } from "@/lib/content/fixtures/research";
 import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
-import { PAGE_ID } from "@/lib/content/pages";
+import { PAGE_ID, pagePath } from "@/lib/content/pages";
 
 const FIXTURES: Record<string, PageResponse> = {
   "/about": ABOUT,
@@ -76,6 +77,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/study/life-at-nid": STUDY_LIFE_AT_NID,
   "/study/notifications": STUDY_NOTIFICATIONS,
   "/study/young-designers": STUDY_YOUNG_DESIGNERS,
+  "/research": RESEARCH,
 };
 
 // Keys are content-type keys from GET /public/content-types.
@@ -411,6 +413,34 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-yd-convocation": { textTitle: "Convocation Messages" },
     },
   },
+  // The fourth primary page (STAGE-0-NOTES §78). Research at NID is three CMS
+  // sections merged by meaning: the board's title, "About" as the body, the
+  // research_center list as the tiles. "Research at NID" (one sentence on the
+  // centres) is then the standfirst — the first SPECIFIC section no rule
+  // claims. The rail is the fixture's: the list has no NID Press, and it feeds
+  // the tiles. Both CMS heroes are other photographs (a railway coach render,
+  // the bamboo room), refused by id so the board's shows until a new upload.
+  // TODO(review): backend — "About" should carry the board's full text (the
+  // four Research Chairs, "mid-1960s"); upload the board's photo as hero 1;
+  // fix the list thumbnails of Natural Fiber and Railway (404, no alt text);
+  // the SEO description says "Six" centres, the list has seven; "About" and
+  // "Research at NID" share orderIndex 1.
+  "/research": {
+    slug: "research-publications",
+    subPagesKey: "static",
+    rejectMedia: [
+      "cmu8sd8g60000omo2x1x7q57g", // research-landing-hero-1.jpg, a railway coach render
+      "cmu8sd8ij0001omo277uxzi4o", // research-landing-hero-2.jpg, the bamboo room
+    ],
+    sections: {
+      "section-research-at-nid": {
+        structuredKey: "research_center",
+        bodyTitle: "About",
+        keepTitle: true,
+        photoFallback: true,
+      },
+    },
+  },
 };
 
 /** The links the adapter made from CMS LINK blocks (ids `link-cms-…`) that
@@ -454,6 +484,55 @@ async function withServedFiles(path: string, response: PageResponse): Promise<Pa
   return { ...response, page: { ...response.page, sections } };
 }
 
+
+/** `photoFallback` (page-adapter.ts): a CMS card whose photo was refused,
+ *  never sent, or does not serve takes the fixture card's photo at the same
+ *  route; the fixture's are copies of each record's own CMS photo (§78). Only
+ *  a card that HAS a fallback is checked — one HEAD per CMS photo, once per
+ *  build — so a FIXTURE build stays offline and a card with no fixture photo
+ *  keeps ThumbCard's empty box. */
+async function withPhotoFallback(
+  path: string,
+  response: PageResponse,
+  fixture: PageResponse,
+  config: PageMergeConfig | undefined,
+): Promise<PageResponse> {
+  const ruled = Object.entries(config?.sections ?? {}).flatMap(([id, rule]) =>
+    "structuredKey" in rule && rule.photoFallback ? [id] : [],
+  );
+  if (!ruled.length) return response;
+  const sections = await Promise.all(
+    response.page.sections.map(async (s): Promise<Section> => {
+      if (s.type !== "cards" || !ruled.includes(s.id)) return s;
+      const fallbacks = new Map(
+        (fixture.page.sections.find((f) => f.id === s.id)?.items ?? []).flatMap((item) => {
+          const photo = "parent" in item ? item.hero[0] : undefined;
+          const route = "parent" in item ? pagePath(item) : undefined;
+          return photo && route ? [[route, photo] as const] : [];
+        }),
+      );
+      const items = await Promise.all(
+        s.items.map(async (item) => {
+          if (!("parent" in item)) return item;
+          const route = pagePath(item);
+          const fallback = route ? fallbacks.get(route) : undefined;
+          if (!route || !fallback) return item;
+          const photo = item.hero[0];
+          const why = !photo
+            ? "no usable CMS photo"
+            : /^https?:\/\//.test(photo.file) && !(await fileServes(photo.file))
+              ? `CMS photo does not serve (${photo.file})`
+              : undefined;
+          if (!why) return item;
+          console.info(`[cms] ${path}: ${route} photo from the fixture — ${why}`);
+          return { ...item, hero: [fallback] };
+        }),
+      );
+      return { ...s, items } as Section;
+    }),
+  );
+  return { ...response, page: { ...response.page, sections } };
+}
 
 // A programme's disciplines as grouped cards (getDisciplines.ts), replacing the
 // named fixture section when the records arrive: B.Des's board cards, M.Des's
@@ -501,7 +580,7 @@ export type PageData = PageResponse & { railLinks?: RailLink[] };
 // designed but unbuilt reads as broken with an empty rail (§69), and its
 // "Read more" pointers to those children are the same records (§73). Every
 // other page still drops an unbuilt link (§58).
-const KEEP_UNBUILT = new Set(["/programmes", "/study"]);
+const KEEP_UNBUILT = new Set(["/programmes", "/study", "/research"]);
 
 // Pages whose sibling band keeps an unbuilt sibling as an unlinked row: Study at
 // NID's children, read from its own rail — the band of a landing whose children
@@ -552,7 +631,8 @@ export const getPage = cache(async (path: string): Promise<PageData | null> => {
       : path === "/about"
         ? await withAwardRecords(built)
         : built;
-  const page = await withServedFiles(path, await withProgrammeParts(path, withRecords, api));
+  const served = await withServedFiles(path, await withProgrammeParts(path, withRecords, api));
+  const page = merged ? await withPhotoFallback(path, served, fixture, config) : served;
   const keepUnbuilt = detailSections(config?.detail);
   if (KEEP_UNBUILT.has(path)) {
     keepUnbuilt.add(SUB_PAGE_RAIL);
