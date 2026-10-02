@@ -7,13 +7,16 @@
 //   repeats History's opening paragraph there, a placeholder never rendered.
 // - The rail and the tiles follow sitemap.json's children order, and the rail
 //   its labels ("…(ICIC)"); the board orders each differently.
-// - Each tile's photo is that centre's own CMS hero-1, copied — the CMS
-//   photos win in LIVE, and these are their fallback by route (§78). The
+// - Each tile's photo is that centre's own CMS hero-1, the centre page's
+//   fixture hero (§79) — the CMS photos win in LIVE, and these are their
+//   fallback by route (§78). The
 //   board's tile photos are not used: its Nation Building tile is IPR's photo
 //   and its IPR tile the landing's bamboo room, so Nation Building, which has
 //   no photo of its own, draws ThumbCard's empty box.
 import type { Page, PageResponse, Section } from "@/lib/content-model";
 import { PAGE_ID } from "@/lib/content/pages";
+import { RESEARCH_CHILDREN, researchPath, type ResearchCentre } from "@/lib/content/research-centres";
+import { RESEARCH_CENTRE_PAGES } from "@/lib/content/fixtures/research-centres";
 import { mediaAsset } from "@/lib/media";
 
 const PUBLISHED = "2026-10-02T00:00:00+05:30";
@@ -36,23 +39,13 @@ function centre(slug: string, title: string, hero: Page["hero"]): Page {
   };
 }
 
-// TODO(review): each alt text is the CMS's, which names the centre rather than
-// describing the photograph — and the tile's title already says the name.
-const photo = (file: string, alt: string) => [mediaAsset(`/research/${file}`, alt, 1520, 700)];
-
-const CENTRES: Page[] = [
-  centre("natural-fiber", "Innovation Center for Natural Fiber", photo("natural-fiber.jpg", "Innovation Center for Natural Fiber")),
-  centre(
-    "icic",
-    "International Centre for Indian Crafts (ICIC)",
-    photo("icic.jpg", "International Centre for Indian Crafts"),
-  ),
-  centre("bamboo", "Center for Bamboo Initiatives", photo("bamboo.jpg", "Center for Bamboo Initiatives")),
-  centre("railway", "Railway Design Center", photo("railway.jpg", "Railway Design Center")),
-  centre("handloom", "Smart Handloom Innovation Centre", photo("handloom.jpg", "Smart Handloom Innovation Centre")),
-  centre("nation-building", "Design Research & Innovation Centre for Nation Building", []),
-  centre("ipr", "Intellectual Property Rights Cell", photo("ipr.jpg", "Intellectual Property Rights Cell")),
-];
+// Each tile's photo is its centre page's own hero — the same object, so each
+// file in public/research/ has one owner (fixtures/research-centres.ts, §79). A
+// centre that does not build (Nation Building) has none: ThumbCard's empty box.
+// NID Press has no tile (below).
+const CENTRES: Page[] = RESEARCH_CHILDREN.filter((c) => c.slug !== "nid-press").map((c) =>
+  centre(c.slug, c.title, RESEARCH_CENTRE_PAGES[c.slug as ResearchCentre]?.page.hero ?? []),
+);
 
 // One section from three CMS sections (§78): the title is the board's, the
 // body the CMS's "About", the tiles its research_center list. The body here is
@@ -108,20 +101,12 @@ export const RESEARCH: PageResponse = {
     menuTree: [],
     breadcrumb: [{ id: PAGE_ID.research, title: "Research & Publications", path: "/research" }],
     backNav: null,
-    // sitemap.json's eight children, in its order, by its names. All are
-    // designed but unbuilt: unlinked rows until each route ships (KEEP_UNBUILT).
+    // sitemap.json's eight children, in its order, by its names (the centre
+    // list, research-centres.ts). A centre that does not build stays an
+    // unlinked row (KEEP_UNBUILT).
     // TODO(designer): the board's rail, its tiles, sitemap.json and the menu
     // each order the centres differently; the board's rail drops "(ICIC)".
-    subPageLinks: [
-      { label: "Innovation Center for Natural Fiber", href: "/research/natural-fiber" },
-      { label: "International Centre for Indian Crafts (ICIC)", href: "/research/icic" },
-      { label: "Center for Bamboo Initiatives", href: "/research/bamboo" },
-      { label: "Railway Design Center", href: "/research/railway" },
-      { label: "Smart Handloom Innovation Centre", href: "/research/handloom" },
-      { label: "Design Research & Innovation Centre for Nation Building", href: "/research/nation-building" },
-      { label: "Intellectual Property Rights Cell", href: "/research/ipr" },
-      { label: "NID Press", href: "/research/nid-press" },
-    ],
+    subPageLinks: RESEARCH_CHILDREN.map((c) => ({ label: c.title, href: researchPath(c.slug) })),
     siblingBand: [],
   },
 };

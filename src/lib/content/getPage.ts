@@ -50,8 +50,10 @@ import { STUDY_LIFE_AT_NID } from "@/lib/content/fixtures/study-life-at-nid";
 import { STUDY_NOTIFICATIONS } from "@/lib/content/fixtures/study-notifications";
 import { STUDY_YOUNG_DESIGNERS } from "@/lib/content/fixtures/study-young-designers";
 import { RESEARCH } from "@/lib/content/fixtures/research";
+import { RESEARCH_CENTRE_PAGES, RESEARCH_CENTRE_SLICES } from "@/lib/content/fixtures/research-centres";
+import { RESEARCH_CHILDREN, researchPath, type ResearchCentre } from "@/lib/content/research-centres";
 import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
-import { PAGE_ID, pagePath } from "@/lib/content/pages";
+import { PAGE_ID, cmsSlugOf, pagePath } from "@/lib/content/pages";
 
 const FIXTURES: Record<string, PageResponse> = {
   "/about": ABOUT,
@@ -78,6 +80,9 @@ const FIXTURES: Record<string, PageResponse> = {
   "/study/notifications": STUDY_NOTIFICATIONS,
   "/study/young-designers": STUDY_YOUNG_DESIGNERS,
   "/research": RESEARCH,
+  ...Object.fromEntries(
+    Object.entries(RESEARCH_CENTRE_PAGES).map(([slug, response]) => [researchPath(slug), response]),
+  ),
 };
 
 // Keys are content-type keys from GET /public/content-types.
@@ -441,7 +446,32 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       },
     },
   },
+  ...researchCentreConfigs(),
 };
+
+/** The research centres (§79), one config each, from the fixture's slices: every
+ *  centre's document has ONE "About" section whose paragraphs are the board's
+ *  sections, so each fixture section claims its paragraphs of it, guarded by
+ *  the count (§59: any other count and every slice falls back to its fixture
+ *  body, loud and whole). The standfirst is heroText — "About" is claimed. The
+ *  CMS slug is the route's in PATH_BY_CMS_SLUG, else the route slug itself. */
+function researchCentreConfigs(): Record<string, PageMergeConfig> {
+  return Object.fromEntries(
+    (Object.entries(RESEARCH_CENTRE_SLICES) as Array<[ResearchCentre, (typeof RESEARCH_CENTRE_SLICES)[ResearchCentre]]>).map(
+      ([slug, { of, sections }]) => {
+        const path = researchPath(slug);
+        const config: PageMergeConfig = {
+          slug: cmsSlugOf(path) ?? slug,
+          intro: "heroText",
+          sections: Object.fromEntries(
+            Object.entries(sections).map(([id, blocks]) => [id, { textTitle: "About", blocks, of }]),
+          ),
+        };
+        return [path, config];
+      },
+    ),
+  );
+}
 
 /** The links the adapter made from CMS LINK blocks (ids `link-cms-…`) that
  *  point at a FILE — a document link, or a URL ending .pdf — each checked once
@@ -586,7 +616,12 @@ const KEEP_UNBUILT = new Set(["/programmes", "/study", "/research"]);
 // NID's children, read from its own rail — the band of a landing whose children
 // are built one at a time would otherwise thin out or vanish (§74, §75). A
 // sibling that is built links as usual.
-const KEEP_UNBUILT_BAND = new Set(STUDY.derived.subPageLinks.map((link) => link.href));
+const KEEP_UNBUILT_BAND = new Set([
+  ...STUDY.derived.subPageLinks.map((link) => link.href),
+  // Research & Publications' centres: a withheld one (Nation Building) stays an
+  // unlinked row in every centre's band (§79).
+  ...RESEARCH_CHILDREN.map((c) => researchPath(c.slug)),
+]);
 
 // cache(): generateMetadata and the page both call this; one fetch and one log
 // line per render.

@@ -4405,3 +4405,193 @@ Known limitations:
 - The CMS's centre alt texts are names.
 - Nation Building has no photo and a "PLACEHOLDER —" heroText (hidden by `thumbMeta`).
 - The SEO description says "Six research centres"; the list has seven. TODO(review), backend.
+
+## 79. The research centres: one route, one layout rule, seven pages
+
+Research & Publications' eight children (sitemap.json; eight 1440 boards, one secondary template
+eight times) are **one dynamic route**: `src/app/[locale]/research/[slug]/page.tsx`. It renders
+`SecondaryTemplate` through `getPage`, from one fixture module. There are no per-centre page files
+or components and no branch on the slug. The discipline route (§72) is the precedent; §57's "three
+route files, not `[campus]`" predates `registerBuiltParams`.
+
+### The list, the gate, and why it is static
+
+`src/lib/content/research-centres.ts` imports nothing. It holds:
+- `RESEARCH_CHILDREN`: sitemap.json's eight, in its order. They are the landing's rail and every
+  centre's band (`researchBand`, beside `studyBand`).
+- `BUILT_RESEARCH_CENTRES`: the seven that build.
+
+**A centre builds iff it has a fixture entry.** The fixture is typed
+`Record<BuiltCentre, Centre>`, so tsc fails if the two lists disagree. That is the rule, without
+`links.ts` importing a fixture.
+
+`links.ts` registers the built list with the route gate **at module load**. The disciplines
+register inside `getPage`, which only programme pages call. Centres are linked from places that
+never load the centres' data:
+- Ahmedabad's Railway row and Gandhinagar's Natural Fiber row (detail lists);
+- the North-East Artisans article's ICIC, Bamboo and Handloom links;
+- the landing.
+
+A gate that ran before a data module registered would withhold those links.
+
+`generateStaticParams` reads the same list (`dynamicParams = false`), and `/research/[slug]` joins
+`BUILT_ROUTES`. A withheld or made-up slug is a 404 (checked: `nation-building`,
+`made-up-centre`).
+
+**Nation Building is withheld.** Its CMS document is placeholder copy:
+- heroText "PLACEHOLDER — …";
+- About "PLACEHOLDER TEXT — pending real content…";
+- no hero, no contacts.
+
+Its board is placeholder copy too. It has no fixture entry, so its rail row, tile and band row
+stay unlinked rows everywhere (`KEEP_UNBUILT`, `KEEP_UNBUILT_BAND`). None of its placeholder copy
+is in the repo. TODO(review): add it when real content lands. Backend ask: a draft/published
+state, since the API serves the placeholder as published.
+
+**An import cycle, avoided.** The band reads the list, not the landing fixture. The landing's
+tiles take their photos from the centre fixtures, so a band read through the landing would be a
+cycle: landing → centres → sibling-bands → landing.
+
+### The data: one CMS section, sliced by meaning
+
+Every centre's document (`railway-design-center`, `innovation-center-natural-fiber`, `icic`,
+`bamboo`, `handloom`, `ipr`, `nid-press`) has:
+- title, SEO, heroText, two contacts, two alt-texted heroes (both serve);
+- **one** SPECIFIC "About" section of 2–3 TEXT blocks;
+- no images, no LINK or file blocks, no structured key info.
+
+NID Press is a "static" type; the adapter reads it the same way.
+
+The board's sections are those paragraphs. Each fixture section names its paragraphs
+(`cms: [from, to]`); getPage turns them into TextMergeRule slices, `{ textTitle: "About", blocks,
+of }`, with the `of` guard (§59): any other paragraph count, and every slice falls back to its
+fixture body, loud and whole. The standfirst is heroText, since "About" is claimed.
+
+| Centre | Board section ← CMS paragraph |
+|---|---|
+| Railway | About ← 1 · Focus Areas ← 2 |
+| Natural Fiber | About ← 1 · Mission & Vision ← 2 |
+| ICIC | About ← 1 · Approach ← 2 |
+| Bamboo | About ← 1 · Activities ← 2 |
+| Handloom | About ← 1 · Purpose ← 2 |
+| IPR | About ← 1 · Role of NID's IPR Cell ← 2 · Recognition ← 3 |
+| NID Press | About ← 1–3 · Catalogue: board-only |
+
+The fixture copies the CMS as sent, so FIXTURE and LIVE render the same words on all seven
+(compared run by run, `<strong>` included). Only the footer differs, as on every page.
+
+- **IPR's "Role"** opens with its own heading in `<strong>`. It is rendered as sent, so the title
+  repeats. TODO(review): editor fix requested; no string stripping. (The adapter's "stripped
+  <strong>" log lists every tag it saw; `<strong>` is kept.)
+- **NID Press, mapped by meaning against the board:**
+  - ¶1 is the board's About ¶1.
+  - ¶2 is its About ¶2 (The India Report, The Ahmedabad Declaration) and also names the partner
+    publishers the board puts under Catalogue. A paragraph cannot be split, and most of it is
+    About.
+  - ¶3 ("Recent publications feature perspectives…") matches neither, so it goes to About. CMS
+    text is never dropped.
+
+  No CMS paragraph is about the catalogue, so the Catalogue body is the board's first paragraph,
+  board-only, in both modes. The board's second Catalogue paragraph (the publishers) is left out,
+  because LIVE's About already names them. TODO(review).
+- **Key info.** Railway (Campus, Established) and Natural Fiber (Campus, Priority fibres) carry
+  the board's facts from the fixture in both modes. The CMS has them only in prose. Backend ask:
+  structured key info.
+
+### One layout rule
+
+The route computes it from the response, with no template change and no per-slug exception:
+- **Every text section is imaged.** All eight boards box every section; this is the §77
+  placeholder, under the one `SHOW_IMAGE_PLACEHOLDERS` switch, whose comment now covers these
+  pages.
+- **Every text section clamps at eight lines,** the /research landing's count. "See more" shows
+  only where a body overflows.
+
+Measured on the FIXTURE build, the same words as LIVE:
+
+| Width | Sections with "See more" |
+|---|---|
+| 1440 | NID Press About · Handloom Purpose |
+| 1024 | NID Press About |
+| 768 | NID Press About |
+| 390 | Railway About + Focus Areas · Natural Fiber About · Bamboo About + Activities · Handloom Purpose · IPR Role · NID Press About |
+
+The boards clip Railway About and Focus Areas, Natural Fiber About and Mission & Vision, ICIC
+About, Bamboo Activities, Handloom Purpose and IPR Role at 1440. The CMS's shorter copy fits
+eight lines on all but Handloom Purpose, and NID Press About (three paragraphs) clips where the
+board shows its board text whole. TODO(designer): no single count matches every board; drift.
+
+Heroes are each centre's own CMS hero 1 (LIVE) or its copy in `public/research/` (FIXTURE). They
+are never the landing's photo or another centre's. The boards use the landing's acrylic box on
+NID Press and IPR, and IPR's gong on Nation Building. `HERO_STAND_IN` applies, but every built
+centre has a hero.
+
+### Smaller rules
+
+- **One photo, one owner.** The landing's tiles take their photo objects from the centre fixtures,
+  and the landing's `photoFallback` (§78) reads them. Natural Fiber's and Railway's list
+  thumbnails still 404. Kept, with its 4 HEADs, rather than have the landing read the centre
+  documents; that would reverse §73's no-cross-document-read rule.
+- **A phone with an extension.** `contactCta` turns "+91 80 2972 5006 Ext. 115" (Bamboo) into
+  `tel:+918029725006;ext=115` (RFC 3966), labelled as sent. Only a value that ends in an
+  extension matches; R shows no other contact changed. "+91 79 26629689" (IPR) was already
+  `tel:+917926629689`.
+- **CTAs.** "Gandhinagar Campus" (Natural Fiber) and "Bengaluru Campus" (Bamboo) are page links
+  to the built campus routes on About, placed by the utility rule; the boards put them beside the
+  photo (§73's drift). The boards' "NID Press Catalogue 2026", "IPR Catalogue (PDF)" and "Article
+  on IPR — Rupankan" have no file or URL anywhere, so they get no CTA. Backend asks.
+- **Floors.** 1 section for each of the seven documents.
+
+### Board drift (TODO(designer))
+
+- **Rail vs contacts.** Railway and Natural Fiber put key info in the rail and contacts in About's
+  column 4. The other six put contacts in the rail. The template's rule wins for all eight: key
+  info in the rail, the page's contacts in column 4 of the first section.
+- **Band order** differs board to board; the band is the /research rail's order minus self.
+- **Titles.** ICIC's is the CMS's "…(ICIC)". Titles take one or two lines at 1440; the boards'
+  one three-line title is Nation Building's, which is withheld.
+- **"See more" placement:** as above.
+
+### R, requests and time
+
+The §70 rule as amended in §73 and §77.
+
+| Mode | Pages that changed |
+|---|---|
+| FIXTURE | /research (its rail and tiles relink: 13 hrefs), Ahmedabad (Railway row), Gandhinagar (Natural Fiber row), the North-East Artisans article (its three centre links, which the gate had dropped, appear) |
+| LIVE | the same, except the article; LIVE serves the CMS's article, which has no centre links |
+
+On every changed page the visible text is identical, except the article's three new link rows,
+and the payload changes are those links plus Flight regrouping. A link becomes its own row, the
+deduplicated `localeCookie` moves to the new first link (§77), and the landing's hero row is
+inlined; its content is checked identical. Every other page is identical.
+
+**LIVE: 226 → 233 distinct, fetched == distinct** (+7 documents; the landing's 4 HEADs stay).
+Floors 47/0. Build 142s with 16 rate-limit retries, against HEAD's 81s with 10. That is one
+sample each, inside HEAD's own 81–146s range (§78), but 7 more documents are 7 more chances at a
+429.
+
+### Mocks (E) and Playwright
+
+**E** (copies, deleted after):
+- **No sections:** the page refuses empty sections and keeps its hero, standfirst and band. The
+  page contacts go too: the template puts them in the first text section, and there is none.
+- **No contacts:** none render.
+- **A real section image:** it replaces its box, both 684 × 330.
+- **A ninth centre,** added as data only (the list and one fixture entry): tsc passes and it
+  builds (8 routes). It joins the landing's rail, tiles and every band.
+- **The switch off:** every centre page is its ON HTML minus the photo boxes, byte for byte.
+
+**Not possible today:** a *CMS* image replacing a box. Slices never take an image (§77: several
+rules share the section), and every centre is slices of one section. When the backend splits
+"About" into real sections, whole-section rules plus `sectionImages` deliver it. Backend ask.
+
+**Playwright** (FIXTURE, 1440 / 1024 / 768 / 390; Railway, Natural Fiber, IPR, NID Press, plus
+Bamboo, ICIC, Handloom):
+- titles take 1–2 lines, no horizontal overflow;
+- the back link reads "Research & Publications" from a fresh session;
+- "See more" opens with JavaScript, and without it no button shows and the text is whole;
+- Bamboo's "+91 80 2972 5006 Ext. 115" fits at 390 (358px);
+- the band is 7 rows, two-up at 768 and up and one-up at 390, with 6 linked and Nation Building
+  not focusable;
+- tab order: back link, "See more" where shown, the two contacts, the six band links.

@@ -52,6 +52,14 @@ export const CMS_FLOORS = {
     "academic-notifications": 1,
     "young-designers": 3,
     "research-publications": 3,
+    // The research centres that build (§79): one "About" section each.
+    "innovation-center-natural-fiber": 1,
+    icic: 1,
+    bamboo: 1,
+    "railway-design-center": 1,
+    handloom: 1,
+    ipr: 1,
+    "nid-press": 1,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page

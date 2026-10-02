@@ -1,6 +1,7 @@
 import { linkIcon, linkNewTab, type LabelValue, type Link } from "@/lib/content-model";
 import { documentHref } from "@/lib/content/documents";
 import { pagePath, pathOf } from "@/lib/content/pages";
+import { BUILT_RESEARCH_CENTRES } from "@/lib/content/research-centres";
 import { normalise } from "@/lib/nav-trail";
 import type { CtaProps } from "@/components/spine/Cta";
 
@@ -36,6 +37,7 @@ export const BUILT_ROUTES = [
   "/programmes/mdes/[discipline]",
   "/programmes/phd",
   "/research",
+  "/research/[slug]",
   "/study",
   "/study/admission",
   "/study/life-at-nid",
@@ -61,6 +63,12 @@ const BUILT_PARAMS = new Map<string, ReadonlySet<string>>();
 export function registerBuiltParams(route: (typeof BUILT_ROUTES)[number], values: Iterable<string>) {
   BUILT_PARAMS.set(route, new Set(values));
 }
+
+// The research centres are a static list (research-centres.ts), so they are
+// registered here, at module load, rather than by a data module a page awaits:
+// a campus page or an article links a centre without ever loading the centres'
+// data, and a gate that ran first would withhold the link (§79).
+registerBuiltParams("/research/[slug]", BUILT_RESEARCH_CENTRES);
 
 /** Whether a locale-less site path has a page. Query and hash are ignored. */
 export function isBuiltRoute(path: string): boolean {
@@ -122,6 +130,7 @@ export function ctaProps(link: Link): ResolvedCta | null {
 // Order matters; first match wins:
 //   contains "@"            email  -> mailto:, NO icon (NID-CONTEXT §7.1)
 //   leading "+" or digits   phone  -> tel:,    NO icon
+//   … that, then "Ext. 115" phone  -> tel:…;ext=115 (RFC 3966), NO icon (§79)
 //   "/…​.pdf"                document -> leading file glyph, trailing arrow, new tab
 //   leading "/"             page   -> trailing arrow, locale-prefixed
 //
@@ -136,6 +145,12 @@ export function contactCta(contact: LabelValue): ResolvedCta | null {
   }
   if (/^\+?[\d\s()-]{6,}$/.test(value)) {
     return { label: value, href: `tel:${value.replace(/[\s()-]/g, "")}`, icon: "none" };
+  }
+  // A number with an extension (the Bamboo centre's "+91 80 2972 5006 Ext.
+  // 115"). Only a value that ends in one, so no other contact changes.
+  const extension = /^(\+?[\d\s()-]{6,}?)[\s·,]*ext\.?\s*(\d{1,6})$/i.exec(value);
+  if (extension) {
+    return { label: value, href: `tel:${extension[1]!.replace(/[\s()-]/g, "")};ext=${extension[2]}`, icon: "none" };
   }
   if (!value.startsWith("/")) return null;
   if (value.endsWith(".pdf")) {

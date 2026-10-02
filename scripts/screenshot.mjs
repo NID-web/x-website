@@ -70,6 +70,11 @@ const PAGES = [
   { name: "study", path: "/en/study" },
   // The fourth primary page (STAGE-0-NOTES §78).
   { name: "research", path: "/en/research" },
+  // Four research centres on the one /research/[slug] route (STAGE-0-NOTES §79).
+  { name: "research-railway", path: "/en/research/railway" },
+  { name: "research-natural-fiber", path: "/en/research/natural-fiber" },
+  { name: "research-ipr", path: "/en/research/ipr" },
+  { name: "research-nid-press", path: "/en/research/nid-press" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

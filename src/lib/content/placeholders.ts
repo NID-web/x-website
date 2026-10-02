@@ -1,9 +1,11 @@
-// The Study at NID pages draw the boards' flat placeholder in every image slot
-// the CMS has not filled yet, so the page keeps the board's layout while the
-// photos are pending (STAGE-0-NOTES §77). A real image always wins over its box.
+// The Study at NID pages and the research centre pages draw the boards' flat
+// placeholder in every image slot the CMS has not filled yet, so each page keeps
+// its board's layout while the photos are pending (STAGE-0-NOTES §77, §79). A
+// real image always wins over its box.
 //
 // LAUNCH: turn this off, or replace every placeholder with a real photo. Off,
-// every Study page returns exactly to its closed-up §76 output. A constant, not
+// every one of those pages closes up — the Study pages exactly to their §76
+// output, the centres to sections with no photo row. A constant, not
 // an env value, so turning it off is a reviewed commit rather than a deploy
 // setting that can silently put empty boxes on the live site.
 export const SHOW_IMAGE_PLACEHOLDERS: boolean = true;

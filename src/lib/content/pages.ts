@@ -213,6 +213,11 @@ export function pathOfCmsSlug(slug: string): string | undefined {
   return PATH_BY_CMS_SLUG[slug];
 }
 
+/** The CMS slug whose route is `path` — the table above, read backwards. */
+export function cmsSlugOf(path: string): string | undefined {
+  return Object.keys(PATH_BY_CMS_SLUG).find((slug) => PATH_BY_CMS_SLUG[slug] === path);
+}
+
 /** A news article's route. Articles are the one collection whose route IS
  *  their CMS slug, under sitemap.json's /about/news-events/[slug] template —
  *  the rule page-adapter.ts applies to the same collection as `slugUnderParent`. */

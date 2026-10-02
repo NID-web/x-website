@@ -77,6 +77,7 @@ NID-web/
 │   │       ├── about/page.tsx       ← "/about" — a primary page: PrimaryTemplate (R1b)
 │   │       ├── study/page.tsx       ← "/study" — the third primary page (STAGE-0-NOTES §73)
 │   │       ├── research/page.tsx    ← "/research" — the fourth: one cards section with prose + contacts (§78)
+│   │       ├── research/[slug]/page.tsx ← every research centre: one route, one layout rule (§79, R1d)
 │   │       ├── study/admission/     ← a secondary page; the CMS merged by meaning (§74)
 │   │       ├── about/news-events/   ← the secondary-page template (R1c)
 │   │       ├── about/our-themes/    ← the ten craft palettes, each scoped to its theme
@@ -349,6 +350,16 @@ Same as R1b plus two things from `derived`, both already built. `src/app/[locale
 The back-nav label is the **destination** ("About NID"), never "Back"; `arrow-left` puts itself on the left. `SiblingBand` brings its own title and separator and returns `null` when the array is empty — don't wrap it in a condition of your own.
 
 There is no separator between the title row and the first section unless an intro block sits between them (About has one; News doesn't).
+
+### R1d — Add a research centre
+
+The centres are one route, `src/app/[locale]/research/[slug]/page.tsx`, on `SecondaryTemplate`, with one layout rule taken from the data: every text section gets the §77 photo box and clamps at eight lines (STAGE-0-NOTES §79). A new centre is **data only**:
+
+1. `src/lib/content/research-centres.ts` — its slug in `BUILT_RESEARCH_CENTRES`, and in `RESEARCH_CHILDREN` too if sitemap.json gained it (that list is the landing's rail and every centre's band).
+2. `src/lib/content/fixtures/research-centres.ts` — one entry in `CENTRES`: title, standfirst, hero file, contacts, sections. tsc fails until the list and the entries match. Copy the CMS's text; each section names the paragraphs of the CMS's "About" it is (`cms: [from, to]`) and `of` is that section's paragraph count.
+3. Only if its CMS slug is not its route slug: one line in `PATH_BY_CMS_SLUG` (`pages.ts`). Add a floor for its document in `cms-floors.ts`.
+
+No route file, template, component or `getPage` change. Registration with the route gate, `generateStaticParams`, the band, the merge config and the landing's tile photo all follow from the list. A centre withheld from the list (Nation Building today) stays an unlinked row everywhere and its URL is a 404.
 
 ---
 
