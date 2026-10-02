@@ -19,11 +19,15 @@ export function PageHero({
   hero: MediaAsset[];
   /** False on an article: there the boards' flat box is a stand-in for a photo
    *  that will exist, not a designed empty state, and on a live news story it
-   *  reads as a broken image — so no asset, no hero (STAGE-0-NOTES §59). */
-  placeholder?: boolean;
+   *  reads as a broken image — so no asset, no hero (STAGE-0-NOTES §59).
+   *  `"stand-in"` draws the box only while there is no asset; a real hero takes
+   *  exactly the `false` path, so a hero that 404s is still removed rather than
+   *  left as a broken image (the Study pages, §77). */
+  placeholder?: boolean | "stand-in";
 }) {
   const first = hero[0];
   if (!first && !placeholder) return null;
+  const boxed = placeholder === "stand-in" ? !first : placeholder;
   const slot = (
     <GridItem span="hero">
       {first ? (
@@ -39,5 +43,5 @@ export function PageHero({
     </GridItem>
   );
   // No placeholder means no box without a photo — including a photo that 404s.
-  return placeholder ? slot : <HideOnImageError>{slot}</HideOnImageError>;
+  return boxed ? slot : <HideOnImageError>{slot}</HideOnImageError>;
 }

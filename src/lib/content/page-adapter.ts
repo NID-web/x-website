@@ -4,16 +4,17 @@
 // with its lower sections missing while the CMS is only part-seeded. The only
 // per-page knowledge is the PageMergeConfig in getPage.ts, so Charter, News &
 // Events and Our Themes go through this same function.
-import type { LabelValue, Link, Page, PageResponse, Person, Section } from "@/lib/content-model";
+import type { LabelValue, Link, MediaAsset, Page, PageResponse, Person, Section } from "@/lib/content-model";
 import {
   campusDetail,
   personDetail,
   type CardRef,
+  type MediaRef,
   type PublicContentResponse,
   type Section as ApiSection,
   type SectionBlock,
 } from "@/lib/api/types";
-import { toMediaAsset } from "@/lib/api/media";
+import { toMediaAsset, type MediaResult } from "@/lib/api/media";
 import { joinBlocks, plainText, richParagraphs } from "@/lib/content/format";
 import type { CmsFileLink } from "@/lib/content/documents";
 import { contactCta } from "@/lib/content/links";
@@ -146,10 +147,16 @@ export interface PageMergeConfig {
    *  for a page whose first SPECIFIC section is a body, not a standfirst.
    *  `static` keeps the fixture's. */
   intro?: "firstTextBlock" | "heroText" | "static";
-  /** `static` keeps the fixture's hero (none, if it has none) whatever the
-   *  document sends — for a CMS hero that cannot serve as one: Young Designers'
-   *  banner has its text baked in, and the hero crop cuts it (§76). */
-  hero?: "static";
+  /** CMS media ids never used as the hero or a section image: a file that
+   *  cannot serve as one, refused by id so that the next upload — a new id —
+   *  shows with no code change (§77). A refused hero leaves the fixture's. */
+  rejectMedia?: readonly string[];
+  /** A whole-section text rule's first IMAGE block that passes media.ts (alt
+   *  text, an allowed host) and `rejectMedia` becomes the section's image, in
+   *  place of the fixture's. Opt-in per page, and only on a page whose boards
+   *  draw a photograph in every section its rules feed — anywhere else it would
+   *  add photos the designer never drew (§77). */
+  sectionImages?: true;
   /** The page field the document's `contacts` feed. `contacts` by default;
    *  `keyInfo` for a page whose rail block beside the hero is the model's
    *  key info rather than a first section's contacts. */
@@ -260,12 +267,14 @@ export function toPageResponse(
     log.api.push("title");
   } else log.static.push("title(api empty)");
 
-  const heroes = config.hero === "static" ? [] : api.hero.map((ref) => toMediaAsset(ref));
+  const refused = new Set(config.rejectMedia ?? []);
+  const media = (ref: MediaRef | null): MediaResult =>
+    ref && refused.has(ref.id) ? { rejected: `rejectMedia ${ref.id}` } : toMediaAsset(ref);
+
+  const heroes = api.hero.map(media);
   const accepted = heroes.flatMap((h) => ("asset" in h ? [h.asset] : []));
   const rejected = [...new Set(heroes.flatMap((h) => ("rejected" in h ? [h.rejected] : [])))];
-  if (config.hero === "static") {
-    log.static.push(`hero(config${api.hero.length ? `; api sent ${api.hero.length}` : ""})`);
-  } else if (accepted.length) {
+  if (accepted.length) {
     // Every accepted image is mapped (the model's >1 is a slider); the page
     // still renders hero[0] only.
     page.hero = accepted;
@@ -464,7 +473,8 @@ export function toPageResponse(
   };
 
   /** A fixture text section's body from the SPECIFIC section titled
-   *  `rule.textTitle`; the fixture's title, image and links stay. */
+   *  `rule.textTitle`; the fixture's title, image (unless `sectionImages`)
+   *  and links stay. */
   /** Detail entries as cards. Every entry is kept — a discipline has no route
    *  to drop it for — and hangs off a parent with no path, so the card renders
    *  unlinked until the record has a route (T2) rather than guessing one. */
@@ -571,20 +581,43 @@ export function toPageResponse(
     if (breaks) log.notes.push(`${name}: ${breaks} authored paragraph break${breaks === 1 ? "" : "s"} kept`);
     const tags = [...new Set(texts.flatMap((t) => t.tags))];
     if (tags.length) log.notes.push(`${name}: stripped <${tags.join(">, <")}>`);
-    const rest = blocks.filter((b) => b.blockType !== "TEXT" && !(rule.linkBlocks && (b.blockType as string) === "LINK"));
+    // Not for a slice: several rules share its section, and each would take
+    // the same photo. An IMAGE block looked at here is logged here, taken or
+    // refused, and not again as dropped below.
+    let image: MediaAsset | undefined;
+    const seen = new Set<SectionBlock>();
+    if (config.sectionImages && !rule.blocks) {
+      const refusals: string[] = [];
+      for (const b of blocks) {
+        if (b.blockType !== "IMAGE") continue;
+        seen.add(b);
+        const result = media(b.media);
+        if ("asset" in result) {
+          image = result.asset;
+          break;
+        }
+        refusals.push(result.rejected);
+      }
+      if (refusals.length) log.notes.push(`${name}: image rejected (${refusals.join("; ")})`);
+    }
+    const rest = blocks.filter(
+      (b) => b.blockType !== "TEXT" && !seen.has(b) && !(rule.linkBlocks && (b.blockType as string) === "LINK"),
+    );
     if (rest.length && !rule.blocks) {
       const types = [...new Set(rest.map((b) => b.blockType))].join("/");
       log.notes.push(`${name}: dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
     }
     log.api.push(
       (rule.blocks ? `${name}(blocks ${rule.blocks[0]}–${rule.blocks[1]})` : afterIntro ? `${name}(after the standfirst)` : name) +
-        (linked.length ? ` + ${linked.length} link block${linked.length === 1 ? "" : "s"}` : ""),
+        (linked.length ? ` + ${linked.length} link block${linked.length === 1 ? "" : "s"}` : "") +
+        (image ? " + image" : ""),
     );
     // The CMS's links replace the fixture's external and document ones in the
     // same place, in block order; with none, the fixture's stand.
-    return linked.length
+    const merged = linked.length
       ? { ...fs, body, links: [...linked, ...fs.links.filter((l) => l.targetType !== "external" && l.targetType !== "document")] }
       : { ...fs, body };
+    return image ? { ...merged, image } : merged;
   };
 
   /** A fixture rail section's people from a STRUCTURED section. Title, body

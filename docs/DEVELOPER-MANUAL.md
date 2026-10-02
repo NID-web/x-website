@@ -186,6 +186,8 @@ A build is exactly one of these (`src/lib/api/build-mode.ts`):
 
 The Build Command must be `npm run build` (the Vercel default when `package.json` has a `build` script), not `next build`, or neither the per-build CMS cache (§71) nor the built-HTML guard (§70) runs, and the summary box does not print. A production build without `CMS_API_URL` is refused before a page is built: `[cms] BUILD REFUSED — CMS_API_URL is not set, and this build requires the CMS (VERCEL_ENV=production)`.
 
+**Before launch:** turn `SHOW_IMAGE_PLACEHOLDERS` off (`src/lib/content/placeholders.ts`), or replace every placeholder with a real photo. Until then the Study at NID pages draw a flat box in each image slot the CMS has not filled (STAGE-0-NOTES §77).
+
 **Reading `npm run build` output:** your route must show `○` or `●` (static). If it shows `ƒ` (dynamic), something in your page called `cookies()` or `headers()` and you've made the whole site render per-request. Find it and remove it.
 
 ---

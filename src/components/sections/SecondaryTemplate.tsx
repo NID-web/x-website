@@ -47,8 +47,9 @@ export interface SecondaryLayout {
   /** False: no hero, no box — the rail and standfirst close up, and a hero
    *  that 404s is removed too (PageHero's article rule, §59/§63). The campus
    *  boards draw the flat placeholder as a designed empty state, so it stays
-   *  on by default. */
-  heroPlaceholder?: boolean;
+   *  on by default. `"stand-in"`: the box while there is no hero, else the
+   *  `false` path (the Study pages, §77). */
+  heroPlaceholder?: boolean | "stand-in";
   /** A title in column 1 beside the standfirst — the discipline board's
    *  "Overview". The standfirst itself is unchanged. */
   introTitle?: string;
@@ -146,7 +147,7 @@ export async function SecondaryTemplate({
 
         {/* TODO(review): designer — the B.Des board's hero is 1200:628, its
             photo's own ratio; PageHero keeps the secondary crop (2.2:1 at 1440). */}
-        {heroPlaceholder ? <PageHero hero={page.hero} /> : <PageHero hero={page.hero} placeholder={false} />}
+        <PageHero hero={page.hero} placeholder={heroPlaceholder} />
 
         {/* TODO(review): designer — the B.Des board sets the standfirst in
             Body/Large/Bold; Standfirst is Regular from 768 up, as every page. */}

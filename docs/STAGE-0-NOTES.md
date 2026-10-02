@@ -4105,3 +4105,127 @@ Mocks: a CMS-made download whose file 404s is dropped and logged (`dropped 1 lin
 (`dropped 1 LINK block with no url or file`); no `updatedAt` is no "Last updated" row (the
 shipping state); Hostel is a section with two CTA groups and no photo; bodies that fit have no
 button; Young Designers has no hero.
+
+## 77. Image placeholders on the Study at NID pages, and the switch that removes them
+
+**Decision (2 Oct 2026).** Where a Study at NID board draws an image and there is no real one, the
+page draws the board's flat placeholder instead of closing the space up, so it has the board's
+layout while the photos are pending. A real image always wins over its box, with no code change.
+This reverses "no image, no box" (§74–§76) for the five Study children only. CLAUDE.md's "an empty
+scaffold reads as neglect" still holds for launch, which is what the switch is for.
+
+**Launch checklist: turn `SHOW_IMAGE_PLACEHOLDERS` off, or replace every placeholder with a real
+photo.**
+
+### The switch
+
+`SHOW_IMAGE_PLACEHOLDERS`, one constant in `src/lib/content/placeholders.ts`, default `true`. It is a
+constant rather than an env value, so turning it off is a reviewed commit and not a deploy setting
+that could put empty boxes on the live site. The five route files read it through two helpers:
+`heroPlaceholder={HERO_STAND_IN}` and `imaged={imagedSections(…)}`. Off, these are `false` and
+`undefined`, exactly the props §74–§76 passed, and the pages are byte-identical to §76 (R below).
+FIXTURE and LIVE behave the same.
+
+### The look
+
+It is the existing `ImagePlaceholder`: one `div`, `aria-hidden="true"`, a flat `bg-accent-subtle`
+field, no icon, text or label, no role, no alt, not focusable. It is the same box the campus pages,
+Charter, History and the archive and award rows draw, so every placeholder on the site looks
+alike. The hero box is the real hero's crop (`HERO_CROP`: `rounded-tl-hero`, 4:3 → 16:9 → 2:1 →
+2.2:1). A section box is TextSection's photo row at 684:330 with square corners (§8.6 gives the
+radius to a secondary hero only). Swapping in a real image moves nothing.
+
+- **Hero.** `PageHero` gains a third mode, `placeholder="stand-in"`. With no asset it draws the
+  box. With one, it takes exactly the `false` path, wrapped in `HideOnImageError`, so a hero that
+  404s is still removed rather than shown broken. Plain `true` would have dropped that wrapper on
+  Admission, Life at NID and Notifications, whose heroes are real, and changed their HTML.
+- **Sections.** TextSection's existing `imagePlaceholder`, reached through `SecondaryLayout.imaged`
+  (the campus pages' mechanism); no component change. The route names each section whose board
+  draws a photograph; nothing is added to a section by default.
+
+### A real image wins
+
+- **Heroes:** unchanged. The adapter's alt rule (media.ts) decides.
+- **Sections: `PageMergeConfig.sectionImages`.** On an opted-in page, a whole-section text rule's
+  first IMAGE block that passes media.ts (alt text, an allowed host) and `rejectMedia` becomes
+  the section's image. Refusals are logged (`section:dining: image rejected (no altText)`).
+  Opted in: Admission, Life at NID and Young Designers. On those three pages every section a rule
+  feeds is one the board gives a photo. PM Vidyalaxmi and Notifications draw none and are not
+  opted in. No other page is: it would add photos the designer never drew. A slice rule
+  (`blocks`) never takes an image, since several slices share one section.
+- **Served files.** `withServedFiles` (getPage.ts) now also HEADs a CMS section image, the only
+  section image with an absolute URL, with media.ts's rule. One that 404s is dropped, so the box
+  stays rather than a broken image. Fixture images are never checked. The log line now reads
+  `dropped N CMS file(s) that 404`, since it covers images too.
+- **`PageMergeConfig.rejectMedia`** replaces §76's `hero: "static"`, which is deleted. It is a
+  list of CMS media ids never used as a hero or a section image. Young Designers rejects three:
+  - the banner hero (`young-designers-hero.png`, text baked in);
+  - About's and Convocation Messages' square portraits, which the 684:330 row would crop (§76).
+
+  No shape rule is available, because the API sends no dimensions. An id is precise, and an
+  editor's next upload has a new id, so it shows with no code change. A refused hero keeps the
+  fixture's, which is none here, so the stand-in box is drawn. LIVE fetch count is unchanged:
+  fetched 221, distinct 221. No section image is accepted today, so there is no new HEAD.
+
+### The placeholders
+
+| Page | Hero | Section boxes |
+|---|---|---|
+| /study | real (unchanged) | none: Life at NID has its photo (unchanged) |
+| /study/admission | real | How to Apply, B.Des, M.Des, Ph.D |
+| /study/pm-vidyalaxmi | **box** (the CMS hero has no alt text) | none on the board |
+| /study/life-at-nid | real | Hostel, Dining, Guest House, Health Care, Counselling, Extra Curricular |
+| /study/notifications | real | none on the board |
+| /study/young-designers | **box** (the banner is refused) | About, Disciplines, Convocation Messages |
+
+Two heroes and thirteen sections. `PrimaryTemplate` (/study, About, Programmes) is not touched;
+`"stand-in"` is used only by these routes.
+
+Measured on the LIVE build (Playwright, 1440 / 1024 / 768 / 390):
+
+- The hero box is 1038 × 471.8 / 642.7 × 321.3 / 720 × 405 / 358 × 268.5, the real heroes' size
+  on Admission and Life at NID.
+- A section box is 684 × 330 / 642.7 × 310 / 720 × 347.4 / 358 × 172.7, /study's real Life at NID
+  photo.
+- No horizontal overflow at any width.
+- No placeholder is in the accessibility tree (CDP: every one `ignored`) or in the tab order.
+
+### Where the board and the build differ
+
+The secondary template still places a text section's links by free flow (§74, "open"). At three
+columns, Admission's How to Apply CTAs and Ph.D's email now sit in column 1 beside the photo box;
+before §77 there was no box beside them. The campus pages behave the same. At 1440 the links take
+column 4 of the body's row, as before. TODO(designer): the same question §73 settled for the
+primary template.
+
+### R
+
+The §70 rule as amended in §73.
+
+- **Switch OFF:** every page identical to HEAD, FIXTURE and LIVE.
+- **Switch ON:** the four pages in the table change, by the boxes listed and nothing else. Every
+  other page is identical.
+  - The HTML is byte-identical once the boxes are removed.
+  - The payload reconciles the same way, with one structural effect. Flight writes the
+    standfirst, and on Young Designers LIVE one section box, as a row of their own, referenced
+    where they stood. The content is unchanged.
+
+**One more LIVE-only variation, not this change.** Flight writes next-intl's `localeCookie` object
+(`{"name":"NEXT_LOCALE","sameSite":"lax"}`) inline in one payload row and as a reference from
+another. Which row holds it varies between LIVE builds of the same code: HEAD against OFF differed
+on two pages (Programmes, Curriculum Objectives), HEAD against ON on three others. The HTML is
+identical on all of them. LIVE R now treats the two forms as equal. Cause not investigated; FIXTURE
+builds never showed it.
+
+### Mocks (E)
+
+A copy with the API altered in getPage, deleted after:
+
+- **Hostel with an alt-texted IMAGE block:** the photo replaces the box at the same size at all
+  four widths (684 × 330 … 358 × 172.7). Log: `section:hostel + image`.
+- **Dining with an IMAGE block without alt text:** the box stays. Log: `image rejected (no
+  altText)`.
+- **Guest House with an image whose file 404s:** the box stays. Log: `dropped 1 CMS file that
+  404`.
+- **Young Designers with a photograph under a new id ahead of the banner:** it replaces the hero
+  box at the same size; the banner is still refused (`hero: 1 rejected (rejectMedia …)`).

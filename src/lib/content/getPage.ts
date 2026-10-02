@@ -346,6 +346,7 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
   // or an admissions-status field.
   "/study/admission": {
     slug: "admission-process",
+    sectionImages: true,
     sections: { "section-admission-how": { textTitle: "Admissions", linkBlocks: true } },
   },
   // Admission Process's pattern with one section (STAGE-0-NOTES §75). The CMS's
@@ -369,6 +370,7 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
   // unused and logged.
   "/study/life-at-nid": {
     slug: "life-at-nid",
+    sectionImages: true,
     sections: {
       "section-life-hostel": { textTitle: "Hostel" },
       "section-life-dining": { textTitle: "Dining" },
@@ -387,14 +389,22 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     intro: "heroText",
     sections: { "section-notifications-downloads": { textTitle: "Notifications", linkBlocks: true } },
   },
-  // Young Designers: no hero — the CMS's is a banner with its text baked in
-  // (hero: "static" keeps the fixture's none). The standfirst is the fixture's.
-  // TODO(review): backend — a photograph with alt text for the hero; the board's
-  // sentence in heroText (it is the SEO description).
+  // Young Designers: the standfirst is the fixture's. Three CMS images are
+  // refused by id, so a new upload shows with no code change (§77): the hero
+  // is a 1298 × 337 banner with its text baked in, which the hero crop cuts;
+  // About's and Convocation Messages' are square portraits the 684:330 row
+  // would crop (§76).
+  // TODO(review): backend — a photograph with alt text for the hero and for
+  // each section; the board's sentence in heroText (it is the SEO description).
   "/study/young-designers": {
     slug: "young-designers",
     intro: "static",
-    hero: "static",
+    sectionImages: true,
+    rejectMedia: [
+      "cmu8sbyho0000c4o2sp7dwa73", // young-designers-hero.png, the banner
+      "cmu8sbynb0001c4o2eisw3llb", // young-designers-vijai-singh-katiyar.png
+      "cmu8sbyqs0003c4o2cwjp7wc1", // young-designers-ashok-mondal.png
+    ],
     sections: {
       "section-yd-about": { textTitle: "About", linkBlocks: true },
       "section-yd-disciplines": { textTitle: "Disciplines" },
@@ -406,8 +416,11 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
 /** The links the adapter made from CMS LINK blocks (ids `link-cms-…`) that
  *  point at a FILE — a document link, or a URL ending .pdf — each checked once
  *  per build with media.ts's HEAD rule; a file that 404s or 410s is dropped and
- *  logged, so a list never offers a dead download (§76). Fixture links are never
- *  checked: they are the repo's, and a FIXTURE build stays offline. */
+ *  logged, so a list never offers a dead download (§76). A CMS section image
+ *  (`sectionImages`, the only section image with an absolute URL) is checked the
+ *  same way: one that 404s is dropped, so its page draws the placeholder rather
+ *  than a broken image (§77). Fixture files are never checked: they are the
+ *  repo's, and a FIXTURE build stays offline. */
 async function withServedFiles(path: string, response: PageResponse): Promise<PageResponse> {
   const fileOf = (link: Link) =>
     link.id.startsWith("link-cms-")
@@ -417,22 +430,27 @@ async function withServedFiles(path: string, response: PageResponse): Promise<Pa
           ? link.url
           : undefined
       : undefined;
-  const files = response.page.sections.flatMap((s) => [...s.links, ...(s.type === "links" ? s.items : [])]).flatMap((l) => {
-    const href = fileOf(l);
-    return href ? [href] : [];
+  const imageOf = (section: Section) =>
+    section.image && /^https?:\/\//.test(section.image.file) ? section.image.file : undefined;
+  const files = response.page.sections.flatMap((s) => {
+    const links = [...s.links, ...(s.type === "links" ? s.items : [])].map(fileOf);
+    return [...links, imageOf(s)].filter((href): href is string => Boolean(href));
   });
   if (!files.length) return response;
   const served = new Map(await Promise.all(files.map(async (href) => [href, await fileServes(href)] as const)));
   const gone = [...served].filter(([, ok]) => !ok).map(([href]) => href);
   if (!gone.length) return response;
-  console.info(`[cms] ${path}: dropped ${gone.length} linked file${gone.length === 1 ? "" : "s"} that 404 (${gone.join(", ")})`);
+  console.info(`[cms] ${path}: dropped ${gone.length} CMS file${gone.length === 1 ? "" : "s"} that 404 (${gone.join(", ")})`);
   const keep = (l: Link) => {
     const href = fileOf(l);
     return !href || served.get(href) !== false;
   };
-  const sections = response.page.sections.map((s): Section =>
-    s.type === "links" ? { ...s, items: s.items.filter(keep), links: s.links.filter(keep) } : { ...s, links: s.links.filter(keep) },
-  );
+  const sections = response.page.sections.map((s): Section => {
+    const image = imageOf(s);
+    const kept: Section =
+      s.type === "links" ? { ...s, items: s.items.filter(keep), links: s.links.filter(keep) } : { ...s, links: s.links.filter(keep) };
+    return image && served.get(image) === false ? { ...kept, image: undefined } : kept;
+  });
   return { ...response, page: { ...response.page, sections } };
 }
 
