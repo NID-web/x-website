@@ -118,7 +118,8 @@
     "seeLess": "See less",
     "moreIn": "More in {section}",
     "otherCampuses": "Other campuses",
-    "seats": "{count} seats"
+    "seats": "{count} seats",
+    "browseFacultyBy": "Browse faculty by"
   },
   "KeyInfo": {
     "duration": "Duration",
@@ -164,5 +165,16 @@
     "terracotta": "Fired earth, and one of the oldest made colours anywhere. From Harappan pottery to the votive horses of Tamil Nadu, terracotta holds the same warm orange-red wherever the clay is dug. The palette is grounded and matte, with none of Tanjore's shine — closer to soil than to gold.",
     "ikkat": "Ikkat is dyed before it is woven. Threads are bound and coloured to a plan, then set on the loom, and the small inevitable drift produces the feathered edge the technique is known for. The palette borrows that softness — colours that meet without a hard line between them.",
     "tiger": "Amber and black, and very little in between. The tiger's coat works by contrast rather than blend — every stripe an edge. This is the boldest theme in the set, its darks pushed close to true black so the amber reads at full strength. Used sparingly, it carries real force."
+  },
+  "Faculty": {
+    "views": {
+      "discipline": "Discipline",
+      "name": "A–Z",
+      "campus": "Campus",
+      "faculty": "Design Faculty"
+    },
+    "switcher": "View faculty by",
+    "allPeople": "All people",
+    "otherFaculty": "Other faculty"
   }
 }

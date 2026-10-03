@@ -6,7 +6,7 @@
 // lose its ability to withhold a dead link (§57). What differs per page is props
 // and data, never a branch on which page this is.
 import type { Metadata } from "next";
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { PageGrid } from "@/components/layout/PageGrid";
@@ -41,7 +41,7 @@ export interface SecondaryLayout {
   filledLinks?: string;
   /** The band's own title where a board names it ("Other campuses"); otherwise
    *  "More in {parent}". */
-  siblingTitle?: "otherCampuses";
+  siblingTitle?: "otherCampuses" | "browseFacultyBy";
   /** Where the back link goes with no usable trail (BackNav's fallback). */
   backFallback?: string;
   /** False: no hero, no box — the rail and standfirst close up, and a hero
@@ -58,6 +58,10 @@ export interface SecondaryLayout {
   railThreeUp?: boolean;
   /** A text section in the split layout: sub-title and prose beside a photo. */
   split?: string;
+  /** The page's own control (the model's `utility: "filter"`), stacked under
+   *  the back link in the page-utility cell — the faculty directory's view
+   *  switcher (§82). Without it, the back link alone, the element it always was. */
+  utility?: ReactNode;
 }
 
 export async function secondaryMetadata(path: string): Promise<Metadata> {
@@ -83,6 +87,7 @@ export async function SecondaryTemplate({
   introTitle,
   railThreeUp = false,
   split,
+  utility,
   response: given,
 }: {
   path: string;
@@ -125,7 +130,29 @@ export async function SecondaryTemplate({
         {/* BackNav is a client component: a fallback prop that is merely
             undefined still reaches its serialized props, so a page without one
             renders the exact element it always did. */}
-        {backFallback ? <BackNav fallback={backFallback} /> : <BackNav />}
+        {utility ? (
+          // One cell holds both: two `page-utility` items would overlap. The
+          // back link renders nothing until it knows its target (§45), so
+          // without JavaScript the control alone is there, and works.
+          <GridItem span="full-then-1" place="page-utility" className="flex flex-col gap-6">
+            {/* The back link's row, reserved: BackNav renders nothing until it
+                knows its target (§45), and appearing above the control would
+                move it down a row after hydration. The height is the Cta row's
+                own — its line (or the 24px glyph box, whichever is taller), its
+                pt-2 / pb-1.5 and its 2px rule — so nothing moves (§82). `*:flex`
+                makes BackNav's cell a flex box: in a block cell the Cta's
+                inline-flex row sits in a line box one pixel taller than itself.
+                With JavaScript off the row stays empty. */}
+            <div className="min-h-[calc(max(var(--text-h5--line-height),var(--spacing)*6)+var(--spacing)*3.5+2px)] *:flex">
+              {backFallback ? <BackNav fallback={backFallback} /> : <BackNav />}
+            </div>
+            {utility}
+          </GridItem>
+        ) : backFallback ? (
+          <BackNav fallback={backFallback} />
+        ) : (
+          <BackNav />
+        )}
 
         {/* The rail: key info, then the filled buttons (the events rail's
             order, §68). Without buttons it is the element the campus pages have

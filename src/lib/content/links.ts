@@ -2,6 +2,7 @@ import { linkIcon, linkNewTab, type LabelValue, type Link } from "@/lib/content-
 import { documentHref } from "@/lib/content/documents";
 import { pagePath, pathOf } from "@/lib/content/pages";
 import { BUILT_RESEARCH_CENTRES } from "@/lib/content/research-centres";
+import { FACULTY_VIEW_PARAMS } from "@/lib/content/faculty-views";
 import { normalise } from "@/lib/nav-trail";
 import type { CtaProps } from "@/components/spine/Cta";
 
@@ -29,6 +30,8 @@ export const BUILT_ROUTES = [
   "/consulting",
   "/events/[slug]",
   "/people",
+  "/people/faculty",
+  "/people/faculty/by/[view]",
   "/programmes",
   "/programmes/bdes",
   "/programmes/bdes/[discipline]",
@@ -71,6 +74,9 @@ export function registerBuiltParams(route: (typeof BUILT_ROUTES)[number], values
 // a campus page or an article links a centre without ever loading the centres'
 // data, and a gate that ran first would withhold the link (§79).
 registerBuiltParams("/research/[slug]", BUILT_RESEARCH_CENTRES);
+// The faculty directory's views, the same way: a static list (faculty-views.ts),
+// linked from every view's band and switcher (§82).
+registerBuiltParams("/people/faculty/by/[view]", FACULTY_VIEW_PARAMS);
 
 /** Whether a locale-less site path has a page. Query and hash are ignored. */
 export function isBuiltRoute(path: string): boolean {

@@ -52,7 +52,7 @@ export function SectionRenderer({
   thumbMeta?: boolean;
   /** This section's groups from `PageResponse.groupedItems`, already grouped:
    *  a cards section with groups renders as GroupedCards. */
-  groups?: Array<{ label: string; items: unknown[] }>;
+  groups?: Array<{ label: string; sublabel?: string; items: unknown[] }>;
   /** Passed to TextSection. */
   filledLinks?: boolean;
   /** Passed to RailSection (the discipline pages' Faculty). */
@@ -112,7 +112,9 @@ export function SectionRenderer({
         />
       );
     case "rail":
-      return <RailSection section={section} clamp={clamp} threeUp={railThreeUp} overline={railOverline} />;
+      return (
+        <RailSection section={section} clamp={clamp} threeUp={railThreeUp} overline={railOverline} groups={groups} />
+      );
     case "files":
     case "mosaic":
       return null;

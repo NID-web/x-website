@@ -4930,3 +4930,161 @@ Each mock changes `/people` only.
 - rows 40px, none overflowing ("Visitor / President of India" fits at every width);
 - no horizontal overflow;
 - no row focusable while unbuilt.
+
+## 82. The faculty directory: four views from the discipline records
+
+`/people/faculty` is the faculty directory, from four 1440 boards: by Discipline (the default), A–Z,
+by Campus and by Design Faculty. One Person collection is grouped four ways (sitemap.json's note).
+Each view is a `rail` section with `groupBy` (`department`, `letter`, `campus`, `faculty`). Its
+groups are built once, at build, in `getFaculty.ts` and delivered in `PageResponse.groupedItems`
+(§66, §70). The page shell is `SecondaryTemplate` with no hero and no standfirst. The member
+template (`/people/faculty/[slug]`) is not built: its board is filler, so cards are unlinked.
+
+### The data: groupings that already exist
+
+The person records cannot group anything (§81): the list endpoint sends no `detail`, and the
+records have no campus or design-faculty field. The **discipline records** can. Each names its
+campus, its design faculty (`detail.faculty`) and its faculty members. So:
+
+- **The people** are the `faculty` document's curated list: 65, no seed records. Each item gives
+  the name, the role line (heroText, the card's overline as on the discipline pages, §72; the
+  record's own `designation` is just "Faculty") and the portrait (alt text = the name;
+  TODO(review), §81).
+- **The groupings** come from the 28 programme discipline records (`-bdes`, `-mdes`), the
+  Foundation Programme among them. A discipline is its `shortName` at its campus: its B.Des and
+  M.Des records list the same people and merge. The two suffix-less records
+  (`digital-game-design`, `film-and-video-communication`) duplicate suffixed ones and add nobody,
+  so they are skipped and logged, never fetched. The first contradicts its `-mdes` record's design
+  faculty (Interdisciplinary vs IT Integrated); the `-mdes` record's stands. Backend ask.
+- **Requests:** the discipline list and the 27 non-Foundation records are the programme pages' own
+  requests (§71 cache). New: the `faculty` document and the Foundation record. **238 → 240
+  distinct**; build 153s, HEAD 153s.
+
+**Nothing is hand-made.** There is no person → campus or discipline → faculty table; every group
+is a field of a CMS record. The FIXTURE is a copy of three real discipline records (Animation Film
+Design / Ahmedabad, Interaction Design / Bengaluru, Photography Design / Gandhinagar) and the ten
+people they and the faculty list name, including Shilpa Das. Its portraits are copies, resized to
+288px.
+
+| View | Groups (LIVE) | Cards | Board |
+|---|---|---|---|
+| Discipline | 21 + "Other faculty" | 68 | 25 / 77 |
+| A–Z | 16 letters | 65 | 18 / 77 |
+| Campus | 3 + "Other faculty" (Ahmedabad 36, Gandhinagar 17, Bengaluru 11) | 65 | 3 / 77 |
+| Design Faculty | 6 + "Other faculty" (Communication 16, Industrial 18, Textile/Apparel/Lifestyle & Accessory 13, Interdisciplinary 5, IT Integrated 9, Foundation Programme 6) | 68 | 7 / 80 |
+
+- **In two groups:** Andrea Noronha, Gayatri Menon and Kaushik Chakraborty appear twice in the
+  Discipline and Design Faculty views. The data puts them in Foundation and in their own
+  discipline. The board's Design Faculty view likewise has three more cards than its others.
+- **"Other faculty"** (a UI string): Shilpa Das, in no discipline, ends the three grouped views.
+  She is logged by name; A–Z needs no such group. TODO(review).
+- **Not shown, logged:** five discipline members who are not in the faculty list
+  (`dr-bibhudutta-baral`, `drishti-desai`, `sneha-mundari`, `tulip-sinha`, `xavier-d-silva`).
+  The seed `jane-doe` is only in a skipped record. TODO(review).
+- **Order:** the CMS has none. Groups and people are alphabetical; the sort key ignores a leading
+  "Dr"/"Dr." and the name is displayed as sent. Campuses follow the site's order. Backend ask:
+  order fields.
+- **TODO(designer):** 25 vs 21 discipline groups, 77/80 vs 65 people. The data decides the page.
+
+Floors: `faculty` 1 section and 65 listed items; at least 60 people placed by the disciplines
+(`facultyGrouped`).
+
+### Routes
+
+A query string selects a view only at request time (`searchParams` makes a page dynamic, this
+Next's `page.md`), so sitemap.json's `?by=` cannot be static. The views are paths:
+
+- `/people/faculty`: by Discipline;
+- `/people/faculty/by/[view]`: `name`, `campus`, `faculty`, `dynamicParams = false`.
+
+`faculty-views.ts` holds the list; `links.ts` registers it at module load, as the research centres
+(§79). A view withheld from the list is gone from the routes, the switcher and the band (mocked).
+
+`/people/faculty/[slug]` stays free for the member template. **Proved in scratch:** a mock
+`[slug]` route beside `by/[view]` built both. `/by/name` was served by the directory and
+`/ajay-kumar-tiwari` by the mock, while `/by`, `/by/nope` and an unknown slug were 404. The
+mock is deleted. Deviation from sitemap.json, recorded.
+
+### The page
+
+- **Group cells.** RailSection gains its grouped branch; every existing rail is
+  `groupBy: "none"`, untouched. Each group is its cell in column 1, the name in Heading/2
+  `text/tertiary`, and on the Discipline view the campus under it in Label (`text-label`). That
+  campus line is `text/tertiary`, not the board's `text/quaternary`, which is below AA by design
+  (§73's notice dates). TODO(designer).
+- **Cards** sit beside the cell, three across in columns 2–4: every group opens a row, and a short
+  group leaves its last cells empty. Below three columns the cell is a full row above its cards,
+  which keep the rail's two-up, at 390 too (NID-CONTEXT §5.3: portraits stay two).
+- **Card style.** PersonCard with the role-line overline (`wrapOverline`), unlinked, no hover
+  arrow, the portrait in its existing `mix-blend-luminosity` (the board's own treatment). The
+  first three portraits are eager, the rest lazy.
+- **The view switcher** (`ViewSwitcher`) is a `<details>`:
+  - The summary is a Call-to-actions row naming the current view, read as "View faculty by:
+    Discipline" (Chrome exposes it as a disclosure with `expanded`).
+  - Inside are the four views as plain links, the current one `aria-current="page"`, in a panel
+    over the content, so opening it moves nothing.
+  - With JavaScript off it opens and navigates natively. JavaScript adds Escape (closes, focus
+    back to the summary) and outside-click close. No animation; the caret does not rotate
+    (no transforms).
+- **Back link and switcher are stacked** in the page-utility cell (`SecondaryTemplate utility`,
+  default none, so every existing page renders as before): BackNav ("People") first, then the
+  switcher. They stack cleanly at every width (column 4 at 1440, column 3 at 1024, below the title
+  under that).
+  - **The back link's row is reserved.** BackNav renders nothing until it knows its target (§45).
+    Unreserved, the server HTML had the switcher at the top of the cell, and the back link
+    appearing above it after hydration moved it down 65px at 1440 (132 → 197).
+  - The reserved row is a wrapper, present only with `utility`, with the Cta row's own height:
+    `max(var(--text-h5--line-height), the 24px glyph box) + pt-2 + pb-1.5 + the 2px rule`, from
+    tokens, no fixed height.
+  - A first version still moved 1px. BackNav's block cell put the Cta's inline-flex row in a line
+    box 41px tall, against the row's 40. `*:flex` on the wrapper makes that cell a flex box, and the
+    row is exactly 40.
+  - **Measured** (Playwright, all four views at 1440 / 1024 / 768 / 390): the switcher's top with
+    JavaScript off (the server HTML as painted) and after hydration is the same at every width
+    (196 / 196 / 362 / 230); worst movement 0px. Layout-shift entries touching the utility cell sum
+    to 0 everywhere.
+  - Elsewhere on the page small shifts remain on some runs (page CLS 0.0004–0.0152); they are not
+    in the utility cell and were not traced.
+  - **With JavaScript off** the reserved row is empty space above the switcher. At 1440 it reads as
+    part of the title row; at 390 it is a 40px gap between the title and the switcher, acceptable.
+  - TODO(designer): the board draws no back link.
+- **"Browse faculty by"** is the sibling band, with a new `siblingTitle` key: the other three
+  views, then "All people" → `/people`.
+- **Labels:** Discipline · A–Z · Campus · Design Faculty, in both places. TODO(designer): the
+  board's menu says "A to Z" and "Campuses".
+- **A separator** precedes the groups (the template's rule); the board draws none there.
+
+### R, A, C, E, Playwright
+
+**R** (FIXTURE and LIVE): every existing page's HTML is identical except `/people`, whose
+"Faculty" row now links (`/en/people/faculty`; visible text identical). Every payload differs only
+by the added message keys (`Page.browseFacultyBy`, the `Faculty` namespace), the §70 allowance;
+checked row by row.
+
+**A** (FIXTURE): each view has the title, the switcher naming it, its group cells (discipline +
+campus on the default), cards three across and the band.
+
+**C** (LIVE): the table above. `[cms]` lines: one per view (groups and cards), and one for the
+directory (the skipped records, the five not shown, "Other faculty" by name).
+
+**E** (copies, deleted after):
+
+| Mock | Result |
+|---|---|
+| A group of 1 | one card at column 2, columns 3–4 empty (LIVE has a real one: Information Design) |
+| No photo | PersonCard's empty circle |
+| No designation | no overline and no rule |
+| A 3-line group title at 1024 | "Textile, Apparel, Lifestyle & Accessory Design", no overflow |
+| A view withheld | gone from the routes, the switcher and the band |
+| JavaScript off | the switcher opens and reaches every view |
+
+**Playwright** (1440 / 1024 / 768 / 390):
+- cards per row 3 / 2 / 2 / 2;
+- group cells beside the cards from 1024 and above them below;
+- no overflow, the long role lines wrapping;
+- the switcher by keyboard: Tab to it, Enter opens, Tab through the views, Escape closes with
+  focus back;
+- nothing in the groups is focusable.
+
+LIVE's default view has 68 portraits, 3 eager and the rest lazy. `sizes` is "144px" through
+TileImage; the local build's `NEXT_IMAGE_UNOPTIMIZED` drops srcset, and Vercel's does not.

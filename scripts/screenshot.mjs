@@ -79,6 +79,11 @@ const PAGES = [
   { name: "consulting", path: "/en/consulting" },
   // The sixth primary page (STAGE-0-NOTES §81).
   { name: "people", path: "/en/people" },
+  // The faculty directory's four views (STAGE-0-NOTES §82).
+  { name: "faculty-discipline", path: "/en/people/faculty" },
+  { name: "faculty-name", path: "/en/people/faculty/by/name" },
+  { name: "faculty-campus", path: "/en/people/faculty/by/campus" },
+  { name: "faculty-faculty", path: "/en/people/faculty/by/faculty" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

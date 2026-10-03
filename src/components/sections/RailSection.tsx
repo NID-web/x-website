@@ -3,6 +3,7 @@
 // 4374:188729 CTA) is the first to render one; the faculty directory's four
 // groupings are Stage 3.
 import clsx from "clsx";
+import { Fragment } from "react";
 import { GridItem } from "@/components/layout/GridItem";
 import { PersonCard } from "@/components/cards/PersonCard";
 import { Title } from "@/components/spine/Title";
@@ -11,11 +12,22 @@ import type { Section } from "@/lib/content-model";
 
 type RailSectionData = Extract<Section, { type: "rail" }>;
 
+/** A group as the data layer delivers it (`PageResponse.groupedItems`): the
+ *  model's `{ label, items }`, plus the faculty directory's second line under a
+ *  discipline — its campus (getFaculty.ts). */
+export type RailGroup = { label: string; sublabel?: string; items: unknown[] };
+
+/** Each row of three opens at column 2: every second card at three columns,
+ *  every third at four — the discipline board's Faculty (§72). */
+const threeUpStart = (i: number) =>
+  clsx(i % 2 === 0 ? "laptop:col-start-2" : "laptop:col-start-auto", i % 3 === 0 ? "desktop:col-start-2" : "desktop:col-start-auto");
+
 export function RailSection({
   section,
   clamp,
   threeUp = false,
   overline = false,
+  groups,
 }: {
   section: RailSectionData;
   clamp?: BodyClamp;
@@ -24,13 +36,43 @@ export function RailSection({
   threeUp?: boolean;
   /** Each person's designation as the overline above the name (§60). */
   overline?: boolean;
+  /** A grouped rail's groups, already grouped by the data layer — never
+   *  bucketed here (CLAUDE.md, §66). */
+  groups?: RailGroup[];
 }) {
-  // TODO(review): Stage 3 — a grouped rail. Its data arrives already bucketed
-  // in `PageResponse.groupedItems` (top-level, keyed by section id), and each
-  // group label is a rendered element with its own place in the grid; bucketing
-  // `items` here would be the client-side grouping CLAUDE.md forbids. Needs the
-  // faculty directory boards before a layout can be chosen.
-  if (section.groupBy !== "none") return null;
+  // A grouped rail: the faculty directory (STAGE-0-NOTES §82). Each group is
+  // its cell in column 1 — the group's name in Heading/2, the discipline's
+  // campus under it — beside its people three across in columns 2–4, every
+  // group opening a new row; a short group leaves its row's last cells empty.
+  // Below three columns the cell is a full row above its cards, which keep the
+  // rail's two-up (NID-CONTEXT §5.3: portraits stay two).
+  if (section.groupBy !== "none") {
+    if (!groups?.length) return null;
+    return (
+      <GridItem as="section" span={4} subgrid>
+        {section.title && <Title variant="section">{section.title}</Title>}
+        {groups.map((group, g) => (
+          <Fragment key={g}>
+            <GridItem span="full-then-1" start={1} className="flex flex-col gap-1">
+              <h2 className="font-primary text-h2 text-text-tertiary">{group.label}</h2>
+              {/* text/tertiary, not the board's text/quaternary: the campus is
+                  meaning, and quaternary is below AA by design (§73's notice
+                  dates). TODO(designer). */}
+              {group.sublabel && <p className="font-primary text-label text-text-tertiary">{group.sublabel}</p>}
+            </GridItem>
+            <div className="col-span-full grid grid-cols-2 gap-x-gutter gap-y-rowgutter tablet:contents">
+              {(group.items as RailSectionData["items"]).map((person, i) => (
+                <GridItem key={person.id} span={1} className={threeUpStart(i)}>
+                  {/* The first row is above the fold: eager, the rest lazy. */}
+                  <PersonCard person={person} overline={overline} wrapOverline priority={g === 0 && i < 3} />
+                </GridItem>
+              ))}
+            </div>
+          </Fragment>
+        ))}
+      </GridItem>
+    );
+  }
 
   return (
     // A subgrid, as CardsSection: the CTA is pinned to the section's own
@@ -52,14 +94,7 @@ export function RailSection({
           threeUp ? (
             // Each row opens at column 2: every second card at three columns,
             // every third at four.
-            <GridItem
-              key={person.id}
-              span={1}
-              className={clsx(
-                i % 2 === 0 ? "laptop:col-start-2" : "laptop:col-start-auto",
-                i % 3 === 0 ? "desktop:col-start-2" : "desktop:col-start-auto",
-              )}
-            >
+            <GridItem key={person.id} span={1} className={threeUpStart(i)}>
               <PersonCard person={person} overline={overline} wrapOverline />
             </GridItem>
           ) : (

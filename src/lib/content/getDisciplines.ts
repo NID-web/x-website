@@ -38,6 +38,13 @@ export interface DisciplineGroup {
   items: DisciplineCard[];
 }
 
+/** Every discipline record in the list, or null when it did not arrive. The
+ *  faculty directory reads the same list (getFaculty.ts, §82): one request,
+ *  shared through the build cache. */
+export async function disciplineList(): Promise<CardRef[] | null> {
+  return listAll();
+}
+
 async function listAll(): Promise<CardRef[] | null> {
   const bySlug = new Map<string, CardRef>();
   for (let page = 1; ; page++) {

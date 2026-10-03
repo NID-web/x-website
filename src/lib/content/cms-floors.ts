@@ -54,6 +54,7 @@ export const CMS_FLOORS = {
     "research-publications": 3,
     "consulting-and-entrepreneurship": 4,
     people: 4,
+    faculty: 1,
     // The research centres that build (§79): one "About" section each.
     "innovation-center-natural-fiber": 1,
     icic: 1,
@@ -71,11 +72,17 @@ export const CMS_FLOORS = {
     "about-nid": 4,
     campuses: 3,
     "research-publications": 7,
+    // The faculty directory's people (§82). Live 3 Oct 2026: 65.
+    faculty: 65,
   } as Record<string, number>,
 
   /** A programme's discipline records that become cards (getDisciplines.ts):
    *  live 30 Sep 2026, B.Des 8 (the Foundation Programme excluded), M.Des 19. */
   disciplines: { bdes: 8, mdes: 19 },
+
+  /** Faculty-list people the discipline records place in at least one
+   *  discipline (the directory's by-Discipline view, §82). Live: 64 of 65. */
+  facultyGrouped: 60,
 
   /** The header menu's top-level sections (home document). Live: 7. */
   menuSections: 7,
