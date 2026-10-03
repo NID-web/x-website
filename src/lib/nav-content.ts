@@ -134,8 +134,8 @@ export const HOME_NAV: NavLink = { label: "Home", href: "/" };
 
 // Built pages the menu does not list as a link but a visitor arrives FROM — the
 // archive links every event, About links the gallery; Programmes, Study at NID,
-// Research & Publications and Consulting & Entrepreneurship are menu titles,
-// which are not links — so the back link can name them.
+// Research & Publications, Consulting & Entrepreneurship and People are menu
+// titles, which are not links — so the back link can name them.
 // Their labels are the pages' own titles.
 const UNLISTED_PAGES: NavLink[] = [
   { label: "News & Events Archive", href: "/about/news-events/archive" },
@@ -144,6 +144,7 @@ const UNLISTED_PAGES: NavLink[] = [
   { label: "Study at NID", href: "/study" },
   { label: "Research & Publications", href: "/research" },
   { label: "Consulting & Entrepreneurship", href: "/consulting" },
+  { label: "People", href: "/people" },
 ];
 
 // Map of route path to display title derived from MENU_SECTIONS for BackNav labels.

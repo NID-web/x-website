@@ -4765,3 +4765,168 @@ rule).
 - "See more" opens, and without JavaScript no button shows and the text is whole;
 - no overflow, including the long contact and PDF rows at 390;
 - tab order: "See more", FAQ, the two emails, the films, the PDFs; rail rows are not focusable.
+
+## 81. People: the sixth primary page, sub-page links below the standfirst
+
+`/people` is sitemap.json's sixth `"template": "primary"` page, from one 1440 board ("08 People —
+Landing"). It has no sections: the title, the hero, the standfirst and the eight sub-page links.
+The board puts the links **three across under the standfirst** (columns 2–4), with column 1 empty
+beside the hero, not in the column-1 rail. It renders `PrimaryTemplate` through a thin route with
+one new prop.
+
+### `subPages`
+
+`PrimaryTemplate subPages?: "beside-hero" | "below-intro"`, default `"beside-hero"`.
+
+**Below-intro:**
+- the rail is not drawn;
+- the hero takes column 2 onward (`start="2-hero"`), so column 1 stays empty;
+- the links follow the standfirst in a `GridItem span="hero" start="2-hero"`, through
+  `LinkStack twoUp="three-up"`:
+
+| Columns | Links |
+|---|---|
+| 4 | three across, columns 2–4 |
+| 3 | two across, columns 2–3 |
+| 2 | two across |
+| 1 | one column |
+
+The inner gutters are the page's, so the rows sit on real columns.
+
+**Beside-hero (default):** the template renders exactly the element tree it always did. The link
+cell rides in the contacts slot, and in the default mode that slot holds its original value, not an
+extra child (an empty child would still reach every primary page's payload, §76). R proves it.
+
+**A grid trap, found at 1440.** `span="hero"` with `start={2}` put the hero in column 1 at 4
+columns. The span's `desktop:col-span-3` is the `grid-column` shorthand; emitted after
+`laptop:col-start-2`, it resets the start to auto. `GridItem` gains `start="2-hero"`
+(`laptop:col-start-2 desktop:col-start-2`). Changing plain `2` would have changed class strings on
+every page; no existing page combined the two.
+
+**Rows** are the existing ones, no new style: a built child is `Cta variant="primary"` (Heading/5,
+`text/secondary`, rule, ↗), an unbuilt one LinkStack's unlinked row (Heading/5, `text/primary`,
+transparent rule, the same 40px pitch).
+
+### The data
+
+The `people` document (static, Generic Page) sends:
+- a title, SEO, heroText;
+- one hero (`people-hero.jpg`, NID's entrance wall), alt text "People, National Institute of
+  Design" (TODO(review): it names the page);
+- no contacts;
+- sections:
+
+| Section (orderIndex) | Content |
+|---|---|
+| About (1) | one sentence, also the SEO description |
+| Overview (1, tied with About) | the richer sentence |
+| Explore (2) | five LINK blocks referencing child documents |
+| Pride of NID (STRUCTURED `person`) | one person |
+
+**The standfirst is "About", claimed by title.** `PageMergeConfig.introTitle: "About"`: the
+standfirst's section is found by exact title, not as "the first section no rule claims". About
+and Overview tie at orderIndex 1, so "first" would be whichever the API sent first, and the
+standfirst would flip silently if that order changed. A missing section is logged:
+`intro(no api section titled "About")`. Overview, Explore and Pride of NID have no slot on the
+board: not rendered (opt-in, §78), logged unused. Backend ask: break the tie.
+
+- **The links** are the fixture's, sitemap.json's eight children by their titles, in its order:
+  Faculty · Governing Council · NID Senate · Staff · Notable Alumni · Visitor / President of India
+  · Faculty Stalwarts · Pride of NID. All unbuilt, so unlinked rows (`KEEP_UNBUILT`).
+  TODO(designer): the board draws seven (no Notable Alumni) and says "Visitor • President of India"
+  and "Senate". TODO(review), content owner: the menu has "Founding Faculty"
+  (`/people/founding-faculty`), sitemap.json "Faculty Stalwarts" (`/people/faculty-stalwarts`); the
+  menu is not edited.
+- **The hero** is the CMS's, not the board's composite of faculty portraits (with its unfinished
+  dark gap). No Figma call was needed.
+- **The board's Lorem ipsum standfirst** is never rendered.
+- **Separator.** The template draws one before the footer; the board draws none anywhere.
+
+**One more document per LIVE build: 237 → 238 distinct**, fetched == distinct. Floor: `people`,
+4 sections.
+
+### History's "All Faculty Stalwarts"
+
+It targeted `PAGE_ID.people`, the landing, and the gate dropped it while `/people` was unbuilt.
+Built, it would have sent a "Faculty Stalwarts" CTA to a page where Faculty Stalwarts is only an
+unlinked row. It now targets `PAGE_ID.peopleFacultyStalwarts` (`/people/faculty-stalwarts`,
+sitemap.json's path), which is unbuilt, so it stays withheld. History is byte-identical before and
+after, FIXTURE and LIVE.
+
+### Hrefs
+
+- No content link changed: nothing else linked `/people`.
+- The LIVE menu's "People" title already linked it (the CMS slug `people`; the menu is ungated).
+- Home's `/people/alumni` and `/people/pride-of-nid` stay gated.
+- `UNLISTED_PAGES` names "/people", so the back link can.
+
+### Person records (for the directory prompt)
+
+- **Content type `person`: 95 records,** seed data among them (`sample-notable-alumnus`, heroText
+  "Pride of NID — Class of 2010…").
+- **The list endpoint is thin.** `/public/content-items?contentType=person` (limit ≤ 50, so two
+  pages) returns only `id, slug, title, heroText, thumbnail, contentType, publishedAt`. No
+  `detail`.
+- **`detail` exists only per record** (`/public/content/<slug>`): `designation`, `department`,
+  `bio` (paragraphs), `email`, `phone`, `batchYear`, `currentRole`.
+  - The sampled faculty record had `department: null`.
+  - There is **no campus field and no design-faculty field**, so the four Faculty views (by
+    discipline, A–Z, by campus, by design faculty, sitemap.json's `groupBy`) have nothing to group
+    by except the name.
+- **Shape.** The thumbnail is the portrait (alt text = the name); `hero` is empty; sections hold
+  e.g. "Responsibilities"; contacts are empty.
+- **The curated lists:**
+
+| Document | List |
+|---|---|
+| `faculty` | 65 persons (STRUCTURED "Faculty") |
+| `staff` | 12 |
+| `nid-senate` | 13 persons, plus 19 paragraphs naming the full membership |
+| `governing-council` | prose only: 11 paragraphs, no person records |
+| `alumni` | a registration notice (with a Google Form link), plus "Notable Alumni" (1) and "Pride of NID" (1) |
+| `people` | "Pride of NID" (1) |
+
+- **Missing:** Visitor / President of India, Faculty Stalwarts / Founding Faculty, Pride of NID
+  and Notable Alumni have no documents of their own. The CMS navigation's People entry has no
+  children.
+- **Cost:** grouping by `detail` would need one request per record (65–95) on a build already over
+  its time bar.
+- **Backend asks:**
+  - `detail` (and campus, faculty) in list responses, or a server-side `groupBy`;
+  - Governing Council as person records;
+  - documents for the missing children;
+  - remove the seed records.
+
+### R, A, C, E, Playwright
+
+**R:**
+- FIXTURE: every existing page identical (84 of 84 files), History included; `/en/people` is new
+  and builds as `●`.
+- LIVE: every existing page identical (174 of 174, §77's rule), History included. Build 167s
+  (and 170s in an earlier run) against HEAD's 146s, with 13–20 rate-limit retries; one HEAD run
+  failed on a CMS timeout (`/public/content-items?contentType=news`) and passed on retry. Floors
+  49/0.
+
+**A** (FIXTURE): the title; column 1 empty beside the hero; the hero 1038 wide at columns 2–4 at
+1440; the standfirst ("About"); 8 unlinked rows, three across at 1440 on the page's columns 2–4 (x 378 / 732 / 1086) and two
+at 1024 and 768; the footer.
+
+**C** (LIVE): the same, with the CMS hero. `[cms]` line: `intro` from "About"; the orderIndex tie
+logged; Overview, Explore and Pride of NID unused.
+
+**E** (copies, deleted after):
+
+| Mock | Result |
+|---|---|
+| No hero | the standfirst and rows close up under the title, column 1 still empty |
+| No standfirst | the rows rise under the hero |
+| `/people/faculty` built | that row links (↗) and becomes the only tab stop in the page |
+| A ninth child | nine rows, wrapping cleanly |
+
+Each mock changes `/people` only.
+
+**Playwright** (FIXTURE and LIVE, 1440 / 1024 / 768 / 390):
+- columns 3 / 2 / 2 / 1;
+- rows 40px, none overflowing ("Visitor / President of India" fits at every width);
+- no horizontal overflow;
+- no row focusable while unbuilt.

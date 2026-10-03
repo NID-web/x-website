@@ -27,6 +27,7 @@ export async function PrimaryTemplate({
   thumbMeta,
   clamp = {},
   contactsIn,
+  subPages = "beside-hero",
 }: {
   response: PageResponse;
   /** How a cards section lays out Thumb cards; see CardsSection. */
@@ -40,6 +41,10 @@ export async function PrimaryTemplate({
    *  under the standfirst — the board's place for them on Research (§78), the
    *  model's on every secondary page. */
   contactsIn?: string;
+  /** Where the sub-page links go: the rail in column 1 beside the hero (every
+   *  primary board but one), or three across in columns 2–4 under the
+   *  standfirst with column 1 left empty beside the hero (People, §81). */
+  subPages?: "beside-hero" | "below-intro";
 }) {
   const { page, derived } = response;
   const t = await getTranslations("Page");
@@ -49,6 +54,12 @@ export async function PrimaryTemplate({
   const sections = page.sections
     .map((s) => (moved && s.id === contactsIn ? { ...s, contacts: [...s.contacts, ...page.contacts] } : s))
     .filter(hasContent);
+  const below = subPages === "below-intro";
+  const contactSlot = !moved && page.contacts.length > 0 && (
+    <GridItem span={1} start="2-laptop">
+      <ContactList contacts={page.contacts} />
+    </GridItem>
+  );
 
   return (
     <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
@@ -58,7 +69,7 @@ export async function PrimaryTemplate({
 
         <BackNav />
 
-        {derived.subPageLinks.length > 0 && (
+        {derived.subPageLinks.length > 0 && !below && (
           <GridItem span="full-then-1" start={1} as="nav" aria-label={t("subPages")}>
             <LinkStack links={derived.subPageLinks} twoUp="tablet-only" />
           </GridItem>
@@ -67,7 +78,9 @@ export async function PrimaryTemplate({
         {/* Not PageHero: a primary page draws nothing without an asset (no
             placeholder box), and the rail and standfirst close up. */}
         {hero && (
-          <GridItem span="hero">
+          // Below-intro, column 1 stays empty: with no rail to hold it, the hero
+          // would otherwise flow into column 1.
+          <GridItem span="hero" start={below ? "2-hero" : undefined}>
             <TileImage
               media={hero}
               priority
@@ -85,11 +98,17 @@ export async function PrimaryTemplate({
             <Standfirst text={page.intro} seeMore={t("seeMore")} />
           </GridItem>
         )}
-        {!moved && page.contacts.length > 0 && (
-          <GridItem span={1} start="2-laptop">
-            <ContactList contacts={page.contacts} />
-          </GridItem>
-        )}
+        {/* Beside-hero, the slot holds exactly the element it always did: an
+            extra child, even an empty one, reaches the RSC payload of every
+            primary page (§76). */}
+        {below && derived.subPageLinks.length > 0
+          ? [
+              <Fragment key="contacts">{contactSlot}</Fragment>,
+              <GridItem key="sub-pages" span="hero" start="2-hero" as="nav" aria-label={t("subPages")}>
+                <LinkStack links={derived.subPageLinks} twoUp="three-up" />
+              </GridItem>,
+            ]
+          : contactSlot}
 
         {/* TODO(review): designer — the Programmes board sets the Curriculum
             Objectives body in text/secondary; SectionBody uses text/primary

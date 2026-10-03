@@ -28,6 +28,7 @@ export const BUILT_ROUTES = [
   "/about/student-awards",
   "/consulting",
   "/events/[slug]",
+  "/people",
   "/programmes",
   "/programmes/bdes",
   "/programmes/bdes/[discipline]",

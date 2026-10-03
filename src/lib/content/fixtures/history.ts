@@ -112,7 +112,9 @@ const FACULTY_STALWARTS: Section = {
       id: "link-history-all-faculty-stalwarts",
       label: "All Faculty Stalwarts",
       targetType: "page",
-      page: PAGE_ID.people,
+      // sitemap.json's Faculty Stalwarts page, not the People landing: unbuilt,
+      // so the gate withholds it until that page ships (§81).
+      page: PAGE_ID.peopleFacultyStalwarts,
     },
   ],
   contacts: [],

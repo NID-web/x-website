@@ -36,11 +36,17 @@ const SPAN = {
 //   2          -> column 2 at 3 columns and up
 //   2-laptop   -> column 2 at 3 columns only (auto at 4, where the card fits)
 //   2-desktop  -> column 2 at 4 columns only
+//   2-hero     -> column 2 at 3 columns and up, for span="hero". Plain `2` does
+//                 not hold at 4 columns there: the span's `desktop:col-span-3`
+//                 is the grid-column SHORTHAND, emitted after `laptop:col-start-2`,
+//                 so it resets the start to auto and the cell flows into column
+//                 1 (People's hero and links at 1440, §81).
 const START = {
   1: "laptop:col-start-1",
   2: "laptop:col-start-2",
   "2-laptop": "laptop:col-start-2 desktop:col-start-auto",
   "2-desktop": "desktop:col-start-2",
+  "2-hero": "laptop:col-start-2 desktop:col-start-2",
 } as const;
 
 // Placement for utility slots, the page back-nav, and rails. A row can only be

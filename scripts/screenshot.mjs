@@ -77,6 +77,8 @@ const PAGES = [
   { name: "research-nid-press", path: "/en/research/nid-press" },
   // The fifth primary page (STAGE-0-NOTES §80).
   { name: "consulting", path: "/en/consulting" },
+  // The sixth primary page (STAGE-0-NOTES §81).
+  { name: "people", path: "/en/people" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

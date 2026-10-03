@@ -160,6 +160,11 @@ export interface PageMergeConfig {
    *  for a page whose first SPECIFIC section is a body, not a standfirst.
    *  `static` keeps the fixture's. */
   intro?: "firstTextBlock" | "heroText" | "static";
+  /** With `firstTextBlock`: the standfirst's section BY TITLE (exact, case-
+   *  insensitive, as textTitle) instead of the first section no rule claims.
+   *  For a document whose sections tie on orderIndex, where "first" is only
+   *  the order the API happened to send (People's About and Overview, §81). */
+  introTitle?: string;
   /** CMS media ids never used as the hero or a section image: a file that
    *  cannot serve as one, refused by id so that the next upload — a new id —
    *  shows with no code change (§77). A refused hero leaves the fixture's. */
@@ -333,8 +338,13 @@ export function toPageResponse(
             : rule.bodyTitle ? [rule.bodyTitle] : [],
       ).map((title) => title.trim().toLowerCase()),
     );
-    const introSection = api.sections.find(
-      (s) => s.type === "SPECIFIC" && !claimed.has((s.title ?? "").trim().toLowerCase()),
+    const introTitle = config.introTitle?.trim().toLowerCase();
+    const introSection = api.sections.find((s) =>
+      s.type !== "SPECIFIC"
+        ? false
+        : introTitle
+          ? (s.title ?? "").trim().toLowerCase() === introTitle
+          : !claimed.has((s.title ?? "").trim().toLowerCase()),
     );
     const blocks = introSection?.blocks ?? [];
     const introBlock = blocks.find((b) => b.blockType === "TEXT" && b.text?.trim());
@@ -356,7 +366,10 @@ export function toPageResponse(
         const types = [...new Set(rest.map((b) => b.blockType))].join("/");
         log.notes.push(`dropped ${rest.length} ${types} block${rest.length === 1 ? "" : "s"}`);
       }
-    } else log.static.push(`intro(${introSection ? "no TEXT block in a SPECIFIC section" : "no SPECIFIC section"})`);
+    } else
+      log.static.push(
+        `intro(${introSection ? "no TEXT block in a SPECIFIC section" : config.introTitle ? `no api section titled "${config.introTitle}"` : "no SPECIFIC section"})`,
+      );
 
     // The document's own summary line. No secondary board draws one, and the
     // standfirst above is the intro when a page has any.

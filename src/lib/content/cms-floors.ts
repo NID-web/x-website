@@ -53,6 +53,7 @@ export const CMS_FLOORS = {
     "young-designers": 3,
     "research-publications": 3,
     "consulting-and-entrepreneurship": 4,
+    people: 4,
     // The research centres that build (§79): one "About" section each.
     "innovation-center-natural-fiber": 1,
     icic: 1,

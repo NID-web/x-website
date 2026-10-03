@@ -69,6 +69,10 @@ const TWO_UP = {
   "tablet-only":
     "tablet:max-laptop:grid tablet:max-laptop:grid-cols-2 tablet:max-laptop:gap-x-gutter tablet:max-laptop:gap-y-rowgutter",
   "tablet-up": "tablet:grid tablet:grid-cols-2 tablet:gap-x-gutter tablet:gap-y-rowgutter",
+  /** Two across from tablet, three at desktop — inside a `span="hero"` cell
+   *  (columns 2–3, then 2–4) the gutters are the page's, so the rows sit on
+   *  real columns. People's sub-page grid (§81). */
+  "three-up": "tablet:grid tablet:grid-cols-2 tablet:gap-x-gutter tablet:gap-y-rowgutter desktop:grid-cols-3",
 } as const;
 
 /**

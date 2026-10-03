@@ -51,6 +51,7 @@ import { STUDY_NOTIFICATIONS } from "@/lib/content/fixtures/study-notifications"
 import { STUDY_YOUNG_DESIGNERS } from "@/lib/content/fixtures/study-young-designers";
 import { RESEARCH } from "@/lib/content/fixtures/research";
 import { CONSULTING } from "@/lib/content/fixtures/consulting";
+import { PEOPLE } from "@/lib/content/fixtures/people";
 import { RESEARCH_CENTRE_PAGES, RESEARCH_CENTRE_SLICES } from "@/lib/content/fixtures/research-centres";
 import { RESEARCH_CHILDREN, researchPath, type ResearchCentre } from "@/lib/content/research-centres";
 import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
@@ -82,6 +83,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/study/young-designers": STUDY_YOUNG_DESIGNERS,
   "/research": RESEARCH,
   "/consulting": CONSULTING,
+  "/people": PEOPLE,
   ...Object.fromEntries(
     Object.entries(RESEARCH_CENTRE_PAGES).map(([slug, response]) => [researchPath(slug), response]),
   ),
@@ -466,6 +468,17 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-consulting-resources": { textTitle: "IDS Resources", linkBlocks: true },
     },
   },
+  // The sixth primary page (STAGE-0-NOTES §81): no sections on the board. The
+  // standfirst is "About", claimed BY TITLE: it and "Overview" tie at orderIndex
+  // 1, so "the first section" would be whichever the API sent first. Overview,
+  // Explore (five child links) and the Pride of NID person list have no slot:
+  // unused, logged. TODO(review): backend — break the tie.
+  "/people": {
+    slug: "people",
+    subPagesKey: "static",
+    introTitle: "About",
+    sections: {},
+  },
 };
 
 /** The research centres (§79), one config each, from the fixture's slices: every
@@ -629,7 +642,7 @@ export type PageData = PageResponse & { railLinks?: RailLink[] };
 // designed but unbuilt reads as broken with an empty rail (§69), and its
 // "Read more" pointers to those children are the same records (§73). Every
 // other page still drops an unbuilt link (§58).
-const KEEP_UNBUILT = new Set(["/programmes", "/study", "/research", "/consulting"]);
+const KEEP_UNBUILT = new Set(["/programmes", "/study", "/research", "/consulting", "/people"]);
 
 // Pages whose sibling band keeps an unbuilt sibling as an unlinked row: Study at
 // NID's children, read from its own rail — the band of a landing whose children
