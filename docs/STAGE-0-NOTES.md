@@ -4595,3 +4595,173 @@ Bamboo, ICIC, Handloom):
 - the band is 7 rows, two-up at 768 and up and one-up at 390, with 6 linked and Nation Building
   not focusable;
 - tab order: back link, "See more" where shown, the two contacts, the six band links.
+
+## 80. Consulting & Entrepreneurship: the fifth primary page, films as links, contacts by section
+
+`/consulting` is sitemap.json's fifth `"template": "primary"` page, from one 1440 board ("06
+Consulting & Entrepreneurship — Landing"). It renders `PrimaryTemplate` through a thin route, as
+the other four do. It has:
+- the title (2 lines);
+- the five-row sub-page rail beside the hero;
+- the standfirst;
+- **Integrated Design Services**: a text section with prose behind "See more", and its FAQ and
+  contacts in column 4;
+- **IDS Resources**: a links section of the two films and two PDFs.
+
+### The data, mapped by meaning
+
+The `consulting-and-entrepreneurship` document (static, Generic Page) sends:
+- a title, SEO, heroText;
+- three heroes with the same alt text;
+- seven page-level contacts;
+- four SPECIFIC sections, no orderIndex ties: "Integrated Design Services" (6 paragraphs and a
+  "FAQ - IDS" PDF), "IDS Resources" (four LINK blocks), "Continuing Education Programme" and
+  "National Design Business Incubator".
+
+It has no VIDEO blocks and no STRUCTURED list.
+
+| Board slot | Source |
+|---|---|
+| Standfirst | IDS paragraph 1 ("“The India Report” was submitted…"), §69's `firstTextBlock` rule. The board's is a shorter paraphrase of the same sentence |
+| IDS body | IDS paragraphs 2–6 (`afterIntro`). 2–4 are the board's hidden full text verbatim; 5–6 (how a project runs, students on IDS projects) are the CMS's alone and render behind "See more". TODO(review) |
+| IDS column 4 | the FAQ PDF (`linkBlocks`), then the four IDS contacts |
+| Film tiles and Completed Projects | "IDS Resources", in CMS order with CMS labels (below) |
+
+- **The rail** is the fixture's: sitemap.json's five, by their titles, all unbuilt and so
+  unlinked rows (`KEEP_UNBUILT`). TODO(designer): the board adds "Clients of NID IDS", which has
+  no sitemap entry (the CMS's clients list is a PDF in IDS Resources), and says "Continuing
+  Education Programme".
+- **CEP and NDBI.** "Continuing Education Programme" and "National Design Business Incubator" are
+  not on the board. They are not rendered (sections are opt-in, §78) and are logged as unused.
+  TODO(designer).
+- **Children:** `integrated-design-services` repeats IDS and IDS Resources;
+  `continuing-education-programme` exists; NDBI, Outreach and Ongoing Projects have no document.
+- **Requests:** one more document per LIVE build, plus three file checks (§76), one per PDF:
+  **233 → 237 distinct**, fetched == distinct. Floor: `consulting-and-entrepreneurship`, 4
+  sections.
+
+### Films: a links section, not tiles
+
+The board draws "The IDS film" and "Film on Outreach" as Thumb tiles. The CMS has them as LINK
+blocks to YouTube, with no thumbnail, in a section of their own beside two PDFs: "List of IDS
+Clients, NID, Ahmedabad" and "Completed Projects".
+
+A cards item can only be a Page, and a film tile with no thumbnail is an empty box. So "IDS
+Resources" is a `links` section (§76's pattern, `linkBlocks` on a links section), with its CMS
+title, its own separator, and its rows in CMS order:
+- the films as external links (↗, new tab);
+- the PDFs as document links (file glyph, new tab, each HEAD-checked).
+
+LinksSection's default `flow` layout gives one link per content column: at 1440, three on the
+title row and the fourth below. FIXTURE carries the two films (copies of the CMS's URLs) and not
+the PDFs: a CMS file is never a hard-coded URL in a fixture (§76). TODO(designer): tiles on the
+board, links on the page. Backend ask: a video card with a thumbnail.
+
+**Completed Projects** is not rendered. The CMS has no project list, only the PDF, and the board's
+two tiles were research centres, which is filler. "All projects" points at `/consulting/projects`,
+which the sitemap calls "Ongoing Projects" (label and target disagree) and which is unbuilt, so
+the gate drops it. Backend asks: a projects list, if they should be tiles; which list "All
+projects" means.
+
+### Contacts by section
+
+The document's seven contacts are page-level. Four are labelled "Integrated Design Services",
+"Integrated Design Services (Outreach)" or "Integrated Design Services (Direct)"; three are
+labelled "Continuing Education Programme".
+
+`PageMergeConfig.contactsTo: "sections"` sends each contact to the section its label names: the
+label is the section's title, or the title followed by " (…)". Exact, like `textTitle`, with no
+fuzzy matching. A contact no section claims is dropped with a `[cms]` line of its own:
+`[cms] /consulting: contact dropped — "Continuing Education Programme" cep@nid.edu: no section on
+the page is titled so`. Three such lines today.
+
+The fixture's IDS section carries copies of the four IDS contacts, so FIXTURE and LIVE agree.
+`SourceLog.lines` is new: lines getPage prints on their own, one event each. Backend ask:
+contacts per section.
+
+In column 4 the FAQ link and the contacts **stack**, links first, then contacts. That is
+TextSection's one utility cell (`flex flex-col gap-6`); nothing is displaced. At 1440 they sit on
+the title row; at 1024 in column 2 under the body (§73's utility rule); below that, after the
+body.
+
+### Phone numbers that are not one number
+
+`contactCta` now returns null, and so plain text with its label, for a value with a trunk 0 after
+the country code: `/^\+\d{1,3}\s*0/`, as in "+91 079 26623 996". Before this change that value
+became `tel:+9107926623996`, a number that does not exist. The value is never rewritten. "+91 079
+26629 764/765/766/768/771" was already plain text: the "/" fails the phone pattern, and five
+numbers cannot be one link. Of the board's values, the CMS has "(Direct)" in the label, not the
+value, and one combined row where the board draws "764" and "764 / 66 / 68 / 71". CMS first.
+TODO(review). Backend ask: one dialable number per value, no trunk 0 after +91. R shows no other
+contact on the site changed (no existing value has the shape).
+
+### Hero
+
+The CMS's hero 1 renders: a collage of client logos (NOTA, CIPET, IIT Tirupati, NIT Sikkim), not
+a photograph. Its alt text, "Consulting & Entrepreneurship, National Institute of Design", names
+the page, not the image. At 390 the template's 4:3 crop cuts the NOTA logo at the left edge.
+TODO(review): content and crop. Backend ask: alt text that describes it. It is the editor's
+choice, so it is not refused. The board's hero, the /research photo, is never used here (§79's
+rule).
+
+### The gate, hrefs, back link
+
+- `/consulting` joins `BUILT_ROUTES` and `KEEP_UNBUILT`.
+- `UNLISTED_PAGES` names it, so a back link can.
+- `PATH_BY_CMS_SLUG` maps `consulting-and-entrepreneurship`.
+- **No href changed anywhere:** nothing linked `/consulting`. The FIXTURE menu title is not a
+  link, and the CMS's navigation has no Consulting entry.
+- Mocked with `/consulting/projects` built: its rail row links and nothing else changes. There is
+  no "All projects" to appear.
+
+### Board drift (TODO(designer))
+
+- The rail: six rows vs five; "Programme".
+- No separator before the first section on the board; the template draws one before every
+  section.
+- Film tiles vs a links section.
+- The Completed Projects section.
+- ↗ on the board's email rows; the ContactList style draws none (§78).
+- The hero is the /research photo on the board.
+- At 3 columns, column 4's links and contacts sit under the body (utility rule, §73).
+
+### R, A, C, E, Playwright
+
+**R:**
+- FIXTURE: every existing page identical (82 of 82 files); `/en/consulting` is new and builds as
+  `●`.
+- LIVE: every existing page identical (172 of 172, §77's rule). Build 138s with 14 rate-limit
+  retries, against HEAD's 140s with 11; floors 48/0.
+
+**A** (FIXTURE):
+- title;
+- 5 unlinked rail rows;
+- the hero (the CMS's copy);
+- the standfirst;
+- IDS: 8-line clamp, "See more", the four contacts in column 4 (both "+91 079" values as plain
+  text);
+- IDS Resources: two films;
+- separators by the template rule (3).
+
+**C** (LIVE):
+- the same, plus the FAQ above the contacts and the two PDFs as document rows;
+- `[cms]` lines: three dropped contacts; unused CEP and NDBI.
+
+**E** (copies, deleted after):
+
+| Mock | Result |
+|---|---|
+| No films | the PDFs remain |
+| No Completed Projects PDF | one row fewer |
+| No resources | the section and its separator go (3 → 2) |
+| No contacts | column 4 is the FAQ alone |
+| No contacts and no links | no column-4 cell |
+| No hero | the page closes up |
+| A project list of 3 | not applicable: there is no project model; a STRUCTURED list would be an unused section until a rule names it |
+
+**Playwright,** FIXTURE and LIVE, at 1440 / 1024 / 768 / 390:
+- the title and "Integrated Design Services" take 2 lines at 1440 and 1024;
+- the rail sits beside the hero at 1024 and up;
+- "See more" opens, and without JavaScript no button shows and the text is whole;
+- no overflow, including the long contact and PDF rows at 390;
+- tab order: "See more", FAQ, the two emails, the films, the PDFs; rail rows are not focusable.

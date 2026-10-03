@@ -172,8 +172,13 @@ export interface PageMergeConfig {
   sectionImages?: true;
   /** The page field the document's `contacts` feed. `contacts` by default;
    *  `keyInfo` for a page whose rail block beside the hero is the model's
-   *  key info rather than a first section's contacts. */
-  contactsTo?: "contacts" | "keyInfo";
+   *  key info rather than a first section's contacts. `sections`: each contact
+   *  goes to the section its label names — the label IS the section's title, or
+   *  is the title followed by " (…)" ("Integrated Design Services (Direct)") —
+   *  and replaces that section's contacts; a contact no section claims is
+   *  dropped, one log line each. Exact, like textTitle: no fuzzy matching, so
+   *  an editor's renamed label drops the contact, loudly (§80). */
+  contactsTo?: "contacts" | "keyInfo" | "sections";
   /** A template's typed `detail` record ("Campus Detail"), turned into key-info
    *  values and ordinary sections HERE, so nothing past the adapter knows it
    *  exists. */
@@ -225,6 +230,8 @@ export function detailSections(rules: DetailRules | undefined): Set<string> {
 }
 
 export interface SourceLog {
+  /** Lines getPage prints on their own, one event each. */
+  lines?: string[];
   api: string[];
   appended: string[];
   static: string[];
@@ -378,7 +385,9 @@ export function toPageResponse(
 
   const contacts = api.contacts ?? [];
   const contactsTo = config.contactsTo ?? "contacts";
-  if (contacts.length) {
+  if (contactsTo === "sections") {
+    // Matched to the sections below, once they are merged.
+  } else if (contacts.length) {
     // The API's contacts replace the fixture's email and phone rows, in their
     // place; any other row (a key-info fact, a document link) stays. All of a
     // page's `contacts` are email/phone, so there it is a plain replacement.
@@ -864,6 +873,21 @@ export function toPageResponse(
         .flatMap((s) => [s, ...(appendedAfter.get(s.id) ?? [])])
         .map((s, i) => ({ ...s, order: i + 1 }))
     : sections;
+
+  if (contactsTo === "sections") {
+    const owner = (label: string) =>
+      page.sections.find((s) => s.title && (label === s.title || label.startsWith(`${s.title} (`)));
+    const claimed = new Map<string, LabelValue[]>();
+    for (const { label, value } of contacts) {
+      const section = owner(label.trim());
+      if (section) claimed.set(section.id, [...(claimed.get(section.id) ?? []), { label, value }]);
+      else (log.lines ??= []).push(`contact dropped — "${label}" ${value}: no section on the page is titled so`);
+    }
+    if (claimed.size) {
+      page.sections = page.sections.map((s) => (claimed.has(s.id) ? { ...s, contacts: claimed.get(s.id)! } : s));
+      log.api.push(`contacts(${[...claimed.values()].flat().length} to sections)`);
+    } else log.static.push(contacts.length ? "contacts(none claimed by a section)" : "contacts(api empty)");
+  }
 
   // The document carries no parent or sibling relationship, so a secondary
   // page's back-nav and sibling band are always the fixture's.

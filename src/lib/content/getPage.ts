@@ -50,6 +50,7 @@ import { STUDY_LIFE_AT_NID } from "@/lib/content/fixtures/study-life-at-nid";
 import { STUDY_NOTIFICATIONS } from "@/lib/content/fixtures/study-notifications";
 import { STUDY_YOUNG_DESIGNERS } from "@/lib/content/fixtures/study-young-designers";
 import { RESEARCH } from "@/lib/content/fixtures/research";
+import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { RESEARCH_CENTRE_PAGES, RESEARCH_CENTRE_SLICES } from "@/lib/content/fixtures/research-centres";
 import { RESEARCH_CHILDREN, researchPath, type ResearchCentre } from "@/lib/content/research-centres";
 import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
@@ -80,6 +81,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/study/notifications": STUDY_NOTIFICATIONS,
   "/study/young-designers": STUDY_YOUNG_DESIGNERS,
   "/research": RESEARCH,
+  "/consulting": CONSULTING,
   ...Object.fromEntries(
     Object.entries(RESEARCH_CENTRE_PAGES).map(([slug, response]) => [researchPath(slug), response]),
   ),
@@ -447,6 +449,23 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     },
   },
   ...researchCentreConfigs(),
+  // The fifth primary page (STAGE-0-NOTES §80). The CMS's "Integrated Design
+  // Services" is the standfirst (its paragraph 1, §69's rule) and the IDS body
+  // (the rest, with its FAQ PDF as a CTA); "IDS Resources" — two films, the
+  // clients list and the completed projects (PDFs) — is a links section in CMS
+  // order. Each contact goes to the section its label names; the Continuing
+  // Education Programme's three are dropped and logged. "Continuing Education
+  // Programme" and "National Design Business Incubator" are not on the board:
+  // unused, logged. TODO(designer): both; backend — contacts per section.
+  "/consulting": {
+    slug: "consulting-and-entrepreneurship",
+    subPagesKey: "static",
+    contactsTo: "sections",
+    sections: {
+      "section-consulting-ids": { textTitle: "Integrated Design Services", afterIntro: true, linkBlocks: true },
+      "section-consulting-resources": { textTitle: "IDS Resources", linkBlocks: true },
+    },
+  },
 };
 
 /** The research centres (§79), one config each, from the fixture's slices: every
@@ -610,7 +629,7 @@ export type PageData = PageResponse & { railLinks?: RailLink[] };
 // designed but unbuilt reads as broken with an empty rail (§69), and its
 // "Read more" pointers to those children are the same records (§73). Every
 // other page still drops an unbuilt link (§58).
-const KEEP_UNBUILT = new Set(["/programmes", "/study", "/research"]);
+const KEEP_UNBUILT = new Set(["/programmes", "/study", "/research", "/consulting"]);
 
 // Pages whose sibling band keeps an unbuilt sibling as an unlinked row: Study at
 // NID's children, read from its own rail — the band of a landing whose children
@@ -681,6 +700,7 @@ export const getPage = cache(async (path: string): Promise<PageData | null> => {
   });
   if (merged) {
     const { sources } = merged;
+    for (const line of sources.lines ?? []) console.info(`[cms] ${path}: ${line}`);
     console.info(
       `[cms] ${path}: api=${sources.api.join(",") || "none"}` +
         (sources.appended.length ? ` · appended=${sources.appended.join(",")}` : "") +

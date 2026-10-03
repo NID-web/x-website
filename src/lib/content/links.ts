@@ -26,6 +26,7 @@ export const BUILT_ROUTES = [
   "/about/news-events/[slug]",
   "/about/our-themes",
   "/about/student-awards",
+  "/consulting",
   "/events/[slug]",
   "/programmes",
   "/programmes/bdes",
@@ -131,6 +132,7 @@ export function ctaProps(link: Link): ResolvedCta | null {
 //   contains "@"            email  -> mailto:, NO icon (NID-CONTEXT §7.1)
 //   leading "+" or digits   phone  -> tel:,    NO icon
 //   … that, then "Ext. 115" phone  -> tel:…;ext=115 (RFC 3966), NO icon (§79)
+//   "+91 079 …" (trunk 0)    phone  -> NULL, plain text: not dialable (§80)
 //   "/…​.pdf"                document -> leading file glyph, trailing arrow, new tab
 //   leading "/"             page   -> trailing arrow, locale-prefixed
 //
@@ -143,6 +145,9 @@ export function contactCta(contact: LabelValue): ResolvedCta | null {
   if (value.includes("@") && !value.startsWith("/")) {
     return { label: value, href: `mailto:${value}`, icon: "none" };
   }
+  // A trunk 0 after the country code ("+91 079 …") is not a dialable
+  // international number, and the value is never rewritten: plain text (§80).
+  if (/^\+\d{1,3}\s*0/.test(value)) return null;
   if (/^\+?[\d\s()-]{6,}$/.test(value)) {
     return { label: value, href: `tel:${value.replace(/[\s()-]/g, "")}`, icon: "none" };
   }
