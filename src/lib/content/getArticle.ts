@@ -1,8 +1,8 @@
-// The article seam, /about/news-events/[slug] and /events/[slug] — the routes
-// where the CMS owns page STRUCTURE (STAGE-0-NOTES §59, §68). One projection
-// for both: news items build under the first, events and workshops under the
-// second (itemPath in pages.ts). Every other page merges the API over a
-// fixture that decides which sections exist (page-adapter.ts); an article is a
+// The article seam, /about/news-events/[slug] — the route where the CMS owns
+// page STRUCTURE (STAGE-0-NOTES §59, §68). News, events and workshops all build
+// there (itemPath in pages.ts); an event keeps the event layout, decided by its
+// type, not its URL. There is no /events route (§85). Every other page merges
+// the API over a fixture that decides which sections exist (page-adapter.ts); an article is a
 // collection item with no board of its own, so its sections, their order, titles
 // and count are the document's. The boards are the layout contract only.
 //
@@ -33,10 +33,7 @@ import { routeTitle } from "@/lib/nav-content";
 import { normalise } from "@/lib/nav-trail";
 
 export const NEWS_ROUTE = "/about/news-events/[slug]";
-export const EVENTS_ROUTE = "/events/[slug]";
-export type ArticleRoute = typeof NEWS_ROUTE | typeof EVENTS_ROUTE;
 const PARENT = normalise(pathOf(PAGE_ID.newsEvents) ?? "/about/news-events");
-const BASE: Record<ArticleRoute, string> = { [NEWS_ROUTE]: PARENT, [EVENTS_ROUTE]: pathOf(PAGE_ID.events)! };
 /** The listing document whose items are the articles the site links to. */
 const FEED_SLUG = "news-events";
 /** A slug that can be one URL segment as-is. The CMS derives slugs from titles
@@ -129,11 +126,12 @@ export function listedItems(): Promise<Listed> {
   return (listed ??= loadListed());
 }
 
-/** One page either route builds: the CMS record it renders, and/or the fixture
- *  that stands in when that record's document does not arrive. */
+/** One page the route builds: the CMS record it renders, and/or the fixture
+ *  that stands in when that record's document does not arrive. `event` picks
+ *  the event layout (an event or workshop record, or an event fixture). */
 interface Entry {
   slug: string;
-  route: ArticleRoute;
+  event: boolean;
   card?: CardRef;
   fixture?: ArticleFixture;
 }
@@ -144,12 +142,11 @@ interface Feed {
   /** Routable list-endpoint items the document does not carry; built so the
    *  archive can link them, never "More news" siblings. */
   listedOnly: Map<string, CardRef>;
-  /** Every page either route builds, by its full path. */
+  /** Every page the route builds, by its full path. */
   pages: Map<string, Entry>;
-  /** Every other URL that builds, as a 308 to its page: an event's old
-   *  /about/news-events/ URL, an event's CMS-slug path where sitemap.json names
-   *  a short one, a same-story duplicate, a fixture slug the CMS serves under
-   *  its own (§63, §68). */
+  /** Every other URL that builds, as a 308 to its page: an event's CMS-slug
+   *  path where sitemap.json names a short one, a same-story duplicate, a
+   *  fixture slug the CMS serves under its own (§63, §68). */
   redirects: Map<string, string>;
   dropped: string[];
   /** Records that are another record's story (SAME_STORY), so no page. */
@@ -160,8 +157,8 @@ interface Feed {
 // /about/news-events comes from it, and it alone orders "More news". The
 // archive lists more — every news, event and workshop item the list endpoints
 // serve — so their non-calendar items are built too (STAGE-0-NOTES §66); a
-// calendar entry is not an article and nothing links one. Events and workshops
-// build under /events, news under /about/news-events (itemPath, §68).
+// calendar entry is not an article and nothing links one. News, events and
+// workshops share /about/news-events (itemPath, §85), one slug namespace.
 //
 // Memoised per PROCESS, not per render (react `cache`): every article page and
 // every gate needs the same list, and one request per page would spend the
@@ -171,13 +168,11 @@ interface Feed {
 let feed: Promise<Feed> | undefined;
 
 const typeOf = (card: CardRef) => card.contentType?.key;
-const routeOfType = (type: string | undefined): ArticleRoute => (isEventType(type) ? EVENTS_ROUTE : NEWS_ROUTE);
 
 /** Why a record cannot have a page, or null when it can. */
-function refusal(slug: string, type: string | undefined): string | null {
-  const path = itemPath(slug, type);
-  const base = BASE[routeOfType(type)];
-  if (!path.startsWith(`${base}/`) || path.slice(base.length + 1).includes("/")) return `routes to ${path}`;
+function refusal(slug: string): string | null {
+  const path = itemPath(slug);
+  if (!path.startsWith(`${PARENT}/`) || path.slice(PARENT.length + 1).includes("/")) return `routes to ${path}`;
   if (!SEGMENT.test(slug)) return "not a URL segment";
   // A named page under the listing — `archive` is one — is a static segment
   // beside [slug]. Next would prefer the static page anyway; refusing here
@@ -197,7 +192,7 @@ async function loadFeed(): Promise<Feed> {
     if (section.type !== "STRUCTURED") continue;
     for (const item of section.items ?? []) {
       if (bySlug.has(item.slug)) continue;
-      const reason = refusal(item.slug, typeOf(item));
+      const reason = refusal(item.slug);
       if (reason) {
         dropped.push(`${item.slug} (${reason})`);
         continue;
@@ -210,7 +205,7 @@ async function loadFeed(): Promise<Feed> {
     if (bySlug.has(item.slug)) continue;
     // Built only so the archive can link it, and the archive has no year for
     // an undated item — so it would be a page nothing links to.
-    const reason = item.publishedAt ? refusal(item.slug, typeOf(item)) : "no publishedAt, not in the archive";
+    const reason = item.publishedAt ? refusal(item.slug) : "no publishedAt, not in the archive";
     if (reason) {
       dropped.push(`${item.slug} (${reason}, listed)`);
       continue;
@@ -229,46 +224,45 @@ async function loadFeed(): Promise<Feed> {
   const records = [...items, ...listedOnly.values()];
   // Canonical records first, so a same-story duplicate never claims the page.
   for (const card of [...records.filter((c) => !SAME_STORY[c.slug]), ...records.filter((c) => SAME_STORY[c.slug])]) {
-    const type = typeOf(card);
-    const path = itemPath(card.slug, type);
-    if (pages.has(path)) duplicates.push(`${card.slug} → ${path}`);
-    else pages.set(path, { slug: card.slug, route: routeOfType(type), card });
-    if (isEventType(type)) {
-      // Its URL before events moved (built until §68), and its own CMS slug
-      // under /events where the page is a short path or another record's.
-      for (const from of [articlePath(card.slug), `${BASE[EVENTS_ROUTE]}/${card.slug}`]) {
-        if (from !== path) redirects.set(from, path);
-      }
-    }
+    const path = itemPath(card.slug);
+    const holder = pages.get(path);
+    if (holder) {
+      // News and events share one slug namespace (§85). A same-story record is
+      // expected here; any other is two records claiming one URL, and the first
+      // (the listing document's, newest first) keeps it.
+      if (SAME_STORY[card.slug]) duplicates.push(`${card.slug} → ${path}`);
+      else dropped.push(`${card.slug} (collides with ${holder.slug} at ${path})`);
+    } else pages.set(path, { slug: card.slug, event: isEventType(typeOf(card)), card });
+    // Its own CMS-slug URL where the page is a short path or another record's.
+    const own = articlePath(card.slug);
+    if (own !== path) redirects.set(own, path);
   }
   // A fixture stands in for its record, or is the page where there is none. One
   // whose story the CMS serves under another slug is a 308 there instead: the
   // fixture path is still linked from outside (§63).
-  const fixtures: Array<[string, ArticleFixture, string]> = [
-    ...Object.entries(ARTICLES).map(([slug, response]) => [slug, { response }, "news"] as [string, ArticleFixture, string]),
-    ...Object.entries(EVENT_ARTICLES).map(([slug, f]) => [slug, f, "workshop"] as [string, ArticleFixture, string]),
+  const fixtures: Array<[string, ArticleFixture, boolean]> = [
+    ...Object.entries(ARTICLES).map(([slug, response]) => [slug, { response }, false] as [string, ArticleFixture, boolean]),
+    ...Object.entries(EVENT_ARTICLES).map(([slug, f]) => [slug, f, true] as [string, ArticleFixture, boolean]),
   ];
-  for (const [slug, fixture, type] of fixtures) {
-    const path = itemPath(slug, type);
+  for (const [slug, fixture, event] of fixtures) {
+    const path = itemPath(slug);
     const cms = ARTICLE_CMS_SLUG[slug];
     const record = cms ? (bySlug.get(cms) ?? listedOnly.get(cms)) : undefined;
     if (record) {
-      redirects.set(path, itemPath(record.slug, typeOf(record)));
+      redirects.set(path, itemPath(record.slug));
       continue;
     }
     const entry = pages.get(path);
     if (entry) entry.fixture = fixture;
-    else pages.set(path, { slug, route: routeOfType(type), fixture });
+    else pages.set(path, { slug, event, fixture });
   }
   for (const path of pages.keys()) redirects.delete(path);
 
-  for (const route of [NEWS_ROUTE, EVENTS_ROUTE] as const) {
-    const base = `${BASE[route]}/`;
-    registerBuiltParams(
-      route,
-      [...pages.keys(), ...redirects.keys()].filter((p) => p.startsWith(base)).map((p) => p.slice(base.length)),
-    );
-  }
+  const base = `${PARENT}/`;
+  registerBuiltParams(
+    NEWS_ROUTE,
+    [...pages.keys(), ...redirects.keys()].filter((p) => p.startsWith(base)).map((p) => p.slice(base.length)),
+  );
   return { items, listedOnly, pages, redirects, dropped, duplicates };
 }
 
@@ -279,11 +273,12 @@ export function articleFeed(): Promise<Feed> {
   return (feed ??= loadFeed());
 }
 
-/** generateStaticParams' slugs for one route — its pages and its 308s — with
- *  the one summary line for the build. */
-export async function articleSlugs(route: ArticleRoute): Promise<string[]> {
+/** generateStaticParams' slugs — the route's pages and its 308s — with the one
+ *  summary line for the build. */
+export async function articleSlugs(): Promise<string[]> {
+  const route = NEWS_ROUTE;
   const { items, listedOnly, pages, redirects, dropped, duplicates } = await articleFeed();
-  const base = `${BASE[route]}/`;
+  const base = `${PARENT}/`;
   const own = [...pages].filter(([p]) => p.startsWith(base));
   const moves = [...redirects].filter(([p]) => p.startsWith(base));
   const fromFeed = own.filter(([, e]) => e.card && items.includes(e.card)).length;
@@ -301,8 +296,9 @@ export async function articleSlugs(route: ArticleRoute): Promise<string[]> {
   console.info(
     `[cms] ${route}: ${own.length} pages — ${fromFeed} from the api feed, ${fromLists} from the list endpoints only, ` +
       `${fixtureOnly} fixture-only · ${moves.length} redirecting${moves.length ? ` (${moves.map(([f, t]) => `${f} → ${t}`).join(", ")})` : ""}` +
-      (route === EVENTS_ROUTE && duplicates.length ? ` · same story, no page: ${duplicates.join(", ")}` : "") +
-      (route === NEWS_ROUTE ? ` · dropped ${dropped.length} (no path)${dropped.length ? `: ${dropped.join(", ")}` : ""}` : ""),
+      ` · ${own.filter(([, e]) => e.event).length} of them events` +
+      (duplicates.length ? ` · same story, no page: ${duplicates.join(", ")}` : "") +
+      ` · dropped ${dropped.length}${dropped.length ? `: ${dropped.join(", ")}` : ""}`,
   );
   return [...own, ...moves].map(([p]) => p.slice(base.length));
 }
@@ -437,7 +433,7 @@ function toArticle(
   t: (key: ArticleKey) => string,
   locale: string,
   log: Log,
-  route: ArticleRoute,
+  event: boolean,
 ): ArticleResponse {
   const pageId = `article-${api.slug}`;
   const detail = readDetail(api);
@@ -448,7 +444,7 @@ function toArticle(
   const keyInfo: LabelValue[] = [];
   const published = api.publishedAt ?? card?.publishedAt ?? null;
   const contacts = api.contacts ?? [];
-  if (route === EVENTS_ROUTE) {
+  if (event) {
     // An event's rail is its own dates: a schedule's date and venue, or a
     // workshop's milestones and symposium. publishedAt is the ANNOUNCEMENT
     // (A2), never an event's date, so no fallback to it: no data, no row.
@@ -546,8 +542,8 @@ function toArticle(
   if (fromSections) log.api.push(`sections(${fromSections})`);
 
   // The typed detail's links (apply, registration, live stream) are the rail's
-  // filled buttons, in that order, and nowhere else (§68). Before events had
-  // their own route they were the first section's column-4 links.
+  // filled buttons, in that order, and nowhere else (§68), not the first
+  // section's column-4 links.
   const railLinks = RAIL_LINK_ORDER.flatMap((key) => detail.links.filter((l) => l.key === key));
   if (railLinks.length) log.api.push(`railLinks(${railLinks.map((l) => l.key).join(",")})`);
   if (!sections.some((s) => s.links.length)) log.absent.push("sectionLinks(A4)");
@@ -564,14 +560,14 @@ function toArticle(
       id: pageId,
       title,
       slug: api.slug,
-      parent: route === EVENTS_ROUTE ? PAGE_ID.events : PAGE_ID.newsEvents,
+      parent: PAGE_ID.newsEvents,
       template: "secondary",
-      utility: route === EVENTS_ROUTE ? "none" : "back",
+      utility: event ? "none" : "back",
       keyInfo,
       hero: heroes,
       ...(intro ? { intro } : {}),
       sections: sections.map((s, i) => ({ ...s, order: i + 1 })),
-      contacts: route === EVENTS_ROUTE ? contacts.map(({ label, value }) => ({ label, value })) : [],
+      contacts: event ? contacts.map(({ label, value }) => ({ label, value })) : [],
       ...(seoTitle ? { seoTitle } : {}),
       ...(seoDescription ? { seoDescription } : {}),
       publishedAt: published,
@@ -596,14 +592,19 @@ export async function articleRedirect(path: string): Promise<string | undefined>
   return (await articleFeed()).redirects.get(path);
 }
 
+/** Whether the page at `path` is an event (event layout) — false for a news
+ *  article, undefined for a path the route does not build as a page. */
+export async function isEventArticle(path: string): Promise<boolean | undefined> {
+  return (await articleFeed()).pages.get(path)?.event;
+}
+
 /** One article or event page, by its full path, as the renderer consumes it —
- *  or null for a path neither route builds as a page (unknown, or a 308). */
+ *  or null for a path the route does not build as a page (unknown, or a 308). */
 export const getArticle = cache(async (path: string): Promise<ArticleResponse | null> => {
   const index = await articleFeed();
   const entry = index.pages.get(path);
   if (!entry) return null;
-  const { card, fixture, route } = entry;
-  const events = route === EVENTS_ROUTE;
+  const { card, fixture, event: events } = entry;
 
   // Only a record the feed or lists carry is asked for: a fixture-only page has
   // no document to fetch, and asking would print a 404 warning on every build.
@@ -615,7 +616,7 @@ export const getArticle = cache(async (path: string): Promise<ArticleResponse | 
   let response: ArticleResponse;
   let source: string;
   if (api) {
-    response = toArticle(api, card, t, locale, log, route);
+    response = toArticle(api, card, t, locale, log, events);
     source = fixture ? "fixture=replaced" : "fixture=none";
   } else if (fixture) {
     response = { ...fixture.response, railLinks: fixture.railLinks ?? [] };
@@ -630,7 +631,7 @@ export const getArticle = cache(async (path: string): Promise<ArticleResponse | 
       t,
       locale,
       log,
-      route,
+      events,
     );
     source = "listing card only (api document unavailable)";
   }
@@ -638,8 +639,9 @@ export const getArticle = cache(async (path: string): Promise<ArticleResponse | 
   let derived: PageResponse["derived"];
   let next: CardRef | undefined;
   if (events) {
-    // No fixed back link and no sibling band: /events has no landing to go
-    // back to, so the page uses the session-trail link (BackNav) instead (§68).
+    // No fixed back link and no sibling band: an event is reached from Home,
+    // the menu and the archive, so the page uses the session-trail link
+    // (BackNav), falling back to News & Events (§68, §85).
     derived = { ...response.derived, backNav: null, siblingBand: [] };
   } else {
     // "More news": one sibling and the listing. A fixture keeps the sibling its
@@ -650,7 +652,7 @@ export const getArticle = cache(async (path: string): Promise<ArticleResponse | 
     // canonical path so "More news" costs no extra hop.
     const canonical = (href: string) => index.redirects.get(href) ?? href;
     const sibling = next
-      ? [{ id: `article-${next.slug}`, title: next.title, href: itemPath(next.slug, typeOf(next)) }]
+      ? [{ id: `article-${next.slug}`, title: next.title, href: itemPath(next.slug) }]
       : response.derived.siblingBand.map((s) => ({ ...s, href: canonical(s.href) }));
     const all = { id: PAGE_ID.newsEvents, title: t("allNews"), href: PARENT };
     // A5: a document has no parent, so the back link is the route's own parent,

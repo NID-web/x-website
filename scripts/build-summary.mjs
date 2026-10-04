@@ -117,6 +117,15 @@ if (mode === "live") {
   line(`FLOORS     ${floors.size} checked, ${shortFloors.length} short`);
   for (const f of shortFloors) line(`   ✗ ${f.what}: expected ≥ ${f.expected}, got ${f.got}`);
 }
+// The header menu's source (getSiteChrome.ts). A CMS menu replaces the static
+// one whole, and its missing sections are not filled in from it (§85).
+const menu = events.findLast((e) => e.t === "menu");
+if (menu) {
+  line(
+    `MENU       ${menu.source === "cms" ? "CMS" : "static"}, ${menu.sections} sections` +
+      (menu.lacks.length ? `; lacks ${menu.lacks.join(", ")} (CMS NavItem has no URL field)` : ""),
+  );
+}
 line(`GATE       ${withheld} links withheld by the route gate across ${gates.size} pages`);
 const worst = [...gates.values()].filter((g) => g.unlinked + g.dropped).sort((a, b) => b.unlinked + b.dropped - (a.unlinked + a.dropped)).slice(0, 4);
 if (worst.length) line(`           most: ${worst.map((g) => `${g.page} ${g.unlinked + g.dropped}`).join(" · ")}`);

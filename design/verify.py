@@ -133,7 +133,7 @@ for bp, ref in (("desktop",1440), ("laptop",1024), ("tablet",768), ("mobile",390
           f"ref={ref} margin={m} content={content} cols={n}x{cw} gap={gap}")
 
 check("sitemap has 13 sections", len(site["sections"]) == 13, str(len(site["sections"])))
-check("sitemap records 8 open decisions", len(site["openDecisions"]) == 8, str(len(site["openDecisions"])))
+check("sitemap records 7 open decisions", len(site["openDecisions"]) == 7, str(len(site["openDecisions"])))
 
 print("PASS %d" % len(OK))
 for f in FAIL: print("  FAIL:", f)

@@ -240,12 +240,12 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-news-2026": { structuredKey: "news", nth: 2, slugUnderParent: true },
       // section-news-archive: a links section, and sections have no link model (A4).
     },
-    // Events and workshops open their page under /events (sitemap.json's 09
-    // Events, STAGE-0-NOTES §68); getArticle.ts builds exactly this document's
-    // items, each under its own route.
+    // Events and workshops open their page under /about/news-events, as news
+    // does (there is no /events route, STAGE-0-NOTES §85); getArticle.ts builds
+    // exactly this document's items.
     appendSections: [
-      { id: "section-news-events", structuredKey: "event", after: "section-news-2026", itemParent: PAGE_ID.events, slugUnderParent: true },
-      { id: "section-news-workshops", structuredKey: "workshop", after: "section-news-2026", itemParent: PAGE_ID.events, slugUnderParent: true },
+      { id: "section-news-events", structuredKey: "event", after: "section-news-2026", itemParent: PAGE_ID.newsEvents, slugUnderParent: true },
+      { id: "section-news-workshops", structuredKey: "workshop", after: "section-news-2026", itemParent: PAGE_ID.newsEvents, slugUnderParent: true },
     ],
   },
   "/about/our-themes": {

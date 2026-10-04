@@ -19,7 +19,7 @@ import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import { yearInIndia } from "@/lib/content/format";
 import { LISTED_TYPES, articleFeed, listedItems } from "@/lib/content/getArticle";
 import { cardHref } from "@/lib/content/links";
-import { PAGE_ID, SAME_STORY, isEventType, itemPath, pathOf } from "@/lib/content/pages";
+import { PAGE_ID, SAME_STORY, itemPath, pathOf } from "@/lib/content/pages";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { ARCHIVE_SECTION, NEWS_ARCHIVE } from "@/lib/content/fixtures/news-archive";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
@@ -44,7 +44,7 @@ const PARENT = normalise(pathOf(PAGE_ID.newsEvents)!);
 /** The listing's Archive row, whose year links are this page's years. */
 const LISTING_ARCHIVE_SECTION = "section-news-archive";
 
-const segmentOf = (item: CardRef) => itemPath(item.slug, item.contentType?.key).replace(/^.*\//, "");
+const segmentOf = (item: CardRef) => itemPath(item.slug).replace(/^.*\//, "");
 
 function toRow(item: CardRef & { publishedAt: string }): { row: Page; thumb: "ok" | "none" | string } {
   // Decorative, as Home's news rows: the headline sits beside the photo inside
@@ -55,10 +55,10 @@ function toRow(item: CardRef & { publishedAt: string }): { row: Page; thumb: "ok
     row: {
       id: `archive-${item.id}`,
       title: item.title,
-      // The row opens the item's page: events under /events, news under
-      // /about/news-events (itemPath, §68). The slug is that page's segment.
+      // The row opens the item's page, news or event, under
+      // /about/news-events (itemPath, §85). The slug is that page's segment.
       slug: segmentOf(item),
-      parent: isEventType(item.contentType?.key) ? PAGE_ID.events : PAGE_ID.newsEvents,
+      parent: PAGE_ID.newsEvents,
       template: "secondary",
       utility: "back",
       keyInfo: [],

@@ -18,7 +18,7 @@
 // Footer renders `t(link.labelKey)`, so an API label is stored under an
 // `api.*` key that the page's translator resolves first. No component changes.
 import { cache } from "react";
-import { assertFloor } from "@/lib/api/build-mode";
+import { assertFloor, report } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
 import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import {
@@ -171,10 +171,15 @@ export const getSiteChrome = cache(async (locale: string): Promise<SiteChrome> =
     fromApi.push(`menu(${apiMenu.length} sections, paths from slugs)`);
     if (dropped.length) notes.push(`menu dropped ${dropped.join(",")} (no route in sitemap.json)`);
     if (deeper.length) notes.push(`menu has no third level for ${deeper.join(",")}`);
+    // The static sections are NOT merged into a CMS menu: a NavItem has no URL
+    // field, so KMC's nid.edu rows could not be carried even if they were. The
+    // gap is reported once in the build summary's MENU line (§85).
     const lost = MENU_SECTIONS.filter((s) => !apiMenu.some((a) => a.title === s.title));
     if (lost.length) notes.push(`menu lacks ${lost.map((s) => s.id).join(",")}`);
+    report({ t: "menu", source: "cms", sections: apiMenu.length, lacks: lost.map((s) => s.id) });
   } else {
     fromStatic.push("menu(no header navigation)");
+    report({ t: "menu", source: "static", sections: menu.length, lacks: [] });
   }
 
   // ── footer link columns: one flat API list, split on a frontend tail ────

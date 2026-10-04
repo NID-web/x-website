@@ -4,6 +4,7 @@
 import type { MediaAsset } from "@/lib/content-model";
 import { mediaAsset } from "@/lib/media";
 import { ACADEMIC_CALENDAR } from "@/lib/content/academic-calendar";
+import { KMC } from "@/lib/kmc";
 
 /** A dotted key into the "Home" message namespace, e.g. "study.heading". */
 export type CopyKey = string;
@@ -124,7 +125,15 @@ export type HomeTile =
       avatars: MediaAsset[];
       cta?: HomeCta;
     })
-  | (Base & { kind: "spine"; headingKey: CopyKey; spines: string[]; href?: string });
+  | (Base & {
+      kind: "spine";
+      headingKey: CopyKey;
+      spines: string[];
+      href?: string;
+      /** An absolute URL on another site: opens in a new tab, and the route
+       *  gate leaves it alone. */
+      external?: boolean;
+    });
 
 const img = (file: string, alt: string, w = 800, h = 800) =>
   mediaAsset(`/home/${file}`, alt, w, h);
@@ -161,9 +170,12 @@ export const HOME_TILES: HomeTile[] = [
     id: "academic",
     kind: "calendar",
     overlineKey: "academic.overline",
-    // The list /study shows too (academic-calendar.ts).
+    // The list /study shows too (academic-calendar.ts), under its Academic
+    // Notifications section — so the CTA goes there. Not /study/notifications:
+    // that page lists the notification PDFs, not these rows (§76).
+    // TODO(designer): the board labels this CTA "All events".
     rows: ACADEMIC_CALENDAR.map(({ title, date }) => ({ label: title, date })),
-    cta: { labelKey: "cta.allEvents", href: "/events" },
+    cta: { labelKey: "cta.academicNotifications", href: "/study" },
   },
   {
     id: "news",
@@ -220,10 +232,10 @@ export const HOME_TILES: HomeTile[] = [
     titleKey: "drawing.title",
     date: "Oct 30 & 31 2026",
     labelPlacement: "below",
-    href: "/events/drawing-dialogues",
+    href: "/about/news-events/drawing-dialogues",
     flip: {
       bodyKey: "drawing.body",
-      cta: { labelKey: "cta.eventLink", href: "/events/drawing-dialogues" },
+      cta: { labelKey: "cta.eventLink", href: "/about/news-events/drawing-dialogues" },
     },
   },
   {
@@ -260,10 +272,10 @@ export const HOME_TILES: HomeTile[] = [
     titleKey: "callForPapers.title",
     date: "Feb 23 – 25 2027",
     labelPlacement: "below",
-    href: "/events/shifting-paradigms",
+    href: "/about/news-events/shifting-paradigms",
     flip: {
       bodyKey: "callForPapers.body",
-      cta: { labelKey: "cta.eventLink", href: "/events/shifting-paradigms" },
+      cta: { labelKey: "cta.eventLink", href: "/about/news-events/shifting-paradigms" },
     },
   },
   {
@@ -317,8 +329,9 @@ export const HOME_TILES: HomeTile[] = [
     id: "kmc",
     kind: "spine",
     headingKey: "kmc.heading",
-    // /kmc is "Knowledge Management Centre" in sitemap.json — the heading.
-    href: "/kmc",
+    // KMC is a separate project on nid.edu (src/lib/kmc.ts): its landing.
+    href: KMC.landing,
+    external: true,
     // Book titles displayed on the vertical spine shelf.
     spines: [
       "The India Report",

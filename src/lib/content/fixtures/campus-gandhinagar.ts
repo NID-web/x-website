@@ -3,6 +3,7 @@
 // 4119:227618, Workshops 4119:227627, and the seven Thumbs 4260:264455–503.
 import type { PageResponse } from "@/lib/content-model";
 import { PAGE_ID } from "@/lib/content/pages";
+import { KMC } from "@/lib/kmc";
 import {
   PUBLISHED,
   campusDerived,
@@ -46,12 +47,18 @@ export const CAMPUS_GANDHINAGAR: PageResponse = {
           "Knowledge Management Centre · Central workshop (wood / metal) · Laser cutting · CNC machine · 3D printing · Digital lab · Discipline-specific labs and studios",
           "Auditorium and amphi-theatre · Design Gallery · Innovation Centre for Natural Fibre (ICNF)",
         ],
-        // 4132:246852, column 4. Both are designed-but-unbuilt routes in
-        // sitemap.json and render as unlinked rows until those pages exist
-        // (STAGE-0-NOTES §58). The CMS's labAndFacilities list is a different
-        // four with no path on any record (T2), so these stay.
+        // 4132:246852, column 4. The CMS's labAndFacilities list is a different
+        // four with no path on any record (T2), so these stay. KMC is a separate
+        // project on nid.edu (§85): an external link to its landing. The
+        // Natural Fibre centre is a designed-but-unbuilt route in sitemap.json
+        // and renders as an unlinked row until its page exists (§58).
         [
-          pageLink("link-gandhinagar-kmc", "Knowledge Management Centre", PAGE_ID.kmc),
+          {
+            id: "link-gandhinagar-kmc",
+            label: "Knowledge Management Centre",
+            targetType: "external",
+            url: KMC.landing,
+          },
           pageLink(
             "link-gandhinagar-icnf",
             "Innovation Centre for Natural Fibre",

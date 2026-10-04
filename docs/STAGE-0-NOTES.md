@@ -5348,3 +5348,229 @@ without a named floor (§65). Naming the floors only says what the failure left 
   to the rate limit, or one limiter across processes, would shorten it; neither is done.
 - The summary's PAGES block prints the article feed's floor beside every `[slug]` route (the
   member pages, the research centres). That predates this change and is cosmetic.
+
+## 85. KMC is nid.edu's, and there is no /events route
+
+Two decisions from the design owner's lead, 4 Oct 2026:
+1. **KMC is a different project.** This site never builds `/kmc` or a child. Every KMC link opens
+   the existing nid.edu page, and `/kmc/*` redirects there.
+2. **There is no `/events` route.** `/about/news-events` is the page for news and events, and
+   every event article lives under it, at `/about/news-events/[slug]` beside the news. `/events`
+   is not redirected: only KMC is.
+
+A first pass the same day kept `/events/[slug]` and redirected `/events` to News & Events; that
+misread decision 2 and was reworked before commit (the last subsection, "/events removed"). The
+bullets and tables above it describe the KMC, SiteLink and calendar work, which stand.
+
+### Where KMC goes
+
+nid.edu's canonical host is `https://www.nid.edu`. Only `/academics/kmc` and
+`/academics/kmc/e-resources` exist there (other guessed paths 404); the landing has real ids
+`kmc_database`, `e_resources` and `guidelines`. "Design Classics Collection" and "Services" are
+paragraphs with no id, so they open the landing. One table, `src/lib/kmc.ts`, feeds the menu, the
+Home tile, the Gandhinagar row and the redirects.
+
+| sitemap path | opens |
+|---|---|
+| `/kmc`, `/kmc/design-classics`, `/kmc/services`, `/kmc/<anything else>` | https://www.nid.edu/academics/kmc |
+| `/kmc/database` | https://www.nid.edu/academics/kmc#kmc_database |
+| `/kmc/e-resources` | https://www.nid.edu/academics/kmc/e-resources |
+| `/kmc/guidelines` | https://www.nid.edu/academics/kmc#guidelines |
+
+Alpavirama is the festival's own site, https://alpavirama.nid.edu (200, no redirect).
+
+### What changed
+
+- **`SiteLink`** (`spine/SiteLink.tsx`) is Cta's internal-or-external branch, extracted: external →
+  `<a target="_blank" rel="noopener noreferrer">`, else the next-intl `Link`. Cta, MainMenu and
+  SpineTile render through it; there is no second hand-written `<a>`. It spreads its props rather
+  than re-passing them by name, and drops `prefetch` on an external `<a>`: a prop handed to the
+  client `Link` as `undefined` is still serialized (§70), so `prefetch={prefetch}` would have
+  changed every page's payload.
+- **Menu.** `NavLink` gains `external`. KMC keeps its section with four external rows; Events'
+  Alpavirama row is external. `routeTitle` skips external rows (the back link never names another
+  site). No glyph: `TODO(designer)` in nav-content.ts asks whether a row that leaves the site
+  should say so. Titles stay non-links.
+- **Home.** The KMC SpineTile's type gains `external`; `gateHome` passes it, so the gate leaves it
+  alone, and the heading is a `SiteLink` to the landing. The academic calendar tile's CTA was "All
+  events" → `/events` and withheld by the gate. The user asked for `/study/notifications` on
+  condition that page lists the same calendar rows; it does not (it lists six PDFs, §76), the rows
+  are `/study`'s Academic Notifications section (§73). So it is **"Academic notifications" →
+  `/study`** (`Home.cta.academicNotifications`, replacing the now-unused `allEvents`), with
+  `TODO(designer)`: the board labels it "All events".
+- **Gandhinagar.** The "Knowledge Management Centre" facilities row is a `Link` with `targetType:
+  "external"` to the landing (the model already has `url`; content-model.ts is not edited). It was
+  an unlinked row under the §58 exemption; it is a linked Cta now. `PAGE_ID.kmc` and its `/kmc`
+  path are gone from pages.ts.
+- **Event back link.** Only the fallback changed, Home → `/about/news-events` ("News & Events").
+  §68's trail is unchanged: a visitor who came from a page the site can name still sees that page.
+- **Redirects** (`next.config.ts` `redirects()`, declarative, before the proxy), **KMC only**, all
+  **307**: the decision is days old and could move (KMC may get its own domain), and a 308 is
+  cached by browsers for good. Each is one hop, straight to nid.edu, not through the proxy's
+  `/en/kmc` first. The locale variants match `:locale(en)`, built from `routing.locales`.
+- **sitemap.json.** §07 KMC: `"external": true`, the landing's URL, each child's nid.edu URL
+  (Guidelines included) and the note "separate project, built and owned outside this site (4 Oct
+  2026); /kmc redirects to nid.edu". §09 Events: `"path": null` (a menu group with no route of its
+  own), its children's paths under `/about/news-events`, Alpavirama's external URL. Open
+  decision 3 (KMC under `/academics`) is removed: seven remain, `design/verify.py` asserts 7, and
+  NID-CONTEXT §9.1 lists five disagreements with KMC recorded as closed.
+- **The build summary** gains a `MENU` line (getSiteChrome reports the menu's source and what the
+  CMS menu lacks), so the production gap is one line in every Vercel log, not one per page.
+
+### The production menu is not fixed by this
+
+- LIVE menu has no KMC / Events / Consulting / Industry section; CMS NavItem has no URL field
+- LinkListTile ignores its own external flag; left for later.
+
+The menu is the CMS's whole whenever it sends one (`getSiteChrome.ts`), so the external rows above
+show only in FIXTURE builds. Nothing in the CMS menu can carry an external row: a `NavItem` has a
+slug and no URL. Merging static sections into the CMS menu was deliberately not done in this pass;
+the user is deciding between a backend ask and a front-end fill rule. The summary reads:
+`MENU CMS, 7 sections; lacks consulting, kmc, events, industry-connect (CMS NavItem has no URL field)`.
+
+### R
+
+Baselines: `8c1436e`, FIXTURE and LIVE, built in a scratch copy outside the repo
+(`NEXT_IMAGE_UNOPTIMIZED` unset in all four builds).
+
+**Normalisation, and one addition to it.** As before: the build id, chunk and media file names,
+row ids and references, the dedup of a repeated prop (`localeCookie`: which row carries the object
+and which the `$id:props:…` reference moves with streaming order, same byte count), RSC rows as a
+multiset (§69), and for LIVE the §73 head rule. **New:** a chunk *list* is one token. `SiteLink` is
+imported by client components (MainMenu, and Cta through BackNav), and the bundler re-split the
+client code: the layout loads 4 scripts instead of 3, and import rows list 4–5 chunks instead of
+3–4, on every page. The inline payload is pushed in byte-sized pieces, so every split after a longer
+row moves; the DOM (payload scripts removed) and the joined inline payload are compared separately.
+None of this is rendered content.
+
+**The intended edits, reverted in the new build's output, leave every file identical.** The revert
+list: the four KMC rows and the Alpavirama row in the menu prop, and the `allEvents` →
+`academicNotifications` key in the client messages row (on every page, a one-time exception as in
+§73). Then:
+
+| Build | Files | Identical | Differ |
+|---|---|---|---|
+| FIXTURE | 400 | 388 | 12: Home, Gandhinagar, the one event (each `.html`, `.rsc` and segments) |
+| LIVE | 1100 | 1066 | 34: Home, Gandhinagar, the six events |
+
+With the event fallback reverted as well, the six events pass, except two `__PAGE__.segment.rsc`
+prefetch files (Shifting Paradigms, the Gandhinagar inauguration) where a schedule row is outlined
+as its own row in one build and inlined in the other; their string leaves are identical but for
+five more chunk references, and the pages' `.html` and `.rsc` pass. **Every existing Cta renders
+byte-identical, HTML and RSC.**
+
+Changed hrefs, by page (DOM unless said):
+
+| Page | Before | After |
+|---|---|---|
+| Home | KMC tile heading unlinked (`/kmc` withheld) | `https://www.nid.edu/academics/kmc`, new tab, with the tile's visit arrow and hover rule |
+| Home | calendar tile: no CTA (`/events` dropped) | "Academic notifications" → `/en/study` |
+| Gandhinagar | "Knowledge Management Centre" unlinked row | `https://www.nid.edu/academics/kmc`, new tab |
+| every event article | payload: `BackNav fallback "/"` | `fallback "/about/news-events"` (the link is client-rendered) |
+| every page, FIXTURE | payload: menu rows `/kmc/design-classics`, `/kmc/database`, `/kmc/services`, `/kmc/e-resources`, `/events/alpavirama` | the nid.edu URLs above, `https://alpavirama.nid.edu`, `external: true` |
+
+Gate: FIXTURE 61 → **58**, LIVE 69 → **66** (Home's KMC tile and calendar CTA, Gandhinagar's
+KMC row). LIVE: 244 fetched = distinct, floors 54/0.
+
+**No built page links to `/kmc`, `/kmc/*`, `/events` or `/events/alpavirama`** (HTML and RSC,
+site-relative, with or without `/en`):
+
+| | `/kmc…` | `/events` | `/events/alpavirama` |
+|---|---|---|---|
+| HEAD FIXTURE | 880 hits in 220 files (the menu) | 0 | 220 |
+| new FIXTURE | 0 | 0 | 0 |
+| HEAD LIVE | 0 | 0 | 0 |
+| new LIVE | 0 | 0 | 0 |
+
+### Redirects, `next start` on the LIVE build
+
+| Request | Status | Location |
+|---|---|---|
+| `/kmc`, `/en/kmc` | 307 | https://www.nid.edu/academics/kmc |
+| `/kmc/e-resources`, `/en/kmc/e-resources` | 307 | https://www.nid.edu/academics/kmc/e-resources |
+| `/kmc/database`, `/en/kmc/database` | 307 | https://www.nid.edu/academics/kmc#kmc_database |
+| `/kmc/guidelines`, `/en/kmc/guidelines` | 307 | https://www.nid.edu/academics/kmc#guidelines |
+| `/kmc/design-classics`, `/en/kmc/services`, `/en/kmc/unknown`, `/en/kmc/a/b` | 307 | https://www.nid.edu/academics/kmc |
+| `/en/kmc/database?x=1` | 307 | https://www.nid.edu/academics/kmc?x=1#kmc_database |
+| `/kmc/` | 308 | the same path without the slash (Next's own), then as above |
+
+The `/events` rows this table first held are gone with the route; see "/events removed".
+
+The fragment survives in the raw `Location` header, so the database and guidelines rows keep it.
+
+### Playwright (28 checks, all pass)
+
+FIXTURE: the four KMC rows carry the table's URLs, `target="_blank"`, `rel="noopener noreferrer"`;
+clicking "KMC Database" opens a new tab on `…/kmc#kmc_database` and the site tab stays. Alpavirama
+opens https://alpavirama.nid.edu in a new tab. Both builds: Home's KMC tile opens the landing in a
+new tab; the calendar CTA reaches `/en/study`, which has the "Academic Notifications" heading. An
+event article loaded directly (Drawing Dialogues FIXTURE and LIVE, RSD9 LIVE) shows "News & Events"
+→ `/en/about/news-events`; arriving from the archive still names "News & Events Archive".
+
+The Events menu's two internal rows answer 200 on the LIVE build. **On FIXTURE, Shifting
+Paradigms 404s**, as at HEAD: the FIXTURE build has only the Drawing Dialogues fixture, and the
+LIVE build, which builds both, has no Events section in its menu. (These checks ran on the first
+pass, at the `/events/…` URLs; the paths are now `/about/news-events/…`.)
+
+### /events removed: every event under News & Events
+
+`src/app/[locale]/events/` is deleted, and `/events/[slug]` is gone from `BUILT_ROUTES`. News,
+events and workshops are one route, `/about/news-events/[slug]`, and one slug namespace:
+
+- **`itemPath(slug)`** (pages.ts) no longer takes the type: every item opens
+  `/about/news-events/<slug>`, or the short path sitemap.json names. The two short paths are now
+  `/about/news-events/drawing-dialogues` and `/about/news-events/shifting-paradigms`.
+  `eventPath`, `PAGE_ID.events` and its `/events` path are gone; event cards, archive rows and
+  fixtures hang off `PAGE_ID.newsEvents` (same card kind, "news").
+- **The event layout is decided by type, not URL.** getArticle's `Entry` carries `event` (an event
+  or workshop record, or an event fixture) instead of a route; `isEventArticle(path)` lets the
+  route pick the event props — split title, `standfirst="without-sections"`, the trail back link
+  falling back to News & Events, no sibling band — exactly what `/events/[slug]` passed.
+- **One namespace, so a collision is reported.** Two records claiming one URL (a news and an event
+  with the same slug) used to be impossible; now the first (the listing document's, newest first)
+  keeps it and the other is logged under `dropped`, "collides with …". A same-story record
+  (§68) is still listed as such. The route's summary line also counts how many pages are events.
+- **Redirects.** An event's own CMS-slug URL 308s to its short path, as before, now under
+  `/about/news-events`. The 308s §68 added from `/about/news-events/<event>` to `/events/<event>`
+  are gone: those URLs are the pages again. **Nothing redirects `/events` or `/events/<slug>`**;
+  they 404. The deployed site served `/events/<slug>` until this ships, so a link to one from
+  outside will 404 (decided: no redirect).
+- **Links.** Home's Drawing Dialogues and Shifting Paradigms tiles, the Events menu rows and
+  Industry Connect's Shifting Paradigms row point at the new paths. The Drawing Dialogues fixture
+  hero moved from `public/events/` to `public/news/`. `scripts/screenshot.mjs`'s "events" shot
+  is `/en/about/news-events/drawing-dialogues`.
+- **sitemap.json §09** keeps its section (13 sections, verify.py) with `"path": null`.
+
+**R** (FIXTURE; the baseline is the first pass's tree, built the same way, in a scratch copy
+outside the repo, `NEXT_IMAGE_UNOPTIMIZED` unset): 340 `.html` and `.rsc` files on each side,
+the event page mapped from `en/events/drawing-dialogues` to `en/about/news-events/drawing-dialogues`.
+With the build id, chunk and media names normalised, module-reference rows compared as a set, RSC
+rows as a multiset (T rows read by their byte length, not split on newlines), and `/events/<x>`
+rewritten to `/about/news-events/<x>` in the baseline: **335 identical; the 5 that differ are the
+Drawing Dialogues page**, and only by its route tree (`about › news-events › [slug]`, sibling
+`archive`) and its hero's new `/news/` path. Gate unchanged, 58; 55 pages; the article route
+builds 3 pages (2 news, 1 event).
+
+**No built page refers to `/events`** (FIXTURE, HTML and RSC, `/events/…`, `/en/events`, the
+encoded image path): 0 files; the baseline had 225. `next start`, FIXTURE:
+
+| Request | Status | Location |
+|---|---|---|
+| `/en/about/news-events/drawing-dialogues` | 200 | h1 "Drawing Dialogues", subtitle the rest, payload `fallback "/about/news-events"` |
+| `/en/about/news-events/north-east-artisans` | 200 | |
+| `/en/events`, `/en/events/drawing-dialogues` | 404 | |
+| `/events`, `/events/drawing-dialogues` | 307 | `/en/events…` (the proxy adds the locale, as for any path), then 404 |
+| `/kmc`, `/en/kmc`, `/en/kmc/unknown` | 307 | https://www.nid.edu/academics/kmc |
+| `/en/kmc/database` | 307 | https://www.nid.edu/academics/kmc#kmc_database |
+| `/en/kmc/e-resources` | 307 | https://www.nid.edu/academics/kmc/e-resources |
+
+**LIVE** (run on the developer's machine; the CMS host is not reachable from the environment the
+rest of this pass ran in): passed. 217 documents fetched, 0 failed; fetched 244 = distinct 244;
+floors 54/0; gate 66, as on the first pass. The article route builds 15 paths: 12 pages (6 news,
+6 events) and 3 redirects, the two long event slugs to their short paths and the North-East
+Artisans fixture slug to its CMS article. The six events, each with the event layout (payload
+`fallback "/about/news-events"`): Drawing Dialogues, Shifting Paradigms, RSD9 symposium, the
+design pedagogy workshop, Convocation Week 41 and the Gandhinagar inauguration. No "collides
+with" line. **No built page refers to `/events`** (HTML and RSC): 0 files, and there is no
+`en/events` output. The menu line is unchanged: `MENU CMS, 7 sections; lacks consulting, kmc,
+events, industry-connect`.

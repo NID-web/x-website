@@ -93,15 +93,16 @@
     },
     {
       "n": "07", "title": "Knowledge Management Centre", "path": "/kmc", "liveLegacy": "/academics/kmc", "template": "primary",
+      "external": true, "url": "https://www.nid.edu/academics/kmc",
       "menu": ["Knowledge Management Centre", "Design Classics Collection", "KMC Database", "Services", "e-Resources"],
       "children": [
-        { "title": "Design Classics Collection", "path": "/kmc/design-classics" },
-        { "title": "KMC Database", "path": "/kmc/database" },
-        { "title": "Services", "path": "/kmc/services" },
-        { "title": "e-Resources", "path": "/kmc/e-resources" },
-        { "title": "Guidelines", "path": "/kmc/guidelines" }
+        { "title": "Design Classics Collection", "path": "/kmc/design-classics", "url": "https://www.nid.edu/academics/kmc" },
+        { "title": "KMC Database", "path": "/kmc/database", "url": "https://www.nid.edu/academics/kmc#kmc_database" },
+        { "title": "Services", "path": "/kmc/services", "url": "https://www.nid.edu/academics/kmc" },
+        { "title": "e-Resources", "path": "/kmc/e-resources", "url": "https://www.nid.edu/academics/kmc/e-resources" },
+        { "title": "Guidelines", "path": "/kmc/guidelines", "url": "https://www.nid.edu/academics/kmc#guidelines" }
       ],
-      "note": "sits under /academics live; is a top-level section in the architecture"
+      "note": "separate project, built and owned outside this site (4 Oct 2026); /kmc redirects to nid.edu"
     },
     {
       "n": "08", "title": "People", "path": "/people", "template": "primary",
@@ -125,14 +126,14 @@
       "note": "The four faculty views are ONE Person collection grouped four ways via Section.groupBy — not four datasets and not four templates."
     },
     {
-      "n": "09", "title": "Events", "path": "/events", "template": "primary",
+      "n": "09", "title": "Events", "path": null,
       "menu": ["Events", "Alpavirama", "Drawing Dialogues", "Shifting Paradigms"],
       "children": [
-        { "title": "Alpavirama", "path": "/events/alpavirama" },
-        { "title": "Drawing Dialogues", "path": "/events/drawing-dialogues", "board": "4612:357286" },
-        { "title": "Shifting Paradigms", "path": "/events/shifting-paradigms" }
+        { "title": "Alpavirama", "path": "/events/alpavirama", "url": "https://alpavirama.nid.edu", "external": true },
+        { "title": "Drawing Dialogues", "path": "/about/news-events/drawing-dialogues", "board": "4612:357286" },
+        { "title": "Shifting Paradigms", "path": "/about/news-events/shifting-paradigms" }
       ],
-      "note": "no landing exists on the live site; currently news-detail pages and external subdomains"
+      "note": "a menu group only, with no route of its own (4 Oct 2026): /about/news-events is the page for news and events, and every event article lives at /about/news-events/[slug]. There is no /events route and no redirect."
     },
     {
       "n": "10", "title": "Industry Connect", "path": "/industry", "template": "primary",
@@ -173,7 +174,6 @@
   "openDecisions": [
     "NID Press sits under /academics on the live site but belongs to Research & Publications.",
     "Academic Notifications sits under /academics but belongs to Study at NID.",
-    "The Knowledge Management Centre sits under /academics but is a top-level section in the architecture.",
     "Charter has no live page; the content that answers to it is Mandate. One page or two?",
     "Director's Message is live but absent from the architecture.",
     "Continuing Education Programme is live but absent from the architecture, and it absorbs what the architecture calls Industry & Online Programmes.",

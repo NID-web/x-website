@@ -16,8 +16,8 @@ export function BackNav({
 }: {
   /** Where the link goes when there is no previous page, or one the site
    *  cannot name (a direct visit, a new tab, an outside referrer). Events use
-   *  Home: /events has no landing to go back to (STAGE-0-NOTES §68). Without
-   *  it, no previous page renders no link, as §45 decided. */
+   *  News & Events, their parent: there is no /events route (STAGE-0-NOTES
+   *  §68, §85). Without it, no previous page renders no link, as §45 decided. */
   fallback?: string;
 } = {}) {
   const here = normalise(usePathname());

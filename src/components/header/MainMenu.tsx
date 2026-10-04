@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/spine/Icon";
 import { IconButton } from "@/components/spine/IconButton";
 import { BrandStrip } from "@/components/spine/BrandStrip";
+import { SiteLink } from "@/components/spine/SiteLink";
 import type { NavSection } from "@/lib/nav-content";
 
 /**
@@ -90,14 +91,17 @@ function Section({
               list is never reordered on the client. */}
           {section.links.map((link, i) => (
             <li key={i}>
-              <Link
+              {/* An external row (KMC on nid.edu, Alpavirama) opens in a new
+                  tab; SiteLink drops prefetch there, an <a> has none. */}
+              <SiteLink
                 href={link.href}
+                external={link.external}
                 prefetch={false}
                 onClick={onNavigate}
                 className="block py-2 font-primary text-label text-text-secondary no-underline transition-colors duration-150 ease-in-out hover:text-text-primary"
               >
                 {link.label}
-              </Link>
+              </SiteLink>
             </li>
           ))}
         </ul>

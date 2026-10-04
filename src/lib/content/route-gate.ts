@@ -184,8 +184,9 @@ export function gateHome(tiles: HomeTile[]): { tiles: HomeTile[]; audit: RouteAu
       case "roster":
         return { ...tile, cta: cta(tile.cta) };
       case "portrait":
-      case "spine":
         return { ...tile, href: unlink(tile.href, false) };
+      case "spine":
+        return { ...tile, href: unlink(tile.href, tile.external) };
       case "mediaCard":
         return {
           ...tile,

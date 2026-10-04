@@ -60,7 +60,7 @@ const PAGES = [
   { name: "our-themes", path: "/en/about/our-themes" },
   { name: "student-awards", path: "/en/about/student-awards" },
   // The event template's demo: the Drawing Dialogues fixture (STAGE-0-NOTES §68).
-  { name: "events", path: "/en/events/drawing-dialogues" },
+  { name: "events", path: "/en/about/news-events/drawing-dialogues" },
   { name: "programmes", path: "/en/programmes" },
   // The programme page template's board (STAGE-0-NOTES §70).
   { name: "programme-bdes", path: "/en/programmes/bdes" },

@@ -52,7 +52,7 @@ const NEWS: Section = {
       title: "Drawing Dialogues happening at NID very soon. Register!",
       slug: "drawing-dialogues",
       // The event's own page (§68).
-      parent: PAGE_ID.events,
+      parent: PAGE_ID.newsEvents,
       hero: [
         mediaAsset(
           "/about/news-drawing-dialogues.jpg",
@@ -69,7 +69,7 @@ const NEWS: Section = {
       title: "Inauguration of the Incubation and Innovation Centre at NID Gandhinagar Campus",
       slug: "inauguration-of-the-incubation-and-innovation-centre-at-nid-gandhinagar-campus",
       // The event's own page (§68).
-      parent: PAGE_ID.events,
+      parent: PAGE_ID.newsEvents,
       hero: [
         mediaAsset(
           "/about/news-address.jpg",

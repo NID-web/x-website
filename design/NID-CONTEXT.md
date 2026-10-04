@@ -12,7 +12,7 @@ Companion files in this bundle:
 | `tokens/themes.css` | The whole token layer as CSS custom properties. Drop-in; import once. |
 | `src/app/globals.css` (`@theme`) | Tailwind mapped onto those custom properties. No hex values anywhere. |
 | `tokens/content-model.ts` | The CMS contract as TypeScript. Compiles clean. |
-| `tokens/sitemap.json` | Every route, the menu tree, the footer, and the eight open IA decisions. |
+| `tokens/sitemap.json` | Every route, the menu tree, the footer, and the seven open IA decisions. |
 
 ---
 
@@ -854,22 +854,23 @@ Heroes crop to a different ratio at each breakpoint (2.2:1 → 2:1 → 16:9 → 
 
 ## 9. Information architecture
 
-Full tree, every route, and the eight open decisions: `tokens/sitemap.json`.
+Full tree, every route, and the seven open decisions: `tokens/sitemap.json`.
 
 Thirteen top-level areas: Home · About NID · Programmes · Study at NID · Research & Publications · Consulting & Entrepreneurship · Knowledge Management Centre · People · Events · Industry Connect · Regulatory · Miscellaneous · Contact.
 
 **The section a page belongs to is not a field** — it is the first segment of its ancestry, derived by walking `parent` to the root.
 
-### 9.1 Six places the live site and the architecture disagree
+### 9.1 Five places the live site and the architecture disagree
 
 Each of these changes a page's parent and therefore its URL, so each needs a human decision before the tree is built.
 
 1. **NID Press** sits under `/academics` on the live site but belongs to Research & Publications.
 2. **Academic Notifications** sits under `/academics` but belongs to Study at NID.
-3. **Knowledge Management Centre** sits under `/academics` but is a top-level section in the architecture.
-4. **Charter** has no live page; the content that answers to it is **Mandate**. One page or two?
-5. **Director's Message** is live but absent from the architecture.
-6. **Continuing Education Programme** is live but absent from the architecture, and it absorbs what the architecture calls **Industry & Online Programmes**.
+3. **Charter** has no live page; the content that answers to it is **Mandate**. One page or two?
+4. **Director's Message** is live but absent from the architecture.
+5. **Continuing Education Programme** is live but absent from the architecture, and it absorbs what the architecture calls **Industry & Online Programmes**.
+
+Closed 4 Oct 2026: the **Knowledge Management Centre** (it sat under `/academics` live and was top-level in the architecture) is a separate project, built and owned outside this site. Every KMC link opens its nid.edu page and `/kmc/*` redirects there (STAGE-0-NOTES §85).
 
 Two further open questions: whether the four faculty indexes remain four pages or become one page with a filter (the model supports either; the URLs differ), and **whether the site needs Hindi alongside English** — the logo is bilingual, nothing else is, and retrofitting localisation after launch is materially harder than allowing for it now. If there is any chance of Hindi, put `next-intl` and a `[locale]` segment in from day one.
 

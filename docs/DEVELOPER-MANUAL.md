@@ -457,7 +457,7 @@ Add an entry to `HOME_TILES` in `src/lib/home-content.ts`, in the position you w
   titleKey: "convocation.title",
   date: "Dec 12 2026",
   labelPlacement: "below",
-  href: "/events/convocation",
+  href: "/about/news-events/convocation",
 },
 ```
 
@@ -632,6 +632,9 @@ Two reasons. First, when the CMS starts serving media, changing that one helper 
 | An external site | plain `<a>` + `target="_blank" rel="noopener noreferrer"` | `<a href="https://…">` |
 | Email / phone | plain `<a href="mailto:…">` / `tel:` | no arrow icon |
 | A styled call-to-action | `<Cta>` | handles all of the above |
+| An unstyled link that may be either (a menu row, a tile heading) | `<SiteLink>` from `@/components/spine/SiteLink` | `<SiteLink href={…} external={…}>` |
+
+`SiteLink` is the one internal-or-external branch; `Cta`, the main menu and the KMC tile all render through it. Don't hand-write a second `<a target="_blank">` beside it.
 
 **Always import `Link` from `@/i18n/navigation`, never from `next/link`.** The localised one adds the `/en` prefix automatically; `next/link` doesn't, and your link 404s the day a second locale exists.
 
@@ -703,6 +706,11 @@ Edit `MENU_SECTIONS` in `src/lib/nav-content.ts`:
 **Section titles are buttons, not links** (design spec §7.4). Only the nested page links navigate. Nothing in the menu is underlined, in any state, and hover is a colour change only.
 
 Menu labels are page titles = data, so they live here, not in `messages/en.json`.
+
+A row on another site is `{ label, href: "https://…", external: true }`: it opens in a new tab and the back link never names it. The KMC rows and Alpavirama are the ones today. In a LIVE build the menu is the CMS's, whole: these static sections show only in FIXTURE builds, and the build summary's `MENU` line names the sections the CMS menu lacks (a CMS `NavItem` has no URL field, so it cannot carry an external row at all).
+
+- **KMC is external, a separate project; don't build /kmc.** Every KMC link opens its nid.edu page (`src/lib/kmc.ts`), and `/kmc/*` redirects there (`next.config.ts`, STAGE-0-NOTES §85).
+- **There is no `/events` route.** News & Events (`/about/news-events`) is the page for news and events, and every event article lives at `/about/news-events/[slug]` beside the news, in the event layout (decided by the record's type, not its URL). `/events` is not redirected; don't add an `/events` page or link (STAGE-0-NOTES §85).
 
 *Later:* when the CMS exists, this whole file is replaced by a recursive `Page.parent` query. There is no menu table — the page tree **is** the menu.
 

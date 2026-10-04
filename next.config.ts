@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
 import { onceAcrossBuild } from "./src/lib/api/build-cache";
+import { routing } from "./src/i18n/routing";
+import { KMC } from "./src/lib/kmc";
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -109,6 +111,27 @@ function announceMode(phase: string) {
   console.info(`[cms] LIVE build — ${cmsUrl.host}${required ? " (CMS required)" : ""}`);
 }
 
+// KMC is a separate project on nid.edu, and this site will never build /kmc
+// (STAGE-0-NOTES §85): /kmc/* opens its page there, redirected before the proxy
+// adds a locale, so each is one hop. 307: a decision of 4 Oct 2026 that could
+// still move (KMC may get its own domain), and a 308 is cached by browsers for
+// good. Nothing else redirects: /events is not a route at all, and event
+// articles live at /about/news-events/[slug].
+const LOCALE = `:locale(${routing.locales.join("|")})`;
+const KMC_TARGETS: [string, string][] = [
+  ["/kmc", KMC.landing],
+  ["/kmc/e-resources", KMC.eResources],
+  ["/kmc/database", KMC.database],
+  ["/kmc/guidelines", KMC.guidelines],
+  // Design Classics, Services and any other path: the landing, after the
+  // specific ones above (first match wins).
+  ["/kmc/:rest*", KMC.landing],
+];
+const REDIRECTS = KMC_TARGETS.flatMap(([source, destination]) => [
+  { source, destination, permanent: false },
+  { source: `/${LOCALE}${source}`, destination, permanent: false },
+]);
+
 // An async default export rather than a top-level `await`: Next loads
 // next.config.ts through require() on some of its own paths, and a
 // module-level await makes that throw ("require() cannot be used on an ESM
@@ -147,5 +170,6 @@ export default async function config(phase: string): Promise<NextConfig> {
     // still retrying is never overtaken. Read by the export worker in seconds
     // (checked in next 16.3.2's export/worker.js; the bundled docs omit it).
     staticPageGenerationTimeout: 360,
+    redirects: async () => REDIRECTS,
   });
 }

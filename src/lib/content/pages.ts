@@ -15,7 +15,6 @@ export const PAGE_ID = {
   history: "page-about-history",
   campuses: "page-about-campuses",
   newsEvents: "page-about-news-events",
-  events: "page-events",
   ourThemes: "page-about-our-themes",
   studentAwards: "page-about-student-awards",
   newsArchive: "page-about-news-archive",
@@ -36,7 +35,6 @@ export const PAGE_ID = {
   consultingIds: "page-consulting-ids",
   consultingOutreach: "page-consulting-outreach",
   programmesIndustryOnline: "page-programmes-industry-online",
-  kmc: "page-kmc",
   research: "page-research",
   researchRailway: "page-research-railway",
   researchNaturalFiber: "page-research-natural-fiber",
@@ -65,9 +63,6 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.history]: "/about/history",
   [PAGE_ID.campuses]: "/about/campuses",
   [PAGE_ID.newsEvents]: "/about/news-events",
-  // Not a page (no /events landing is built); the parent path event cards and
-  // pages hang off.
-  [PAGE_ID.events]: "/events",
   [PAGE_ID.ourThemes]: "/about/our-themes",
   [PAGE_ID.studentAwards]: "/about/student-awards",
   [PAGE_ID.newsArchive]: "/about/news-events/archive",
@@ -88,7 +83,6 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.consultingIds]: "/consulting/ids",
   [PAGE_ID.consultingOutreach]: "/consulting/outreach",
   [PAGE_ID.programmesIndustryOnline]: "/programmes/industry-online",
-  [PAGE_ID.kmc]: "/kmc",
   [PAGE_ID.research]: "/research",
   [PAGE_ID.researchRailway]: "/research/railway",
   [PAGE_ID.researchNaturalFiber]: "/research/natural-fiber",
@@ -136,7 +130,6 @@ export type CardKind = "news" | "campus" | "alumni" | "thumb";
 
 const CARD_KIND_BY_PARENT: Record<UUID, CardKind> = {
   [PAGE_ID.newsEvents]: "news",
-  [PAGE_ID.events]: "news",
   [PAGE_ID.campuses]: "campus",
   [PAGE_ID.studentAwards]: "alumni",
   // The campus pages' Disciplines: programme pages on the fixture, CMS
@@ -200,9 +193,10 @@ const PATH_BY_CMS_SLUG: Record<string, string> = {
   "terms-and-conditions": "/terms",
   sitemap: "/sitemap",
   // The two events sitemap.json names by a short path (09 Events), stated
-  // rather than matched on title (STAGE-0-NOTES §68).
-  "drawing-dialogues-calibration-and-celebration-of-drawing-in-design": "/events/drawing-dialogues",
-  "shifting-paradigms-design-education-next": "/events/shifting-paradigms",
+  // rather than matched on title (STAGE-0-NOTES §68). Under News & Events, as
+  // every event is: there is no /events route (§85).
+  "drawing-dialogues-calibration-and-celebration-of-drawing-in-design": "/about/news-events/drawing-dialogues",
+  "shifting-paradigms-design-education-next": "/about/news-events/shifting-paradigms",
 };
 
 // One story, one page: a CMS record that tells the same story as another opens
@@ -213,7 +207,8 @@ export const SAME_STORY: Record<string, string> = {
   "drawing-dialogues": "drawing-dialogues-calibration-and-celebration-of-drawing-in-design",
 };
 
-/** Content types whose items are events, with their page under /events. */
+/** Content types whose items are events: their page is an article page with the
+ *  event layout (a schedule rail, a split title), under /about/news-events. */
 export const isEventType = (type: string | undefined) => type === "event" || type === "workshop";
 
 export function pathOfCmsSlug(slug: string): string | undefined {
@@ -225,22 +220,18 @@ export function cmsSlugOf(path: string): string | undefined {
   return Object.keys(PATH_BY_CMS_SLUG).find((slug) => PATH_BY_CMS_SLUG[slug] === path);
 }
 
-/** A news article's route. Articles are the one collection whose route IS
- *  their CMS slug, under sitemap.json's /about/news-events/[slug] template —
- *  the rule page-adapter.ts applies to the same collection as `slugUnderParent`. */
+/** An article's route — news, event or workshop. Articles are the one
+ *  collection whose route IS their CMS slug, under sitemap.json's
+ *  /about/news-events/[slug] template (or a short path it names), the rule
+ *  page-adapter.ts applies to the same collection as `slugUnderParent`. */
 export function newsArticlePath(slug: string): string {
   return pathOfCmsSlug(slug) ?? `${pathOf(PAGE_ID.newsEvents)}/${slug}`;
 }
 
-/** An event's route: /events/<slug>, or the short path sitemap.json names. */
-export function eventPath(slug: string): string {
-  return pathOfCmsSlug(slug) ?? `${pathOf(PAGE_ID.events)}/${slug}`;
-}
-
 /** The page a CMS collection item opens — THE rule for every card, archive row
- *  and "More news" link: events under /events, news under /about/news-events,
- *  a same-story duplicate at its canonical record's page. */
-export function itemPath(slug: string, type: string | undefined): string {
-  const canonical = SAME_STORY[slug] ?? slug;
-  return isEventType(type) ? eventPath(canonical) : newsArticlePath(canonical);
+ *  and "More news" link: every news, event and workshop item under
+ *  /about/news-events (there is no /events route, §85), a same-story duplicate
+ *  at its canonical record's page. The type no longer picks the URL. */
+export function itemPath(slug: string): string {
+  return newsArticlePath(SAME_STORY[slug] ?? slug);
 }

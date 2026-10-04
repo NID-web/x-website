@@ -1,6 +1,6 @@
 import { Tile } from "@/components/home/Tile";
 import { Icon } from "@/components/spine/Icon";
-import { Link } from "@/i18n/navigation";
+import { SiteLink } from "@/components/spine/SiteLink";
 import type { HomeTile, Translate } from "@/lib/home-content";
 
 type SpineTileData = Extract<HomeTile, { kind: "spine" }>;
@@ -39,9 +39,9 @@ export function SpineTile({ tile, t }: { tile: SpineTileData; t: Translate }) {
             the two requirements are mutually exclusive, and the board asks for
             the per-spine highlight. The heading and the arrow are the link. */}
         {tile.href ? (
-          <Link href={tile.href} className="text-inherit no-underline">
+          <SiteLink href={tile.href} external={tile.external} className="text-inherit no-underline">
             {heading}
-          </Link>
+          </SiteLink>
         ) : (
           heading
         )}

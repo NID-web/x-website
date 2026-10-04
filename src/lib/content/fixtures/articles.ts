@@ -185,11 +185,12 @@ export interface ArticleFixture {
   railLinks?: RailLink[];
 }
 
-// /events/[slug] — the event board ("09 Events / Drawing Dialogues") as demo
+// An event page — the event board ("09 Events / Drawing Dialogues") as demo
 // content, the sample of every event page (STAGE-0-NOTES §68). Keyed by the
 // CMS record for the same story, so the live build renders the CMS's document
 // here and this only when it does not arrive. Its path is the short one
-// sitemap.json names, /events/drawing-dialogues (pages.ts).
+// sitemap.json names, under News & Events: /about/news-events/drawing-dialogues
+// (pages.ts, §85).
 //
 // The hero is the board's own image (image 13), at its native 1891 × 831 —
 // about 1.8× the 1038 × 455 slot; the source is no larger. Live, the CMS's
@@ -205,7 +206,7 @@ const DRAWING_DIALOGUES: ArticleFixture = {
       id: `article-${DRAWING_DIALOGUES_SLUG}`,
       title: "Drawing Dialogues: Calibration and Celebration of Drawing in Design",
       slug: DRAWING_DIALOGUES_SLUG,
-      parent: PAGE_ID.events,
+      parent: PAGE_ID.newsEvents,
       template: "secondary",
       utility: "none",
       keyInfo: [
@@ -216,7 +217,7 @@ const DRAWING_DIALOGUES: ArticleFixture = {
       ],
       hero: [
         mediaAsset(
-          "/events/drawing-dialogues-hero.jpg",
+          "/news/drawing-dialogues-hero.jpg",
           "A leaf on a deep blue ground: its left half photographed with every vein, its right half redrawn as fine dark linework over the same shape.",
           1891,
           831,
@@ -283,7 +284,8 @@ const DRAWING_DIALOGUES: ArticleFixture = {
   ],
 };
 
-/** Event fixtures, keyed by CMS slug; their pages are under /events. */
+/** Event fixtures, keyed by CMS slug; their pages are under /about/news-events,
+ *  in the event layout (§85). */
 export const EVENT_ARTICLES: Record<string, ArticleFixture> = {
   [DRAWING_DIALOGUES_SLUG]: DRAWING_DIALOGUES,
 };

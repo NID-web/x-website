@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { Link } from "@/i18n/navigation";
 import { Icon, type IconName } from "@/components/spine/Icon";
+import { SiteLink } from "@/components/spine/SiteLink";
 
 /**
  * Call to Action link component supporting 'uppercase' and 'primary' variants.
@@ -105,16 +105,9 @@ export function Cta({
     </>
   );
 
-  if (external) {
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={classes}>
-        {inner}
-      </a>
-    );
-  }
   return (
-    <Link href={href} className={classes}>
+    <SiteLink href={href} external={external} className={classes}>
       {inner}
-    </Link>
+    </SiteLink>
   );
 }

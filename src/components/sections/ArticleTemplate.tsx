@@ -16,10 +16,11 @@ import { SiblingBand } from "@/components/sections/SiblingBand";
 import type { ArticleResponse } from "@/lib/content/getArticle";
 
 /**
- * The article template: a news article (/about/news-events/[slug]) and an
- * event (/events/[slug]) are the same slot anatomy — title, a rail in column 1
- * beside the hero, titled sections with the See-more clamp — so both routes
- * render this, with the differences as props and data (STAGE-0-NOTES §59, §68).
+ * The article template: a news article and an event, both at
+ * /about/news-events/[slug], are the same slot anatomy — title, a rail in
+ * column 1 beside the hero, titled sections with the See-more clamp — so both
+ * render this, with the differences as props and data (STAGE-0-NOTES §59, §68,
+ * §85).
  * Every article body clamps at ClampedProse's nine lines; the model has no
  * clamp field and an API section no id to name.
  */
@@ -41,7 +42,8 @@ export async function ArticleTemplate({
   siblingTitle?: string;
   /** Use the session-trail back link (BackNav) instead of the route's fixed
    *  parent, falling back to this route when there is no previous page. Events:
-   *  reached from Home, the archive, the listing, with no landing of their own. */
+   *  reached from Home, the menu, the archive and the listing; they fall back
+   *  to News & Events (§85). */
   trailBack?: string;
 }) {
   const { page, derived, railLinks } = response;
