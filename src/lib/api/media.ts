@@ -14,7 +14,7 @@ import { request as httpsRequest } from "node:https";
 import type { MediaAsset } from "@/lib/content-model";
 import { IS_BUILD, report, strictBuild } from "@/lib/api/build-mode";
 import { onceAcrossBuild } from "@/lib/api/build-cache";
-import { cmsBaseUrl, retrying429, withCmsSlot } from "@/lib/api/client";
+import { CMS_TIMEOUT_MS, cmsBaseUrl, retrying, withCmsSlot } from "@/lib/api/client";
 import type { MediaRef } from "@/lib/api/types";
 
 export type MediaResult =
@@ -84,24 +84,26 @@ export function toMediaAsset(
   };
 }
 
-const HEAD_TIMEOUT_MS = 10_000;
-
-/** HEAD a URL: the status and Retry-After, or status 0 with the reason when
- *  there was no answer (network error, timeout). */
+/** HEAD a URL: the status and Retry-After. Rejects when there was no answer
+ *  (network error, timeout), so `retrying` can tell a hang from an answer. */
 function head(url: URL): Promise<{ status: number; retryAfter?: string; error?: string }> {
   const request = url.protocol === "http:" ? httpRequest : httpsRequest;
-  return new Promise((resolve) => {
-    const req = request(url, { method: "HEAD", signal: AbortSignal.timeout(HEAD_TIMEOUT_MS) }, (res) => {
+  return new Promise((resolve, reject) => {
+    const req = request(url, { method: "HEAD", signal: AbortSignal.timeout(CMS_TIMEOUT_MS) }, (res) => {
       res.resume();
       const retryAfter = res.headers["retry-after"];
       resolve({ status: res.statusCode ?? 0, ...(retryAfter ? { retryAfter } : {}) });
     });
-    req.on("error", (err) =>
-      resolve({ status: 0, error: err.name === "AbortError" ? `no response in ${HEAD_TIMEOUT_MS / 1000}s` : err.message }),
-    );
+    req.on("error", reject);
     req.end();
   });
 }
+
+/** No answer, as status 0 and the reason: never evidence the file is gone. */
+const unanswered = (err: unknown) => ({
+  status: 0,
+  error: err instanceof Error && err.name === "AbortError" ? `no response in ${CMS_TIMEOUT_MS / 1000}s` : String(err instanceof Error ? err.message : err),
+});
 
 /** Only a real 404 or 410 says a file is missing. */
 const GONE = new Set([404, 410]);
@@ -143,7 +145,9 @@ export function fileServes(href: string): Promise<boolean> {
     // One HEAD per file for the whole build (build-cache.ts): a stored 404/410
     // reads exactly as a fresh one.
     pending = onceAcrossBuild(`HEAD ${key}`, () =>
-      withCmsSlot(() => retrying429(() => head(url), key)).then((res) => ({ ...res, body: "" })),
+      withCmsSlot(() => retrying(() => head(url), key))
+        .catch(unanswered)
+        .then((res) => ({ ...res, body: "" })),
     ).then((res: { status: number; error?: string; attempt?: number; waited?: number }) => {
       if (res.status >= 200 && res.status < 300) {
         report({ t: "head", url: key, ok: true, status: res.status });

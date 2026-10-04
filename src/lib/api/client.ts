@@ -13,8 +13,12 @@ import { request as httpsRequest } from "node:https";
 import { cache } from "react";
 import { IS_BUILD, report, strictBuild } from "@/lib/api/build-mode";
 import { onceAcrossBuild } from "@/lib/api/build-cache";
+import { floorsFor } from "@/lib/content/cms-floors";
 
-const TIMEOUT_MS = 10_000;
+/** Per attempt, documents and media HEADs alike. Successes never come near it:
+ *  p99 1.9s alone, 8.6s at worst with 24 requests in flight (STAGE-0-NOTES
+ *  §84). What it catches are hangs, which a longer wait would only delay. */
+export const CMS_TIMEOUT_MS = 10_000;
 
 /** CMS_API_URL parsed, or null for the "no CMS" mode. Routes sit at the root
  *  (`/public/...`), so the value carries no `/api` segment. */
@@ -31,8 +35,13 @@ export function cmsBaseUrl(): URL | null {
 function fail(path: string, reason: string): null {
   report({ t: "doc", path, ok: false, reason });
   if (strictBuild()) {
+    const floors = floorsFor(path);
     throw new Error(
-      `[cms] FETCH FAILED — ${path}: ${reason}. CMS_API_URL is set, so this is a LIVE build, ` +
+      `[cms] FETCH FAILED — ${path}: ${reason}. ` +
+        (floors.length
+          ? `Floors this document is counted against, left unchecked: ${floors.join(", ")}. `
+          : `No floor counts this document by name; it fails the build all the same. `) +
+        `CMS_API_URL is set, so this is a LIVE build, ` +
         `and a LIVE build does not ship pages that silently fell back to fixtures. ` +
         `Retry, or check the CMS. To build without the CMS on purpose, unset CMS_API_URL.`,
     );
@@ -56,7 +65,10 @@ function get(url: URL): Promise<{ status: number; body: string; retryAfter?: str
   return new Promise((resolve, reject) => {
     const req = request(
       url,
-      { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(TIMEOUT_MS) },
+      {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(CMS_TIMEOUT_MS),
+      },
       (res) => {
         res.setEncoding("utf8");
         let body = "";
@@ -71,7 +83,7 @@ function get(url: URL): Promise<{ status: number; body: string; retryAfter?: str
   });
 }
 
-// ── Build only: one limiter, and 429s waited out ─────────────────────────────
+// ── Build only: one limiter, 429s waited out, transient failures retried ─────
 // The per-worker memo below still leaves a build over the API's 100 requests a
 // minute once a page reads records one request each (the programme pages'
 // disciplines, STAGE-0-NOTES §70): measured 72 fetches and five HTTP 429s, and a
@@ -81,8 +93,19 @@ function get(url: URL): Promise<{ status: number; body: string; retryAfter?: str
 // to MAX_ATTEMPTS. When attempts run out the fetch fails like any other, and a
 // LIVE build still stops (§65). `next dev` and FIXTURE builds neither queue nor
 // wait: dev never retries, and FIXTURE never fetches.
+//
+// A timeout, a dropped connection or a 502/503/504 is transient too (§84): five
+// requests sent together after a 60s Retry-After were held past 10s, and each
+// answered in under a second when asked again — yet one such hang failed the
+// build, and a failed deploy leaves production on the build before. It gets
+// TRANSIENT_ATTEMPTS, backing off 2s then 4s with jitter so retries that failed
+// together do not return together. Only a success is cached (build-cache.ts),
+// and the last failure still ends a LIVE build.
 const MAX_IN_FLIGHT = 4;
 const MAX_ATTEMPTS = 5;
+const TRANSIENT_ATTEMPTS = 3;
+const TRANSIENT_BACKOFF_MS = 2000;
+const TRANSIENT_STATUS = new Set([502, 503, 504]);
 let inFlight = 0;
 const waiting: Array<() => void> = [];
 
@@ -111,22 +134,73 @@ function retryAfterMs(value: string | undefined): number | undefined {
   return Number.isNaN(at) ? undefined : Math.max(0, at - Date.now());
 }
 
-/** A CMS request with a 429 waited out during a build — documents here, media
- *  HEADs in media.ts. Run it inside withCmsSlot: the slot is held through the
- *  wait, since releasing it would let the queue fire straight back into the
- *  limit. Returns the last response, with how many attempts and ms it took. */
-export async function retrying429<T extends { status: number; retryAfter?: string }>(
+/** A request that failed in a way worth repeating, after its last attempt. */
+export class TransientFailure extends Error {
+  override name = "TransientFailure";
+}
+
+/** Why an attempt is worth repeating, or null when its outcome is the answer. */
+function transientReason(outcome: { status: number } | Error): string | null {
+  if (!(outcome instanceof Error))
+    return TRANSIENT_STATUS.has(outcome.status) ? `HTTP ${outcome.status}` : null;
+  const code = (outcome as NodeJS.ErrnoException).code;
+  if (outcome.name === "AbortError" || code === "ETIMEDOUT")
+    return `no response in ${CMS_TIMEOUT_MS / 1000}s`;
+  if (code === "ECONNRESET" || code === "EPIPE") return `connection reset (${code})`;
+  return null;
+}
+
+/** A CMS request with 429s waited out and transient failures retried during a
+ *  build — documents here, media HEADs in media.ts. Run it inside withCmsSlot:
+ *  the slot is held through every wait, since releasing it would let the queue
+ *  fire straight back into the limit. Returns the last response, with how many
+ *  attempts and ms it took; throws TransientFailure when the last of
+ *  TRANSIENT_ATTEMPTS fails too. Outside a build, one attempt, as it was. */
+export async function retrying<T extends { status: number; retryAfter?: string }>(
   request: () => Promise<T>,
   path: string,
 ): Promise<T & { attempt: number; waited: number }> {
   let waited = 0;
+  let limited = 0;
+  let transient = 0;
   for (let attempt = 1; ; attempt++) {
-    const res = await request();
-    if (res.status !== 429 || !IS_BUILD || attempt >= MAX_ATTEMPTS) return { ...res, attempt, waited };
-    const wait = retryAfterMs(res.retryAfter) ?? 2000 * 2 ** (attempt - 1);
-    report({ t: "retry", path, attempt, waitedMs: wait });
-    waited += wait;
-    await new Promise((resolve) => setTimeout(resolve, wait));
+    const started = Date.now();
+    let outcome: T | Error;
+    try {
+      outcome = await request();
+    } catch (err) {
+      outcome = err instanceof Error ? err : new Error(String(err));
+    }
+    const ms = Date.now() - started;
+    const reason = transientReason(outcome);
+    if (!IS_BUILD) {
+      if (outcome instanceof Error) throw outcome;
+      return { ...outcome, attempt, waited };
+    }
+    if (reason) {
+      transient++;
+      if (transient >= TRANSIENT_ATTEMPTS) {
+        report({ t: "transient-failed", path, reason, attempts: transient });
+        throw new TransientFailure(`${reason}, ${transient} attempts`);
+      }
+      const wait = Math.round(TRANSIENT_BACKOFF_MS * 2 ** (transient - 1) * (0.5 + Math.random()));
+      report({ t: "transient", path, reason, attempt: transient, waitedMs: wait });
+      waited += wait;
+      await new Promise((resolve) => setTimeout(resolve, wait));
+      continue;
+    }
+    if (outcome instanceof Error) throw outcome;
+    if (outcome.status === 429 && ++limited < MAX_ATTEMPTS) {
+      const wait = retryAfterMs(outcome.retryAfter) ?? 2000 * 2 ** (limited - 1);
+      report({ t: "retry", path, attempt: limited, waitedMs: wait });
+      waited += wait;
+      await new Promise((resolve) => setTimeout(resolve, wait));
+      continue;
+    }
+    // The answering attempt's own time, waits excluded: the build summary's
+    // slowest URLs. Reported by the process that fetched, once per URL.
+    report({ t: "timing", path, ms, attempts: attempt });
+    return { ...outcome, attempt, waited };
   }
 }
 
@@ -175,10 +249,10 @@ async function fetchDocument<T>(path: `/${string}`, guard: (v: unknown) => v is 
   // 429 retry belong to the process that fetches, not to those that wait.
   let res: { status: number; body: string; attempt?: number; waited?: number };
   try {
-    res = await onceAcrossBuild(`GET ${url.href}`, () => withCmsSlot(() => retrying429(() => get(url), path)));
+    res = await onceAcrossBuild(`GET ${url.href}`, () => withCmsSlot(() => retrying(() => get(url), path)));
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
-      return fail(path, `no response in ${TIMEOUT_MS / 1000}s`);
+      return fail(path, `no response in ${CMS_TIMEOUT_MS / 1000}s`);
     }
     return fail(path, err instanceof Error ? err.message : String(err));
   }

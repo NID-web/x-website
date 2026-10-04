@@ -96,3 +96,45 @@ export const CMS_FLOORS = {
   /** Featured collaboration logos. Live: 6. */
   collaborations: 5,
 } as const;
+
+// Which CMS response each named floor counts: a document by slug, or a list
+// endpoint by its contentType ("items:…"). documentSections and documentItems
+// are keyed by slug already. Read only to name the floors a document that never
+// arrived leaves unchecked (client.ts, STAGE-0-NOTES §84) — the build fails
+// either way. A floor counted across many documents (the member bios, one
+// record each) has no single source and is not listed.
+const FLOOR_SOURCES: Partial<Record<keyof typeof CMS_FLOORS, string[]>> = {
+  articleFeed: ["news-events"],
+  archiveItems: ["items:news", "items:event", "items:workshop"],
+  awardItems: ["student-awards"],
+  disciplines: ["items:discipline"],
+  facultyGrouped: ["faculty"],
+  facultyMembers: ["faculty"],
+  menuSections: ["home"],
+  footerLinks: ["home"],
+  collaborations: ["items:collaboration"],
+};
+
+/** The floors counted against the response at a CMS path, named with their
+ *  values: `documentSections.faculty ≥ 1`, `facultyMembers ≥ 60`. */
+export function floorsFor(path: string): string[] {
+  const url = new URL(path, "http://cms");
+  const slug = /^\/public\/content\/([^/]+)$/.exec(url.pathname)?.[1];
+  const type =
+    url.pathname === "/public/content-items" ? url.searchParams.get("contentType") : null;
+  const source = slug ?? (type ? `items:${type}` : null);
+  if (!source) return [];
+  const named: string[] = [];
+  if (slug && CMS_FLOORS.documentSections[slug] !== undefined)
+    named.push(`documentSections.${slug} ≥ ${CMS_FLOORS.documentSections[slug]}`);
+  if (slug && CMS_FLOORS.documentItems[slug] !== undefined)
+    named.push(`documentItems.${slug} ≥ ${CMS_FLOORS.documentItems[slug]}`);
+  for (const [key, sources] of Object.entries(FLOOR_SOURCES)) {
+    if (!sources?.includes(source)) continue;
+    const value = CMS_FLOORS[key as keyof typeof CMS_FLOORS];
+    named.push(
+      typeof value === "number" ? `${key} ≥ ${value}` : `${key} ${JSON.stringify(value)}`,
+    );
+  }
+  return named;
+}

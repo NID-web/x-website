@@ -5235,3 +5235,116 @@ with a portrait. `[cms]` lines name every omission: Hindi profiles (2), Shilpa D
 - without JavaScript, whole text and no button;
 - no overflow;
 - by keyboard: directory card → Enter → member page → the back link → the directory.
+
+## 84. Production was not behind; a CMS hang no longer fails a build
+
+A gap report (4 Oct) said the live deploy 404'd on the faculty directory and member pages
+although `origin/main` was at `049cda7`. It did not.
+
+### What production served (4 Oct, about 13:00 IST)
+
+https://x-website-blue.vercel.app answered 200 for `/en/people`, `/en/people/faculty`, the three
+`by/` views, three member pages from the CMS `faculty` list (`aarti-srivastava`, `mamata-n-rao`,
+`yaatra-khan`), and the controls `/en/consulting` and `/en/research/railway`. The directory carried
+65 member links and no FIXTURE banner; `yaatra-khan` is not in the fixture, so the build was LIVE.
+Two 404s, both intended:
+- `/people/faculty/by/discipline`: Discipline is the default view, at `/people/faculty` (§82).
+- `/people/faculty/praveen-nahar`: no such slug among the 65 (§83).
+
+### Vercel
+
+Project `x-website`, Hobby plan, Git-linked to `main`, which deploys straight to production with
+no promotion step. Build machine 2 cores / 8 GB: **one static-generation worker**, so 4 CMS
+requests in flight. Build limit 45 minutes; builds take about 3m10s. The default build command,
+`npm run build`, runs the §71 wrapper (the summary box is in every log), so that concern is closed.
+
+| Commit | Deployed (IST) | Result |
+|---|---|---|
+| `234d66f` | 3 Oct 19:48 | Ready, production; 238 fetched = distinct, floors 49/0 |
+| `47d934b` | 4 Oct 11:05 | Ready, production; 240/240, floors 52/0 |
+| `049cda7` | 4 Oct 12:06, Ready about 12:09 | Ready, **production**; 244/244, 8 429s, floors 54/0 |
+
+The only failed deploy in the project's history is `6d25527` (24 Sep), a `tsc` error. A probe
+made before 11:08 (directory) or 12:09 (member pages) saw a 404 that was true then. The report's
+probe time could not be checked.
+
+The "2-minute bar" in §72 and §78 was a local yardstick, never a platform limit.
+
+### The real risk: one hang ended a LIVE build
+
+No Vercel build has failed on the CMS, but locally they often did (four in §83). Two LIVE builds
+of `049cda7`, every CMS request timed by a preload:
+
+1. **Failed, 156s.** 255 requests, 221 answered 200 with p99 1.9s and none slower than 2.0s. At
+   +134s five requests, all 429 retries sent together after the 60s Retry-After with nothing else
+   in flight, were held for exactly 10s. Each answered in under 0.7s when asked again by hand.
+2. **Failed, 20s** (started straight after the first): 24 requests in flight, answers 5–9s,
+   `ceramic-glass-design-bdes` held 10s.
+
+The CMS largely serialises requests: alone 0.6s, 12 in parallel up to 4.1s. A local build runs
+7 workers × 4 slots, so up to 28 in flight; Vercel runs 4. Of the 144s CMS phase in build 1, a
+request was in flight for 25s; **120s was waiting out Retry-After**. The rate limit (100 a
+minute, about 255 requests a build) sets a LIVE build's length, not rendering (about 18s).
+
+The code failed a LIVE build on the first timeout. That is one hang away from a failed deploy,
+and a failed deploy leaves production on the build before it: "the deploy is older than main".
+
+### The fix (`client.ts`)
+
+`retrying429` became `retrying`. Documents and media HEADs both go through it, inside their slot.
+- A timeout (`AbortError`, `ETIMEDOUT`), a reset (`ECONNRESET`, `EPIPE`) or a 502/503/504 gets
+  **3 attempts**, backing off 2s then 4s × a jitter of 0.5–1.5, so requests that failed together
+  do not return together. The slot is held throughout, as for a 429.
+- 429s keep their own 5 attempts; the two budgets are counted apart.
+- Only a success is cached (§71, unchanged), so a retried success is fetched once.
+- The last failure throws `TransientFailure` ("no response in 10s, 3 attempts"), and a LIVE build
+  ends on it, as on any document that does not arrive (§65). The message now names the floors
+  that count that document (`floorsFor`, `cms-floors.ts`), or says none does.
+- Kept: the 10s timeout (`CMS_TIMEOUT_MS`, now shared with media.ts) and 4 slots per worker.
+  Successes never came near 10s when the CMS answered; what it catches are hangs, which a
+  longer timeout would only delay.
+- `next dev` and FIXTURE builds are unchanged: one attempt, no queue.
+
+Worst case for one request: four 60s waits, then three 10s timeouts with up to 9s of backoff
+between them, about 280s. That is under both the 360s page timeout and build-cache.ts's 360s lock
+takeover.
+
+The build summary gains `TIMEOUTS n retried, n failed`, one line per retry, and `SLOWEST`: five
+URLs by their answering attempt's own time, waits excluded.
+
+### Verification
+
+R (FIXTURE): identical to HEAD, 57 HTML and 57 RSC files.
+
+**Five consecutive local LIVE builds** (7 workers, up to 28 requests in flight: harder than
+Vercel's 4):
+
+| Build | Result | Wall | Fetched = distinct | 429s retried | Timeouts retried / failed |
+|---|---|---|---|---|---|
+| 1 | passed | 142s | 244 = 244 | 16 | 0 / 0 |
+| 2 | passed | 145s | 244 = 244 | 20 | 0 / 0 |
+| 3 | passed | 150s | 244 = 244 | 28 | 0 / 0 |
+| 4 | passed | 187s | 244 = 244 | 21 | **11 / 0** |
+| 5 | passed | 143s | 244 = 244 | 24 | 0 / 0 |
+
+Floors 54/0 in every build. In build 4 the CMS stalled mid-build: 11 requests were held 10s, and
+`ahmedabad-campus` twice running. Every one answered on its next attempt. HEAD would have failed
+on the first.
+
+**E** (a preload sent the chosen URL to a local socket that never answers, so the unmodified code
+met a real timeout; deleted after):
+
+| Mock | Result |
+|---|---|
+| `history` hangs twice, then answers | **Passed.** Two 10s timeouts, then a real 429, then 200; one ledger fetch; the summary lists both retries. |
+| `faculty` always hangs (four floors) | **Failed at 43s**, backoff 2.2s then 4.1s: `FETCH FAILED — /public/content/faculty: no response in 10s, 3 attempts. Floors this document is counted against, left unchecked: documentSections.faculty ≥ 1, documentItems.faculty ≥ 65, facultyGrouped ≥ 60, facultyMembers ≥ 60.` |
+| `amarnath-praful` (a person record, no floor by name) always hangs | **Failed at 64s**: `… 3 attempts. No floor counts this document by name; it fails the build all the same.` |
+
+The rule, unchanged by the retries: any document that never arrives fails a LIVE build, with or
+without a named floor (§65). Naming the floors only says what the failure left unchecked.
+
+### Known limitations
+- A local build still burns most of its time waiting out 429s (120 of 144s). Pacing requests
+  to the rate limit, or one limiter across processes, would shorten it; neither is done.
+- The summary's PAGES block prints the article feed's floor beside every `[slug]` route (the
+  member pages, the research centres). That predates this change and is cosmetic.

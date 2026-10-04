@@ -54,6 +54,8 @@ const withheld = [...gates.values()].reduce((n, g) => n + g.unlinked + g.dropped
 const bad = mode === "live" && (failedDocs.length || shortFloors.length);
 
 const W = 78;
+// A media HEAD's key is its full URL; the origin adds nothing at this width.
+const short = (p) => p.replace(/^https?:\/\/[^/]+/, "").slice(0, 52);
 const line = (s = "") => console.log(`│ ${s}`);
 console.log(`┌${"─".repeat(W)}`);
 if (mode === "fixture") {
@@ -88,6 +90,19 @@ if (mode === "live") {
   const retries = events.filter((e) => e.t === "retry");
   const waited = retries.reduce((n, e) => n + e.waitedMs, 0) / 1000;
   line(`RATE LIMIT ${retries.length} 429s retried, ${waited}s waited`);
+  // A timeout, a reset or a 502/503/504 is retried too (§84). A failure that
+  // outlasts its attempts ends a LIVE build before this runs, so "failed" is
+  // non-zero only in a build that was allowed to fall back.
+  const transient = events.filter((e) => e.t === "transient");
+  const transientFailed = events.filter((e) => e.t === "transient-failed");
+  line(`TIMEOUTS   ${transient.length} retried, ${transientFailed.length} failed (timeouts, resets, 502/503/504)`);
+  for (const e of [...transient, ...transientFailed]) {
+    line(`   ${e.t === "transient" ? "↻" : "✗"} ${short(e.path).padEnd(52)} ${e.reason}, attempt ${e.attempt ?? e.attempts}`);
+  }
+  // Each URL's answering attempt, waits excluded, from the process that fetched.
+  const slowest = [...byKey("timing", "path").values()].sort((a, b) => b.ms - a.ms).slice(0, 5);
+  line(`SLOWEST    ${slowest.length ? "" : "none recorded"}`);
+  for (const e of slowest) line(`   ${short(e.path).padEnd(52)} ${(e.ms / 1000).toFixed(1)}s${e.attempts > 1 ? `, attempt ${e.attempts}` : ""}`);
   for (const d of [...docs.values()].sort((a, b) => a.path.localeCompare(b.path))) {
     const size = d.ok
       ? [d.sections !== undefined && `${d.sections} sections`, d.items !== undefined && `${d.items} items`].filter(Boolean).join(", ")

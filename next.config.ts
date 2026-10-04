@@ -141,8 +141,10 @@ export default async function config(phase: string): Promise<NextConfig> {
     // Retry-After 60s) and client.ts waits it out, so a page can take more than
     // a minute. At the default 60s Next restarted nine such pages mid-fetch, and
     // one restart left a corrupted file (bytes after </html>) in a build that
-    // exited 0. 360s covers the worst case — four 60s waits plus five 10s
-    // request timeouts and queueing. Read by the export worker in seconds
+    // exited 0. 360s covers the worst case — four 60s waits, then three 10s
+    // timeouts with up to 9s of backoff between them (§84), about 280s, plus
+    // queueing. build-cache.ts takes a lock over at the same 360s, so a holder
+    // still retrying is never overtaken. Read by the export worker in seconds
     // (checked in next 16.3.2's export/worker.js; the bundled docs omit it).
     staticPageGenerationTimeout: 360,
   });
