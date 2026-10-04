@@ -247,15 +247,20 @@ export function campusDetail(api: PublicContentResponse): CampusDetail | null {
 export interface PersonDetail {
   designation: string | null;
   email: string | null;
+  /** Plain text, paragraphs split by blank lines (a member page's Bio, §83). */
+  bio: string | null;
 }
 
 /** The record's person detail, or null when it has none or it is malformed. */
 export function personDetail(api: PublicContentResponse): PersonDetail | null {
   const d = api.detail;
-  if (!isObj(d) || !isStrOrNull(d.designation ?? null) || !isStrOrNull(d.email ?? null)) return null;
+  if (!isObj(d) || !isStrOrNull(d.designation ?? null) || !isStrOrNull(d.email ?? null) || !isStrOrNull(d.bio ?? null)) {
+    return null;
+  }
   return {
     designation: (d.designation as string | null | undefined) ?? null,
     email: (d.email as string | null | undefined) ?? null,
+    bio: (d.bio as string | null | undefined) ?? null,
   };
 }
 

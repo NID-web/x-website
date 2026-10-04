@@ -126,7 +126,11 @@
     "campus": "Campus",
     "faculty": "Faculty",
     "programme": "Programme",
-    "seats": "Seats"
+    "seats": "Seats",
+    "designation": "Designation",
+    "contact": "Contact",
+    "bio": "Bio",
+    "responsibilities": "Responsibilities"
   },
   "Discipline": {
     "overview": "Overview",

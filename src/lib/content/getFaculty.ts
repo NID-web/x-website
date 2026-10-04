@@ -12,15 +12,18 @@
 // (§71); this adds the faculty document and the Foundation Programme's record.
 import { cache } from "react";
 import { getTranslations } from "next-intl/server";
-import type { Person, Section, UUID } from "@/lib/content-model";
+import type { LabelValue, MediaAsset, Person, Section, UUID } from "@/lib/content-model";
 import { assertFloor } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
 import { toMediaAsset } from "@/lib/api/media";
-import { disciplineDetail, isPublicContentResponse } from "@/lib/api/types";
+import { disciplineDetail, isPublicContentResponse, personDetail } from "@/lib/api/types";
+import { richParagraphs } from "@/lib/content/format";
+import { registerBuiltParams } from "@/lib/content/links";
 import { campusName } from "@/lib/content/campus-names";
 import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import {
   FACULTY_VIEWS,
+  facultyMemberPath,
   facultyViewPath,
   type FacultyView,
 } from "@/lib/content/faculty-views";
@@ -48,6 +51,8 @@ export interface FacultyGroup {
 interface Directory {
   title: string;
   people: Person[];
+  /** FIXTURE only: each person's copied bio and email (the member pages). */
+  sources: Map<string, FacultyPersonSource>;
   disciplines: FacultyDisciplineSource[];
   live: boolean;
   notes: string[];
@@ -71,14 +76,20 @@ function toPerson(source: FacultyPersonSource): Person {
   };
 }
 
-/** The people and the disciplines, from the CMS or the fixture. */
-async function directory(): Promise<Directory> {
+/** The people and the disciplines, from the CMS or the fixture — once per
+ *  build process: the directory, the member index and every member page read
+ *  the same answer. */
+let directoryOnce: Promise<Directory> | undefined;
+const directory = () => (directoryOnce ??= readDirectory());
+
+async function readDirectory(): Promise<Directory> {
   const notes: string[] = [];
   const doc = await cmsFetch(DOCUMENT, isPublicContentResponse);
   if (!doc) {
     return {
       title: FACULTY_FIXTURE.title,
       people: FACULTY_FIXTURE.people.map(toPerson),
+      sources: new Map(FACULTY_FIXTURE.people.map((p) => [p.slug, p])),
       disciplines: FACULTY_FIXTURE.disciplines,
       live: false,
       notes,
@@ -137,13 +148,17 @@ async function directory(): Promise<Directory> {
       members: detail.facultyMembers.map((m) => m.slug),
     });
   });
-  return { title: doc.title?.trim() || FACULTY_FIXTURE.title, people, disciplines, live: true, notes };
+  return { title: doc.title?.trim() || FACULTY_FIXTURE.title, people, sources: new Map(), disciplines, live: true, notes };
 }
 
 interface Grouped {
   title: string;
   people: Person[];
   views: Record<FacultyView, FacultyGroup[]>;
+  /** Each person's design faculties and campuses, from the same merged
+   *  disciplines the views group by — a member page and the directory read one
+   *  derivation and cannot disagree (§83). Alphabetical / the site's order. */
+  memberships: Map<string, { faculties: string[]; campuses: UUID[] }>;
   live: boolean;
 }
 
@@ -204,6 +219,19 @@ function facultyDirectory(): Promise<Grouped> {
     }
     const name: FacultyGroup[] = [...letters].map(([label, items]) => ({ label, items }));
 
+    const memberships = new Map(
+      d.people.map((p) => {
+        const mine = disciplines.filter((x) => x.members.has(p.slug));
+        return [
+          p.slug,
+          {
+            faculties: [...new Set(mine.map((x) => x.faculty))].sort((a, b) => a.localeCompare(b)),
+            campuses: CAMPUS_ORDER.filter((id) => mine.some((x) => x.campus === id)),
+          },
+        ] as const;
+      }),
+    );
+
     if (d.live) {
       const count = discipline.reduce((n, g) => n + g.items.length, 0);
       assertFloor("faculty grouped by discipline", CMS_FLOORS.facultyGrouped, new Set(discipline.flatMap((g) => g.items.map((p) => p.slug))).size, DOCUMENT);
@@ -223,6 +251,7 @@ function facultyDirectory(): Promise<Grouped> {
         campus: [...campus, ...other],
         faculty: [...faculty, ...other],
       },
+      memberships,
       live: d.live,
     };
   })());
@@ -231,7 +260,7 @@ function facultyDirectory(): Promise<Grouped> {
 /** One view of the directory as a page, gated, its groups beside it. cache():
  *  generateMetadata and the page both call it; one log line per render. */
 export const getFaculty = cache(async (view: FacultyView): Promise<PageData> => {
-  const [dir, t] = await Promise.all([facultyDirectory(), getTranslations("Faculty")]);
+  const [dir, t] = await Promise.all([facultyDirectory(), getTranslations("Faculty"), facultyIndex()]);
   const spec = FACULTY_VIEWS.find((v) => v.key === view)!;
   const sectionId = `section-faculty-${view}`;
   const groups = dir.views[view];
@@ -288,3 +317,169 @@ export const getFaculty = cache(async (view: FacultyView): Promise<PageData> => 
   logMissingRoutes(path, audit);
   return { ...response, groupedItems: { [sectionId]: groups } };
 });
+
+// ── Member pages (/people/faculty/[slug], STAGE-0-NOTES §83) ──────────────
+
+/** The faculty list's slugs, registered with the route gate, so a PersonCard
+ *  links exactly the member pages generateStaticParams builds. The list comes
+ *  from the CMS, so — like the article index (§59) — every function that gates
+ *  person cards awaits this first: getPage, getDiscipline, getFaculty. */
+let index: Promise<string[]> | undefined;
+export function facultyIndex(): Promise<string[]> {
+  return (index ??= (async () => {
+    const d = await directory();
+    const slugs = d.people.map((p) => p.slug);
+    registerBuiltParams("/people/faculty/[slug]", slugs);
+    if (d.live) assertFloor("faculty member pages", CMS_FLOORS.facultyMembers, slugs.length, DOCUMENT);
+    return slugs;
+  })());
+}
+
+/** LIVE: how many of the faculty list's records carry a bio, against its
+ *  floor — once per build process. Every record is a member page's own read,
+ *  so these are cache hits (§71). */
+let bios: Promise<void> | undefined;
+function memberBios(): Promise<void> {
+  return (bios ??= (async () => {
+    const d = await directory();
+    if (!d.live) return;
+    const records = await Promise.all(d.people.map((p) => cmsFetch(`/public/content/${p.slug}`, isPublicContentResponse)));
+    const count = records.filter((r) => r && personDetail(r)?.bio?.trim()).length;
+    assertFloor("faculty member pages with a bio", CMS_FLOORS.facultyMembersWithBio, count, DOCUMENT);
+  })());
+}
+
+/** A member page, with the portrait the template draws beside the key info.
+ *  null for a slug not in the faculty list. */
+export const getFacultyMember = cache(
+  async (slug: string): Promise<(PageData & { portrait?: MediaAsset }) | null> => {
+    const [dir, d, tKey] = await Promise.all([
+      facultyDirectory(),
+      directory(),
+      getTranslations("KeyInfo"),
+      facultyIndex(),
+      memberBios(),
+    ]);
+    const person = dir.people.find((p) => p.slug === slug);
+    if (!person) return null;
+    const path = facultyMemberPath(slug);
+    const notes: string[] = [];
+
+    // The record: one request, already made by the discipline page that lists
+    // this person (§71 cache) — new only for the four no discipline page names.
+    let bio: string | undefined;
+    let email: string | undefined;
+    let responsibilities: string[] = [];
+    if (dir.live) {
+      const record = await cmsFetch(`/public/content/${slug}`, isPublicContentResponse);
+      const detail = record ? personDetail(record) : null;
+      if (!record || !detail) notes.push(record ? "no person detail" : "record unavailable");
+      bio = detail?.bio?.trim() || undefined;
+      email = detail?.email?.trim() || undefined;
+      // "Responsibilities" is one post per TEXT block; any other section
+      // ("Profile (Hindi)") waits for a `hi` locale, logged.
+      for (const section of record?.sections ?? []) {
+        const title = (section.title ?? "").trim();
+        if (title === "Responsibilities") {
+          responsibilities = [...(section.blocks ?? [])]
+            .sort((a, b) => a.orderIndex - b.orderIndex)
+            .flatMap((b) => (b.blockType === "TEXT" && b.text?.trim() ? [b.text.trim()] : []));
+        } else notes.push(`section "${title}" not shown`);
+      }
+    } else {
+      const source = d.sources.get(slug);
+      bio = source?.bio;
+      email = source?.email;
+      responsibilities = source?.responsibilities ?? [];
+    }
+    if (!bio) notes.push("no bio");
+    if (!email) notes.push("no email");
+
+    const membership = dir.memberships.get(slug) ?? { faculties: [], campuses: [] };
+    if (!membership.faculties.length) notes.push("in no discipline: no Faculty or Campus row");
+    // Board order: Faculty · Designation · Contact · Campus. Contact is the
+    // email alone; ContactList draws it as a mailto row, without its label —
+    // the site's convention for a link value (TODO(designer)).
+    const keyInfo: LabelValue[] = [
+      ...(membership.faculties.length ? [{ label: tKey("faculty"), value: membership.faculties.join(", ") }] : []),
+      ...(person.designation ? [{ label: tKey("designation"), value: person.designation }] : []),
+      ...(email ? [{ label: tKey("contact"), value: email }] : []),
+      ...(membership.campuses.length
+        ? [{ label: tKey("campus"), value: membership.campuses.flatMap((id) => campusName(id) ?? []).join(", ") }]
+        : []),
+    ];
+
+    // The posts beyond the role line, which is already the Designation row:
+    // only an exact match (after trimming) is dropped — never a near one.
+    const role = person.designation?.trim();
+    const posts = responsibilities.filter((line) => line.trim() !== role);
+
+    const pageId = `page-people-faculty-${slug}`;
+    const sections: Section[] = [
+      ...(bio
+        ? [
+            {
+              id: "section-member-bio",
+              page: pageId,
+              order: 1,
+              type: "text" as const,
+              title: tKey("bio"),
+              body: richParagraphs(bio).text,
+              items: [] as [],
+              links: [],
+              contacts: [],
+            },
+          ]
+        : []),
+      // The CMS's posts, one paragraph each, unclamped: the longest runs to
+      // five lines. TODO(designer): the board has no Responsibilities section.
+      ...(posts.length
+        ? [
+            {
+              id: "section-member-responsibilities",
+              page: pageId,
+              order: 2,
+              type: "text" as const,
+              title: tKey("responsibilities"),
+              body: posts.join("\n\n"),
+              items: [] as [],
+              links: [],
+              contacts: [],
+            },
+          ]
+        : []),
+    ];
+    const { response, audit } = gatePage({
+      page: {
+        id: pageId,
+        title: person.name,
+        slug,
+        parent: PAGE_ID.peopleFaculty,
+        template: "secondary",
+        utility: "back",
+        keyInfo,
+        // No banner: no person record has a usable landscape hero (§83).
+        hero: [],
+        sections,
+        contacts: [],
+        seoTitle: person.name,
+        ...(person.designation ? { seoDescription: person.designation } : {}),
+        publishedAt: "2026-10-04T00:00:00+05:30",
+      },
+      derived: {
+        menuTree: [],
+        breadcrumb: [],
+        backNav: { label: dir.title, href: "/people/faculty" },
+        subPageLinks: [],
+        siblingBand: [],
+      },
+    });
+    console.info(
+      `[cms] ${path}: ${dir.live ? "person record" : "fixture"} · key info ${keyInfo.length}` +
+        (notes.length ? ` · ${notes.join(" · ")}` : "") +
+        ` · ${auditSummary(audit)}`,
+    );
+    logMissingRoutes(path, audit);
+    return { ...response, ...(person.photo ? { portrait: person.photo } : {}) };
+  },
+);

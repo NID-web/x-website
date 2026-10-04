@@ -24,6 +24,10 @@ export const DEFAULT_FACULTY_VIEW: FacultyView = "discipline";
 export const facultyViewPath = (view: FacultyView) =>
   view === DEFAULT_FACULTY_VIEW ? "/people/faculty" : `/people/faculty/by/${view}`;
 
+/** A faculty member's page (§83): which slugs build is the CMS's faculty list,
+ *  registered by getFaculty.ts's facultyIndex. */
+export const facultyMemberPath = (slug: string) => `/people/faculty/${slug}`;
+
 /** The `[view]` values /people/faculty/by/[view] builds. */
 export const FACULTY_VIEW_PARAMS: string[] = FACULTY_VIEWS.map((v) => v.key).filter(
   (key) => key !== DEFAULT_FACULTY_VIEW,

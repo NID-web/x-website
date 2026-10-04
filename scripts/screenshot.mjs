@@ -84,6 +84,8 @@ const PAGES = [
   { name: "faculty-name", path: "/en/people/faculty/by/name" },
   { name: "faculty-campus", path: "/en/people/faculty/by/campus" },
   { name: "faculty-faculty", path: "/en/people/faculty/by/faculty" },
+  // A faculty member page (STAGE-0-NOTES §83): the board's example person.
+  { name: "faculty-member", path: "/en/people/faculty/amarnath-praful" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

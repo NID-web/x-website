@@ -18,6 +18,7 @@ import { disciplineIndex } from "@/lib/content/getDiscipline";
 import { withArchiveYears } from "@/lib/content/getArchive";
 import { withAwardRecords } from "@/lib/content/getAwards";
 import { articleFeed } from "@/lib/content/getArticle";
+import { facultyIndex } from "@/lib/content/getFaculty";
 import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import {
   detailSections,
@@ -663,9 +664,12 @@ export const getPage = cache(async (path: string): Promise<PageData | null> => {
   const config = PAGE_CONFIG[path];
   // The article index registers which /about/news-events/[slug] routes exist;
   // the gate below and every card's href read it.
+  // The faculty index, likewise: it registers the member pages, so a person
+  // card on this page (Director's Message) links exactly those that build (§83).
   const [api] = await Promise.all([
     config ? cmsFetch(`/public/content/${config.slug}`, isPublicContentResponse) : null,
     articleFeed(),
+    facultyIndex(),
   ]);
 
   // The gate runs on every page, CMS or not: a fixture links to unbuilt routes

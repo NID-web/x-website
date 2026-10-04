@@ -81,6 +81,7 @@ NID-web/
 │   │       ├── consulting/page.tsx  ← "/consulting" — the fifth primary page; films and PDFs as a links section (§80)
 │   │       ├── people/page.tsx      ← "/people" — the sixth: no sections, sub-page links three across under the standfirst (§81)
 │   │       ├── people/faculty/…     ← the faculty directory: /people/faculty + by/[view], one grouped rail (§82)
+│   │       │                          and every member at [slug]: portrait + key info + bio (§83)
 │   │       ├── study/admission/     ← a secondary page; the CMS merged by meaning (§74)
 │   │       ├── about/news-events/   ← the secondary-page template (R1c)
 │   │       ├── about/our-themes/    ← the ten craft palettes, each scoped to its theme
@@ -313,7 +314,7 @@ const { page, derived } = response;
 </PageGrid>
 ```
 
-A **grouped list of people** (the faculty directory, §82) is a `rail` section with `groupBy`, its groups built once in the data layer (`getFaculty.ts`) and delivered in `PageResponse.groupedItems`; `RailSection` draws each group's cell in column 1 beside its people three across, and never sorts or buckets. A view of a list is a PATH, never `?by=` (a query string makes the page dynamic). A page's own control — the directory's view switcher — goes in `SecondaryTemplate`'s `utility` prop, stacked under the back link.
+A **grouped list of people** (the faculty directory, §82) is a `rail` section with `groupBy`, its groups built once in the data layer (`getFaculty.ts`) and delivered in `PageResponse.groupedItems`; `RailSection` draws each group's cell in column 1 beside its people three across, and never sorts or buckets. A view of a list is a PATH, never `?by=` (a query string makes the page dynamic). A page's own control — the directory's view switcher — goes in `SecondaryTemplate`'s `utility` prop, stacked under the back link. A person's page shows their square portrait above the key info (`portrait` prop) when no landscape hero exists — never the portrait stretched into the hero slot. A route whose built list comes from the CMS registers it the way the article feed and the faculty index do: one memoised index, awaited by every data function whose page gates links to it (`getPage`, `getDiscipline`, `getFaculty`), so no gate runs first (§59, §83).
 
 A **secondary** page (a child: the campus pages, the programme pages, Admission Process) renders `SecondaryTemplate` (`src/components/sections/SecondaryTemplate.tsx`, STAGE-0-NOTES §70) from a thin route; per-page presentation — clamps, placeholders, the back link's fallback — is `SecondaryLayout` props, never a branch inside the template. A clamp is a line count per section id (`clamp: { "section-…": 7 }`), named because a board draws "See more", never applied by text length; `ClampedProse` gates it on `scripting:`, so without JavaScript the text shows whole and there is no button (§74). A sibling band whose pages are all unbuilt can keep them as unlinked rows: `KEEP_UNBUILT_BAND` in `getPage.ts`, per page (§74).
 

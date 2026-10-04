@@ -84,6 +84,11 @@ export const CMS_FLOORS = {
    *  discipline (the directory's by-Discipline view, §82). Live: 64 of 65. */
   facultyGrouped: 60,
 
+  /** Faculty member pages built (the faculty list), and of them with a bio
+   *  (§83). Live 4 Oct 2026: 65 and 65. */
+  facultyMembers: 60,
+  facultyMembersWithBio: 60,
+
   /** The header menu's top-level sections (home document). Live: 7. */
   menuSections: 7,
   /** The footer's link list (home document). Live: 11. */

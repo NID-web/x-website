@@ -6,6 +6,7 @@
 // lose its ability to withhold a dead link (§57). What differs per page is props
 // and data, never a branch on which page this is.
 import type { Metadata } from "next";
+import type { MediaAsset } from "@/lib/content-model";
 import { Fragment, type ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -21,6 +22,7 @@ import { Separator } from "@/components/spine/Separator";
 import { Standfirst } from "@/components/spine/Standfirst";
 import { Title } from "@/components/spine/Title";
 import { ContactList } from "@/components/sections/parts";
+import { Portrait } from "@/components/cards/PersonCard";
 import { SectionRenderer, hasContent } from "@/components/sections/SectionRenderer";
 import { SiblingBand } from "@/components/sections/SiblingBand";
 import { getPage, type PageData } from "@/lib/content/getPage";
@@ -62,6 +64,10 @@ export interface SecondaryLayout {
    *  the back link in the page-utility cell — the faculty directory's view
    *  switcher (§82). Without it, the back link alone, the element it always was. */
   utility?: ReactNode;
+  /** A person's square portrait at the top of the key-info column, at the
+   *  card's own 144px — a faculty member page (§83), whose records have no
+   *  landscape hero. The title names them, so no name beside it. */
+  portrait?: MediaAsset;
 }
 
 export async function secondaryMetadata(path: string): Promise<Metadata> {
@@ -88,6 +94,7 @@ export async function SecondaryTemplate({
   railThreeUp = false,
   split,
   utility,
+  portrait,
   response: given,
 }: {
   path: string;
@@ -157,7 +164,13 @@ export async function SecondaryTemplate({
         {/* The rail: key info, then the filled buttons (the events rail's
             order, §68). Without buttons it is the element the campus pages have
             always rendered. */}
-        {buttons.length > 0 ? (
+        {portrait ? (
+          // Director's Message's single portrait (§60): eager, no placeholder.
+          <GridItem span="full-then-1" start={1} className="flex flex-col gap-6">
+            <Portrait photo={portrait} name={page.title} priority />
+            {page.keyInfo.length > 0 && <ContactList contacts={page.keyInfo} />}
+          </GridItem>
+        ) : buttons.length > 0 ? (
           <GridItem span="full-then-1" start={1} className="flex flex-col gap-6">
             {page.keyInfo.length > 0 && <ContactList contacts={page.keyInfo} />}
             {buttons.map((button) => (

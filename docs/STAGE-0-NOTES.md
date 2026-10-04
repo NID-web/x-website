@@ -5088,3 +5088,150 @@ directory (the skipped records, the five not shown, "Other faculty" by name).
 
 LIVE's default view has 68 portraits, 3 eager and the rest lazy. `sizes` is "144px" through
 TileImage; the local build's `NEXT_IMAGE_UNOPTIMIZED` drops srcset, and Vercel's does not.
+
+## 83. Faculty member pages: one route, the person record, and every person card linking
+
+`/people/faculty/[slug]` renders every faculty member, from one 1440 board ("08 People / Faculty /
+Member — template"), on `SecondaryTemplate` through `getFacultyMember` (`getFaculty.ts`, beside the
+directory and sharing its grouping). One page per person on the `faculty` document's list: 65
+LIVE, the directory fixture's 10 in FIXTURE (§82). `dynamicParams = false`, so anyone else, a
+seed included, is a 404. The static `by` segment and `[slug]` coexist (§82's proof).
+
+### Requests: four
+
+The 27 discipline pages already read every listed member's own record (§72, for the role line).
+That covers 61 of the 65, and the §71 cache makes a second read free. New: the three
+Foundation-only members (Ritesh Kumar, Vibhu Mittal, Vijaya Barge; Foundation has no discipline
+page) and Shilpa Das (in no discipline).
+
+**240 → 244 distinct**, fetched == distinct; build 151s against HEAD's 153s. Floors 52 → 54:
+member pages ≥ 60 and with a bio ≥ 60 (live 65 and 65). Rate-limit retries rose, 26 against
+HEAD's 15: the person records are now read earlier in the build. LIVE builds of both trees failed
+on CMS timeouts four times this round and passed on retry.
+
+### The person record
+
+All 65 checked:
+
+| Field | Coverage | Notes |
+|---|---|---|
+| `bio` | **65** | 321–3,089 characters, 1–9 paragraphs; one with `<em>` |
+| `email` | **65** | |
+| `phone` | 1 | Ashok Mondal; the institute's main line |
+| `designation` | 65 | "Faculty" ×64, "Director" ×1 |
+| `department` | 58 | below |
+| `batchYear`, `currentRole` | none | |
+| `hero` | 1 | Ashok Mondal's `director-placeholder-hero.jpg`, no alt text, so refused |
+| thumbnail | 65 | square, mostly 288px |
+| section "Responsibilities" | 65 | below |
+| section "Profile (Hindi)" | 2 | waits for a `hi` locale |
+
+Nothing in the CMS matches the board's Experience, Practice or Projects. That copy is filler
+("Mythical Herbology", "Institute of Dreamcraft") and is never rendered nor copied.
+
+**`department` disagrees with the discipline records for 32 of 65:**
+- 15 in naming only ("…Lifestyle Accessory Design" / "…Lifestyle & Accessory Design",
+  "Interdisciplinary Design Studies" / "Interdisciplinary Design", "Design Foundation Studies" /
+  "Foundation Programme");
+- 7 have none; Ashok Mondal's is "Director's Office"; Shilpa Das has no discipline;
+- 8 genuinely conflict: Chakradhar Saswade, Gargi Raychaudhuri, Jonak Das, Mohammed Naim Shaikh,
+  Shekhar Bhattacharjee, Sucharita Beniwal, Swagata Naidu, Vishnupriya Narayanan.
+
+So the page never reads it. TODO(review); backend ask: one vocabulary.
+
+### The page
+
+- **Title:** the name. Metadata: the name, description the role line.
+- **Back link:** BackNav with fallback `/people/faculty`, which the route trail names "Faculty"
+  (the menu's name). It reads "← Faculty" from the directory, from a discipline page (the trail
+  cannot name a discipline route) and on a direct visit. TODO(designer): the board says "All
+  Faculty"; no label override.
+- **Key info,** the board's order (Faculty · Designation · Contact · Campus):
+  - Faculty and Campus come from the directory's own grouping (`Grouped.memberships`, the same
+    merged disciplines the views group by), so a member page and the directory cannot disagree.
+  - The three in two faculties show both, joined, alphabetically ("Communication Design,
+    Foundation Programme").
+  - Designation is the role line (heroText).
+  - Contact is the email alone, a mailto row without its label (ContactList's convention for a
+    link value, TODO(designer)). No phone.
+  - Shilpa Das: no Faculty or Campus row, logged.
+- **No hero, and no stand-in boxes.** No record has a usable landscape photo; 65 boxes that may
+  never fill would read as missing.
+- **The portrait** sits at the top of column 1, above the key info. `SecondaryTemplate portrait`,
+  default off, uses PersonCard's own `Portrait` (extracted, identical output): 144px, the board's
+  `mix-blend-luminosity`, eager. No name beside it; the title has it. Never upscaled. Without a
+  photo the key info rises into its place. TODO(designer): the board draws a landscape hero and
+  no portrait.
+- **Bio:** a text section, the record's paragraphs through `richParagraphs` (`<em>` kept),
+  clamped at eight lines with "See more" (no JS: whole, no button).
+- **Responsibilities** (below) follows the Bio. No other section; no sibling band.
+
+### Responsibilities
+
+The record's "Responsibilities" section is one post per TEXT block, rendered after the Bio as a
+text section titled "Responsibilities", with the Bio's renderer, one paragraph per post and no
+clamp: the longest is five posts, 200 characters (Chakradhar Saswade); 24 are one line. It has no
+markup.
+
+Only the line that **exactly** equals the role line (after trimming) is dropped: that is the
+Designation row already. Nothing near it is dropped; the CMS's capitalised "FACULTY DESIGN
+FOUNDATION STUDIES" stays. Nothing left means no section (`hasContent`).
+
+**46 of 65** have one, the other 19 only repeat their role line. Step 0 had read five records
+and said the section only repeated the role line; it often names real posts ("Head, Ph.D.
+Programme", "Activity Vice-Chairperson, PEP", "Head, Faculty of Industrial Design").
+
+FIXTURE copies each record's lines as sent; 7 of its 10 people have the section. R: FIXTURE 7 and
+LIVE 46 member pages changed, every other page's HTML identical and its payload different only by
+the added `KeyInfo.responsibilities` key. TODO(designer): the board has no Responsibilities
+section.
+
+### Every person card links
+
+PersonCard links wherever the member page is built: the name is the link, stretched over the
+card. The linked-tile arrow is MediaCardTile's: a slot that opens by height on hover or focus (0 →
+28px), instant under reduced motion. Colour-only hover. A card's email stays its own target above
+the stretched link. An unlinked card is the element it always was.
+
+**Registration.** The built list comes from the CMS, so it registers like the article feed (§59).
+`facultyIndex()` is memoised and awaited by `getPage`, `getDiscipline` and `getFaculty`, the data
+functions of every page that draws person cards, before any of them gates. No race: R shows all
+three kinds linking in both modes.
+
+**Links that started resolving** (LIVE; visible text identical on every page, only
+`/people/faculty/<slug>` hrefs added):
+- the four directory views (65–68 links each);
+- all 27 discipline pages' Faculty rails (1–8 each);
+- Director's Message (Ashok Mondal's portrait).
+
+FIXTURE: the directory and the Animation Film Design page.
+
+The six discipline-only members and History's Faculty Stalwarts (none in the faculty list) stay
+unlinked. Every payload otherwise differs only by the added `KeyInfo` keys (`designation`,
+`contact`, `bio`, `responsibilities`).
+
+### A, C, E, Playwright
+
+**A** (FIXTURE): Amarnath Praful, Shilpa Das and Mamata Rao each have the title, the back link,
+the portrait, their key-info rows (Shilpa's two), no hero, the Bio clamped, and no filler
+sections.
+
+**C** (LIVE): 65 built, 65 with bio, 46 with Responsibilities, 65 with email, 0 with a hero, 65
+with a portrait. `[cms]` lines name every omission: Hindi profiles (2), Shilpa Das's rows.
+
+**E** (copies, deleted after):
+
+| Mock | Result |
+|---|---|
+| No bio | no Bio section; the key info stays |
+| No email | no Contact row |
+| No photo | no portrait; the key info rises |
+| Two faculties | "Communication Design, Foundation Programme" |
+| A five-line name at 1440 and 390 | wraps, no overflow |
+
+**Playwright** (FIXTURE; 1440 / 1024 / 768 / 390):
+- the portrait (144) above the key info in column 1 at every width, the Bio below;
+- "See more" wherever the bio overflows (Amarnath Praful's fits at 768);
+- without JavaScript, whole text and no button;
+- no overflow;
+- by keyboard: directory card → Enter → member page → the back link → the directory.

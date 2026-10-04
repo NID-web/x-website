@@ -24,6 +24,7 @@ import { campusName } from "@/lib/content/campus-names";
 import type { EditorialSection, StudentWorkCard } from "@/lib/content/editorial";
 import { joinBlocks, plainText, richParagraphs } from "@/lib/content/format";
 import { programmeDisciplines, type ProgrammeLevel } from "@/lib/content/getDisciplines";
+import { facultyIndex } from "@/lib/content/getFaculty";
 import type { PageData } from "@/lib/content/getPage";
 import { PAGE_ID, pageIdOf, pathOf, pathOfCmsSlug } from "@/lib/content/pages";
 import { registerBuiltParams } from "@/lib/content/links";
@@ -201,7 +202,9 @@ async function fromCms(slug: string, log: string[]): Promise<DisciplineSource | 
 
 /** A discipline page, or null when it is not one this build makes. */
 export async function getDiscipline(level: ProgrammeLevel, base: string): Promise<PageData | null> {
-  const cards = await disciplineIndex(level);
+  // The faculty index registers the member pages, so the Faculty rail's cards
+  // link exactly those that build (§83).
+  const [cards] = await Promise.all([disciplineIndex(level), facultyIndex()]);
   const card = cards.find((c) => disciplineBase(c.slug, level) === base);
   if (!card) return null;
   const log: string[] = [];
