@@ -378,6 +378,17 @@ The Regulatory pages (`/regulatory/nid-act`, `/regulatory/annual-reports`, `/reg
 
 The band (`REGULATORY_CHILDREN`, `regulatory.ts`) already lists all three, and an unbuilt one is an unlinked row until its route lands, so nothing else changes. A menu row is a separate decision (§86): the LIVE menu is the CMS's, and needs a CMS nav item for the slug.
 
+### R1f — A Consulting child
+
+The Consulting & Entrepreneurship children (`/consulting/ids` today; Continuing Education next) are secondary pages read from their own CMS documents (STAGE-0-NOTES §92). Each is:
+
+1. **Route file** `src/app/[locale]/consulting/<page>/page.tsx`, a copy of `ids/page.tsx`: `backFallback="/consulting"`, `heroPlaceholder={false}`, the body's `clamp` at 8 lines (the landing's count). No `siblingParent`: the band is named by the fixture's `backNav`, "More in Consulting & Entrepreneurship". Add the path to `BUILT_ROUTES`.
+2. **Fixture** `src/lib/content/fixtures/consulting-<page>.ts`: the CMS's words as sent, `parent: PAGE_ID.consulting`, `backNav` Consulting & Entrepreneurship, `siblingBand: consultingBand(PATH)`. CMS files (PDFs) are LIVE only; films and other external URLs may be copied. A hero the landing already has a copy of reuses that file.
+3. **`PAGE_CONFIG`** (`getPage.ts`): the CMS slug (check `PATH_BY_CMS_SLUG`, and that only one document claims the page — IDS had a duplicate, §92), `intro: "heroText"` where it is a summary, `linkBlocks` on the sections that carry LINK blocks.
+4. **Floors** (`cms-floors.ts`): `documentSections`, and `documentLinkBlocks` where the page lists files.
+
+The band (`consultingBand`, from the landing's rail) and `KEEP_UNBUILT_BAND` already cover all five children: a new one links in every sibling's band, the landing's rail and Ahmedabad's Services & Centres with no other change.
+
 ---
 
 ## R2 — Add a new component

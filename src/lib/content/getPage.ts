@@ -52,6 +52,7 @@ import { STUDY_NOTIFICATIONS } from "@/lib/content/fixtures/study-notifications"
 import { STUDY_YOUNG_DESIGNERS } from "@/lib/content/fixtures/study-young-designers";
 import { RESEARCH } from "@/lib/content/fixtures/research";
 import { CONSULTING } from "@/lib/content/fixtures/consulting";
+import { CONSULTING_IDS } from "@/lib/content/fixtures/consulting-ids";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
@@ -88,6 +89,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/study/young-designers": STUDY_YOUNG_DESIGNERS,
   "/research": RESEARCH,
   "/consulting": CONSULTING,
+  "/consulting/ids": CONSULTING_IDS,
   "/people": PEOPLE,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
@@ -476,6 +478,19 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-consulting-resources": { textTitle: "IDS Resources", linkBlocks: true },
     },
   },
+  // The first Consulting child (§92): the static `integrated-design-services`
+  // document — the footer's, and the complete one; the `service_centre` record
+  // `integrated-design-services-centre` is a broken subset (backend ask). The
+  // standfirst is heroText, a summary written for the page; About renders whole,
+  // its FAQ PDF the column-4 link above the page contacts (§80's stack).
+  "/consulting/ids": {
+    slug: "integrated-design-services",
+    intro: "heroText",
+    sections: {
+      "section-ids-about": { textTitle: "About", linkBlocks: true },
+      "section-ids-resources": { textTitle: "Resources", linkBlocks: true },
+    },
+  },
   // The sixth primary page (STAGE-0-NOTES §81): no sections on the board. The
   // standfirst is "About", claimed BY TITLE: it and "Overview" tie at orderIndex
   // 1, so "the first section" would be whichever the API sent first. Overview,
@@ -697,6 +712,8 @@ const KEEP_UNBUILT_BAND = new Set([
   ...RESEARCH_CHILDREN.map((c) => researchPath(c.slug)),
   // Regulatory's three: each built one at a time, the others unlinked rows (§86).
   ...REGULATORY_CHILDREN.map((c) => c.path),
+  // Consulting & Entrepreneurship's five, from its rail (§92).
+  ...CONSULTING.derived.subPageLinks.map((link) => link.href),
 ]);
 
 // cache(): generateMetadata and the page both call this; one fetch and one log

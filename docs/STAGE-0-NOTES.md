@@ -6052,3 +6052,95 @@ rate-limit retries.
 closed for the whole build then, so freed slots would only fire more requests into it and earn
 more 429s. If 900s is ever not enough, the shape is one shared back-off: on a 429 the limiter
 stops dispatching for everyone until the window reopens. Backlog.
+
+## 92. Integrated Design Services: the first Consulting child, and the Consulting band
+
+`/consulting/ids` is sitemap.json §06's first child, on `SecondaryTemplate` with no board. It reads
+its own document; nothing of the landing's fixture is reused as content.
+
+### Which document
+
+The CMS has two: the static `integrated-design-services` (id 18) and the `service_centre`
+`integrated-design-services-centre` (891, published five seconds later). Same title, heroText,
+SEO, hero and four contacts; but the `service_centre` record's "About" is one paragraph that opens
+"Since then…" (its antecedent is missing) and a LINK block with neither url nor file, and it has no
+Resources. The page reads the static one — the complete one, and the one `PATH_BY_CMS_SLUG` and the
+CMS footer already use. Backend ask: retire the duplicate, or say which is canonical. Continuing
+Education has only its `service_centre` document (`continuing-education-programme`); the adapter
+reads any Generic Page document alike, so Prompt 5 reads it by its slug.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS |
+| Back link | BackNav, fallback `/consulting` ("Consulting & Entrepreneurship", UNLISTED_PAGES) |
+| Hero | CMS hero[0], `consulting-hero-1.jpg`: the landing's client-logo collage. FIXTURE reuses the landing's copy at `/consulting/hero-1.jpg` (one file). TODO(review): same image as /consulting; its alt names the page, not the image (§80) |
+| Standfirst | CMS `heroText`, a summary written for the page. About ¶1 (the India Report) is history, not a summary, and §80's landing rule would make this page a copy of the landing's IDS block, standfirst included |
+| About | CMS, all six paragraphs, behind "See more" at eight lines (the landing's count); no paragraph renders twice |
+| Column 4 | §80's stack: the "FAQ - IDS" PDF (`linkBlocks`, document style), then the four page contacts as sent; both "+91 079 …" values plain text (§80's trunk-0 rule) |
+| Resources | CMS "Resources", in CMS order: two films (external, new tab), two PDFs (document style, HEAD-checked); the landing's `flow` layout |
+| Band | "More in Consulting & Entrepreneurship" |
+
+FIXTURE carries the words, contacts and the two films; the FAQ and the two PDFs are CMS files,
+LIVE only (§76, §80).
+
+**The same content twice.** The landing renders the same six paragraphs, FAQ, films and PDFs from
+its own document (§80). TODO(designer/review): the landing could become a summary that links here.
+The landing is not changed.
+
+The secondary template lets the column-4 cell flow (§74), where the landing places it by the
+utility rule (§73): at 1024 the FAQ and contacts sit in column 1 under the body, as on RTI and the
+campus pages, not in column 2 as on the landing.
+
+### The Consulting band
+
+`consultingBand(path)` (sibling-bands.ts) is the landing's rail — sitemap.json's five, in its
+order, by its labels — minus self. `KEEP_UNBUILT_BAND` holds all five paths (the Study precedent),
+so Continuing Education, NDBI, Outreach and Ongoing Projects are unlinked rows until each is built,
+then link with no change (mocked). The heading is the template's default, "More in" the fixture's
+`backNav` label; no `siblingParent`.
+
+### What links here now
+
+| Where | Before | After |
+|---|---|---|
+| /consulting, the rail's "Integrated Design Services" | unlinked row | link (both modes) |
+| Ahmedabad, "Services & Centres" | unlinked row (§58's held list) | link (both modes): §58's exemption working as meant |
+| The Consulting menu row (FIXTURE) and the CMS footer (LIVE) | already `/en/consulting/ids`, ungated | resolve, no HTML change |
+| The FIXTURE footer | the stale `/integrated-design-services` | unchanged: the footer-paths backlog task |
+
+### Floors, requests
+
+`documentSections["integrated-design-services"]: 2`; `documentLinkBlocks: 4` (live 5: the FAQ
+and four resources). Every file this page links — hero, FAQ, films, PDFs — is a URL /consulting
+already fetches, and the six paragraphs and four contacts are byte-identical to the landing's, so
+the §71 cache serves the HEADs: **one more distinct request, the document.**
+
+### R, A, E, Playwright
+
+**R** (baseline `b7f3f92`). FIXTURE: 350 of 358 identical; the eight are /consulting's and
+Ahmedabad's four files each, by the one row that now links. LIVE (§73's and §77's rules): 908 of
+916 identical, the same eight by the same row. `/en/consulting/ids` builds as `●`. Gate 60 → 62
+FIXTURE, 68 → 70 LIVE: the band's four unlinked rows, less the two rows that now link. LIVE: **282 →
+283 distinct**, fetched == distinct; 146s; floors 63/0; the guard clean.
+
+**A** (FIXTURE): the title; "← Consulting & Entrepreneurship"; the hero 1038 × 472 at 1440 (at 390
+the 4:3 crop cuts the NOTA logo, as on the landing); the standfirst; About's six paragraphs behind
+"See more"; the four contacts in column 4; the two films; four unlinked band rows.
+
+**E** (a mock CMS under `next dev`, deleted after):
+
+| Mock | Result |
+|---|---|
+| The FAQ file 404s | dropped and logged (`dropped 1 CMS file that 404`); the four contacts stay |
+| No CMS Resources | the fixture's two films stay (the per-unit fallback, `section:resources(no api section)`) |
+| No Resources in either | the section and its separator are gone |
+| No hero in either | the page closes up |
+| Continuing Education built (a route file and its `BUILT_ROUTES` entry) | its band row links |
+
+**Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): "See more" opens to "See less" with JavaScript;
+without it there is no button and all six paragraphs show. The long phone value is two lines in
+column 4 at 1440 and in column 1 at 1024, one line at 768 and 390. No horizontal overflow; tab order
+the back link, "See more", the two emails, the films, then the footer (the band's rows are not
+focusable while unbuilt).

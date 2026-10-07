@@ -94,6 +94,9 @@ const PAGES = [
   // Named officers in the rail, an index of this site's pages, a list of
   // documents on four hosts (§89).
   { name: "regulatory-rti", path: "/en/regulatory/rti" },
+  // The first Consulting child: the landing's IDS content on the secondary
+  // template, the Consulting band (§92).
+  { name: "consulting-ids", path: "/en/consulting/ids" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

@@ -2,6 +2,7 @@
 // the tree (NID-CONTEXT §8.4), a child of a child of About takes About's own
 // children as its band, named "More in About NID".
 import type { DerivedPageContext } from "@/lib/content-model";
+import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 import { PROGRAMMES } from "@/lib/content/fixtures/programmes";
 import { STUDY } from "@/lib/content/fixtures/study";
@@ -77,4 +78,17 @@ export function regulatoryBand(path: string): DerivedPageContext["siblingBand"] 
     title: link.title,
     href: link.path,
   }));
+}
+
+/** "More in Consulting & Entrepreneurship": the /consulting rail — sitemap.json's
+ *  five children, in its order — minus `path` (§92). Unbuilt siblings stay
+ *  unlinked rows (KEEP_UNBUILT_BAND). */
+export function consultingBand(path: string): DerivedPageContext["siblingBand"] {
+  return CONSULTING.derived.subPageLinks
+    .filter((link) => link.href !== path)
+    .map((link) => ({
+      id: pageIdOf(link.href) ?? link.href,
+      title: link.label,
+      href: link.href,
+    }));
 }
