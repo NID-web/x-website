@@ -53,8 +53,10 @@ import { STUDY_YOUNG_DESIGNERS } from "@/lib/content/fixtures/study-young-design
 import { RESEARCH } from "@/lib/content/fixtures/research";
 import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { PEOPLE } from "@/lib/content/fixtures/people";
+import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { RESEARCH_CENTRE_PAGES, RESEARCH_CENTRE_SLICES } from "@/lib/content/fixtures/research-centres";
 import { RESEARCH_CHILDREN, researchPath, type ResearchCentre } from "@/lib/content/research-centres";
+import { REGULATORY_CHILDREN } from "@/lib/content/regulatory";
 import { ADMISSIONS_URL } from "@/lib/content/fixtures/programme-parts";
 import { PAGE_ID, cmsSlugOf, pagePath } from "@/lib/content/pages";
 
@@ -85,6 +87,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/research": RESEARCH,
   "/consulting": CONSULTING,
   "/people": PEOPLE,
+  "/regulatory/nid-act": REGULATORY_NID_ACT,
   ...Object.fromEntries(
     Object.entries(RESEARCH_CENTRE_PAGES).map(([slug, response]) => [researchPath(slug), response]),
   ),
@@ -480,6 +483,20 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     introTitle: "About",
     sections: {},
   },
+  // The first Regulatory page (STAGE-0-NOTES §86). The standfirst is heroText:
+  // "About" is three narrative paragraphs with no summary among them, so it
+  // renders whole, and "Documents" is a list of documents (§76) — its eight
+  // LINK blocks, nid.edu PDFs, in CMS order with CMS labels. hero[1] (a second
+  // photograph of the entrance wall /people and /study/notifications show) is
+  // mapped but never renders: the template shows hero[0].
+  "/regulatory/nid-act": {
+    slug: "nid-act",
+    intro: "heroText",
+    sections: {
+      "section-nid-act-about": { textTitle: "About" },
+      "section-nid-act-documents": { textTitle: "Documents", linkBlocks: true },
+    },
+  },
 };
 
 /** The research centres (§79), one config each, from the fixture's slices: every
@@ -654,6 +671,8 @@ const KEEP_UNBUILT_BAND = new Set([
   // Research & Publications' centres: a withheld one (Nation Building) stays an
   // unlinked row in every centre's band (§79).
   ...RESEARCH_CHILDREN.map((c) => researchPath(c.slug)),
+  // Regulatory's three: each built one at a time, the others unlinked rows (§86).
+  ...REGULATORY_CHILDREN.map((c) => c.path),
 ]);
 
 // cache(): generateMetadata and the page both call this; one fetch and one log
@@ -681,6 +700,17 @@ export const getPage = cache(async (path: string): Promise<PageData | null> => {
     if (itemFloor !== undefined) {
       const items = api.sections.reduce((n, s) => n + (s.items?.length ?? 0), 0);
       assertFloor(`document ${config.slug}: listed items`, itemFloor, items, source);
+    }
+    // A list of documents is LINK blocks, not STRUCTURED items, so it has a
+    // floor of its own — counted as the CMS sends them, before a file that
+    // 404s is dropped (§86).
+    const linkFloor = CMS_FLOORS.documentLinkBlocks[config.slug];
+    if (linkFloor !== undefined) {
+      const links = api.sections.reduce(
+        (n, s) => n + (s.blocks ?? []).filter((b) => (b.blockType as string) === "LINK").length,
+        0,
+      );
+      assertFloor(`document ${config.slug}: LINK blocks`, linkFloor, links, source);
     }
   }
 

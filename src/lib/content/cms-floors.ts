@@ -63,6 +63,8 @@ export const CMS_FLOORS = {
     handloom: 1,
     ipr: 1,
     "nid-press": 1,
+    // Regulatory (§86): About and Documents.
+    "nid-act": 2,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page
@@ -74,6 +76,14 @@ export const CMS_FLOORS = {
     "research-publications": 7,
     // The faculty directory's people (§82). Live 3 Oct 2026: 65.
     faculty: 65,
+  } as Record<string, number>,
+
+  /** LINK blocks across a document's sections, where a section is a list of
+   *  documents (§76) — the rows are LINK blocks, not STRUCTURED items, so
+   *  documentItems cannot see them. Counted as sent, before a file that 404s
+   *  is dropped. Live 7 Oct 2026: nid-act 8. */
+  documentLinkBlocks: {
+    "nid-act": 7,
   } as Record<string, number>,
 
   /** A programme's discipline records that become cards (getDisciplines.ts):
@@ -98,8 +108,8 @@ export const CMS_FLOORS = {
 } as const;
 
 // Which CMS response each named floor counts: a document by slug, or a list
-// endpoint by its contentType ("items:…"). documentSections and documentItems
-// are keyed by slug already. Read only to name the floors a document that never
+// endpoint by its contentType ("items:…"). documentSections, documentItems and
+// documentLinkBlocks are keyed by slug already. Read only to name the floors a document that never
 // arrived leaves unchecked (client.ts, STAGE-0-NOTES §84) — the build fails
 // either way. A floor counted across many documents (the member bios, one
 // record each) has no single source and is not listed.
@@ -129,6 +139,8 @@ export function floorsFor(path: string): string[] {
     named.push(`documentSections.${slug} ≥ ${CMS_FLOORS.documentSections[slug]}`);
   if (slug && CMS_FLOORS.documentItems[slug] !== undefined)
     named.push(`documentItems.${slug} ≥ ${CMS_FLOORS.documentItems[slug]}`);
+  if (slug && CMS_FLOORS.documentLinkBlocks[slug] !== undefined)
+    named.push(`documentLinkBlocks.${slug} ≥ ${CMS_FLOORS.documentLinkBlocks[slug]}`);
   for (const [key, sources] of Object.entries(FLOOR_SOURCES)) {
     if (!sources?.includes(source)) continue;
     const value = CMS_FLOORS[key as keyof typeof CMS_FLOORS];

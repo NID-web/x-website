@@ -304,6 +304,9 @@ export function toPageResponse(
     // still renders hero[0] only.
     page.hero = accepted;
     log.api.push("hero");
+    // Said, so a second photograph an editor uploads is not mistaken for one
+    // that shows (§86).
+    if (accepted.length > 1) log.notes.push(`hero: ${accepted.length} accepted, hero[0] renders`);
     if (rejected.length) log.notes.push(`hero: ${rejected.length} rejected (${rejected.join("; ")})`);
   } else {
     log.static.push(`hero(${rejected.length ? `media rejected: ${rejected.join("; ")}` : "api empty"})`);

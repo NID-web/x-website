@@ -4,18 +4,16 @@
 // 4364:189043 (the visible "Focus body" 4118:205439 is the same copy clamped,
 // which is how a designer draws a clamp — in code it is one body string).
 import type { PageResponse, Section } from "@/lib/content-model";
-import { DOCUMENT_PATH } from "@/lib/content/documents";
 import { PAGE_ID } from "@/lib/content/pages";
 
 const PUBLISHED = "2026-07-23T00:00:00+05:30";
 
-// TODO(review): four assets the board assumes and this build does not have —
-// the hero banner (4118:205429), the Mandate section image (4140:246794), the
-// Ten Mandates section image (4140:246793) and the Act PDF itself
-// (/documents/nid-act-and-statutes.pdf). The three images are drawn as the
-// board draws them, a flat accent/subtle field at the right crop, so the page
-// keeps the board vertical rhythm; supply the assets and TileImage takes over
-// with nothing around them moving. The Act link 404s until the PDF lands.
+// TODO(review): three assets the board assumes and this build does not have —
+// the hero banner (4118:205429), the Mandate section image (4140:246794) and
+// the Ten Mandates section image (4140:246793). They are drawn as the board
+// draws them, a flat accent/subtle field at the right crop, so the page keeps
+// the board vertical rhythm; supply the assets and TileImage takes over with
+// nothing around them moving.
 
 const MANDATE: Section = {
   id: "section-charter-mandate",
@@ -73,15 +71,18 @@ export const CHARTER: PageResponse = {
       "awareness and application towards raising the quality of life by and through Education " +
       "to create design professionals of excellence to help meet India's diverse design needs.",
     sections: [MANDATE, TEN_MANDATES],
-    // The board's rail block (4118:205434): two contacts and a document link on
-    // one 64px pitch. The Act row is a LINK, but `Page` has no Link slot, so it
+    // The board's rail block (4118:205434): two contacts and the Act row on one
+    // 64px pitch. The Act row is a LINK, but `Page` has no Link slot, so it
     // rides on `contacts` as a path-valued pair — About's precedent for its own
     // intro link (STAGE-0-NOTES §33, which proposes `Page.introLinks`).
     // `contactCta` in links.ts derives the targetType back out of the value.
+    // It opens the NID Act page, which lists the Act and what followed it; the
+    // file it pointed at never existed (§86). TODO(designer): the board draws
+    // a file glyph, and a page link has none.
     contacts: [
       { label: "Email", value: "info@nid.edu" },
       { label: "Phone", value: "+91 79 2662 9500" },
-      { label: "NID Act & Statutes", value: DOCUMENT_PATH.nidAct },
+      { label: "NID Act & Statutes", value: "/regulatory/nid-act" },
     ],
     seoTitle: "Charter",
     seoDescription:

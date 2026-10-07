@@ -6,20 +6,17 @@
 import type { Link, UUID } from "@/lib/content-model";
 
 export const DOCUMENT_ID = {
-  nidAct: "document-nid-act-and-statutes",
   indiaReport: "document-the-india-report",
 } as const;
 
 /** The paths themselves. Exported because a PAGE-level document link has no
- *  `Link` to resolve: `Page` has no link slot, so Charter's Act row rides on
- *  `Page.contacts` as a value (see the note on `contactCta` in links.ts). */
+ *  `Link` to resolve: `Page` has no link slot, so History's India Report row
+ *  rides on `Page.contacts` as a value (see the note on `contactCta` in links.ts). */
 export const DOCUMENT_PATH = {
-  nidAct: "/documents/nid-act-and-statutes.pdf",
   indiaReport: "/documents/the-india-report.pdf",
 } as const;
 
 const PATH: Record<UUID, string> = {
-  [DOCUMENT_ID.nidAct]: DOCUMENT_PATH.nidAct,
   [DOCUMENT_ID.indiaReport]: DOCUMENT_PATH.indiaReport,
 };
 

@@ -6,6 +6,7 @@ import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
 import { PROGRAMMES } from "@/lib/content/fixtures/programmes";
 import { STUDY } from "@/lib/content/fixtures/study";
 import { PAGE_ID, pageIdOf, pathOf } from "@/lib/content/pages";
+import { REGULATORY_CHILDREN } from "@/lib/content/regulatory";
 import { RESEARCH_CHILDREN, researchPath } from "@/lib/content/research-centres";
 
 /** About's children: News & Events' own band (About's children minus itself)
@@ -64,4 +65,16 @@ export function researchBand(path: string): DerivedPageContext["siblingBand"] {
       title: link.title,
       href: link.href,
     }));
+}
+
+/** "More in Regulatory": sitemap.json §11's three children minus `path` (§86).
+ *  There is no Regulatory page, so the route names the band's parent itself
+ *  (SecondaryLayout.siblingParent). Unbuilt siblings stay unlinked rows
+ *  (KEEP_UNBUILT_BAND). */
+export function regulatoryBand(path: string): DerivedPageContext["siblingBand"] {
+  return REGULATORY_CHILDREN.filter((link) => link.path !== path).map((link) => ({
+    id: pageIdOf(link.path) ?? link.path,
+    title: link.title,
+    href: link.path,
+  }));
 }

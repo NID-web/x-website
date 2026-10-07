@@ -367,6 +367,17 @@ The centres are one route, `src/app/[locale]/research/[slug]/page.tsx`, on `Seco
 
 No route file, template, component or `getPage` change. Registration with the route gate, `generateStaticParams`, the band, the merge config and the landing's tile photo all follow from the list. A centre withheld from the list (Nation Building today) stays an unlinked row everywhere and its URL is a 404.
 
+### R1e — A Regulatory page
+
+The Regulatory pages (`/regulatory/nid-act` today; Annual Reports and RTI next) are lists of PDFs on `SecondaryTemplate` with no board (STAGE-0-NOTES §86). Each is:
+
+1. **Route file** `src/app/[locale]/regulatory/<page>/page.tsx`, a copy of `nid-act/page.tsx`: `backFallback="/about"`, `heroPlaceholder={false}`, `documentLists` naming its documents section, `siblingParent={REGULATORY_TITLE}`. Add the path to `BUILT_ROUTES` (`links.ts`) or `npm run lint` fails.
+2. **Fixture** `src/lib/content/fixtures/regulatory-<page>.ts`: the CMS's words as sent, a `links` section of the PDFs as `targetType: "external"` links (↗, new tab, no file glyph: the one rule for every Regulatory list), `siblingBand: regulatoryBand(PATH)`. Its hero, if any, is a copy of the CMS's hero[0] in `public/regulatory/<page>/`. Register it in `FIXTURES` (`getPage.ts`).
+3. **`PAGE_CONFIG`** (`getPage.ts`): the CMS slug, the standfirst's source, and `{ textTitle: "<the CMS section>", linkBlocks: true }` for the documents section. Map the slug in `PATH_BY_CMS_SLUG` (`pages.ts`) if it is not there.
+4. **Floors** (`cms-floors.ts`): its section count in `documentSections`, and its LINK-block count, less a margin of one, in `documentLinkBlocks`.
+
+The band (`REGULATORY_CHILDREN`, `regulatory.ts`) already lists all three, and an unbuilt one is an unlinked row until its route lands, so nothing else changes. A menu row is a separate decision (§86): the LIVE menu is the CMS's, and needs a CMS nav item for the slug.
+
 ---
 
 ## R2 — Add a new component

@@ -208,7 +208,7 @@ export const HOME_TILES: HomeTile[] = [
     kind: "feature",
     serifKey: "nationalImportance.serif",
     subKey: "nationalImportance.sub",
-    cta: { labelKey: "cta.readAct", href: "/about/act" },
+    cta: { labelKey: "cta.readAct", href: "/regulatory/nid-act" },
   },
   {
     id: "alumni",

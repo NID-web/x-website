@@ -35,6 +35,11 @@ export const MENU_SECTIONS: NavSection[] = [
       { label: "Campuses", href: "/about/campuses" },
       { label: "News & Events", href: "/about/news-events" },
       { label: "Our Themes", href: "/about/our-themes" },
+      // TODO(designer): an addition to the architecture
+      // (DECISION-MISSING-PAGES-07-OCT, 7 Oct 2026). sitemap.json files the page
+      // under 11 Regulatory, which has no page and no menu section; the row
+      // sits under About, where nid.edu files it (STAGE-0-NOTES §86).
+      { label: "NID Act, Rules, Ordinances & Statutes", href: "/regulatory/nid-act" },
     ],
   },
   {

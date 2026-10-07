@@ -5574,3 +5574,137 @@ design pedagogy workshop, Convocation Week 41 and the Gandhinagar inauguration. 
 with" line. **No built page refers to `/events`** (HTML and RSC): 0 files, and there is no
 `en/events` output. The menu line is unchanged: `MENU CMS, 7 sections; lacks consulting, kmc,
 events, industry-connect`.
+
+## 86. NID Act, Rules, Ordinances & Statutes: the first Regulatory page, and the list-of-PDFs rule
+
+`/regulatory/nid-act` is sitemap.json §11's first child. It has no board: the designer's brief
+(6 Oct 2026) is "a basic template page", so it is `SecondaryTemplate` laid out by its own rules,
+through a thin route file. The route follows sitemap.json. The back link and the menu row follow
+nid.edu, which files the page under About.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS `title`, "NID Act, Rules, Ordinances And Statutes" (sitemap.json and the menu say "… & Statutes") |
+| Back link | BackNav, `backFallback="/about"`: "About NID" on a direct visit; the trail's page otherwise (§45) |
+| Hero | CMS hero[0], the Ahmedabad campus gate. hero[1], a second photograph of the entrance wall /people and /study/notifications already show, is mapped and never renders |
+| Standfirst | CMS `heroText` (§76's shape): "About" is three narrative paragraphs with no summary among them |
+| About | CMS "About", whole: three TEXT blocks (347, 242, 306 characters), unclamped |
+| Documents | CMS "Documents": eight LINK blocks, nid.edu PDFs, in CMS order with CMS labels (`documentLists`, `linkBlocks`, §76) |
+| Band | "More in Regulatory": `regulatoryBand(path)` |
+
+No key info and no contacts: the CMS has none, and none are invented. `heroPlaceholder={false}`:
+no board, so no boxes (§77 is for pages whose boards draw them); with no hero anywhere the page
+closes up. The fixture copies the CMS's words, so FIXTURE and LIVE read the same. Its hero is a
+copy of hero[0] in `public/regulatory/nid-act/`, with our own alt text (TODO(review); the CMS's
+alt is "National Institute of Design").
+
+nid.edu's page lists the same eight files, labels and order. All eight answered 200
+`application/pdf` with no redirect (HEAD, 7 Oct 2026).
+
+**A no-hero CMS still shows a hero.** The adapter falls back per unit (§65), so a document that
+sends no hero keeps the fixture's copy; "closes up" needs no hero in either source, or a CMS hero
+whose file 404s (PageHero's article rule removes it). Both were mocked. So the copy in
+`public/regulatory/nid-act/` outlives a deliberate CMS removal of the hero: if the editor drops or
+replaces the hero, delete the copy.
+
+### One rule for a list of PDFs
+
+**Every Regulatory PDF row is an external link: a trailing ↗, a new tab, no leading file glyph.**
+NID-CONTEXT §7.1 gives "Document or external" the ArrowUpRight on the right only, and the one
+designed list of documents, Academic Notifications (§76), draws exactly that. A LINK block with a
+`url` already is `targetType: "external"`, and `withServedFiles` HEADs it because its path ends
+`.pdf`, so this needs no code. Annual Reports and RTI take the same rule.
+
+TODO(designer): "a PDF" now has two looks. CMS media-file links (§76, Consulting's PDFs) carry the
+file glyph from the Charter board (§52); external PDF URLs do not. Recorded here once.
+
+### The Regulatory family
+
+- **`src/lib/content/regulatory.ts`** imports nothing (research-centres.ts's pattern):
+  `REGULATORY_TITLE` and `REGULATORY_CHILDREN`, sitemap.json §11's three, in order, by its titles.
+- **The band.** `regulatoryBand(path)` (sibling-bands.ts) is that list minus self.
+  `KEEP_UNBUILT_BAND` holds all three paths, so an unbuilt sibling is an unlinked row and becomes
+  a link when its route joins `BUILT_ROUTES`, with no other change (mocked with Annual Reports).
+- **The heading.** There is no Regulatory page, and SecondaryTemplate names the band after
+  `derived.backNav`, which here is About NID. `SecondaryLayout.siblingParent` names it instead:
+  "More in Regulatory", through `Page.moreIn`. Absent, the template renders the tree it always did
+  (R below).
+- **The menu row.** "NID Act, Rules, Ordinances & Statutes" closes About's links, in
+  `MENU_SECTIONS` and in sitemap.json §02's `menu` (with a `menuNote`), both by hand.
+  TODO(designer): an addition to the architecture (DECISION-MISSING-PAGES-07-OCT, 7 Oct 2026).
+  **Nothing checks that the two lists agree**: sitemap.json has no `src/` copy and no generate
+  path, so `verify:parity` never sees it, and `verify:design` counts sections, not menu rows.
+- **The LIVE menu has no row.** The menu is the CMS's whole whenever it sends one (§85), and its
+  About NID has Charter, History and Campuses. `PATH_BY_CMS_SLUG` maps `nid-act`, so a CMS nav
+  item with that slug under About NID resolves with no code change. Backend ask.
+- **The back link's side effect.** The row gives `/regulatory/nid-act` a route title, so a page
+  visited from here reads "← NID Act, Rules, Ordinances & Statutes": two lines (64px) in the
+  column-4 utility slot at 1440 and 1024, one line at 768 and 390, no overflow.
+
+### Two links repointed here
+
+Both come from our code in LIVE as well as FIXTURE: the CMS adapts only Home's statement and news
+tiles, and the `charter` document sends no contacts, so the fixture's rail stands.
+
+| Page | Before | After |
+|---|---|---|
+| Home | "Read the Act" → `/about/act`, a route in no sitemap; withheld by the gate (§58) | → `/regulatory/nid-act`; the CTA appears |
+| Charter | "NID Act & Statutes" → `/documents/nid-act-and-statutes.pdf`, a file that never existed (404), file glyph | → `/regulatory/nid-act`, a page link with ↗. TODO(designer): the board draws the file glyph |
+
+`DOCUMENT_ID.nidAct` and `DOCUMENT_PATH.nidAct` are deleted with it.
+
+### Floors and requests
+
+- `documentSections["nid-act"]: 2`.
+- **A new floor kind, `documentLinkBlocks`.** A list of documents is LINK blocks, not STRUCTURED
+  items, so `documentItems` reads 0 for it. `nid-act: 7` (live 8, a margin of one), checked in
+  getPage beside `documentItems`, counted as the CMS sends them, before a file that 404s is
+  dropped. Annual Reports and RTI take one each; Academic Notifications does not yet.
+- **One more document and eight file HEADs per LIVE build** (the 8 PDFs; heroes are not
+  HEAD-checked, §75). Expected 244 → 253 distinct.
+
+The adapter's `[cms]` line now says `hero: N accepted, hero[0] renders` for any document that
+sends more than one hero, so a second photograph an editor uploads is not mistaken for one that
+shows. Log only.
+
+### R, A, E, Playwright
+
+**R** (FIXTURE; baseline `1f22816`, both built in a scratch copy outside the repo; build id,
+chunk and media names normalised, RSC rows parsed by the protocol — T rows by byte length — and
+compared as a multiset; DOM compared with scripts removed). 340 baseline files. With the menu row
+removed from the new build's payload, **332 identical**. The 8 that differ are Home's and
+Charter's four files each, and their DOM only by the Act link above; their payloads by the same
+link, plus Flight regrouping Charter's once-deduplicated glyph path row. Every page's payload
+gains the menu row (FIXTURE only). Gate 58 → 59: Home's CTA no longer withheld (−1), the two
+unlinked band rows (+2). `/en/regulatory/nid-act` builds as `●`; built-HTML guard clean.
+
+**LIVE was not run.** On 7 Oct 2026 the CMS republished `home` with two sections ("Position
+Statement", "NID Film"; the news section is gone), so `documentSections.home ≥ 4` fails every LIVE
+build, HEAD's included. Not this change; the floor is not lowered here. The LIVE R, the request
+count and the build time wait on that decision. The document itself was read through the adapter
+under `next dev` against the real CMS: `api=title,hero,intro(heroText),seo,publishedAt,
+section:act-about,section:act-documents(8 link blocks) · static=contacts(api empty),backNav,
+siblingBand · hero: 2 accepted, hero[0] renders · unused api sections: none`.
+
+**A** (FIXTURE): the title (2 lines at 1440, 1024 and 390, 1 at 768) beside "← About NID"; the
+hero 1038 × 472 at 1440; the standfirst; About's three paragraphs; eight rows in columns 2–3
+(x 378, 684 wide at 1440; 40px each, the Act's 64px at 390), each `target="_blank"` with one
+trailing icon; "More in Regulatory" with two unlinked rows, two-up from 768, one-up at 390; the
+About menu row, not underlined.
+
+**E** (a mock CMS under `next dev`, and a scratch copy; deleted after):
+
+| Mock | Result |
+|---|---|
+| Row 4's PDF 404s | 7 rows; `dropped 1 CMS file that 404 (…)` |
+| A ninth LINK block | 9 rows, no code change |
+| No CMS hero | the fixture's copy shows (`hero(api empty)`, per-unit fallback) |
+| A CMS hero whose file 404s; no hero anywhere | the page closes up: the standfirst sits under the title |
+| Annual Reports built (a route file and its `BUILT_ROUTES` entry) | its band row links; RTI stays unlinked |
+| Six LINK blocks | `FLOOR NOT MET — document nid-act: LINK blocks: expected at least 7, got 6` |
+
+**Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): no horizontal overflow; tab order in the page
+is the back link, then the eight rows (the band rows are not focusable); "Study at NID" when
+arriving from /study, "About NID" on a direct visit.

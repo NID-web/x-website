@@ -44,6 +44,10 @@ export interface SecondaryLayout {
   /** The band's own title where a board names it ("Other campuses"); otherwise
    *  "More in {parent}". */
   siblingTitle?: "otherCampuses" | "browseFacultyBy";
+  /** The `{parent}` in "More in {parent}" where the band's parent is a section
+   *  with no page of its own — "Regulatory" (§86). Otherwise the back-nav's
+   *  label, as always. */
+  siblingParent?: string;
   /** Where the back link goes with no usable trail (BackNav's fallback). */
   backFallback?: string;
   /** False: no hero, no box — the rail and standfirst close up, and a hero
@@ -88,6 +92,7 @@ export async function SecondaryTemplate({
   documentLists,
   filledLinks,
   siblingTitle,
+  siblingParent,
   backFallback,
   heroPlaceholder = true,
   introTitle,
@@ -237,7 +242,7 @@ export async function SecondaryTemplate({
             <Separator />
             <SiblingBand
               items={derived.siblingBand}
-              parentTitle={derived.backNav?.label ?? page.title}
+              parentTitle={siblingParent ?? derived.backNav?.label ?? page.title}
               title={siblingTitle ? t(siblingTitle) : undefined}
               pattern={false}
             />
