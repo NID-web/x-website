@@ -184,6 +184,13 @@ export interface PageMergeConfig {
    *  dropped, one log line each. Exact, like textTitle: no fuzzy matching, so
    *  an editor's renamed label drops the contact, loudly (§80). */
   contactsTo?: "contacts" | "keyInfo" | "sections";
+  /** `keyInfo`: a contact with a `personName` goes to the key-info rail instead,
+   *  under a row naming the person — label the role, value the name — then that
+   *  person's own contacts as sent, grouped by role and name in CMS order. The
+   *  rest follow `contactsTo`. For a page that must name its officers (Right to
+   *  Information, s.4(1)(b)(xvi), §89). Labels are never rewritten and a name
+   *  never moves into a label. Off by default: `personName` is dropped (§81). */
+  namedContacts?: "keyInfo";
   /** A template's typed `detail` record ("Campus Detail"), turned into key-info
    *  values and ordinary sections HERE, so nothing past the adapter knows it
    *  exists. */
@@ -399,11 +406,26 @@ export function toPageResponse(
     });
   }
 
-  const contacts = api.contacts ?? [];
+  const sent = api.contacts ?? [];
+  const isNamed = (c: (typeof sent)[number]) => Boolean(config.namedContacts && c.personName?.trim());
+  if (config.namedContacts && sent.length) {
+    const people = new Map<string, LabelValue[]>();
+    for (const c of sent.filter(isNamed)) {
+      const name = c.personName!.trim();
+      const key = `${c.label}\u0000${name}`;
+      const rows = people.get(key) ?? [{ label: c.label, value: name }];
+      rows.push({ label: c.label, value: c.value });
+      people.set(key, rows);
+    }
+    // The CMS's contacts are the rail, whole: none named, no rail rows.
+    page.keyInfo = [...people.values()].flat();
+    log.api.push(`keyInfo(${people.size} named, ${sent.filter(isNamed).length} contacts)`);
+  }
+  const contacts = sent.filter((c) => !isNamed(c));
   const contactsTo = config.contactsTo ?? "contacts";
   if (contactsTo === "sections") {
     // Matched to the sections below, once they are merged.
-  } else if (contacts.length) {
+  } else if (contacts.length || (config.namedContacts && sent.length)) {
     // The API's contacts replace the fixture's email and phone rows, in their
     // place; any other row (a key-info fact, a document link) stays. All of a
     // page's `contacts` are email/phone, so there it is a plain replacement.

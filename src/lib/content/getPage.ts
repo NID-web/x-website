@@ -55,6 +55,7 @@ import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
+import { REGULATORY_RTI } from "@/lib/content/fixtures/regulatory-rti";
 import { RESEARCH_CENTRE_PAGES, RESEARCH_CENTRE_SLICES } from "@/lib/content/fixtures/research-centres";
 import { RESEARCH_CHILDREN, researchPath, type ResearchCentre } from "@/lib/content/research-centres";
 import { REGULATORY_CHILDREN } from "@/lib/content/regulatory";
@@ -90,6 +91,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/people": PEOPLE,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
+  "/regulatory/rti": REGULATORY_RTI,
   ...Object.fromEntries(
     Object.entries(RESEARCH_CENTRE_PAGES).map(([slug, response]) => [researchPath(slug), response]),
   ),
@@ -506,6 +508,18 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     slug: "annual-reports",
     intro: "heroText",
     sections: { "section-annual-reports-reports": { textTitle: "Reports", linkBlocks: true } },
+  },
+  // §89: the officers named in the rail (namedContacts; the unnamed contacts
+  // stay in About's column 4), About whole, "Key Documents" its LINK blocks on
+  // four hosts. "On this website" is the fixture's in both modes.
+  "/regulatory/rti": {
+    slug: "right-to-information",
+    intro: "heroText",
+    namedContacts: "keyInfo",
+    sections: {
+      "section-rti-about": { textTitle: "About" },
+      "section-rti-key-documents": { textTitle: "Key Documents", linkBlocks: true },
+    },
   },
 };
 

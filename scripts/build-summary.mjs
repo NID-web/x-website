@@ -112,7 +112,11 @@ if (mode === "live") {
   // One HEAD per media file a slot checks (media.ts mediaExists), per build.
   const heads = byKey("head", "url");
   const missing = [...heads.values()].filter((h) => !h.ok);
-  line(`MEDIA      ${heads.size} files checked (HEAD), ${missing.length} missing`);
+  const unchecked = [...heads.values()].filter((h) => h.unchecked);
+  line(
+    `MEDIA      ${heads.size} files checked (HEAD), ${missing.length} missing` +
+      (unchecked.length ? `, ${unchecked.length} unchecked (not a first-party host, kept)` : ""),
+  );
   for (const h of missing) line(`   ✗ ${h.url.slice(0, 60)} ${h.status || "no response"}`);
   line(`FLOORS     ${floors.size} checked, ${shortFloors.length} short`);
   for (const f of shortFloors) line(`   ✗ ${f.what}: expected ≥ ${f.expected}, got ${f.got}`);

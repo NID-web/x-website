@@ -43,6 +43,7 @@ export const BUILT_ROUTES = [
   "/programmes/phd",
   "/regulatory/annual-reports",
   "/regulatory/nid-act",
+  "/regulatory/rti",
   "/research",
   "/research/[slug]",
   "/study",

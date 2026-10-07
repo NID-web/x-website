@@ -84,20 +84,48 @@ export function toMediaAsset(
   };
 }
 
-/** HEAD a URL: the status and Retry-After. Rejects when there was no answer
- *  (network error, timeout), so `retrying` can tell a hang from an answer. */
-function head(url: URL): Promise<{ status: number; retryAfter?: string; error?: string }> {
+/** HEAD a URL: the status, Retry-After and Location. Rejects when there was no
+ *  answer (network error, timeout), so `retrying` can tell a hang from an answer. */
+function head(url: URL): Promise<{ status: number; retryAfter?: string; location?: string; error?: string }> {
   const request = url.protocol === "http:" ? httpRequest : httpsRequest;
   return new Promise((resolve, reject) => {
     const req = request(url, { method: "HEAD", signal: AbortSignal.timeout(CMS_TIMEOUT_MS) }, (res) => {
       res.resume();
       const retryAfter = res.headers["retry-after"];
-      resolve({ status: res.statusCode ?? 0, ...(retryAfter ? { retryAfter } : {}) });
+      const location = res.headers.location;
+      resolve({ status: res.statusCode ?? 0, ...(retryAfter ? { retryAfter } : {}), ...(location ? { location } : {}) });
     });
     req.on("error", reject);
     req.end();
   });
 }
+
+/** Redirects a file check follows before judging the answer (§89): a host
+ *  moving a file (nid.edu → www.nid.edu) must not fail a deploy. */
+const MAX_HOPS = 3;
+
+/** HEAD with up to MAX_HOPS redirects, each hop through the same retry. The
+ *  final answer is judged; `hops` names the URLs it passed through. */
+async function headFollowing(url: URL, key: string) {
+  const hops: string[] = [];
+  let at = url;
+  for (;;) {
+    const res = await retrying(() => head(at), key);
+    if (res.status >= 300 && res.status < 400 && res.location && hops.length < MAX_HOPS) {
+      at = new URL(res.location, at);
+      hops.push(at.href);
+      continue;
+    }
+    return { ...res, hops };
+  }
+}
+
+/** Hosts whose answer may fail a LIVE build: NID's own and the CMS's (§89). A
+ *  file on any other host (admissions.nid.edu, industryinterface.nid.edu) is
+ *  still checked and still dropped on a real 404/410, but an answer that says
+ *  nothing — a hang, a 5xx, a 403 — keeps the row, logged as unchecked: no
+ *  deploy depends on a third party answering a HEAD. */
+const firstParty = (url: URL) => ["www.nid.edu", "nid.edu", ...mediaHosts()].includes(url.host);
 
 /** No answer, as status 0 and the reason: never evidence the file is gone. */
 const unanswered = (err: unknown) => ({
@@ -144,11 +172,17 @@ export function fileServes(href: string): Promise<boolean> {
     // than quietly drop an image that exists (§70). `next dev` keeps the image.
     // One HEAD per file for the whole build (build-cache.ts): a stored 404/410
     // reads exactly as a fresh one.
+    // The redirect hops ride in the stored body, so a cached answer logs them
+    // too; a direct answer stores "" as it always has.
     pending = onceAcrossBuild(`HEAD ${key}`, () =>
-      withCmsSlot(() => retrying(() => head(url), key))
+      withCmsSlot(() => headFollowing(url, key))
         .catch(unanswered)
-        .then((res) => ({ ...res, body: "" })),
-    ).then((res: { status: number; error?: string; attempt?: number; waited?: number }) => {
+        .then((res) => ({ ...res, body: "hops" in res && res.hops.length ? JSON.stringify(res.hops) : "" })),
+    ).then((res: { status: number; body: string; error?: string; attempt?: number; waited?: number }) => {
+      if (res.body) {
+        const hops = JSON.parse(res.body) as string[];
+        console.info(`[cms] HEAD ${key}: ${hops.length} redirect${hops.length === 1 ? "" : "s"} → ${hops.join(" → ")} (HTTP ${res.status})`);
+      }
       if (res.status >= 200 && res.status < 300) {
         report({ t: "head", url: key, ok: true, status: res.status });
         return true;
@@ -160,6 +194,11 @@ export function fileServes(href: string): Promise<boolean> {
       const reason =
         res.error ??
         `HTTP ${res.status}${res.status === 429 ? ` after ${res.attempt ?? 1} attempts, ${(res.waited ?? 0) / 1000}s waited` : ""}`;
+      if (!firstParty(url)) {
+        report({ t: "head", url: key, ok: true, unchecked: true, status: res.status, reason });
+        console.info(`[cms] HEAD ${key}: unchecked (${reason}) — not a first-party host, the link is kept`);
+        return true;
+      }
       report({ t: "head", url: key, ok: false, status: res.status, reason });
       const message = `[cms] MEDIA CHECK FAILED — ${key}: ${reason}. Only a 404 or 410 means a file is missing`;
       if (strictBuild()) throw new Error(`${message}; a LIVE build does not guess. Retry, or check the CMS.`);

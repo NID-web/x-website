@@ -369,7 +369,7 @@ No route file, template, component or `getPage` change. Registration with the ro
 
 ### R1e — A Regulatory page
 
-The Regulatory pages (`/regulatory/nid-act` today; Annual Reports and RTI next) are lists of PDFs on `SecondaryTemplate` with no board (STAGE-0-NOTES §86). Each is:
+The Regulatory pages (`/regulatory/nid-act`, `/regulatory/annual-reports`, `/regulatory/rti`) are lists of PDFs on `SecondaryTemplate` with no board (STAGE-0-NOTES §86, §87, §89). RTI adds two opt-ins any page can use: `namedContacts: "keyInfo"` (officers named in the rail) and a fixture-held, gated index of the site's own pages (§89). Each is:
 
 1. **Route file** `src/app/[locale]/regulatory/<page>/page.tsx`, a copy of `nid-act/page.tsx`: `backFallback="/about"`, `heroPlaceholder={false}`, `documentLists` naming its documents section, `siblingParent={REGULATORY_TITLE}`. Add the path to `BUILT_ROUTES` (`links.ts`) or `npm run lint` fails.
 2. **Fixture** `src/lib/content/fixtures/regulatory-<page>.ts`: the CMS's words as sent, a `links` section of the PDFs as `targetType: "external"` links (↗, new tab, no file glyph: the one rule for every Regulatory list), `siblingBand: regulatoryBand(PATH)`. Its hero, if any, is a copy of the CMS's hero[0] in `public/regulatory/<page>/`. Register it in `FIXTURES` (`getPage.ts`).

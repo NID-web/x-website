@@ -5855,3 +5855,141 @@ board's three unlinked rows become:
 FIXTURE: all 352 files identical to HEAD. **264 → 265 distinct, fetched == distinct**; build 144s
 (18 rate-limit retries; the §86 + §87 build was 145s with 25). Gate 70 → 67: the three unlinked
 placeholder rows are gone.
+
+## 89. Right to Information: named officers, an index of this site's pages, and a file check no third party can fail
+
+`/regulatory/rti` is sitemap.json §11's third child and the last Regulatory page: §86's family
+(back link About NID, `regulatoryBand`, the list-of-PDFs rule). No board. It is a statutory
+disclosure under the RTI Act 2005, and the CMS holds a fraction of what nid.edu publishes.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS "Right to Information" |
+| Back link | BackNav, fallback About NID |
+| Hero | none: the CMS's `rti-hero.jpg` has a null alt, so it is refused and the page closes up (TODO(review), backend) |
+| Rail | the officers, named (`namedContacts`, below) |
+| Standfirst | CMS `heroText` |
+| About | CMS "About", whole, unclamped (the fee sentence as sent); the two unnamed contacts in column 4 |
+| On this website | the fixture's, in both modes: nid.edu's index of pages mapped to this site's routes, `two-up` |
+| Key Documents | CMS "Key Documents": sixteen LINK blocks on four hosts, CMS order and labels |
+| Band | "More in Regulatory": NID Act and Annual Reports, both linked |
+
+**Not a complete s.4(1)(b) disclosure.** The statutory blocks nid.edu carries are not in the CMS
+and are not copied into the fixture: legal disclosure needs its owner, and 26,000 characters of
+statute in a fixture go stale silently. Backend ask, in nid.edu's heading order: Key
+Administrative Procedures (Statutes §30–33, F. No. NIDA-GC-143-144-2016, 17 Jan 2017); Annual
+Budgetary Allocations; Accounting and Monitoring Procedures; the Internal Committee (Sexual
+Harassment of Women at Workplace Act 2013); the campus and centre addresses and office hours;
+the previous CPIO and Appellate Authority; and three tables (training programmes since 2019,
+disciplinary action, RTI applications and appeals Oct 2017–Mar 2026).
+
+### Named officers: `namedContacts`
+
+RTI Act s.4(1)(b)(xvi) makes the PIO's particulars part of the mandatory disclosure, and the
+adapter dropped `personName` (§81). `PageMergeConfig.namedContacts: "keyInfo"`, opt-in and set on
+this page only: a contact with a `personName` goes to the key-info rail, under a row naming the
+person (label the role, value the name, ContactList's Information row), then that person's own
+contacts as sent, grouped by role and name in CMS order. Contacts with no name follow
+`contactsTo` as before (here column 4 of About). With the field set, the CMS's contacts own both
+places: a person the CMS stops naming leaves no rail row (mocked), and the fixture's contacts never
+linger beside the CMS's. Names never move into labels, labels are never rewritten, and nothing is
+de-duplicated (`rti@nid.edu` under "Public Information Officer" and under "Contact" are different
+labels; no two contacts share label and value).
+
+| Rail | Column 4 of About |
+|---|---|
+| PUBLIC INFORMATION OFFICER · Samir More | rti@nid.edu |
+| rti@nid.edu | +91 79 2662 9550 |
+| PUBLIC INFORMATION OFFICER · +91-79-2662-9500/9600 Ext: 670 (plain text: the "/" and "Ext:" match no dialable pattern) | |
+| DEPARTMENTAL APPELLATE AUTHORITY · Dr. Lalitha Poluru | |
+| lalitha_p@nid.edu | |
+| +91-79-2662-9749 (`tel:+917926629749`) | |
+
+TODO(designer): the PIO's phone row repeats the role as its overline (ContactList's style for a
+value that is not one number). At 1024 the long phone wraps to two lines in the 309px rail.
+
+### On this website
+
+nid.edu's RTI index points at pages this site builds, so the fixture holds it in both modes, in
+nid.edu's order, with the site's own labels ("NID Act, Rules, Ordinances & Statutes", as the menu
+and the band say). The rows go through the normal gate: an unbuilt target is dropped, not an
+unlinked row, and appears when its page is built. Seven today; Governing Council, NID Senate and
+Staff (three new `PAGE_ID`s at sitemap.json's paths) appear with Prompts 6–8, with no edit here.
+With no target built, the section and its separator go (mocked). nid.edu's "Directory of officers
+and employees" and "Organisation Chart" have no page anywhere.
+
+### The file check: redirects, and first-party hosts only can fail a build
+
+`fileServes` (media.ts) never followed a redirect, and judged any non-2xx other than 404/410 as a
+failure, so a file that answered 3xx (nid.edu → www.nid.edu, say) would have failed a LIVE build
+for no reason. And this page's files sit on hosts outside NID's control. Now:
+
+- **Up to three redirects are followed**, each hop through the same retry; the final answer is
+  judged, and the hops are logged (`[cms] HEAD …: 1 redirect → …`), cached with the answer.
+- **Every file is checked, and a real 404/410 is dropped on any host.** The Admissions FAQ
+  (`admissions.nid.edu/NIDA2025/…`) 404s and is dropped and logged; the current edition is at
+  NIDA2027 (backend ask). The fixture leaves it out: a fixture never carries a known-dead link, so
+  both modes show fifteen rows.
+- **Only first-party hosts can fail a build**: www.nid.edu, nid.edu and the CMS media hosts
+  (`mediaHosts()`). On any other host, an answer that is neither 2xx nor 404/410 — a hang, a 5xx,
+  a 403, a redirect loop — keeps the row, logged `unchecked`, and the summary's MEDIA line counts
+  them. No deploy depends on a third party answering a HEAD.
+
+Measured, the real `fileServes` under build conditions against local stand-ins:
+
+| Host | hang | 503 | 404 | 301 → 200 | redirect loop |
+|---|---|---|---|---|---|
+| third-party | kept, unchecked (34s: 3 attempts) | kept, unchecked | dropped | followed, ok | 3 hops, then kept, unchecked |
+| first-party | **fails the build** | — | dropped | followed, ok (failed before) | **fails the build** |
+
+Every file the site checked before answers 200 directly: R shows no page changed and no hop was
+logged. The two `http://nid.edu` links stay as sent (the host answers 200 on http, no redirect,
+and serves the same files on https; backend ask: https). They open inline, so Chrome marks them
+"Not secure" rather than blocking a download.
+
+### Hrefs, floors, requests
+
+- Resolve now: the band rows "Right To Information" on NID Act and Annual Reports (both modes);
+  the LIVE footer's "Right to Information" on every page (already `/en/regulatory/rti`, ungated,
+  no HTML change). The FIXTURE footer still points at the stale `/right-to-information` — one of
+  footer-content.ts's six stale paths (§75), fixed together as their own task (backlog).
+- Floors: `documentSections["right-to-information"]: 2`, `documentLinkBlocks: 15` (live 16).
+- **265 → 282 distinct** (one document, sixteen file HEADs; the hero is refused before any
+  request), fetched == distinct.
+
+### R, A, E, Playwright
+
+**R.** FIXTURE (baseline `74b61ff`): 344 of 352 identical; the eight are NID Act's and Annual
+Reports' four files each, whose "Right To Information" band row becomes a link. LIVE, §73's and
+§77's rules: 902 of 910, the same eight, by the same row. `/en/regulatory/rti` builds as `●`.
+Gate 67 → 68 (this page's three unbuilt index rows, the two band rows that now link). LIVE 148s,
+24 rate-limit retries; floors 61/0.
+
+**Found while verifying.** A first LIVE build run straight after the baseline's spent 1,739s in
+rate-limit waits; pages crossed the 360s page timeout, Next restarted them in other workers
+(fetched 333, distinct 282), and seven pages (About, Student Awards, three faculty members, two
+M.Des disciplines) came out with a stale duplicate tail after their first `</html>` — §70's
+failure. **`verify-built-html` passed them**: it checks only after the LAST `</html>`, and the
+stale tail ends with one. The clean rebuild, after a cool-down, has none. Not this change; the
+guard gap is a backlog item (check after the first `</html>`, allowing the two not-found pages,
+which legitimately carry two).
+
+**A** (FIXTURE): the title; "← About NID"; no hero; the rail beside the standfirst at 1024 and up,
+a band under the title below; About with its two contacts in column 4 (below the body at 1024, the
+template's free flow, §74); seven index rows two-up from 768; fifteen document rows in columns 2–3;
+the band, both linked.
+
+**E** (deleted after):
+
+| Mock | Result |
+|---|---|
+| A third-party PDF host hangs | kept, logged unchecked, no build failure (the table above) |
+| A first-party PDF 404s | dropped, logged |
+| The Appellate Authority's contacts with no `personName` | no rail row for them; their contacts join column 4 |
+| No index target built | "On this website" and its separator gone |
+
+**Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): no horizontal overflow; the long phone one line
+at 390, two in the 309px rail at 1024; tab order the back link, the officers' and the general
+contacts, the seven index rows, the fifteen documents, the band.

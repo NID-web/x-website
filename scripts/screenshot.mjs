@@ -91,6 +91,9 @@ const PAGES = [
   { name: "regulatory-nid-act", path: "/en/regulatory/nid-act" },
   // A Regulatory page with no text section, one list of documents (§87).
   { name: "regulatory-annual-reports", path: "/en/regulatory/annual-reports" },
+  // Named officers in the rail, an index of this site's pages, a list of
+  // documents on four hosts (§89).
+  { name: "regulatory-rti", path: "/en/regulatory/rti" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

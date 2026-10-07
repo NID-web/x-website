@@ -70,6 +70,8 @@ export const CMS_FLOORS = {
     "nid-act": 2,
     // Reports (§87).
     "annual-reports": 1,
+    // About and Key Documents (§89).
+    "right-to-information": 2,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page
@@ -86,10 +88,12 @@ export const CMS_FLOORS = {
   /** LINK blocks across a document's sections, where a section is a list of
    *  documents (§76) — the rows are LINK blocks, not STRUCTURED items, so
    *  documentItems cannot see them. Counted as sent, before a file that 404s
-   *  is dropped. Live 7 Oct 2026: nid-act 8, annual-reports 10. */
+   *  is dropped. Live 7 Oct 2026: nid-act 8, annual-reports 10,
+   *  right-to-information 16. */
   documentLinkBlocks: {
     "nid-act": 7,
     "annual-reports": 9,
+    "right-to-information": 15,
   } as Record<string, number>,
 
   /** A programme's discipline records that become cards (getDisciplines.ts):
