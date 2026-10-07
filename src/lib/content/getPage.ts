@@ -54,6 +54,7 @@ import { RESEARCH } from "@/lib/content/fixtures/research";
 import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
+import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
 import { RESEARCH_CENTRE_PAGES, RESEARCH_CENTRE_SLICES } from "@/lib/content/fixtures/research-centres";
 import { RESEARCH_CHILDREN, researchPath, type ResearchCentre } from "@/lib/content/research-centres";
 import { REGULATORY_CHILDREN } from "@/lib/content/regulatory";
@@ -88,6 +89,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/consulting": CONSULTING,
   "/people": PEOPLE,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
+  "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
   ...Object.fromEntries(
     Object.entries(RESEARCH_CENTRE_PAGES).map(([slug, response]) => [researchPath(slug), response]),
   ),
@@ -496,6 +498,14 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-nid-act-about": { textTitle: "About" },
       "section-nid-act-documents": { textTitle: "Documents", linkBlocks: true },
     },
+  },
+  // No text section (§87): the standfirst is heroText, the only prose the
+  // document has, and "Reports" is its ten LINK blocks — newest first, English
+  // then Hindi, in CMS order.
+  "/regulatory/annual-reports": {
+    slug: "annual-reports",
+    intro: "heroText",
+    sections: { "section-annual-reports-reports": { textTitle: "Reports", linkBlocks: true } },
   },
 };
 

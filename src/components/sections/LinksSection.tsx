@@ -30,7 +30,9 @@ export function LinksSection({
   });
 
   if (layout === "documents") {
-    return (
+    // Two return shapes, as two-up: `contacts && …` left a `false` child in the
+    // RSC payload of every list with no contacts (NID Act, §87).
+    return section.contacts.length > 0 ? (
       <>
         <Title variant="section">{section.title}</Title>
         <GridItem span={2} start={2}>
@@ -38,11 +40,16 @@ export function LinksSection({
         </GridItem>
         {/* Column 4 at four columns, as a text section's: the cell the rows
             leave free on the title row; stacked after them narrower. */}
-        {section.contacts.length > 0 && (
-          <GridItem span={1}>
-            <ContactList contacts={section.contacts} />
-          </GridItem>
-        )}
+        <GridItem span={1}>
+          <ContactList contacts={section.contacts} />
+        </GridItem>
+      </>
+    ) : (
+      <>
+        <Title variant="section">{section.title}</Title>
+        <GridItem span={2} start={2}>
+          <LinkStack links={section.items} />
+        </GridItem>
       </>
     );
   }

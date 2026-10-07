@@ -40,6 +40,8 @@ export const MENU_SECTIONS: NavSection[] = [
       // under 11 Regulatory, which has no page and no menu section; the row
       // sits under About, where nid.edu files it (STAGE-0-NOTES §86).
       { label: "NID Act, Rules, Ordinances & Statutes", href: "/regulatory/nid-act" },
+      // TODO(designer): the same addition (§87).
+      { label: "Annual Reports", href: "/regulatory/annual-reports" },
     ],
   },
   {

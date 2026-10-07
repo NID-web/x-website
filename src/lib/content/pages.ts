@@ -51,6 +51,7 @@ export const PAGE_ID = {
   studyPmVidyalaxmi: "page-study-pm-vidyalaxmi",
   youngDesigners: "page-study-young-designers",
   regulatoryNidAct: "page-regulatory-nid-act",
+  regulatoryAnnualReports: "page-regulatory-annual-reports",
   // The parent a CMS discipline card hangs off. It has NO path on purpose: no
   // per-discipline route exists in sitemap.json, so a discipline card renders
   // unlinked and the route backlog logs no path that was only guessed.
@@ -100,6 +101,7 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.studyPmVidyalaxmi]: "/study/pm-vidyalaxmi",
   [PAGE_ID.youngDesigners]: "/study/young-designers",
   [PAGE_ID.regulatoryNidAct]: "/regulatory/nid-act",
+  [PAGE_ID.regulatoryAnnualReports]: "/regulatory/annual-reports",
 };
 
 // A page id may carry a fragment: the news-archive id plus "#" and a year is
@@ -191,6 +193,7 @@ const PATH_BY_CMS_SLUG: Record<string, string> = {
   placements: "/industry/placements",
   tenders: "/tenders",
   "nid-act": "/regulatory/nid-act",
+  "annual-reports": "/regulatory/annual-reports",
   "right-to-information": "/regulatory/rti",
   "privacy-policy": "/privacy",
   "terms-and-conditions": "/terms",

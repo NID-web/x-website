@@ -12,8 +12,8 @@
     },
     {
       "n": "02", "title": "About NID", "path": "/about", "template": "primary",
-      "menu": ["About NID", "History", "Charter", "Campuses", "News & Events", "Our Themes", "NID Act, Rules, Ordinances & Statutes"],
-      "menuNote": "TODO(designer): the last row is an addition to the architecture (DECISION-MISSING-PAGES-07-OCT, 7 Oct 2026). Its route stays under 11 Regulatory, which has no page or menu section; the row sits here because nid.edu files the page under About. Kept by hand in step with MENU_SECTIONS (src/lib/nav-content.ts); nothing checks that the two agree (STAGE-0-NOTES §86).",
+      "menu": ["About NID", "History", "Charter", "Campuses", "News & Events", "Our Themes", "NID Act, Rules, Ordinances & Statutes", "Annual Reports"],
+      "menuNote": "TODO(designer): the last two rows are additions to the architecture (DECISION-MISSING-PAGES-07-OCT, 7 Oct 2026). Their routes stay under 11 Regulatory, which has no page or menu section; the rows sit here because nid.edu files the pages under About. Kept by hand in step with MENU_SECTIONS (src/lib/nav-content.ts); nothing checks that the two agree (STAGE-0-NOTES §86).",
       "children": [
         { "title": "History", "path": "/about/history", "board": "4118:208773", "mobile": "4184:252521" },
         { "title": "Charter", "path": "/about/charter", "board": "4118:205415", "note": "no live page; the content that answers to it is Mandate" },

@@ -5708,3 +5708,85 @@ About menu row, not underlined.
 **Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): no horizontal overflow; tab order in the page
 is the back link, then the eight rows (the band rows are not focusable); "Study at NID" when
 arriving from /study, "About NID" on a direct visit.
+
+## 87. Annual Reports: a Regulatory page with no text section, and a `false` the documents list stopped sending
+
+`/regulatory/annual-reports` is sitemap.json §11's second child, built from §86's pieces and
+nothing else: the route file's shape, `regulatoryBand`, `siblingParent`, the list-of-PDFs rule
+(↗, new tab, no file glyph). No board.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS "Annual Reports" |
+| Back link | BackNav, fallback About NID; the trail's page otherwise |
+| Hero | CMS hero[0], the entrance wall. TODO(review): content — the fourth photograph of that wall on the site (/people, /study/notifications, NID Act's unused hero[1]); a different photograph each time, so no rule refuses it |
+| Standfirst | CMS `heroText`, the only prose the document has |
+| Reports | CMS "Reports": ten LINK blocks, newest first, English then Hindi, in CMS order with CMS labels |
+| Band | "More in Regulatory": NID Act linked, RTI an unlinked row |
+
+There is no text section, so the page runs title, hero, standfirst, separator, Reports,
+separator, band, separator, footer: every separator sits before a section, none is left
+stranded, and if every file 404s the section and its separator go together (the gate drops an
+emptied links section before the template draws its rule).
+
+Labels render as sent, the en dash in "2024–25" included. nid.edu's "64th NID Annual Report
+2024-25-English" is not used. The pairing by year is content; the list is not regrouped on the
+client (a `groupBy` is the backend's).
+
+**The 2021–22 Hindi row serves the English report.** Its file is byte-identical to the English
+row's (the same md5), and embeds only Calibri, where the 2020–21 Hindi edition embeds Kohinoor
+Devanagari. nid.edu links the same two files. Rendered as sent (TODO(review)); no per-URL
+suppression in code; backend/content ask: upload the Hindi PDF.
+
+**No hreflang.** A row cannot tell assistive tech its file's language: `Link` has no language
+field and Cta no `hrefLang`, and sniffing "(Hindi)" out of a CMS label breaks when an editor
+rewords it. Backend ask: a language on the LINK block. The labels themselves are English text, so
+no `lang` is needed on them.
+
+All ten files answered 200 `application/pdf` with no redirect (HEAD, 7 Oct 2026), 6.8–14.7 MB.
+
+### The `false` in the documents list
+
+LinksSection's `documents` layout drew column 4 as `{section.contacts.length > 0 && …}`, so a list
+with no contacts sent a `false` third child in its RSC payload — §76's bug, in the branch §76
+added. NID Act (§86) shipped it. It now has two return shapes, as `two-up` has. R: NID Act's
+Documents fragment goes from `[div, div, false]` to `[div, div]`, its DOM unchanged by it; Academic
+Notifications, which has contacts, is identical.
+
+### Menu, hrefs, floors, requests
+
+- The About menu gains "Annual Reports" after the NID Act row, in `MENU_SECTIONS` and sitemap.json
+  §02's `menu` (its `menuNote` now covers both rows). TODO(designer). FIXTURE only (§86): the CMS
+  menu needs a nav item for `annual-reports`.
+- `PATH_BY_CMS_SLUG` maps `annual-reports`. Hrefs that now resolve: NID Act's band row "Annual
+  Reports" (FIXTURE and LIVE), and the menu row (FIXTURE, every page). Nothing else links it.
+- Floors: `documentSections["annual-reports"]: 1`, `documentLinkBlocks["annual-reports"]: 9`
+  (live 10).
+- One more document and ten file HEADs per LIVE build (the 2021–22 pair are two URLs).
+
+Known limitation: the LINK-block floor counts what the CMS sends, before a file that 404s is
+dropped, so a LIVE build whose files all 404 ships the page without its list, exit 0 (mocked).
+
+### R, A, E, Playwright
+
+**R** (FIXTURE, baseline `a64bd16`, §86's method): with the menu row removed from the payload,
+342 of 346 files identical. The four that differ are NID Act's: its band row becomes a link, and
+the `false` above. `/en/regulatory/annual-reports` builds as `●`. Gate 59 → 59: NID Act's band row
+links (−1), this page's RTI row (+1).
+
+**A** (FIXTURE): the title (one line at every width); "← About NID" on a direct visit; the hero
+1038 × 472 at 1440; the standfirst; ten rows in CMS order in columns 2–3 (x 378, 684 wide at
+1440), 40px each, the longest one line at 390; the band two-up from 768, one-up at 390.
+
+**E** (a mock CMS under `next dev`, deleted after):
+
+| Mock | Result |
+|---|---|
+| One PDF 404s | nine rows; `dropped 1 CMS file that 404 (…)` |
+| Every PDF 404s | title, hero, standfirst, band: no Reports, no stray separator; `dropped 10 CMS files` |
+| An eleventh report | eleven rows, no code change |
+
+**Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): no horizontal overflow; tab order the back
+link, then the ten rows; every row `target="_blank"`, `rel` noopener, one trailing icon.

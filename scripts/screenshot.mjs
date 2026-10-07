@@ -89,6 +89,8 @@ const PAGES = [
   // The first Regulatory page: no board, the secondary template's own rules
   // (STAGE-0-NOTES §86).
   { name: "regulatory-nid-act", path: "/en/regulatory/nid-act" },
+  // A Regulatory page with no text section, one list of documents (§87).
+  { name: "regulatory-annual-reports", path: "/en/regulatory/annual-reports" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe
