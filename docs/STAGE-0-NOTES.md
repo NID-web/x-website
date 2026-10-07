@@ -5993,3 +5993,35 @@ the band, both linked.
 **Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): no horizontal overflow; the long phone one line
 at 390, two in the 309px rail at 1024; tab order the back link, the officers' and the general
 contacts, the seven index rows, the fifteen documents, the band.
+
+## 90. The built-HTML guard checks after the first `</html>`, not the last
+
+**Found, 7 Oct 2026 (§89).** A LIVE build run straight after another spent 1,739s in rate-limit
+waits; pages crossed `staticPageGenerationTimeout` (360s), Next restarted them in other workers,
+and seven came out with a stale tail after their first `</html>`: About, Student Awards, three
+faculty members, two M.Des disciplines. §70's failure, which `verify-built-html` exists to catch,
+and it passed all seven. The tail a restart leaves is the end of the longer write, so it ends in
+`</html>` itself, and the guard checked only after the LAST one. It was written that way because
+the global not-found legitimately carries two.
+
+**Now it counts.** Every prerendered page may carry exactly one `</html>`, with nothing but
+whitespace after it. Two files may carry two, named in `TWO_DOCUMENTS` rather than matched by a
+pattern: `app/_not-found.html` and `pages/404.html`, which close `</body></html>` and then have
+their flight scripts appended and closed again (Next 16.3.2). More than its allowance, anything
+after its last, or none at all fails the build: `npm run build` chains the guard, so on Vercel the
+deploy fails and the previous one stays live.
+
+Measured, on a FIXTURE build and copies of its files (deleted after):
+
+| Case | Old guard | New guard |
+|---|---|---|
+| The clean build | pass | pass (62 pages) |
+| `en/about.html` with the last 160 bytes repeated after its `</html>` (the observed shape) | **pass** | fail: `2 </html> (at most 1)` |
+| `_not-found.html` with a third document | — | fail: `3 </html> (at most 2)` |
+
+**Production was clean when this was found.** Every page of the deploy then live (`74b61ff`,
+`dpl_BY71HT8m…`) was fetched: 147 HTML pages, none with anything after its first `</html>`; its
+build log has no timeout, restart or retry line (`TIMEOUTS 0 retried`). Vercel builds on one
+worker, and that build waited 480s in total, with no page near 360s.
+
+The cause — pages waiting past 360s behind rate-limit waits — is not changed here.
