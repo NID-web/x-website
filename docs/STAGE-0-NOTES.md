@@ -5790,3 +5790,68 @@ links (−1), this page's RTI row (+1).
 
 **Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): no horizontal overflow; tab order the back
 link, then the ten rows; every row `target="_blank"`, `rel` noopener, one trailing icon.
+
+## 88. Home's news from content-items, and the home floor 4 → 2
+
+**The backend's decision, 7 Oct 2026:** the `home` document carries only its own static content
+("Position Statement", "NID Film"); structured content comes from `/public/content-items`. The
+document lost its STRUCTURED news section that day, so `documentSections.home ≥ 4` failed every
+LIVE build (§86). With the floor alone lowered, LIVE Home built — with the news tile showing the
+board's three placeholder rows (all "July 23 2026", unlinked): `getHome` found no news section and
+kept the static tile. A floor that can ship that is not lowered without the fix, so they land
+together.
+
+### The tile
+
+`newsFromItems` (home-adapters.ts) replaces the section-based adapter, which had nothing left to
+read. The backend's recipe:
+
+1. `GET /public/content-items?contentType=news&isFeatured=true`, in the API's order (newest
+   first) — one request of its own;
+2. topped up to three rows with the newest non-featured news from the news list the archive
+   already fetches (`listedItems`, no request of its own).
+
+- A row is offered only when its article page is built, so every row links, through `itemPath`
+  and the gate — the archive's rule. One story is one row: same-story records resolve to one path.
+- Dates are `publishedAt` in the archive's format ("21 September 2026"); the board's tile set
+  "July 23 2026", which the fixture keeps. TODO(review), backend: convocation-2026's 21 Sep is a
+  seed timestamp, rendered as sent.
+- A thumbnail whose file does not serve is dropped and the row keeps its empty square, as on the
+  archive — whose HEAD of the same file the build cache already holds, so it costs no request.
+- The overline and "All news" stay the static tile's. No other Home tile changed.
+- **Selection is editorial, display order is by date.** The recipe chooses the rows (featured
+  first, then the latest); the chosen rows are then shown newest first by `publishedAt`. Shown in
+  selection order they read 21 Sep, 13 Aug, 20 Aug, which looks like a sorting bug; now 21 Sep,
+  20 Aug, 13 Aug.
+
+**No placeholder row in LIVE.** With the lists answering and fewer than three usable items, the
+tile shows what exists ("2 of 3 rows" in the log). If a list does not arrive, the static tile
+stays — but in a LIVE build `cmsFetch` has already thrown, so that is `next dev` only (mocked: the
+featured list 500ing shows the board's rows, logged `news(featured list unavailable)`). FIXTURE is
+the static tile, as before: Home is byte-identical to HEAD.
+
+**With no news at all** the tile is its overline, an empty field and "All news" (mocked). A LIVE
+build never ships it: `homeNews ≥ 1` fails first.
+
+### Floors
+
+- `documentSections.home`: 4 → **2**, citing the 7 Oct decision.
+- **`homeNews: 1`**: news items the tile can read, the featured list and the news list together, by
+  slug. A CMS that stops sending news fails the build (live 6).
+
+### R, requests, time
+
+LIVE, against the §86 + §87 build with the floor at 2: every file identical (§73's head rule and
+§77's `localeCookie` rule) except Home's four, which differ inside the news tile only — the
+board's three unlinked rows become:
+
+| Row | Source | Date | Links | Thumbnail |
+|---|---|---|---|---|
+| NID Convocation 2026 Announced | featured | 21 September 2026 | `/about/news-events/convocation-2026` | none (404) |
+| Admissions for PhD in Design 2027 | latest | 20 August 2026 | its article | the CMS's |
+| Design of the invitation kit for guests of the Independence Day event (15 August 2026) | featured | 13 August 2026 | its article | the CMS's |
+
+`[cms] home: … news(featured 2 + latest 1; /about/news-events/convocation-2026 thumbnail missing)`.
+FIXTURE: all 352 files identical to HEAD. **264 → 265 distinct, fetched == distinct**; build 144s
+(18 rate-limit retries; the §86 + §87 build was 145s with 25). Gate 70 → 67: the three unlinked
+placeholder rows are gone.

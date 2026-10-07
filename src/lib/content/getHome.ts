@@ -3,8 +3,9 @@
 // and every tile's presentation, and the CMS fills the units it can, one at a
 // time, with the reason for every fallback in one log line.
 //
-// Static owns the order because the document describes 4 sections where Home
-// has 16 content tiles: its orderIndex (statement, campuses, news, film) is
+// Static owns the order because the document describes 2 sections where Home
+// has 16 content tiles (since 7 Oct 2026 it carries only its own static content;
+// structured content comes from /public/content-items, STAGE-0-NOTES §88): its orderIndex (statement, campuses, news, film) is
 // nothing like the page, and building the page from it drags tiles to the tail
 // and lands the craft patterns beside the wrong neighbours. When the document
 // serves every tile, the order can move to the API again.
@@ -16,16 +17,18 @@ import { cache } from "react";
 import { HOME_TILES, type HomeTile } from "@/lib/home-content";
 import { assertFloor } from "@/lib/api/build-mode";
 import { cmsFetch } from "@/lib/api/client";
+import { mediaExists } from "@/lib/api/media";
 import { CMS_FLOORS } from "@/lib/content/cms-floors";
-import { isPublicContentResponse, type Section } from "@/lib/api/types";
+import { isContentItems, isPublicContentResponse, type Section } from "@/lib/api/types";
 import {
   filmFrom,
   heroStill,
-  newsAdapter,
+  newsFromItems,
   statementAdapter,
   type Copy,
 } from "@/lib/content/home-adapters";
-import { articleFeed } from "@/lib/content/getArticle";
+import { articleFeed, listedItems } from "@/lib/content/getArticle";
+import { builtHref } from "@/lib/content/links";
 import { auditSummary, gateHome, logMissingRoutes } from "@/lib/content/route-gate";
 
 export interface HomeContent {
@@ -50,7 +53,6 @@ const STATIC_TITLE = "National Institute of Design";
  *  logged as unused, which is the whole job. */
 const SECTION_SOURCES: { staticId: string; structuredKey?: string; titles?: string[] }[] = [
   { staticId: "statement", titles: ["Position Statement"] },
-  { staticId: "news", structuredKey: "news" },
   // The film, folded into the hero tile beside the document's hero[0] still.
   { staticId: "hero", titles: ["NID Film"] },
 ];
@@ -76,6 +78,10 @@ function findSection(sections: Section[], source: (typeof SECTION_SOURCES)[numbe
   );
 }
 
+/** The backend's recipe for Home's news (7 Oct 2026): the featured news, newest
+ *  first. Topped up from the news list (home-adapters.ts, newsFromItems). */
+const FEATURED_NEWS = "/public/content-items?contentType=news&isFeatured=true";
+
 // cache(): generateMetadata and HomeGrid both call this; the merge, and its
 // log line, run once per render.
 export const getHome = cache(async (locale: string): Promise<HomeContent> => {
@@ -96,10 +102,53 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
   }
   assertFloor("document home: sections", CMS_FLOORS.documentSections.home ?? 0, api.sections.length, "/public/content/home");
 
+  // The news tile reads the content-items lists (§88): the featured news (one
+  // request of its own), and the news list the archive already fetches
+  // (listedItems, memoised, no request of its own).
+  const [featured, listed] = await Promise.all([
+    cmsFetch(FEATURED_NEWS, isContentItems),
+    listedItems(),
+  ]);
+  if (featured && listed.ok) {
+    const slugs = new Set([
+      ...featured.items.map((i) => i.slug),
+      ...listed.items.filter((i) => i.contentType.key === "news").map((i) => i.slug),
+    ]);
+    assertFloor("home news items (featured + news list)", CMS_FLOORS.homeNews, slugs.size, FEATURED_NEWS);
+  }
+
   const bySource = new Map<string, Section>();
   for (const source of SECTION_SOURCES) {
     const section = findSection(api.sections, source);
     if (section) bySource.set(source.staticId, section);
+  }
+
+  // A list that did not arrive keeps the static tile (in a LIVE build cmsFetch
+  // has already thrown); one that arrived is the tile, however short — never a
+  // static row beside CMS rows. A thumbnail whose file does not serve is
+  // dropped, so the row keeps its empty square, as on the archive — whose HEAD
+  // of the same file the build cache already holds.
+  const newsTile = HOME_TILES.find((t): t is Extract<HomeTile, { kind: "news" }> => t.kind === "news");
+  const news =
+    newsTile && featured && listed.ok
+      ? newsFromItems(
+          featured.items,
+          listed.items.filter((item) => item.contentType.key === "news"),
+          newsTile,
+          locale,
+          (path) => Boolean(builtHref(path)),
+        )
+      : undefined;
+  if (news) {
+    const rows = await Promise.all(
+      news.tile.rows.map(async (row) => {
+        if (!row.thumbnail || (await mediaExists(row.thumbnail))) return row;
+        news.notes.push(`${row.href} thumbnail missing`);
+        // Omitted, not undefined: the row is the same shape as one that never had one.
+        return { headlineKey: row.headlineKey, date: row.date, ...(row.href ? { href: row.href } : {}) };
+      }),
+    );
+    news.tile = { ...news.tile, rows };
   }
 
   const fromApi: string[] = [];
@@ -135,6 +184,16 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
       return { ...tile, media, ...(video ? { video } : {}) };
     }
 
+    if (tile.kind === "news") {
+      if (!news) {
+        fromStatic.push(`news(${!featured ? "featured list" : "news list"} unavailable)`);
+        return tile;
+      }
+      copy = { ...copy, ...news.copy };
+      fromApi.push(`news(${news.notes.join("; ")})`);
+      return news.tile;
+    }
+
     if (!section) {
       fromStatic.push(`${tile.id}(no api section)`);
       return tile;
@@ -142,9 +201,7 @@ export const getHome = cache(async (locale: string): Promise<HomeContent> => {
     const result =
       tile.kind === "statement"
         ? statementAdapter(section, tile)
-        : tile.kind === "news"
-          ? newsAdapter(section, tile, locale)
-          : { keep: `no adapter for a ${tile.kind} tile` };
+        : { keep: `no adapter for a ${tile.kind} tile` };
     if ("keep" in result) {
       fromStatic.push(`${tile.id}(${result.keep})`);
       return tile;

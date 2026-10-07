@@ -26,7 +26,10 @@ export const CMS_FLOORS = {
   /** Sections per document, keyed by slug. `our-themes` is 0 because the
    *  document has none yet; raise it when its sections land. */
   documentSections: {
-    home: 4,
+    // The generic home document: its own static content only ("Position
+    // Statement", "NID Film"); structured content comes from
+    // /public/content-items (backend decision, 7 Oct 2026). Was 4.
+    home: 2,
     "about-nid": 2,
     campuses: 2,
     "ahmedabad-campus": 2,
@@ -102,6 +105,11 @@ export const CMS_FLOORS = {
   facultyMembers: 60,
   facultyMembersWithBio: 60,
 
+  /** News items Home's news tile can read: the featured list and the news list
+   *  together, by slug (§88). A CMS that stops sending news fails the build
+   *  rather than shipping a tile with no rows. Live 7 Oct 2026: 6. */
+  homeNews: 1,
+
   /** The header menu's top-level sections (home document). Live: 7. */
   menuSections: 7,
   /** The footer's link list (home document). Live: 11. */
@@ -123,6 +131,7 @@ const FLOOR_SOURCES: Partial<Record<keyof typeof CMS_FLOORS, string[]>> = {
   disciplines: ["items:discipline"],
   facultyGrouped: ["faculty"],
   facultyMembers: ["faculty"],
+  homeNews: ["items:news"],
   menuSections: ["home"],
   footerLinks: ["home"],
   collaborations: ["items:collaboration"],

@@ -1,5 +1,6 @@
 // What the CMS's generic content document can feed on Home, one pure function
-// per unit: an API section (or the document's hero) in, the tile's content and
+// per unit: an API section (the document's hero, or a content-items list, §88)
+// in, the tile's content and
 // copy out — or the reason to keep the static tile. There is one adapter per
 // thing the deployed document actually carries and nothing for what it does
 // not; a tile the CMS learns to serve is a new function here plus a row in
@@ -11,10 +12,10 @@
 // tile components have not changed across three shapes of this API.
 import type { CopyKey, HomeTile, HomeVideo, NewsRow } from "@/lib/home-content";
 import type { MediaAsset } from "@/lib/content-model";
-import type { PublicContentResponse, Section } from "@/lib/api/types";
+import type { CardRef, PublicContentResponse, Section } from "@/lib/api/types";
 import { mediaHosts, toMediaAsset } from "@/lib/api/media";
-import { formatDate, plainText } from "@/lib/content/format";
-import { newsArticlePath } from "@/lib/content/pages";
+import { formatArchiveDate, plainText } from "@/lib/content/format";
+import { itemPath } from "@/lib/content/pages";
 
 export type Copy = Record<CopyKey, string>;
 
@@ -35,11 +36,12 @@ export const STATEMENT_MAX = 60;
 
 const NEWS_ROWS = 3;
 
-/** Copy keys are namespaced by section id, so two sections can never collide. */
-function bag(section: Section) {
+/** Copy keys are namespaced by section id (or a unit's own name), so two
+ *  sources can never collide. */
+function bag(id: number | string) {
   const copy: Copy = {};
   const put = (field: string, value: string): CopyKey => {
-    const key = `api.${section.id}.${field}`;
+    const key = `api.${id}.${field}`;
     copy[key] = value;
     return key;
   };
@@ -56,53 +58,73 @@ export function statementAdapter(section: Section, tile: Tile<"statement">): Ada
   if (text.length > STATEMENT_MAX) {
     return { keep: `text is ${text.length} chars, max ${STATEMENT_MAX}` };
   }
-  const { copy, put } = bag(section);
+  const { copy, put } = bag(section.id);
   return { tile: { ...tile, textKey: put("text", text) }, copy, notes: [] };
 }
 
-export function newsAdapter(
-  section: Section,
+/** Home's news rows from the content-items lists, not the home document: since
+ *  7 Oct 2026 that document carries only its own static content, and structured
+ *  content comes from /public/content-items (STAGE-0-NOTES §88). The backend's
+ *  recipe: the featured news, in the API's order (newest first), topped up to
+ *  NEWS_ROWS with the newest non-featured news. A row is offered only when its
+ *  article page is built, so every row links — the archive's rule — and one
+ *  story is one row (same-story records resolve to one path). Never a static
+ *  row: with fewer items the tile shows what exists. Selection is editorial,
+ *  display order is by date: the rows chosen are shown newest first, so a
+ *  featured item never sits above a newer one (§88). */
+export function newsFromItems(
+  featured: CardRef[],
+  latest: CardRef[],
   tile: Tile<"news">,
   locale: string,
-): AdapterResult {
-  const { copy, put } = bag(section);
+  built: (path: string) => boolean,
+): { tile: Tile<"news">; copy: Copy; notes: string[] } {
+  const { copy, put } = bag("news");
   const notes: string[] = [];
-  const rows: NewsRow[] = [];
-
-  // A DYNAMIC section arrives sorted; the order is the API's.
-  for (const item of (section.items ?? []).slice(0, NEWS_ROWS)) {
-    if (!item.publishedAt) {
-      notes.push(`${item.slug}: no publishedAt, row dropped`);
-      continue;
+  const picked: Array<{ item: CardRef & { publishedAt: string }; href: string }> = [];
+  const taken = new Set<string>();
+  const counts = { featured: 0, latest: 0 };
+  const newest = [...latest].sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
+  for (const [from, items] of [["featured", featured], ["latest", newest]] as const) {
+    for (const item of items) {
+      if (picked.length === NEWS_ROWS) break;
+      // TODO(review): backend — a seed timestamp (convocation-2026's 21 Sep)
+      // renders as sent; only a missing or unparseable date drops a row.
+      if (!item.publishedAt || Number.isNaN(Date.parse(item.publishedAt))) {
+        notes.push(`${item.slug}: no publishedAt, row dropped`);
+        continue;
+      }
+      const href = itemPath(item.slug);
+      if (taken.has(href)) continue;
+      if (!built(href)) {
+        notes.push(`${item.slug}: no article page, row dropped`);
+        continue;
+      }
+      taken.add(href);
+      picked.push({ item: { ...item, publishedAt: item.publishedAt }, href });
+      counts[from]++;
     }
-    // Decorative: the headline beside it says everything the photo would, so
-    // "" is the right alt and a null altText is not a gap. A rejected
-    // thumbnail leaves the row's image box empty — it never borrows a static
-    // row's photo, which would show one story's picture beside another's.
-    const thumb = toMediaAsset(item.thumbnail, { decorative: true });
-    if ("rejected" in thumb) notes.push(`${item.slug} thumbnail: ${thumb.rejected}`);
-    rows.push({
-      headlineKey: put(`headline.${item.id}`, item.title),
-      date: formatDate(item.publishedAt, locale),
-      href: newsArticlePath(item.slug),
-      ...("asset" in thumb ? { thumbnail: thumb.asset } : {}),
-    });
   }
-  if (!rows.length) return { keep: "no items with a publishedAt" };
+  const rows: NewsRow[] = picked
+    .sort((a, b) => Date.parse(b.item.publishedAt) - Date.parse(a.item.publishedAt))
+    .map(({ item, href }) => {
+      // Decorative: the headline beside it says everything the photo would, so
+      // "" is the right alt and a null altText is not a gap. A rejected
+      // thumbnail leaves the row's image box empty — it never borrows a static
+      // row's photo, which would show one story's picture beside another's.
+      const thumb = toMediaAsset(item.thumbnail, { decorative: true });
+      if ("rejected" in thumb) notes.push(`${item.slug} thumbnail: ${thumb.rejected}`);
+      return {
+        headlineKey: put(`headline.${item.id}`, item.title),
+        date: formatArchiveDate(item.publishedAt, locale),
+        href,
+        ...("asset" in thumb ? { thumbnail: thumb.asset } : {}),
+      };
+    });
+  notes.unshift(`featured ${counts.featured} + latest ${counts.latest}`);
   if (rows.length < NEWS_ROWS) notes.push(`${rows.length} of ${NEWS_ROWS} rows`);
-
-  const heading = section.title?.trim();
-  return {
-    tile: {
-      ...tile,
-      ...(heading ? { overlineKey: put("overline", heading) } : {}),
-      rows,
-      // The generic section has no CTA of its own: "All news" is the static
-      // tile's, and `cta` passes through from it untouched.
-    },
-    copy,
-    notes: [...notes, "cta from static"],
-  };
+  // The overline and "All news" are the static tile's.
+  return { tile: { ...tile, rows }, copy, notes };
 }
 
 /** The film is a VIDEO block in its own SPECIFIC section. It is not an image,
