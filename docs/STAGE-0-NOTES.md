@@ -6025,3 +6025,30 @@ build log has no timeout, restart or retry line (`TIMEOUTS 0 retried`). Vercel b
 worker, and that build waited 480s in total, with no page near 360s.
 
 The cause — pages waiting past 360s behind rate-limit waits — is not changed here.
+
+## 91. A page may render for 900s, and the cache lock is taken over at the same 900s
+
+**Why 360s was not enough.** §70 sized `staticPageGenerationTimeout` for ONE request's worst case:
+four 60s rate-limit waits, three 10s timeouts and their backoff, about 280s. But a 429's wait runs
+inside client.ts's limiter and holds one of a worker's four slots, so a page's requests can queue
+behind several rounds of waits. A rate-limited local LIVE build (7 workers, 28 requests in flight,
+started straight after another) waited 1,739s in all and restarted seven pages past 360s, and the
+restarts corrupted them (§90). Vercel's one worker, four requests in flight, has waited 480–540s in
+total per build, with no page near 360s — unlikely there, not impossible.
+
+**Now 900s,** defined once as `PAGE_TIMEOUT_S` in build-cache.ts: next.config.ts's
+`staticPageGenerationTimeout` reads it, and the cache lock is taken over at the same age. They
+must match. A lock taken over sooner than the page timeout duplicates a fetch whose page is still
+alive and waiting (the duplicates §89 counted); a page timed out sooner than the lock is restarted
+while its first render runs on, and the two writes can leave a stale tail after `</html>`. Each
+request still has its own timeouts and retry cap and fails the build on a real hang, so this is
+only the backstop for a page stuck behind the queue, well inside Vercel's 45-minute build limit.
+
+LIVE build: fetched 282, distinct 282; no page restarted; the guard passed (155 pages, each one
+whole document); `required-server-files.json` reads `staticPageGenerationTimeout: 900`; 153s, 9
+rate-limit retries.
+
+**Not done, on purpose:** releasing the limiter slot during a 429's wait. The CMS's window is
+closed for the whole build then, so freed slots would only fire more requests into it and earn
+more 429s. If 900s is ever not enough, the shape is one shared back-off: on a 429 the limiter
+stops dispatching for everyone until the window reopens. Backlog.

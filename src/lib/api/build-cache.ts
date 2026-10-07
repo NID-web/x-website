@@ -13,9 +13,9 @@
 // holder's result. Only a success or a real 404/410 is stored, and written to a
 // temporary name then renamed, so a reader never sees half a file. A failure is
 // not stored: the lock is released empty and a waiter fetches for itself. A
-// lock whose process is dead, or that is older than 360s (next.config.ts's
-// staticPageGenerationTimeout), is taken over — a slow holder overtaken costs
-// one duplicate fetch of the same body, written atomically.
+// lock whose process is dead, or that is older than PAGE_TIMEOUT_S, is taken
+// over — a slow holder overtaken costs one duplicate fetch of the same body,
+// written atomically.
 //
 // Node built-ins only: next.config.ts imports this, and cannot resolve the
 // `@/` aliases or React that client.ts uses.
@@ -40,7 +40,23 @@ export const OWNER_FILE = "owner.json";
  *  the build report when the build ends. */
 export const LEDGER_FILE = "ledger.jsonl";
 
-const LOCK_STALE_MS = 360_000;
+/** The longest a page may render before Next gives up on it and restarts it in
+ *  another worker — next.config.ts's staticPageGenerationTimeout — and the age
+ *  at which a cache lock is taken over. One number on purpose: a lock taken
+ *  over sooner duplicates a fetch whose page is still alive and waiting; a page
+ *  timed out sooner is restarted while its first render runs on, and the two
+ *  writes can leave a stale tail after </html> (STAGE-0-NOTES §70, §90).
+ *
+ *  900s, up from 360s (§91). 360s covered ONE request's worst case (four 60s
+ *  rate-limit waits, three 10s timeouts and their backoff, ~280s), but a 429's
+ *  wait holds one of a worker's four limiter slots, so a page's requests can
+ *  queue behind several rounds of waits: a rate-limited local build restarted
+ *  seven pages past 360s. Each request still has its own timeouts and retry
+ *  cap and fails the build on a real hang; this is only the backstop for a page
+ *  stuck behind the queue, well inside Vercel's 45-minute build limit. */
+export const PAGE_TIMEOUT_S = 900;
+
+const LOCK_STALE_MS = PAGE_TIMEOUT_S * 1000;
 const POLL_MS = 100;
 
 export interface StoredResponse {

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
-import { onceAcrossBuild } from "./src/lib/api/build-cache";
+import { PAGE_TIMEOUT_S, onceAcrossBuild } from "./src/lib/api/build-cache";
 import { routing } from "./src/i18n/routing";
 import { KMC } from "./src/lib/kmc";
 
@@ -160,16 +160,15 @@ export default async function config(phase: string): Promise<NextConfig> {
     // Read back by src/lib/api/media.ts. Hostnames, not secrets.
     env: { CMS_MEDIA_HOSTS: mediaHosts.join(",") },
     images: { remotePatterns, dangerouslyAllowLocalIP, ...(unoptimized ? { unoptimized } : {}) },
-    // STAGE-0-NOTES §70: during a build the CMS rate-limits (HTTP 429,
-    // Retry-After 60s) and client.ts waits it out, so a page can take more than
-    // a minute. At the default 60s Next restarted nine such pages mid-fetch, and
-    // one restart left a corrupted file (bytes after </html>) in a build that
-    // exited 0. 360s covers the worst case — four 60s waits, then three 10s
-    // timeouts with up to 9s of backoff between them (§84), about 280s, plus
-    // queueing. build-cache.ts takes a lock over at the same 360s, so a holder
-    // still retrying is never overtaken. Read by the export worker in seconds
-    // (checked in next 16.3.2's export/worker.js; the bundled docs omit it).
-    staticPageGenerationTimeout: 360,
+    // STAGE-0-NOTES §70, §91: during a build the CMS rate-limits (HTTP 429,
+    // Retry-After 60s) and client.ts waits it out, so a page can take minutes.
+    // A page that passes this is restarted in another worker while its first
+    // render runs on, and the two writes can corrupt the file (§90's guard
+    // catches it). 900s, shared with build-cache.ts's lock take-over, which
+    // must match it — why, and why 900, is on PAGE_TIMEOUT_S. Read by the
+    // export worker in seconds (checked in next 16.3.2's export/worker.js; the
+    // bundled docs omit it).
+    staticPageGenerationTimeout: PAGE_TIMEOUT_S,
     redirects: async () => REDIRECTS,
   });
 }
