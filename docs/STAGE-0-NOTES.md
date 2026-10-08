@@ -6225,3 +6225,38 @@ cmuaop6bi0000acpdkjco9gxw)`.
 column 4 at 1440 and in column 1 below the body from 1024 down (the template's free flow, §74); no
 horizontal overflow; tab order the back link, "See more", the CEP Workshops link, the two emails,
 IDS in the band.
+
+## 94. A page's contacts are the CMS's, whole: plain-text phones rendered twice
+
+**The defect.** When the CMS sent contacts, the adapter replaced only the fixture rows that
+`contactCta` turns into a `mailto:` or `tel:` link and kept every other row, so key info's facts
+would survive. But since §80 a phone value with a trunk 0 or several numbers in it renders as plain
+text, so it is not such a row. The fixture's copy survived beside the CMS's. In LIVE, IDS rendered
+"+91 079 26629 764/765/766/768/771" and "+91 079 26623 996" twice each, **in production since
+`d9c836f` (§92)**, and CEP "+91 079 26629767 / 746" twice from `a071615` (§93). FIXTURE was right
+(one copy, no CMS), and the CMS sends each number once. Found by the CEP production probe; the IDS
+probe had checked that the contacts were there, not how many times each appeared.
+
+**The rule** (`page-adapter.ts`, the contacts merge). When the CMS sends one or more page contacts,
+they replace the fixture's page contacts entirely; when it sends none, the fixture's stay, as
+before. On a `namedContacts` page (RTI, §89) the CMS's list counts as whole even when every contact
+went to a named person. Key info keeps the old filter, since it also holds facts (a founding year,
+an address): the CMS's contacts replace its `mailto:`/`tel:` rows in place. A plain-text phone in a
+fixture's key info would still survive beside the CMS's; no LIVE page has one today (Bengaluru,
+FDP and History route contacts there, and none repeats). `contactsTo: "sections"` (/consulting) is
+untouched.
+
+**Verified.** FIXTURE: R 370 of 370. The visible HTML of all 62 pages (scripts removed) is
+byte-identical to HEAD and every RSC payload is the same length. Raw bytes are not comparable
+between any two builds: two FIXTURE builds of HEAD itself differ in 12 files, because Next writes
+RSC rows in the order they complete across 7 workers (the reason R compares rows as a multiset).
+LIVE against `a071615`'s build: 920 of 928 identical; the eight are IDS's and CEP's four files
+each, and their DOM diff is removals only (IDS two rows, CEP one). 284 distinct, fetched ==
+distinct, floors 64/0, the guard clean.
+
+**The probe habit** (every page report from now on). Count each contact value on the page (each
+`mailto:` and `tel:` target and each plain-text phone, the site footer's rows subtracted): each
+appears once unless the CMS itself sends it twice, which the report then says. In this LIVE build
+the only repeats are the CMS's. Ahmedabad's document sends "+91 79 2662 9500" as both "Campus
+Office" and "Campus Contact"; RTI's sends rti@nid.edu as the Public Information Officer's and as
+the unnamed "Contact". Both are backend asks.

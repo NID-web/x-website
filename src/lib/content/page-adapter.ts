@@ -426,19 +426,32 @@ export function toPageResponse(
   if (contactsTo === "sections") {
     // Matched to the sections below, once they are merged.
   } else if (contacts.length || (config.namedContacts && sent.length)) {
-    // The API's contacts replace the fixture's email and phone rows, in their
-    // place; any other row (a key-info fact, a document link) stays. All of a
-    // page's `contacts` are email/phone, so there it is a plain replacement.
     // Nothing is de-duplicated: a repeated number is the CMS's to fix.
-    const isContact = (row: LabelValue) => {
-      const href = contactCta(row)?.href ?? "";
-      return href.startsWith("mailto:") || href.startsWith("tel:");
-    };
-    const rows = page[contactsTo];
-    const firstContact = rows.findIndex(isContact);
-    const before = firstContact < 0 ? rows : rows.slice(0, firstContact).filter((r) => !isContact(r));
-    const after = firstContact < 0 ? [] : rows.slice(firstContact).filter((r) => !isContact(r));
-    page[contactsTo] = [...before, ...contacts.map(({ label, value }) => ({ label, value })), ...after];
+    const sentRows = contacts.map(({ label, value }) => ({ label, value }));
+    if (contactsTo === "contacts") {
+      // The page's contacts are the CMS's, whole: they replace the fixture's
+      // entirely. (With namedContacts, the CMS's list is whole even when every
+      // contact went to a named person, so the page's are then none.)
+      // STAGE-0-NOTES §94: this used to keep every fixture row that is not a
+      // mailto:/tel: link, and a phone that is plain text (§80: a trunk 0, or
+      // several numbers in one value) is not one, so IDS and CEP rendered
+      // their phones twice in LIVE.
+      page.contacts = sentRows;
+    } else {
+      // Key info also holds facts (a founding year, an address): the CMS's
+      // contacts replace only the rows that render as mailto:/tel: links, in
+      // their place, and every other row stays. A plain-text phone in a
+      // fixture's key info would survive beside the CMS's (§94).
+      const isContact = (row: LabelValue) => {
+        const href = contactCta(row)?.href ?? "";
+        return href.startsWith("mailto:") || href.startsWith("tel:");
+      };
+      const rows = page.keyInfo;
+      const firstContact = rows.findIndex(isContact);
+      const before = firstContact < 0 ? rows : rows.slice(0, firstContact).filter((r) => !isContact(r));
+      const after = firstContact < 0 ? [] : rows.slice(firstContact).filter((r) => !isContact(r));
+      page.keyInfo = [...before, ...sentRows, ...after];
+    }
     log.api.push(`${contactsTo}(${contacts.length} contacts)`);
     // LabelValue has no slot for a named person; dropped, not folded into the
     // label, which would change the content.
