@@ -36,6 +36,8 @@ const LINES = {
   8: "scripting:line-clamp-[8]",
   9: "scripting:line-clamp-[9]",
   10: "scripting:line-clamp-[10]",
+  // The Senate's member list, with its profile cards below (§96).
+  12: "scripting:line-clamp-[12]",
 } as const;
 
 export type ClampLines = keyof typeof LINES;

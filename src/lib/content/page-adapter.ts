@@ -696,21 +696,26 @@ export function toPageResponse(
     return image ? { ...merged, image } : merged;
   };
 
-  /** A fixture rail section's people from a STRUCTURED section. Title, body
-   *  and links stay the fixture's; a person keeps their place without a photo
-   *  when the photo is rejected. */
-  const railItems = (fs: Extract<Section, { type: "rail" }>, as: ApiSection, name: string): Section => {
+  /** A fixture rail section's people from a STRUCTURED section: each item's
+   *  title, slug, heroText (the designation) and thumbnail, with no per-person
+   *  fetch (§96). The CMS section's title, unless the rule keeps the fixture's,
+   *  as the cards path below; body and links stay the fixture's. A person keeps
+   *  their place without a photo when the photo is rejected. */
+  const railItems = (fs: Extract<Section, { type: "rail" }>, as: ApiSection, name: string, keepTitle?: true): Section => {
     const photoRejects: string[] = [];
     const items = (as.items ?? []).map((item): Person => {
       // The person's name is the model's alt rule for a portrait (NID-CONTEXT
       // §12) — a card's own title, which media.ts allows as the fallback.
       const photo = toMediaAsset(item.thumbnail, { altFallback: item.title });
       if ("rejected" in photo) photoRejects.push(photo.rejected);
+      const designation = item.heroText?.trim();
       return {
         id: String(item.id),
         name: item.title,
         slug: item.slug,
+        // The CMS has no role vocabulary; not rendered (§96).
         role: "faculty",
+        ...(designation ? { designation } : {}),
         ...("asset" in photo ? { photo: photo.asset } : {}),
       };
     });
@@ -721,8 +726,9 @@ export function toPageResponse(
       log.static.push(`${name}(api section has no items)`);
       return fs;
     }
-    log.api.push(`${name}(${items.length})`);
-    return { ...fs, items };
+    const title = (!keepTitle && as.title?.trim()) || fs.title;
+    log.api.push(`${name}${title === fs.title ? "" : `→"${title}"`}(${items.length})`);
+    return { ...fs, title, items };
   };
 
   /** A fixture rail section's people from a SPECIFIC section's person
@@ -810,7 +816,7 @@ export function toPageResponse(
       return fs;
     }
     consumed.add(as);
-    if (fs.type === "rail") return railItems(fs, as, name);
+    if (fs.type === "rail") return railItems(fs, as, name, rule.keepTitle);
     if (fs.type !== "cards") {
       log.static.push(`${name}(fixture section is ${fs.type}, not cards)`);
       return fs;

@@ -101,6 +101,8 @@ const PAGES = [
   { name: "consulting-continuing-education", path: "/en/consulting/continuing-education" },
   // The first People child: an unclamped text list of members (§95).
   { name: "people-governing-council", path: "/en/people/governing-council" },
+  // A STRUCTURED person section as cards, three across (§96).
+  { name: "people-senate", path: "/en/people/senate" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

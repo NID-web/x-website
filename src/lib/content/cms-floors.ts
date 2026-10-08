@@ -78,6 +78,8 @@ export const CMS_FLOORS = {
     "continuing-education-programme": 1,
     // Members (§95).
     "governing-council": 1,
+    // Members and the profiles (§96).
+    "nid-senate": 2,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page
@@ -89,6 +91,9 @@ export const CMS_FLOORS = {
     "research-publications": 7,
     // The faculty directory's people (§82). Live 3 Oct 2026: 65.
     faculty: 65,
+    // The Senate's profiles (§96). Live 8 Oct 2026: 13. A margin of one, as the
+    // LINK-block floors: membership changes; the floor is for the list vanishing.
+    "nid-senate": 12,
   } as Record<string, number>,
 
   /** LINK blocks across a document's sections, where a section is a list of

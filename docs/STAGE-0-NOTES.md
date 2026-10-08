@@ -6282,7 +6282,7 @@ is `getFaculty`'s), and it sets up the band that Senate, Staff and Alumni reuse.
 **Members as text.** The CMS sends no person records (backend ask 6, §81), so the members are
 paragraphs. When records arrive, this page takes Senate's person-card mapping. A name in prose is
 never matched to a faculty page, though three members have one (Ashok Mondal, Jitendra Singh Rajput,
-Susanth C S). The blocks carry `<strong>` around nine names and `<em>` on five "ex officio"s;
+Susanth C S). The blocks carry eight bold names, plus the bold Registrar line, and `<em>` on five "ex officio"s;
 `richText` (format.ts) keeps both, so the names are bold as on nid.edu. The fixture builds its body
 from the CMS's HTML with the same `richParagraphs` and `joinBlocks`, so FIXTURE and LIVE cannot
 drift. Block 4 names a post and no person (DPIIT's Additional Secretary & Financial Advisor).
@@ -6351,3 +6351,126 @@ is wrong: `richText` records every tag it meets, the kept ones included. The pag
 **Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): as under Length. The band is two across down to
 768 and stacked at 390; the back link reads "People"; tab order is the back link, Faculty, then the
 footer. Contacts: none on the page (the two to four in `main` are the footer's).
+
+## 96. NID Senate: a STRUCTURED person section as cards
+
+`/people/senate` is a People child on the secondary template, read from the CMS's `nid-senate`
+document (id 752, static). It is the first page to turn a STRUCTURED `person` section into person
+cards; Staff and Alumni take the same rule.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS `title` |
+| Back link | BackNav "People" → `/people` (`backFallback="/people"`) |
+| Hero | CMS hero[0], `people-nid-senate-hero.jpg`: byte for byte the `/people` landing's photograph, as Governing Council's is (§95). FIXTURE reuses `/people/hero-entrance.jpg`. TODO(review): same photo; the alt names the page |
+| Standfirst | CMS `heroText` |
+| Members | CMS "Members": nineteen TEXT blocks, one paragraph each, in CMS order, names bold; clamped at twelve lines behind "See more" |
+| Senate Members with NID profiles | CMS STRUCTURED `person` section: thirteen cards, three across with the designation overline, in CMS order |
+| Column 4 | empty: the CMS sends no contacts |
+| Band | `peopleBand(PATH)`: Faculty and Governing Council linked, five rows unlinked |
+
+**Members.** Block 1 ("Members of NID Senate") restates the section title. It renders as content,
+TODO(review). Blocks 2–18 are the seventeen members with their statutory basis; block 19 is the
+Registrar sentence. The clamp is twelve lines (440px at 1440, 352px at 390, paragraph gaps
+included). It falls inside the fifth member at 1440 and 1024, exactly after the fifth at 768, and
+inside the fourth at 390. The four external members (P K Ghosh, Ravindra D. Kulkarni, Ami Upadhyay,
+Shridhar Marri) are in Members only, so they are behind "See more" at every width. Without
+JavaScript the body is whole (§74). Twelve was not an accepted count: `ClampedProse`'s `LINES` gains
+`12: "scripting:line-clamp-[12]"`, one literal class string, as the others are.
+
+**The cards.** The CMS's thirteen items carry `slug`, `title`, `heroText` and `thumbnail`, which is
+everything a person card needs, so there is **no per-person fetch**. `railItems` (page-adapter.ts,
+the `{ structuredKey: "person" }` rule on a fixture `rail` section) now maps:
+
+- name = `title`, slug = `slug`, portrait = `thumbnail`, with the person's name as the alt when
+  the CMS's is empty (§83). All thirteen send their name as alt, and all serve;
+- designation = `heroText`, trimmed, when present. New: the rule used to drop it;
+- the heading = the CMS section's title unless the rule says `keepTitle`, as the cards path
+  already did. New: the rail used to keep the fixture's title.
+
+`role` stays the constant `"faculty"` for every person, Viral Rajyaguru (Controller of Finance)
+included. The CMS has no role vocabulary and the card does not render it.
+
+The opt-in is the rule itself. Only a page whose document sends a section bound by it changes: History's
+`section-history-faculty-stalwarts` carries the rule, but its document sends no STRUCTURED person
+section yet, so R shows History unchanged in both modes.
+
+**Layout.** `railThreeUp`, the discipline pages' rail (§72): three across in columns 2–4 at 1440,
+two from 1024 down. Portraits stay two on phones (NID-CONTEXT §5.3), so the rows are 3 / 2 / 2 / 2.
+The default two-up rail passes no `overline`, so it would show names only.
+
+**Linking.** PersonCard links `/people/faculty/<slug>` only when that member page builds (the
+faculty index, §83). LIVE links 12 of the 13; Viral Rajyaguru is in no faculty list, so that card
+is unlinked. FIXTURE links Mamata N. Rao only, since the fixture's faculty index has ten people.
+
+**FIXTURE portraits.** The 288px squares of the faculty fixture's convention, at
+`public/people/faculty/<slug>.jpg`: Mamata N. Rao's existing copy; Ashok Mondal's
+`/about/ashok-mondal.jpg`, byte for byte the CMS file; and eleven new copies (about 530 KB).
+
+**Content, as sent.** The thirteen profiled members are listed in both sections. Three
+designations in the cards contradict Members, and match each person's own record:
+
+| | Members | Card |
+|---|---|---|
+| V Sakthivel | Activity Chairperson, Outreach Programmes | Head, Smart Handloom Innovation Centre |
+| Guruprasad S | Head, Placement, Industry & Alumni Relations | Head, IPR Cell |
+| Sonal Chauhan | Head, Faculty of Textile & Apparel Design | Head, Faculty of Textile, Apparel & Lifestyle Accessory Design |
+
+Pravinsinh Solanki's designation reads "INDUSTRY & ONLINE PROGRAMMES (l&OP}". All TODO(review), backend.
+
+### What links now
+
+| Where | Before | Now |
+|---|---|---|
+| `/people` rail, "NID Senate" (both modes) | unlinked row | link |
+| Governing Council's band (both modes) | unlinked row | link |
+| RTI's "On this website" index (both modes, §89) | withheld by the gate | link |
+| The People menu row (FIXTURE) | already `/en/people/senate`, ungated (§34) | resolves, no HTML change |
+
+The CMS footer has no Senate entry, and the LIVE People menu has no children (§95).
+
+### Floors, requests
+
+`documentSections["nid-senate"]: 2`, and `documentItems["nid-senate"]: 12`: live 13, less a margin of
+one, as the LINK-block floors. A changed membership should not fail a deploy; the floor is there to
+catch the list vanishing. One document, and no HEADs: card portraits are not HEAD-checked, and
+`photoFallback` is not set. **285 → 286 distinct**, fetched == distinct.
+
+### R, A, C, E, Playwright
+
+**R** (baseline `9129940`). The new clamp class is one CSS rule, so the stylesheet's hash changes on
+every page. Four JS chunks were renamed: three differ from their baseline only by the `12:` entry
+in `LINES`, and the fourth by that entry plus the minifier swapping two local names. R maps those
+four names and the stylesheet's, and nothing else. FIXTURE 364 of 376 identical; LIVE (§73's and
+§77's rules) 922 of 934. In both, the twelve files are `/people`'s, Governing Council's and RTI's,
+each changed only by the "NID Senate" row that now links. History, the discipline pages and the
+faculty pages are unchanged. Gate 67 → 69 FIXTURE, 75 → 77 LIVE (five unlinked band rows, three
+rows that now link). LIVE 141s, floors 67/0, the guard clean (159 pages).
+
+**C** (LIVE): `api=title,hero,intro(heroText),seo,publishedAt,section:members,section:profiles(13) ·
+static=contacts(api empty),backNav,siblingBand · unlinked 5 rows`. The page has 19 paragraphs and
+17 bold names, and 13 cards (12 linked), each with its designation and portrait. "stripped <strong>"
+is the misleading note of §95 (backlog).
+
+**E** (a mock CMS under `next dev`, deleted after):
+
+| Mock | Result |
+|---|---|
+| An item with no thumbnail | the card keeps its place, with PersonCard's empty circle; still linked; logged "1 photo rejected (no media)" |
+| An item whose slug has no member page | that card unlinked (11 of 13 linked) |
+| 0 items | `FLOOR NOT MET — document nid-senate: listed items: expected at least 12, got 0`: a LIVE build fails (§65). Under `next dev` the floor only logs, and the section keeps the fixture's thirteen cards (`profiles(api section has no items)`, the per-unit fallback). The section is never empty |
+| A fourteenth item | fourteen cards, no code change |
+
+Running four dev servers back to back made the CMS answer 429 (each one fetches without the
+build cache). The client then reported the article feed as "The CMS answered, but with less than
+this site is built to show", which misreads a 429 (backlog). The clean LIVE build met every floor.
+
+**Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): cards per row 3,3,3,3,1 at 1440 and
+2,2,2,2,2,2,1 below; thirteen designations; no horizontal overflow. The back link reads "People"
+when loaded directly. Tab order: the back link, "See more", the one linked card (Mamata N. Rao),
+then the band; unlinked cards take no tab stop. All thirteen portraits carry `loading="lazy"`.
+Chromium nonetheless fetched all thirteen at load, even at 390×600, because the whole grid (to
+3040px) is within its own lazy-load distance. That is the browser's threshold; the markup is
+right.

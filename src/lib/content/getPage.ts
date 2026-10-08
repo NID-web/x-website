@@ -55,6 +55,7 @@ import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { CONSULTING_IDS } from "@/lib/content/fixtures/consulting-ids";
 import { CONSULTING_CONTINUING_EDUCATION } from "@/lib/content/fixtures/consulting-continuing-education";
 import { PEOPLE_GOVERNING_COUNCIL } from "@/lib/content/fixtures/people-governing-council";
+import { PEOPLE_SENATE } from "@/lib/content/fixtures/people-senate";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
@@ -95,6 +96,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/consulting/continuing-education": CONSULTING_CONTINUING_EDUCATION,
   "/people": PEOPLE,
   "/people/governing-council": PEOPLE_GOVERNING_COUNCIL,
+  "/people/senate": PEOPLE_SENATE,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
   "/regulatory/rti": REGULATORY_RTI,
@@ -525,6 +527,18 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     slug: "governing-council",
     intro: "heroText",
     sections: { "section-gc-members": { textTitle: "Members" } },
+  },
+  // A People child (§96): heroText the standfirst, "Members" whole (clamped by
+  // the route), and the STRUCTURED person section as cards — name, designation
+  // and portrait from each item, no per-person fetch. Staff and Alumni take the
+  // same rule.
+  "/people/senate": {
+    slug: "nid-senate",
+    intro: "heroText",
+    sections: {
+      "section-senate-members": { textTitle: "Members" },
+      "section-senate-profiles": { structuredKey: "person" },
+    },
   },
   // The first Regulatory page (STAGE-0-NOTES §86). The standfirst is heroText:
   // "About" is three narrative paragraphs with no summary among them, so it

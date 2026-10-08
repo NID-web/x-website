@@ -33,6 +33,7 @@ export const BUILT_ROUTES = [
   "/people",
   "/people/faculty",
   "/people/governing-council",
+  "/people/senate",
   "/people/faculty/[slug]",
   "/people/faculty/by/[view]",
   "/programmes",

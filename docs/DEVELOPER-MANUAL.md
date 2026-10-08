@@ -398,7 +398,18 @@ The People children (`/people/governing-council` today; Senate, Staff and Alumni
 3. **`PAGE_CONFIG`** (`getPage.ts`): the CMS slug (map it in `PATH_BY_CMS_SLUG`), `intro: "heroText"` where it is a summary, `textTitle` for each text section.
 4. **Floors** (`cms-floors.ts`): `documentSections`; an item floor once a section lists person records.
 
-Members as text are a stopgap: when the CMS sends person records, the page takes Senate's person-card mapping. A name in prose is never matched to a faculty page. `peopleBand` and `KEEP_UNBUILT_BAND` already cover all eight children: a new one links in every sibling's band and the `/people` rail with no other change. The People menu row links in FIXTURE only: the LIVE menu is the CMS's, and its People section has no children yet.
+Members as text are a stopgap: when the CMS sends person records, the page takes Senate's person-card mapping (R1h). A name in prose is never matched to a faculty page. `peopleBand` and `KEEP_UNBUILT_BAND` already cover all eight children: a new one links in every sibling's band and the `/people` rail with no other change. The People menu row links in FIXTURE only: the LIVE menu is the CMS's, and its People section has no children yet.
+
+### R1h — A STRUCTURED person section as cards
+
+A CMS section of `type: "STRUCTURED"` with `structuredContentType.key: "person"` (the Senate's "Senate Members with NID profiles", STAGE-0-NOTES §96) becomes a `rail` of person cards with no per-person fetch: each item already carries its name (`title`), designation (`heroText`) and portrait (`thumbnail`).
+
+1. **Fixture**: a `rail` section (`groupBy: "none"`) whose people are copies of the CMS items in CMS order: `id` (the item's), `slug`, `name`, `designation`, and a portrait copy at `public/people/faculty/<slug>.jpg`, 288px square. Reuse a copy the site already has. Never re-sort or group the items.
+2. **`PAGE_CONFIG`**: `{ structuredKey: "person" }` on that section id (`nth` if the document has two). The CMS section's title becomes the heading unless the rule says `keepTitle`. A rejected photo leaves the person without one, in place.
+3. **Route**: `railThreeUp` for three across with the designation overline (the faculty pages' rail, §72). Without it the rail is two-up and shows names only. Portraits stay two across on phones (NID-CONTEXT §5.3).
+4. **Floors**: `documentItems["<slug>"]` at the live count less one. A changed membership should not fail a deploy, but the list vanishing should.
+
+A card links to `/people/faculty/<slug>` only when that member page builds (the faculty index, §83); anyone else's card is unlinked. A section whose CMS items are empty keeps the fixture's people (the per-unit fallback), and below the floor the LIVE build fails.
 
 ---
 
