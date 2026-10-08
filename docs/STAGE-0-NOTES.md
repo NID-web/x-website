@@ -6144,3 +6144,84 @@ without it there is no button and all six paragraphs show. The long phone value 
 column 4 at 1440 and in column 1 at 1024, one line at 768 and 390. No horizontal overflow; tab order
 the back link, "See more", the two emails, the films, then the footer (the band's rows are not
 focusable while unbuilt).
+
+## 93. Continuing Education Programme: a `service_centre` document, and its lists by §68's rule
+
+`/consulting/continuing-education` is the second Consulting child, §92's pattern: `SecondaryTemplate`,
+back link `/consulting`, `consultingBand`. It is the first page read from a `service_centre`
+document (`continuing-education-programme`, id 892, its only document). The response guard accepts
+it and the adapter reads it as any Generic Page; its `detail` (`{contentItemId}`) is read only by a
+config that names detail rules, so it is ignored. Nothing is dropped.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS "Continuing Education Programme"; the rail and the band keep sitemap.json's "Continuing Education" (§73/§78) |
+| Back link | BackNav, fallback `/consulting` |
+| Hero | none: the CMS's one hero is refused by id (below), so the page closes up in both modes |
+| Standfirst | CMS `heroText`, the summary; About ¶1 is a 701-character argument |
+| About | CMS About whole: thirteen TEXT blocks joined into eight — six paragraphs and two lists — behind "See more" at eight lines |
+| Column 4 | "CEP Workshops (Schedule & Gallery)" → https://cep.nid.edu/ (`linkBlocks`; a site, not a file, so not HEAD-checked; it answers 200 directly), then cep@nid.edu, ipp@nid.edu and "+91 079 26629767 / 746" as plain text (a trunk 0 and two numbers, §80) |
+| Band | "More in Consulting & Entrepreneurship": IDS linked; NDBI, Outreach, Ongoing Projects unlinked |
+
+No menu row: sitemap.json's Consulting menu leaves CEP out. TODO(designer).
+
+### The lists: §68's rule, unchanged
+
+The CMS writes each list item as its own TEXT block led by "- ". `joinBlocks` (format.ts, §68)
+already makes a run of two or more such blocks one `<ul>`, markers stripped, and keeps a lone
+dash-led block a paragraph ("one is not a list, and it may be a dash"). So no new rule: About's
+blocks 3–6 are one four-item list and 8–10 a three-item list; the two lead-in sentences stay
+paragraphs. The fixture builds its body with the same `joinBlocks`, so FIXTURE and LIVE cannot
+drift. In the LIVE build the pages whose bodies render a CMS list are this one (2) and the two event
+articles, Drawing Dialogues and Shifting Paradigms (4 each), which R shows unchanged.
+
+**The clamp.** Eight lines (240px at 1440, 216px at 1024 and 768, 192px at 390), and the cut falls
+inside ¶1 at every width: both lists are behind "See more" and open whole. Without JavaScript the
+body is whole and there is no button (§74).
+
+### The hero has text baked in: refused, as §77
+
+`service-cep-hero.jpg` (1520 × 700, media id `cmuaop6bi0000acpdkjco9gxw`) carries a caption band:
+"Off Campus Client Workshop · Daimler India Comm Vehicle India Pvt. Ltd · Organised by Continuing
+Education Programmes (CEP)". The crop shows it whole only at 1440 (2.2:1); at 1024 it reads
+"…aimler India Comm Vehicle…" and "…Programmes (CE", at 768 "…r India Comm Vehicle India Pvt. Ltd"
+and "…Programm", at 390 "…ehicle India Pvt. Ltd" and "Continuing Educat…". That is the defect
+Young Designers' banner was refused for (§77), and the treatment is the same: `rejectMedia` by
+media id in PAGE_CONFIG, and no hero in the fixture (no copy in `public/`). The page closes up in
+LIVE and FIXTURE, the standfirst directly under the back link and the title. A new upload gets a
+new id and shows with no code change; by id, not by file name, so a re-upload under the same name
+is not refused. TODO(review). Backend ask: a photograph without baked-in text, with alt text that
+describes it (the CMS's names the page).
+
+### Floors, requests, hrefs
+
+`documentSections["continuing-education-programme"]: 1`; no LINK-block floor (not a list of files).
+One more document, no file HEADs: **283 → 284 distinct**, fetched == distinct.
+Resolve now: /consulting's rail row "Continuing Education" and IDS's band row (both modes).
+`PATH_BY_CMS_SLUG` and `PAGE_ID` gain the page.
+
+### R, A, E, Playwright
+
+**R** (baseline `d9c836f`). FIXTURE: 356 of 364 identical; LIVE (§73's and §77's rules): 914 of 922.
+In both the eight are /consulting's and /consulting/ids's four files each, by the one row that now
+links. Gate 62 → 63 FIXTURE, 70 → 71 LIVE (three unlinked band rows, two rows that now link). LIVE
+145s, floors 64/0, the guard clean.
+After the refusal, LIVE again: against the build before it only CEP's four files differ, by the
+hero alone (its `preload` and its cell); 284 distinct, fetched == distinct, 154s, floors 64/0, the
+guard clean (157 pages). The `[cms]` line reads `static=hero(media rejected: rejectMedia
+cmuaop6bi0000acpdkjco9gxw)`.
+
+**E** (a mock CMS under `next dev`, deleted after):
+
+| Mock | Result |
+|---|---|
+| A lone "- " block between paragraphs | a paragraph (§68), not a one-item list |
+| No LINK block | the fixture's CEP Workshops link stays — the per-unit fallback, as §92's Resources |
+| No "- " blocks | paragraphs exactly as before |
+
+**Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): the clamp and the lists as above; column 4 in
+column 4 at 1440 and in column 1 below the body from 1024 down (the template's free flow, §74); no
+horizontal overflow; tab order the back link, "See more", the CEP Workshops link, the two emails,
+IDS in the band.

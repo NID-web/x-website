@@ -74,6 +74,8 @@ export const CMS_FLOORS = {
     "right-to-information": 2,
     // About and Resources (§92).
     "integrated-design-services": 2,
+    // About (§93).
+    "continuing-education-programme": 1,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page

@@ -97,6 +97,8 @@ const PAGES = [
   // The first Consulting child: the landing's IDS content on the secondary
   // template, the Consulting band (§92).
   { name: "consulting-ids", path: "/en/consulting/ids" },
+  // A service_centre document; two CMS lists inside a clamped body (§93).
+  { name: "consulting-continuing-education", path: "/en/consulting/continuing-education" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

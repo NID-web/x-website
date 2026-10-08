@@ -53,6 +53,7 @@ import { STUDY_YOUNG_DESIGNERS } from "@/lib/content/fixtures/study-young-design
 import { RESEARCH } from "@/lib/content/fixtures/research";
 import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { CONSULTING_IDS } from "@/lib/content/fixtures/consulting-ids";
+import { CONSULTING_CONTINUING_EDUCATION } from "@/lib/content/fixtures/consulting-continuing-education";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
@@ -90,6 +91,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/research": RESEARCH,
   "/consulting": CONSULTING,
   "/consulting/ids": CONSULTING_IDS,
+  "/consulting/continuing-education": CONSULTING_CONTINUING_EDUCATION,
   "/people": PEOPLE,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
@@ -490,6 +492,19 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-ids-about": { textTitle: "About", linkBlocks: true },
       "section-ids-resources": { textTitle: "Resources", linkBlocks: true },
     },
+  },
+  // A Consulting child from a `service_centre` document (§93), IDS's pattern:
+  // heroText the standfirst, About whole — its "- " runs are lists by the
+  // adapter's own rule (§68) — and its cep.nid.edu LINK above the contacts.
+  // The hero carries a caption band baked into the photograph, which every
+  // crop below 1440 cuts: refused by id, as Young Designers' banner (§77), so
+  // the page closes up and a new upload shows with no edit here.
+  // TODO(review): backend — a photograph without baked-in text, with alt text.
+  "/consulting/continuing-education": {
+    slug: "continuing-education-programme",
+    intro: "heroText",
+    rejectMedia: ["cmuaop6bi0000acpdkjco9gxw"], // service-cep-hero.jpg, captioned
+    sections: { "section-cep-about": { textTitle: "About", linkBlocks: true } },
   },
   // The sixth primary page (STAGE-0-NOTES §81): no sections on the board. The
   // standfirst is "About", claimed BY TITLE: it and "Overview" tie at orderIndex
