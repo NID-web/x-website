@@ -76,6 +76,8 @@ export const CMS_FLOORS = {
     "integrated-design-services": 2,
     // About (§93).
     "continuing-education-programme": 1,
+    // Members (§95).
+    "governing-council": 1,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page

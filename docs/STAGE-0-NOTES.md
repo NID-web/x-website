@@ -6260,3 +6260,94 @@ appears once unless the CMS itself sends it twice, which the report then says. I
 the only repeats are the CMS's. Ahmedabad's document sends "+91 79 2662 9500" as both "Campus
 Office" and "Campus Contact"; RTI's sends rti@nid.edu as the Public Information Officer's and as
 the unnamed "Contact". Both are backend asks.
+
+## 95. Governing Council: the first People child, its members as text
+
+`/people/governing-council` is a secondary page with no board, read from the CMS's `governing-council`
+document (id 751, static). It is the first of People's children built through `getPage` (Faculty
+is `getFaculty`'s), and it sets up the band that Senate, Staff and Alumni reuse.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS `title` |
+| Back link | BackNav "People" → `/people` (`backFallback="/people"`) |
+| Hero | CMS hero[0], `people-governing-council-hero.jpg`, which is byte for byte the `/people` landing's photograph of the entrance wall. FIXTURE reuses `/people/hero-entrance.jpg`, so there is no second copy (IDS's precedent, §92). TODO(review): same photo as /people; the alt names the page |
+| Standfirst | CMS `heroText`: the summary, and the SEO description |
+| Members | CMS "Members": all eleven TEXT blocks, one paragraph each, in CMS order, not clamped (the list is the page) |
+| Column 4 | empty: the CMS sends no contacts |
+| Band | `peopleBand(PATH)`, "More in People": Faculty linked; NID Senate, Staff, Notable Alumni, Visitor / President of India, Faculty Stalwarts, Pride of NID unlinked |
+
+**Members as text.** The CMS sends no person records (backend ask 6, §81), so the members are
+paragraphs. When records arrive, this page takes Senate's person-card mapping. A name in prose is
+never matched to a faculty page, though three members have one (Ashok Mondal, Jitendra Singh Rajput,
+Susanth C S). The blocks carry `<strong>` around nine names and `<em>` on five "ex officio"s;
+`richText` (format.ts) keeps both, so the names are bold as on nid.edu. The fixture builds its body
+from the CMS's HTML with the same `richParagraphs` and `joinBlocks`, so FIXTURE and LIVE cannot
+drift. Block 4 names a post and no person (DPIIT's Additional Secretary & Financial Advisor).
+Block 11, the Registrar sentence, is bold throughout.
+
+**The standfirst** is heroText, not block 1: heroText is the CMS's one-sentence summary, and block 1 is
+a 246-character constitution statement (DPIIT, effective 25 Aug 2022) that the CMS files under
+Members. The cost is that the two open with nearly the same words. TODO(review), a content edit.
+
+**Length** (FIXTURE): Members runs 26 lines (940px) at 1440 in columns 2–3, 684px wide and about
+76 characters to a line; 26 lines at 1024 (643px wide); 25 at 768, full width; 40 at 390 (1120px,
+about 46 characters). No "See more", no horizontal overflow.
+
+**The 390 hero crop** cuts the wall's signage ("NATIONAL INSTITUTE OF D…"). That is the same photograph
+and the same 4:3 crop `/people` already ships, and the lettering is part of the scene, not a caption
+printed onto the image (cf. §93).
+
+### The People band
+
+`peopleBand(path)` (sibling-bands.ts) is `PEOPLE.derived.subPageLinks` minus `path`: the list the
+`/people` rail renders, so band and rail cannot drift. People's eight paths join `KEEP_UNBUILT_BAND`,
+so an unbuilt sibling stays an unlinked row. That set is keyed by the page being built, and Faculty
+is built by `getFaculty`, not `getPage`, so its own band ("Browse faculty by") does not change; R
+shows it unchanged. The heading names the back-nav label.
+
+### What links now
+
+| Where | Before | Now |
+|---|---|---|
+| `/people` rail, "Governing Council" (both modes) | unlinked row | link |
+| RTI's "On this website" index (both modes, §89) | withheld by the gate | link |
+| The People menu row (FIXTURE) | already `/en/people/governing-council`, ungated (§34) | resolves, no HTML change |
+
+LIVE has no People menu rows: the CMS menu's People section has no children. Backend ask. The CMS
+footer has no Governing Council entry, and the name in other pages' prose is never linked.
+
+### Floors, requests
+
+`documentSections["governing-council"]: 1`. One document and no file HEADs (page heroes are not
+HEAD-checked): **284 → 285 distinct**, fetched == distinct.
+
+### R, A, C, E, Playwright
+
+**R** (baseline `58f41e2`). FIXTURE 362 of 370 identical, LIVE (§73's and §77's rules) 920 of 928.
+In both, the eight files are `/people`'s four and RTI's four, each changed only by the one row that
+now links. `/people/faculty` and its member pages are unchanged. Gate 63 → 67 FIXTURE, 71 → 75 LIVE
+(six unlinked band rows, two rows that now link). LIVE 146s, floors 65/0, the guard clean (158
+pages). The R comparer now resolves a payload's references into one tree before comparing, path
+references (`$1b:props:localeCookie`) included: React outlines a chunk into its own row, or keeps it
+inline, depending on timing, so row ids differ between two builds of the same tree.
+
+**C** (LIVE): `api=title,hero,intro(heroText),seo,publishedAt,section:members ·
+static=contacts(api empty),backNav,siblingBand · unlinked 6 rows`. Its "stripped <strong>, <em>"
+is wrong: `richText` records every tag it meets, the kept ones included. The page renders both
+(11 paragraphs, 9 `<strong>`, 5 `<em>`, the same in FIXTURE). Backlog, as on six earlier pages.
+
+**E** (a mock CMS under `next dev`, deleted after):
+
+| Mock | Result |
+|---|---|
+| No CMS hero | The fixture's copy of the same photo renders (`static=hero(api empty)`): the per-unit fallback, as §77 says of a refused hero. The page does not close up |
+| No hero in the CMS or the fixture | The page closes up, with no placeholder box |
+| A twelfth member block | twelve paragraphs, no code change |
+| Senate built (its path in `BUILT_ROUTES`) | its row links in this page's band and in the `/people` rail, no other change |
+
+**Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): as under Length. The band is two across down to
+768 and stacked at 390; the back link reads "People"; tab order is the back link, Faculty, then the
+footer. Contacts: none on the page (the two to four in `main` are the footer's).

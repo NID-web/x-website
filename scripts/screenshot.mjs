@@ -99,6 +99,8 @@ const PAGES = [
   { name: "consulting-ids", path: "/en/consulting/ids" },
   // A service_centre document; two CMS lists inside a clamped body (§93).
   { name: "consulting-continuing-education", path: "/en/consulting/continuing-education" },
+  // The first People child: an unclamped text list of members (§95).
+  { name: "people-governing-council", path: "/en/people/governing-council" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

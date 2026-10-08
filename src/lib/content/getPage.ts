@@ -54,6 +54,7 @@ import { RESEARCH } from "@/lib/content/fixtures/research";
 import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { CONSULTING_IDS } from "@/lib/content/fixtures/consulting-ids";
 import { CONSULTING_CONTINUING_EDUCATION } from "@/lib/content/fixtures/consulting-continuing-education";
+import { PEOPLE_GOVERNING_COUNCIL } from "@/lib/content/fixtures/people-governing-council";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
@@ -93,6 +94,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/consulting/ids": CONSULTING_IDS,
   "/consulting/continuing-education": CONSULTING_CONTINUING_EDUCATION,
   "/people": PEOPLE,
+  "/people/governing-council": PEOPLE_GOVERNING_COUNCIL,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
   "/regulatory/rti": REGULATORY_RTI,
@@ -517,6 +519,13 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     introTitle: "About",
     sections: {},
   },
+  // The first People child (§95): heroText the standfirst, Members whole, each
+  // TEXT block a paragraph. TODO(review): backend — person records (§81).
+  "/people/governing-council": {
+    slug: "governing-council",
+    intro: "heroText",
+    sections: { "section-gc-members": { textTitle: "Members" } },
+  },
   // The first Regulatory page (STAGE-0-NOTES §86). The standfirst is heroText:
   // "About" is three narrative paragraphs with no summary among them, so it
   // renders whole, and "Documents" is a list of documents (§76) — its eight
@@ -729,6 +738,8 @@ const KEEP_UNBUILT_BAND = new Set([
   ...REGULATORY_CHILDREN.map((c) => c.path),
   // Consulting & Entrepreneurship's five, from its rail (§92).
   ...CONSULTING.derived.subPageLinks.map((link) => link.href),
+  // People's eight, from its rail (§95).
+  ...PEOPLE.derived.subPageLinks.map((link) => link.href),
 ]);
 
 // cache(): generateMetadata and the page both call this; one fetch and one log

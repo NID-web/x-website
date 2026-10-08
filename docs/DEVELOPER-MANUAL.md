@@ -389,6 +389,17 @@ The Consulting & Entrepreneurship children (`/consulting/ids` today; Continuing 
 
 The band (`consultingBand`, from the landing's rail) and `KEEP_UNBUILT_BAND` already cover all five children: a new one links in every sibling's band, the landing's rail and Ahmedabad's Services & Centres with no other change.
 
+### R1g — A People child
+
+The People children (`/people/governing-council` today; Senate, Staff and Alumni next) are secondary pages read from their own CMS documents (STAGE-0-NOTES §95). Faculty is not one of them: it is built by `getFaculty`, not `getPage`. Each is:
+
+1. **Route file** `src/app/[locale]/people/<page>/page.tsx`, a copy of `governing-council/page.tsx`: `backFallback="/people"`, `heroPlaceholder={false}`, and no `clamp` on a list of people (the list is the page). The band is named by the fixture's `backNav`, "More in People". Add the path to `BUILT_ROUTES`.
+2. **Fixture** `src/lib/content/fixtures/people-<page>.ts`: the CMS's words as sent, `parent: PAGE_ID.people`, `backNav` People, `siblingBand: peopleBand(PATH)`. A body whose TEXT blocks carry `<strong>`/`<em>` is built with the adapter's own rules, `joinBlocks(blocks.map((html) => richParagraphs(html).text)).body`, so FIXTURE and LIVE cannot drift. A hero that is byte for byte the landing's reuses `/people/hero-entrance.jpg`.
+3. **`PAGE_CONFIG`** (`getPage.ts`): the CMS slug (map it in `PATH_BY_CMS_SLUG`), `intro: "heroText"` where it is a summary, `textTitle` for each text section.
+4. **Floors** (`cms-floors.ts`): `documentSections`; an item floor once a section lists person records.
+
+Members as text are a stopgap: when the CMS sends person records, the page takes Senate's person-card mapping. A name in prose is never matched to a faculty page. `peopleBand` and `KEEP_UNBUILT_BAND` already cover all eight children: a new one links in every sibling's band and the `/people` rail with no other change. The People menu row links in FIXTURE only: the LIVE menu is the CMS's, and its People section has no children yet.
+
 ---
 
 ## R2 — Add a new component

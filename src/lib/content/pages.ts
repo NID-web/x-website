@@ -187,6 +187,7 @@ const PATH_BY_CMS_SLUG: Record<string, string> = {
   "pm-vidyalaxmi-scheme": "/study/pm-vidyalaxmi",
   "young-designers": "/study/young-designers",
   people: "/people",
+  "governing-council": "/people/governing-council",
   "research-publications": "/research",
   "innovation-center-natural-fiber": "/research/natural-fiber",
   icic: "/research/icic",

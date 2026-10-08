@@ -4,6 +4,7 @@
 import type { DerivedPageContext } from "@/lib/content-model";
 import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { NEWS_EVENTS } from "@/lib/content/fixtures/news-events";
+import { PEOPLE } from "@/lib/content/fixtures/people";
 import { PROGRAMMES } from "@/lib/content/fixtures/programmes";
 import { STUDY } from "@/lib/content/fixtures/study";
 import { PAGE_ID, pageIdOf, pathOf } from "@/lib/content/pages";
@@ -85,6 +86,19 @@ export function regulatoryBand(path: string): DerivedPageContext["siblingBand"] 
  *  unlinked rows (KEEP_UNBUILT_BAND). */
 export function consultingBand(path: string): DerivedPageContext["siblingBand"] {
   return CONSULTING.derived.subPageLinks
+    .filter((link) => link.href !== path)
+    .map((link) => ({
+      id: pageIdOf(link.href) ?? link.href,
+      title: link.label,
+      href: link.href,
+    }));
+}
+
+/** "More in People": the /people rail — sitemap.json's eight children, in its
+ *  order — minus `path` (§95). Senate, Staff and Alumni take it as they ship.
+ *  Unbuilt siblings stay unlinked rows (KEEP_UNBUILT_BAND). */
+export function peopleBand(path: string): DerivedPageContext["siblingBand"] {
+  return PEOPLE.derived.subPageLinks
     .filter((link) => link.href !== path)
     .map((link) => ({
       id: pageIdOf(link.href) ?? link.href,
