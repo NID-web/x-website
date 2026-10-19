@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -22,7 +23,7 @@ export default async function SwatchPage() {
 
   return (
     <ThemeProvider>
-      <main className="flex flex-col bg-surface-page py-12 text-text-primary">
+      <Main className="flex flex-col bg-surface-page py-12 text-text-primary">
         {/* A page is one grid (CLAUDE.md) — everything below is a direct
             child of this single PageGrid, never a nested one. */}
         <PageGrid className="gap-y-12">
@@ -75,7 +76,7 @@ export default async function SwatchPage() {
             <SpacingRadius />
           </GridItem>
         </PageGrid>
-      </main>
+      </Main>
       <GridOverlay alwaysOn />
     </ThemeProvider>
   );

@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -47,7 +48,7 @@ export default async function OurThemesPage() {
   const t = await getTranslations("OurThemes");
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
         <Title variant="page" subtitle={page.intro}>
@@ -68,6 +69,6 @@ export default async function OurThemesPage() {
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }

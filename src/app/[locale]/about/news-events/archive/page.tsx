@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import type { Metadata } from "next";
 import { Fragment } from "react";
 import { getLocale } from "next-intl/server";
@@ -34,7 +35,7 @@ export default async function NewsArchivePage() {
   const years = groupedItems[ARCHIVE_SECTION] ?? [];
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
         {/* Before the title in the DOM: at 2 and 1 columns the boards draw the
@@ -75,6 +76,6 @@ export default async function NewsArchivePage() {
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }

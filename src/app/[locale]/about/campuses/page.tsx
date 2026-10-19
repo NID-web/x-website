@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import type { Metadata } from "next";
 import { Fragment } from "react";
 import { getTranslations } from "next-intl/server";
@@ -59,7 +60,7 @@ export default async function CampusesPage() {
   );
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
         {/* The board draws a 150px gradient square behind the H1 (4932:576902):
@@ -120,6 +121,6 @@ export default async function CampusesPage() {
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }

@@ -5,6 +5,7 @@
 // route file — a `[slug]` folder would make the route gate accept any child and
 // lose its ability to withhold a dead link (§57). What differs per page is props
 // and data, never a branch on which page this is.
+import { Main } from "@/components/spine/Main";
 import type { Metadata } from "next";
 import type { MediaAsset } from "@/lib/content-model";
 import { Fragment, type ReactNode } from "react";
@@ -132,7 +133,7 @@ export async function SecondaryTemplate({
     .filter(hasContent);
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
         {/* The boards' gradient triangle / square behind the H1 is the title
@@ -253,6 +254,6 @@ export async function SecondaryTemplate({
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }

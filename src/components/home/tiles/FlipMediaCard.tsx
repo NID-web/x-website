@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import clsx from "clsx";
 import { Tile } from "@/components/home/Tile";
 import { Overline } from "@/components/home/parts";
@@ -65,16 +65,31 @@ export function FlipMediaCard({
 }: FlipMediaCardProps) {
   const [flipped, setFlipped] = useState(false);
   const faceId = useId();
+  const flipRef = useRef<HTMLButtonElement>(null);
+  const turnedByUser = useRef(false);
+
+  // Each face renders its own copy of the flip control, so turning the card
+  // unmounts the button that was just pressed and focus fell to <body>. Hand
+  // it to the new face's control instead — only after a turn, never on mount.
+  // On the front that control sits in the hover slot, and focus-within is what
+  // opens the slot, so the focused button is never in a closed 0px box.
+  useEffect(() => {
+    if (turnedByUser.current) flipRef.current?.focus();
+  }, [flipped]);
 
   const flipButton = (
     <IconButton
+      ref={flipRef}
       icon="arrow-arc-left"
       // icon/primary, not IconButton's pale quaternary default: the export
       // fills this glyph with the value text/primary resolves to, and the
       // quaternary ramp is near-invisible on the page surface.
       tone="primary"
       label={flipped ? showCoverLabel : showDetailsLabel}
-      onClick={() => setFlipped((v) => !v)}
+      onClick={() => {
+        turnedByUser.current = true;
+        setFlipped((v) => !v);
+      }}
       expanded={flipped}
       controls={faceId}
     />

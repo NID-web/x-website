@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import { Fragment } from "react";
 import { getTranslations } from "next-intl/server";
 import { GridItem } from "@/components/layout/GridItem";
@@ -62,7 +63,7 @@ export async function ArticleTemplate({
   );
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
         {/* Before the h1, as the archive's (§66). The static HTML carries no
@@ -128,6 +129,6 @@ export async function ArticleTemplate({
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }

@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import { getLocale, getTranslations } from "next-intl/server";
 import { PageGrid } from "@/components/layout/PageGrid";
 import { GridItem, type GridSpan } from "@/components/layout/GridItem";
@@ -63,7 +64,7 @@ export async function HomeGrid() {
   const t: Translate = (key) => copy[key] ?? raw(key);
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       {/* Craft band, full-bleed directly under the header — outside the
           PageGrid shell on purpose: it runs edge to edge, so a GridItem would
           inset it by the shell margin. Its clearance is two grid row-gaps, not a
@@ -84,6 +85,6 @@ export async function HomeGrid() {
           the opening strip is the export's "Only Pattern" variant, the closing
           one leads with the NID wordmark. */}
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }

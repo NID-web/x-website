@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import type { Metadata } from "next";
 import { AwardRow } from "@/components/cards/AwardRow";
 import { RowGroup } from "@/components/cards/RowGroup";
@@ -29,7 +30,7 @@ export default async function StudentAwardsPage() {
   const groups = groupedItems[AWARDS_SECTION] ?? [];
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
         {/* Before the title in the DOM, as on the archive (STAGE-0-NOTES §66). */}
@@ -62,6 +63,6 @@ export default async function StudentAwardsPage() {
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }

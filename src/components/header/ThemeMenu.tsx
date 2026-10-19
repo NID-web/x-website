@@ -52,15 +52,19 @@ export function ThemeMenu({ id }: { id: string }) {
   return (
     <div
       id={id}
-      role="menu"
+      role="group"
       aria-label="Choose a theme"
       className="flex w-71 max-h-[568px] flex-col gap-0.5 overflow-y-auto rounded-pill bg-surface-page p-2 shadow-lg ring-1 ring-border-subtle"
     >
       {THEMES.map((t) => {
         const isActiveTheme = t === theme;
         return (
+          // A named group per row, so its Light and Dark buttons are heard as
+          // Lotus's light and dark rather than as twenty bare "Light"/"Dark".
           <div
             key={t}
+            role="group"
+            aria-label={THEME_LABELS[t]}
             data-theme={t}
             data-appearance={appearance}
             className={clsx(
@@ -73,8 +77,7 @@ export function ThemeMenu({ id }: { id: string }) {
                 data-theme wrapper above scopes the motif to this row's theme. */}
             <button
               type="button"
-              role="menuitemradio"
-              aria-checked={isActiveTheme}
+              aria-pressed={isActiveTheme}
               onClick={() => pick(t)}
               className="flex min-w-0 flex-1 items-center gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
             >
@@ -103,7 +106,6 @@ export function ThemeMenu({ id }: { id: string }) {
       {/* Footer link to themes description page */}
       <Link
         href="/about/our-themes"
-        role="menuitem"
         className="mt-1 flex items-center gap-1.5 border-t border-border-faint px-3 pt-3 pb-1 font-primary text-label text-text-secondary no-underline transition-colors duration-150 ease-in-out hover:text-text-primary"
       >
         Learn more about the themes
