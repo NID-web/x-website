@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import { Fragment } from "react";
 import { getTranslations } from "next-intl/server";
 import { PageGrid } from "@/components/layout/PageGrid";
@@ -62,7 +63,7 @@ export async function PrimaryTemplate({
   );
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
         <Title variant="page">{page.title}</Title>
@@ -134,6 +135,6 @@ export async function PrimaryTemplate({
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }

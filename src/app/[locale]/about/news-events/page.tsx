@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import type { Metadata } from "next";
 import { Fragment } from "react";
 import { notFound } from "next/navigation";
@@ -46,7 +47,7 @@ export default async function NewsEventsPage() {
   const { page, derived } = response;
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
         <Title variant="page">{page.title}</Title>
@@ -80,6 +81,6 @@ export default async function NewsEventsPage() {
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }

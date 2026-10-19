@@ -9,20 +9,29 @@ import { Icon } from "@/components/spine/Icon";
 
 /**
  * Theme switcher trigger button displaying the active theme motif and opening ThemeMenu.
+ *
+ * A disclosure, not a menu: the trigger expands a panel of ordinary buttons
+ * that Tab walks in reading order. It used to claim role="menu", which tells a
+ * screen reader to expect arrow-key navigation it never got.
  */
 export function ThemeSwitcher() {
   const { theme } = useTheme();
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (e: PointerEvent) => {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
     };
+    // Back to the trigger: focus was inside the panel, and the panel is about
+    // to unmount, which would drop it to <body>.
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      if (rootRef.current?.contains(document.activeElement)) triggerRef.current?.focus();
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -33,11 +42,21 @@ export function ThemeSwitcher() {
   }, [open]);
 
   return (
-    <div ref={rootRef} className="relative">
+    <div
+      ref={rootRef}
+      className="relative"
+      // Tabbing out of the panel closes it. Only when focus has actually landed
+      // somewhere else: a click on a button in Safari focuses nothing, so a null
+      // relatedTarget there is a click inside, which the pointer handler above
+      // already judges.
+      onBlur={(e) => {
+        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) setOpen(false);
+      }}
+    >
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
         aria-label="Theme"

@@ -3,6 +3,12 @@
 // not-found page) so they can never paint a different first frame.
 
 import fontManifestRaw from "@/lib/font-manifest.json";
+import {
+  A11Y_TOGGLES,
+  CONTRAST_APPEARANCE,
+  CONTRAST_THEME,
+  TEXT_SIZES,
+} from "@/lib/theme-constants";
 
 type FontManifest = {
   body: {
@@ -29,6 +35,20 @@ export const THEME_SCRIPT = `
       a = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
     var r = document.documentElement;
+    // Accessibility panel (theme-constants.ts). Contrast overrides the stored
+    // theme without replacing it, so switching it off restores the visitor's own.
+    if (localStorage.getItem("nid-contrast") === "on") {
+      t = ${JSON.stringify(CONTRAST_THEME)};
+      a = ${JSON.stringify(CONTRAST_APPEARANCE)};
+      r.setAttribute("data-contrast", "on");
+    }
+    var TOGGLES = ${JSON.stringify(A11Y_TOGGLES)};
+    var on = (localStorage.getItem("nid-a11y") || "").split(" ").filter(function (x) {
+      return TOGGLES.indexOf(x) !== -1;
+    });
+    if (on.length) r.setAttribute("data-a11y", on.join(" "));
+    var s = localStorage.getItem("nid-text-size");
+    if (s !== "100" && ${JSON.stringify(TEXT_SIZES)}.indexOf(s) !== -1) r.setAttribute("data-text-size", s);
     r.setAttribute("data-theme", t);
     r.setAttribute("data-appearance", a);
   } catch (e) {

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import clsx from "clsx";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { Icon } from "@/components/spine/Icon";
 import { IconButton } from "@/components/spine/IconButton";
 import { BrandStrip } from "@/components/spine/BrandStrip";
+import { MAIN_ID } from "@/components/spine/Main";
 import { SiteLink } from "@/components/spine/SiteLink";
 import type { NavSection } from "@/lib/nav-content";
 
@@ -13,6 +14,10 @@ import type { NavSection } from "@/lib/nav-content";
  * Drawer navigation menu.
  * Displays expandable nav sections with links, a close action, and the brand strip.
  */
+
+// Never content, so never made inert: silencing them changes nothing.
+const NOT_CONTENT = new Set(["SCRIPT", "STYLE", "LINK", "TEMPLATE", "NOSCRIPT"]);
+
 function Section({
   section,
   expanded,
@@ -115,10 +120,13 @@ export function MainMenu({
   open,
   onClose,
   sections,
+  returnFocusTo,
 }: {
   id: string;
   open: boolean;
   onClose: () => void;
+  /** The header toggle: focus goes back to it when the drawer closes. */
+  returnFocusTo: RefObject<HTMLButtonElement | null>;
   /** Resolved by the server layout (src/lib/content/getSiteChrome.ts): a
    *  "use client" module must not reach for the static fallback itself, or the
    *  CMS menu would never reach the browser. */
@@ -127,24 +135,81 @@ export function MainMenu({
   const [expanded, setExpanded] = useState<string[]>([]);
   const [wasOpen, setWasOpen] = useState(open);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  // False only when a link closed the drawer: the page is changing under it,
+  // and focus belongs to the new page, not to the menu button of the one
+  // being left.
+  const restoreFocus = useRef(true);
+  const focusNextMain = useRef(false);
+  const pathname = usePathname();
 
   if (open !== wasOpen) {
     setWasOpen(open);
     if (open) setExpanded([]);
   }
 
+  // Modal while open. The drawer covers the page and the header toggle, so
+  // everything outside it goes inert (out of the tab order and the
+  // accessibility tree) rather than letting Tab walk on into the page under
+  // the scrim, which it did. Inert goes on the drawer's siblings at every
+  // level up to <body>, so this holds whatever the layout wraps it in, and only
+  // what this effect silenced is restored, never something already inert for
+  // its own reason. On close, focus returns to the toggle that opened it.
   useEffect(() => {
-    if (open) closeRef.current?.focus();
-  }, [open]);
+    if (!open) return;
+    restoreFocus.current = true;
+    focusNextMain.current = false;
+    // The same button whether it reads "Main menu" or "Close menu".
+    const toggle = returnFocusTo.current;
+    closeRef.current?.focus();
+    const silenced: Element[] = [];
+    for (let node: HTMLElement | null = rootRef.current; node?.parentElement; node = node.parentElement) {
+      if (node === document.body) break;
+      for (const sibling of node.parentElement.children) {
+        if (sibling === node || sibling.hasAttribute("inert") || NOT_CONTENT.has(sibling.tagName)) {
+          continue;
+        }
+        sibling.setAttribute("inert", "");
+        silenced.push(sibling);
+      }
+    }
+    return () => {
+      for (const element of silenced) element.removeAttribute("inert");
+      if (restoreFocus.current) toggle?.focus();
+      // After a link, focus goes to the page's <main>, as the skip link sends
+      // it. Left alone it stayed on the followed link, now inert inside the
+      // closed drawer, and the next Tab ran on from there to the end of the
+      // document instead of into the new page. This <main> serves a link that
+      // stays on this page or opens a new tab; the effect below re-aims at the
+      // new page's own <main>, which replaces this one when the route changes.
+      else document.getElementById(MAIN_ID)?.focus({ preventScroll: true });
+    };
+  }, [open, returnFocusTo]);
+
+  useEffect(() => {
+    if (!focusNextMain.current) return;
+    focusNextMain.current = false;
+    document.getElementById(MAIN_ID)?.focus({ preventScroll: true });
+  }, [pathname]);
+
+  const navigate = () => {
+    restoreFocus.current = false;
+    focusNextMain.current = true;
+    onClose();
+  };
 
   return (
     <div
+      ref={rootRef}
       className={clsx("fixed inset-0 z-50", !open && "pointer-events-none")}
       inert={!open}
     >
+      {/* Hidden from assistive technology: a pointer target only. The
+          drawer's own close button is the one to announce. */}
       <button
         type="button"
         tabIndex={-1}
+        aria-hidden="true"
         aria-label="Close menu"
         onClick={onClose}
         className={clsx(
@@ -155,8 +220,11 @@ export function MainMenu({
         )}
       />
 
-      <aside
+      <div
         id={id}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
         className={clsx(
           "absolute inset-y-0 right-0 flex w-full max-w-[400px] flex-col overflow-y-auto bg-surface-page",
           "transition-transform duration-300 ease-out motion-reduce:transition-none",
@@ -188,11 +256,11 @@ export function MainMenu({
                     : [...ids, section.id],
                 )
               }
-              onNavigate={onClose}
+              onNavigate={navigate}
             />
           ))}
         </nav>
-      </aside>
+      </div>
     </div>
   );
 }

@@ -62,7 +62,14 @@
 
    Only size and line-height are multiplied. Tracking is NOT: every value is in
    em (CLAUDE.md § Type), so it already scales with the font-size it sits on —
-   multiplying it here would apply the scale twice. */
+   multiplying it here would apply the scale twice.
+
+   The second factor, --nid-text-scale, is the Accessibility panel's text size
+   (87.5 / 100 / 125 / 150%, set on <html> — see the panel modes at the end of
+   this file, and STAGE-0-NOTES §97). Not a root font-size: every size here is
+   px, so a rem step would reach nothing. It multiplies WITH the tile scale
+   rather than replacing it, so a tile keeps fitting its column at every text
+   size. */
 @theme inline {
   /* ---- families ---- */
   --font-primary: var(--nid-font-primary);
@@ -199,31 +206,31 @@
   --radius-hero: var(--nid-radius-hero); /* 64px — one corner of one image per page */
 
   /* ---- type scale. size / line-height / tracking / weight in one utility. ---- */
-  --text-display-serif: calc(var(--nid-type-display-serif-size) * var(--nid-tile-scale, 1));
+  --text-display-serif: calc(var(--nid-type-display-serif-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-display-serif--line-height: calc(
-    var(--nid-type-display-serif-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-display-serif-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-display-serif--letter-spacing: var(--nid-type-display-serif-tracking);
   --text-display-serif--font-weight: var(--nid-weight-serif-display);
 
   --text-display-serif-card: calc(
-    var(--nid-type-display-serif-card-size) * var(--nid-tile-scale, 1)
+    var(--nid-type-display-serif-card-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-display-serif-card--line-height: calc(
-    var(--nid-type-display-serif-card-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-display-serif-card-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-display-serif-card--letter-spacing: var(--nid-type-display-serif-card-tracking);
   --text-display-serif-card--font-weight: var(--nid-weight-serif-subhead);
 
-  --text-display-quote: calc(var(--nid-type-display-quote-size) * var(--nid-tile-scale, 1));
+  --text-display-quote: calc(var(--nid-type-display-quote-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-display-quote--line-height: calc(
-    var(--nid-type-display-quote-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-display-quote-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-display-quote--letter-spacing: var(--nid-type-display-quote-tracking);
   --text-display-quote--font-weight: var(--nid-weight-serif-subhead);
 
-  --text-h1: calc(var(--nid-type-heading-1-size) * var(--nid-tile-scale, 1));
-  --text-h1--line-height: calc(var(--nid-type-heading-1-lh) * var(--nid-tile-scale, 1));
+  --text-h1: calc(var(--nid-type-heading-1-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
+  --text-h1--line-height: calc(var(--nid-type-heading-1-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-h1--letter-spacing: var(--nid-type-heading-1-tracking);
   --text-h1--font-weight: var(--nid-weight-heavy);
 
@@ -233,97 +240,97 @@
      Kept as its own style rather than a local font-size so the responsive
      ramp still comes from one place. Below 1024 it rejoins Heading/1's
      values, so the scale never grows as the viewport shrinks. */
-  --text-statement: calc(var(--nid-type-home-statement-size) * var(--nid-tile-scale, 1));
+  --text-statement: calc(var(--nid-type-home-statement-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-statement--line-height: calc(
-    var(--nid-type-home-statement-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-home-statement-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-statement--letter-spacing: var(--nid-type-home-statement-tracking);
   --text-statement--font-weight: var(--nid-weight-heavy);
 
-  --text-h2: calc(var(--nid-type-heading-2-size) * var(--nid-tile-scale, 1));
-  --text-h2--line-height: calc(var(--nid-type-heading-2-lh) * var(--nid-tile-scale, 1));
+  --text-h2: calc(var(--nid-type-heading-2-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
+  --text-h2--line-height: calc(var(--nid-type-heading-2-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-h2--letter-spacing: var(--nid-type-heading-2-tracking);
   --text-h2--font-weight: var(--nid-weight-heavy);
 
-  --text-h3: calc(var(--nid-type-heading-3-size) * var(--nid-tile-scale, 1));
-  --text-h3--line-height: calc(var(--nid-type-heading-3-lh) * var(--nid-tile-scale, 1));
+  --text-h3: calc(var(--nid-type-heading-3-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
+  --text-h3--line-height: calc(var(--nid-type-heading-3-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-h3--letter-spacing: var(--nid-type-heading-3-tracking);
   --text-h3--font-weight: var(--nid-weight-heavy);
 
-  --text-h4: calc(var(--nid-type-heading-4-size) * var(--nid-tile-scale, 1));
-  --text-h4--line-height: calc(var(--nid-type-heading-4-lh) * var(--nid-tile-scale, 1));
+  --text-h4: calc(var(--nid-type-heading-4-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
+  --text-h4--line-height: calc(var(--nid-type-heading-4-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-h4--letter-spacing: var(--nid-type-heading-4-tracking);
   --text-h4--font-weight: var(--nid-weight-heavy);
 
-  --text-h5: calc(var(--nid-type-heading-5-size) * var(--nid-tile-scale, 1));
-  --text-h5--line-height: calc(var(--nid-type-heading-5-lh) * var(--nid-tile-scale, 1));
+  --text-h5: calc(var(--nid-type-heading-5-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
+  --text-h5--line-height: calc(var(--nid-type-heading-5-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-h5--letter-spacing: var(--nid-type-heading-5-tracking);
   --text-h5--font-weight: var(--nid-weight-heavy);
 
-  --text-h6: calc(var(--nid-type-heading-6-size) * var(--nid-tile-scale, 1));
-  --text-h6--line-height: calc(var(--nid-type-heading-6-lh) * var(--nid-tile-scale, 1));
+  --text-h6: calc(var(--nid-type-heading-6-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
+  --text-h6--line-height: calc(var(--nid-type-heading-6-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-h6--letter-spacing: var(--nid-type-heading-6-tracking);
   --text-h6--font-weight: var(--nid-weight-heavy);
 
-  --text-overline: calc(var(--nid-type-label-overline-size) * var(--nid-tile-scale, 1));
+  --text-overline: calc(var(--nid-type-label-overline-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-overline--line-height: calc(
-    var(--nid-type-label-overline-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-label-overline-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-overline--letter-spacing: var(--nid-type-label-overline-tracking);
   --text-overline--font-weight: var(--nid-weight-heavy);
 
-  --text-meta: calc(var(--nid-type-label-meta-size) * var(--nid-tile-scale, 1));
-  --text-meta--line-height: calc(var(--nid-type-label-meta-lh) * var(--nid-tile-scale, 1));
+  --text-meta: calc(var(--nid-type-label-meta-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
+  --text-meta--line-height: calc(var(--nid-type-label-meta-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-meta--letter-spacing: var(--nid-type-label-meta-tracking);
   --text-meta--font-weight: var(--nid-weight-demi);
 
-  --text-label: calc(var(--nid-type-label-small-size) * var(--nid-tile-scale, 1));
+  --text-label: calc(var(--nid-type-label-small-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-label--line-height: calc(
-    var(--nid-type-label-small-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-label-small-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-label--letter-spacing: var(--nid-type-label-small-tracking);
   --text-label--font-weight: var(--nid-weight-medium);
 
-  --text-button: calc(var(--nid-type-label-button-size) * var(--nid-tile-scale, 1));
+  --text-button: calc(var(--nid-type-label-button-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-button--line-height: calc(
-    var(--nid-type-label-button-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-label-button-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-button--letter-spacing: var(--nid-type-label-button-tracking);
   --text-button--font-weight: var(--nid-weight-bold);
 
-  --text-micro: calc(var(--nid-type-label-micro-size) * var(--nid-tile-scale, 1));
+  --text-micro: calc(var(--nid-type-label-micro-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-micro--line-height: calc(
-    var(--nid-type-label-micro-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-label-micro-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-micro--letter-spacing: var(--nid-type-label-micro-tracking);
   --text-micro--font-weight: var(--nid-weight-medium);
 
-  --text-body-lg: calc(var(--nid-type-body-large-regular-size) * var(--nid-tile-scale, 1));
+  --text-body-lg: calc(var(--nid-type-body-large-regular-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-body-lg--line-height: calc(
-    var(--nid-type-body-large-regular-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-large-regular-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-body-lg--letter-spacing: var(--nid-type-body-large-regular-tracking);
   --text-body-lg--font-weight: var(--nid-weight-body-light);
 
   --text-body-lg-bold: calc(
-    var(--nid-type-body-large-bold-size) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-large-bold-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-body-lg-bold--line-height: calc(
-    var(--nid-type-body-large-bold-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-large-bold-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-body-lg-bold--letter-spacing: var(--nid-type-body-large-bold-tracking);
   --text-body-lg-bold--font-weight: var(--nid-weight-body-semibold);
 
-  --text-body: calc(var(--nid-type-body-base-regular-size) * var(--nid-tile-scale, 1));
+  --text-body: calc(var(--nid-type-body-base-regular-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-body--line-height: calc(
-    var(--nid-type-body-base-regular-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-base-regular-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-body--letter-spacing: var(--nid-type-body-base-regular-tracking);
   --text-body--font-weight: var(--nid-weight-body);
 
-  --text-body-bold: calc(var(--nid-type-body-base-bold-size) * var(--nid-tile-scale, 1));
+  --text-body-bold: calc(var(--nid-type-body-base-bold-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
   --text-body-bold--line-height: calc(
-    var(--nid-type-body-base-bold-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-base-bold-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-body-bold--letter-spacing: var(--nid-type-body-base-bold-tracking);
   --text-body-bold--font-weight: var(--nid-weight-body-bold);
@@ -334,37 +341,37 @@
      and out-rank @layer utilities — a silent cascade trap the moment
      anything else on the same element used a text-* utility. */
   --text-body-italic: calc(
-    var(--nid-type-body-base-italic-size) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-base-italic-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-body-italic--line-height: calc(
-    var(--nid-type-body-base-italic-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-base-italic-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-body-italic--letter-spacing: var(--nid-type-body-base-italic-tracking);
   --text-body-italic--font-weight: var(--nid-weight-body);
 
   --text-caption: calc(
-    var(--nid-type-body-caption-regular-size) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-caption-regular-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-caption--line-height: calc(
-    var(--nid-type-body-caption-regular-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-caption-regular-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-caption--letter-spacing: var(--nid-type-body-caption-regular-tracking);
   --text-caption--font-weight: var(--nid-weight-body);
 
   --text-caption-bold: calc(
-    var(--nid-type-body-caption-bold-size) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-caption-bold-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-caption-bold--line-height: calc(
-    var(--nid-type-body-caption-bold-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-caption-bold-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-caption-bold--letter-spacing: var(--nid-type-body-caption-bold-tracking);
   --text-caption-bold--font-weight: var(--nid-weight-body-bold);
 
   --text-caption-italic: calc(
-    var(--nid-type-body-caption-italic-size) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-caption-italic-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-caption-italic--line-height: calc(
-    var(--nid-type-body-caption-italic-lh) * var(--nid-tile-scale, 1)
+    var(--nid-type-body-caption-italic-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
   );
   --text-caption-italic--letter-spacing: var(--nid-type-body-caption-italic-tracking);
   --text-caption-italic--font-weight: var(--nid-weight-body);
@@ -437,6 +444,12 @@
 }
 
 @property --nid-tile-scale {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --nid-text-scale {
   syntax: "<number>";
   inherits: true;
   initial-value: 1;
@@ -646,4 +659,80 @@
   .nid-pattern-unit--running .nid-pattern-frame:nth-of-type(4) {
     animation-delay: calc(var(--nid-pattern-step) * 3);
   }
+}
+
+/* ---- the Accessibility panel's modes ----------------------------------------
+   The header's accessibility button opens a panel of eight controls (NID-CONTEXT
+   §12; STAGE-0-NOTES §97 for where this departs from the board). Each writes an
+   attribute on <html> — set before first paint by THEME_SCRIPT, so a returning
+   visitor never sees the page flash without their settings:
+
+     data-a11y        space-separated toggles: invert saturation links images cursor
+     data-text-size   87.5 | 125 | 150 (absent means 100)
+
+   Dark contrast is not here: it is a theme (Yoga · Dark), so ThemeProvider
+   swaps data-theme / data-appearance for it.
+
+   Unlayered on purpose. Every rule here has to beat the utilities on the
+   element (`no-underline`, `cursor-pointer`, a focus outline), and an
+   unlayered rule out-ranks anything in @layer utilities whatever its
+   specificity.
+
+   The panel itself is exempt from the filters without a rule: it is a popover,
+   and the top layer renders outside the root's filter. */
+html[data-text-size="87.5"] {
+  --nid-text-scale: 0.875;
+}
+html[data-text-size="125"] {
+  --nid-text-scale: 1.25;
+}
+html[data-text-size="150"] {
+  --nid-text-scale: 1.5;
+}
+
+/* On <html>, not a wrapper: the root is the one element whose filter does not
+   become the containing block for position: fixed descendants, so the menu
+   drawer and the sticky header stay pinned to the viewport. */
+html[data-a11y~="invert"] {
+  filter: invert(1);
+}
+html[data-a11y~="saturation"] {
+  filter: saturate(0);
+}
+html[data-a11y~="invert"][data-a11y~="saturation"] {
+  filter: invert(1) saturate(0);
+}
+/* Inverted twice reads normally — photographs and the film stay photographs. */
+html[data-a11y~="invert"] :is(img, video, iframe) {
+  filter: invert(1);
+}
+
+html[data-a11y~="links"] a[href] {
+  outline: 2px solid var(--nid-accent-primary);
+  outline-offset: 2px;
+  text-decoration-line: underline;
+}
+html[data-a11y~="links"] a[href]:is(:hover, :focus-visible) {
+  background-color: var(--nid-surface-hover);
+}
+
+/* The box stays where it is — no reflow — and shows the raised surface instead
+   of the picture. The picture is pushed out of its own box rather than hidden,
+   because hiding the element would hide that fill with it. !important because
+   TileImage sets the focal point as an inline object-position. Text drawn over
+   a photograph keeps its scrim, and PHOTO_SCRIM's bound holds over any flat
+   surface (TileImage). Alt text still reaches assistive technology. */
+html[data-a11y~="images"] :is(img, video) {
+  object-position: -99999px 0 !important;
+  background-image: none !important;
+  background-color: var(--nid-surface-raised);
+}
+
+/* The asset is the panel's own export (public/a11y/cursor.svg), hotspot at the
+   arrow's tip. Black with a white edge, so it reads on every theme. */
+html[data-a11y~="cursor"],
+html[data-a11y~="cursor"] * {
+  cursor:
+    url("/a11y/cursor.svg") 13 9,
+    auto;
 }

@@ -13,6 +13,9 @@ export interface IconButtonProps {
   onClick?: () => void;
   expanded?: boolean;
   controls?: string;
+  haspopup?: "dialog" | "menu";
+  /** Id of a [popover] this button toggles natively (light dismiss, Esc). */
+  popoverTarget?: string;
   className?: string;
   ref?: Ref<HTMLButtonElement>;
 }
@@ -25,6 +28,8 @@ export function IconButton({
   onClick,
   expanded,
   controls,
+  haspopup,
+  popoverTarget,
   className,
   ref,
 }: IconButtonProps) {
@@ -36,6 +41,8 @@ export function IconButton({
       aria-label={label}
       aria-expanded={expanded}
       aria-controls={controls}
+      aria-haspopup={haspopup}
+      popoverTarget={popoverTarget}
       className={clsx(
         "inline-flex shrink-0 items-center justify-center rounded-full p-1",
         tone === "primary" ? "text-icon-primary" : "text-icon-quaternary",

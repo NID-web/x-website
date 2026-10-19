@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import clsx from "clsx";
 import { Link } from "@/i18n/navigation";
 import { Wordmark } from "@/components/spine/Wordmark";
 import { IconButton } from "@/components/spine/IconButton";
 import { ThemeSwitcher } from "@/components/header/ThemeSwitcher";
+import { AccessibilityButton } from "@/components/header/AccessibilityButton";
 import { MainMenu } from "@/components/header/MainMenu";
 import { APPLY_HREF, type NavSection } from "@/lib/nav-content";
 
@@ -17,6 +18,7 @@ export function Header({ menu }: { menu: NavSection[] }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuId = useId();
+  const menuToggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 0);
@@ -92,6 +94,7 @@ export function Header({ menu }: { menu: NavSection[] }) {
           >
             Apply
           </Link>
+          <AccessibilityButton />
           <IconButton
             icon="search"
             label="Search"
@@ -100,6 +103,7 @@ export function Header({ menu }: { menu: NavSection[] }) {
             onClick={() => {}}
           />
           <IconButton
+            ref={menuToggleRef}
             icon={menuOpen ? "close" : "menu"}
             label={menuOpen ? "Close menu" : "Main menu"}
             size="small"
@@ -117,7 +121,13 @@ export function Header({ menu }: { menu: NavSection[] }) {
         for its fixed-position descendants — nested here, the drawer would
         anchor to the 50/60px header band instead of the viewport. It stays
         mounted so it can slide out as well as in. */}
-    <MainMenu id={menuId} open={menuOpen} onClose={() => setMenuOpen(false)} sections={menu} />
+    <MainMenu
+      id={menuId}
+      open={menuOpen}
+      onClose={() => setMenuOpen(false)}
+      sections={menu}
+      returnFocusTo={menuToggleRef}
+    />
     </>
   );
 }

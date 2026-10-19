@@ -6474,3 +6474,99 @@ then the band; unlinked cards take no tab stop. All thirteen portraits carry `lo
 Chromium nonetheless fetched all thirteen at load, even at 390×600, because the whole grid (to
 3040px) is within its own lazy-load distance. That is the browser's threshold; the markup is
 right.
+
+## 97. The Accessibility panel: eight modes, and where the code departs from the board
+
+The header's accessibility button (PersonArmsSpread, between Apply and Search, where the board's
+header draws it beside the language switcher) opens the Accessibility panel: a title row and eight
+controls in two columns (Figma "Accessibility Panel" and its prototype section, "Accessibility
+modes"). `AccessibilityButton.tsx` is the trigger and the popover; `AccessibilityPanel.tsx` is the
+controls. The board's component description is the spec; this section is what differs and why.
+
+### The controls
+
+| Control | Kind | What it does |
+|---|---|---|
+| Dark contrast | toggle | Paints Yoga · Dark over the visitor's theme (ThemeProvider) |
+| Invert | toggle | `filter: invert(1)` on `<html>`; img, video and iframe inverted back |
+| Saturation | toggle | `filter: saturate(0)` on `<html>` |
+| Text size increase / decrease | step | 87.5 → 100 → 125 → 150%, announced in a status region |
+| Highlight links | toggle | Every `a[href]`: 2px accent/primary outline, underline, surface/hover fill on hover and focus |
+| Hide images | toggle | Every img and video shows surface/raised in place of the picture |
+| Default cursor | toggle | The board's large cursor (`public/a11y/cursor.svg`), on every element |
+
+Toggles are `<button aria-pressed>`; the steps are plain buttons and never show On. Settings are
+attributes on `<html>` (`data-a11y`, `data-text-size`, `data-contrast`), persisted in localStorage
+and a cookie beside the theme (`nid-a11y`, `nid-text-size`, `nid-contrast`), and applied by
+THEME_SCRIPT before first paint from the lists in `theme-constants.ts`. The global not-found page
+does not run THEME_SCRIPT (§4), so it shows none of them.
+
+### Departures
+
+**Text size is a token multiplier, not a root font-size.** The board says to step the root
+font-size. Every type token is px, so a root step reaches nothing. Instead every `--text-*` size
+and line-height in `globals.css` is multiplied by `--nid-text-scale` (a registered `<number>`,
+like `--nid-tile-scale` in §24) as well as by the tile scale, so a tile still fits its column at
+every text size. Measured at 1440: the home statement is 55px at 100%, 68.75px at 125% and
+82.5px at 150%. At 125% (the board's step) every home tile holds its text. At 150% the single
+word "tomorrow." is wider than a 4-column track and runs into the film tile beside it: a word
+cannot wrap. TODO(review): cap the display styles, or accept it at the largest step.
+
+**Dark contrast is a theme.** Yoga · Dark is the board's "closest existing" palette. It paints over
+the visitor's theme without replacing it: `nid-theme` and `nid-appearance` are untouched, and
+switching contrast off restores them. While it is on, the theme switcher shows Yoga · Dark, which
+is what is on screen. Picking a theme or an appearance in the theme menu ends contrast. Picking a
+row keeps the appearance on screen, which is dark.
+
+**The panel is exempt from the filters because it is a popover.** The board asks for the panel to
+be exempt from the page filters. No rule could undo `saturate(0)` on a descendant of `<html>`, but
+the top layer renders outside the root's filter. Measured: with `invert(1)` on `<html>`, a red
+popover stays red. `popovertarget` also gives light dismiss (Esc, a click outside) without the
+trigger reopening the panel it has just closed. The filters stay on `<html>` and not on a wrapper
+for a second reason: the root is the one element whose filter does not become the containing block
+for `position: fixed` descendants, so the menu drawer stays pinned to the viewport.
+
+**Placement.** No CSS anchor positioning yet (Firefox), so the panel is placed when it opens:
+right edge under the trigger's right edge, 8px below it, and never closer than 16px to the
+viewport edge. At 375 that is 16 → 359, 343px wide; at 1440 the full 352.
+
+**Hide images uses one surface.** The board replaces pictures with the raised surface, and
+describes text-over-image cards falling back to the accent surface (its Campuses tile is teal).
+Code draws surface/raised under every picture, the Campuses tile included. The picture is pushed
+out of its own box with `object-position`, not hidden, so the box keeps its size and its fill.
+The scrim under photo text stays, and PHOTO_SCRIM's 4.5:1 bound holds over any flat surface
+(TileImage). TODO(review) if the accent fallback is wanted.
+
+**Tiles.** `py-4`, not the board's 20/16: the board centres 64px of content in a fixed 96px tile,
+so its padding never fully applies. Code uses a min-height so a label still fits at 150%. The
+panel's edge is ThemeMenu's 1px ring rather than a border, so all 352px is content. Tiles are
+156 × 96 and the panel 352 × 480, as on the board. The corner is the board's 12px; ThemeMenu
+itself is still `rounded-pill`.
+
+**The cursor.** One large arrow, used everywhere, links included: the board draws no large hand.
+Hotspot 13, 9, the arrow's tip in the exported SVG. The label is the board's "Default cursor".
+TODO(review): the control turns on a large cursor, which the label does not say.
+
+## 98. Keyboard focus: the drawer is modal, the theme menu a disclosure, and a skip link
+
+Four fixes from the accessibility review, each measured by keyboard before and after.
+
+| Where | Before | Now |
+|---|---|---|
+| Menu drawer (`MainMenu`) | Tab ran past the last section into the page under the scrim; Shift+Tab reached the header toggle the drawer covers | A modal dialog: everything outside it is `inert` while it is open, so Tab and Shift+Tab stay in the drawer |
+| Closing the drawer | Focus fell to `<body>` | Close, Escape and the scrim return focus to the toggle. Following a link sends it to the new page's `<Main>`, so the next Tab enters that page |
+| Theme menu (`ThemeSwitcher`, `ThemeMenu`) | `role="menu"` with no arrow keys; ten "Light" and ten "Dark" buttons; Escape dropped focus to `<body>`; tabbing out left it open | A disclosure of ordinary buttons. Each row is a group named after its theme, rows and modes are `aria-pressed`, Escape returns focus to the trigger, and tabbing out closes it |
+| Flip card (`FlipMediaCard`) | Each face renders its own flip control, so turning the card dropped focus to `<body>` | Focus moves to the new face's control |
+
+**Inert, not a focus trap.** The drawer marks its siblings `inert` at every level up to `<body>`
+and restores only what it marked. That also hides the page from assistive technology, which a
+Tab-wrapping trap would not. Leaving the last item goes to the browser's own UI, as from a
+native modal `<dialog>`. In development the Next.js overlay (`nextjs-portal`) is one extra stop;
+production has no overlay. The drawer is a `div` now, not an `aside`: `<aside>` may not take
+`role="dialog"`.
+
+**The skip link** is the first element in `<body>` (`SkipLink`), hidden until focused, then a pill
+over the header's left edge. Its target is `<Main>`, which every page under the locale layout now
+renders in place of a bare `<main>` (14 of them). `<Main>` takes `tabIndex={-1}`, so following the
+link moves focus as well as scroll, and draws no focus ring. The global not-found page has no
+header and no skip link, so it keeps its bare `<main>`.

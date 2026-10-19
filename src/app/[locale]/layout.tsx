@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Header } from "@/components/header/Header";
 import { PatternShimmer } from "@/components/home/PatternShimmer";
 import { NavTrail } from "@/components/spine/NavTrail";
+import { SkipLink } from "@/components/spine/SkipLink";
 import { getSiteChrome } from "@/lib/content/getSiteChrome";
 import { HeadShell } from "../head-shell";
 import "../globals.css";
@@ -32,6 +33,7 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages();
+  const t = await getTranslations("Accessibility");
   // A fetch in a layout is fine — every route stays static. cookies()/headers()
   // would not be (CLAUDE.md, Rendering).
   const { menu } = await getSiteChrome(locale);
@@ -43,6 +45,9 @@ export default async function LocaleLayout({
       </head>
       {/* Browser extensions (Grammarly) add attributes to <body>; this covers only its own attributes, not its children. */}
       <body suppressHydrationWarning>
+        {/* First in the document, so it is the first tab stop on every page.
+            Its target is the page's <Main> (src/components/spine/Main.tsx). */}
+        <SkipLink label={t("skip")} />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             {/* Records the route on EVERY page so the next page's BackNav can

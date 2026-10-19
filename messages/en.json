@@ -180,5 +180,20 @@
     "switcher": "View faculty by",
     "allPeople": "All people",
     "otherFaculty": "Other faculty"
+  },
+  "Accessibility": {
+    "open": "Accessibility",
+    "title": "Accessibility",
+    "close": "Close accessibility settings",
+    "contrast": "Dark contrast",
+    "invert": "Invert",
+    "saturation": "Saturation",
+    "textLarger": "Text size increase",
+    "textSmaller": "Text size decrease",
+    "links": "Highlight links",
+    "images": "Hide images",
+    "cursor": "Default cursor",
+    "textSize": "Text size {size}%",
+    "skip": "Skip to main content"
   }
 }

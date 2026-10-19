@@ -49,6 +49,7 @@ These fail without an error. Most have already gone wrong once.
 - Columns drop right-to-left; nothing is ever reordered. Four breakpoints only: `tablet` **668** · `laptop` 1024 · `desktop` 1280 — no `sm`/`md`/`lg`.
 - A range's **start** is not its **artboard width**. `tablet` starts at 668 but is drawn at 768; `desktop` starts at 1280 but is drawn at 1440. `GRID["minViewport"]` is the former, `GRID["referenceWidth"]` the latter — don't collapse them (STAGE-0-NOTES §21). The 1-column layout is for phones only; it used to claim everything below 768.
 - Section separators are omitted on phones (1 column) only — the 768 boards draw them. A utility slot (the page's, or a section's links) sits in the last column of the title row at 3–4 columns and leaves the row below that.
+- A page's main content is `<Main>` (`src/components/spine/Main.tsx`), never a bare `<main>`. `<Main>` carries the id the skip link jumps to; a bare one leaves the skip link landing nowhere on that page (STAGE-0-NOTES §98).
 - `--nid-grid-shell-width` is `1440px` — the shell's **cap**, not its width. Below 1440 the shell is fluid (viewport minus the page margin), so the token over-reports it; measure a real `[data-nid-shell]` element's rect instead (STAGE-0-NOTES §5, §19). It is declared once in `:root` and never in a media query.
 
 **Content**

@@ -1,3 +1,4 @@
+import { Main } from "@/components/spine/Main";
 import type { Metadata } from "next";
 import { Fragment } from "react";
 import { getTranslations } from "next-intl/server";
@@ -56,7 +57,7 @@ export default async function CharterPage() {
   const clamp = { seeMore: t("seeMore"), seeLess: t("seeLess") };
 
   return (
-    <main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
         <Title variant="page">{page.title}</Title>
@@ -110,6 +111,6 @@ export default async function CharterPage() {
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </main>
+    </Main>
   );
 }
