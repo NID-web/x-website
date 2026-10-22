@@ -400,6 +400,18 @@ The People children (`/people/governing-council`, `/people/senate`, `/people/sta
 
 Members as text are a stopgap: when the CMS sends person records, the page takes Senate's person-card mapping (R1h). A name in prose is never matched to a faculty page. `peopleBand` and `KEEP_UNBUILT_BAND` already cover all eight children: a new one links in every sibling's band and the `/people` rail with no other change. The People menu row links in FIXTURE only: the LIVE menu is the CMS's, and its People section has no children yet.
 
+### R1i — A footer page (no parent, no band)
+
+A page sitemap.json files under "12 Miscellaneous" (Careers today, STAGE-0-NOTES §101; Tenders, Sitemap, Privacy Policy and Terms next) has no parent page and no landing:
+
+1. **Route file** `src/app/[locale]/<page>/page.tsx`, a copy of `careers/page.tsx`: `backFallback="/"` (the link reads "Home", `HOME_NAV`), `heroPlaceholder={false}`. Add the path to `BUILT_ROUTES`.
+2. **Fixture** `src/lib/content/fixtures/<page>.ts`: `parent: null`, `backNav` Home, `siblingBand: []`. With no siblings the template draws no band and no separator for it: the page ends last section › one rule › footer.
+3. **`PAGE_CONFIG`**: the CMS slug (most footer slugs are already in `PATH_BY_CMS_SLUG`, so the CMS footer links the route, 404ing, until it is built), `intro: "heroText"`, `textTitle` per section. Text the CMS lacks may be held on the fixture under a `textTitle` rule of its own, so the CMS's section of that title replaces it the day it arrives.
+4. **`UNLISTED_PAGES`** (`nav-content.ts`): the page's title, so a page reached from it can name it in its back link.
+5. **Floors**: `documentSections`.
+
+The footer's row needs no change: footer links are not gated, so the row already points at the route.
+
 ### R1h — A STRUCTURED person section as cards
 
 A CMS section of `type: "STRUCTURED"` with `structuredContentType.key: "person"` (the Senate's "Senate Members with NID profiles", STAGE-0-NOTES §96) becomes a `rail` of person cards with no per-person fetch: each item already carries its name (`title`), designation (`heroText`) and portrait (`thumbnail`).

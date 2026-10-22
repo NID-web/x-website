@@ -107,6 +107,8 @@ const PAGES = [
   { name: "people-staff", path: "/en/people/staff" },
   // A letter with a filled button, and one AlumniCard (§100).
   { name: "people-alumni", path: "/en/people/alumni" },
+  // A footer page: no parent, no band, a fixture-held caution (§101).
+  { name: "careers", path: "/en/careers" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

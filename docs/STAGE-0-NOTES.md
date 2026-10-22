@@ -6824,3 +6824,110 @@ footer. Contacts: none on the page (those in `main` are the footer's).
 Known limitations: the button's placement at 1024 follows the template's free flow (§74's open
 item). `next dev` shows the fixture's form link if the CMS drops it; only the LIVE floor stops it
 shipping. The title guard is exact: an editor who renames the section drops it, loudly.
+
+## 101. Careers: a footer page, a fixture-held caution, and openings when the CMS sends them
+
+`/careers` is the first page from sitemap.json's "12 Miscellaneous": no parent page, no band, no
+board. It is the secondary template through a thin route, read from the CMS's `careers` document
+(id 17, static). The CMS footer's "Careers" row already pointed at `/en/careers` (the slug was in
+`PATH_BY_CMS_SLUG`; footer links are not gated) and 404ed on every page; it now resolves, with no
+HTML change.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS `title` |
+| Back link | BackNav, the visitor's previous page, else "Home" → `/` (`backFallback="/"`, `HOME_NAV`) |
+| Hero | none, the closed-up state: the CMS's `careers-hero.jpg` has no alt text and its file 404s (CR5) |
+| Standfirst | CMS `heroText` (`intro: "heroText"`; About is claimed by its rule) |
+| About | CMS "About", its one TEXT block; the page contacts in column 4 (the template rule). Its IMAGE block (`careers-about.jpg`) has no alt text and 404s: `dropped 1 IMAGE block` |
+| Important | **fixture-held**: nid.edu's caution, verbatim, its "Important:" lead as the title and its three paragraphs as written. TODO(review), "nid.edu, not in the CMS" (CR3) |
+| Current Openings | the CMS's LINK blocks in a section so titled, a list of documents (§76); today none, so no section and no separator |
+| Column 4 | CMS contacts: "Contact" `careers@nid.edu`, "Contact" `+91 79 2662 9500` (one dialable number, so `tel:+917926629500`) |
+| Band | none: Miscellaneous has no landing. The band and its separator render only with siblings, so the page ends last section › one rule › footer |
+
+**Order: About, Important, then openings.** About first keeps the CMS's text and the contacts
+together (the template gives page contacts to the first text section); the caution sits directly
+above the openings it governs.
+
+**The caution stands down by title.** `"section-careers-important": { textTitle: "Important" }`:
+while the CMS sends no section so titled, the fixture's text renders in both modes, logged
+`static=section:important(no api section titled "Important")`. A CMS section titled "Important"
+replaces it, so the caution renders once. Sent under any other title, the CMS's section is logged
+as unused and not rendered, and the fixture's still shows once.
+
+**The contact conflict.** `careers@nid.edu` is the CMS's, and appears in no other CMS document (all
+44 static documents, `/public/contact-details` and `/public/site-config` searched) or anywhere in
+the repo. nid.edu's career page says "General Administration, recruitment@nid.edu", which is in no
+CMS document. The CMS's renders, TODO(review) (CR2). Neither mailbox could be verified.
+
+**No openings in the fixture,** in either mode: they expire, and a stale vacancy misleads
+applicants. The CMS has a `job` content type with two items, `asst-prof-textile` and
+`asst-registrar-administration`. Both are seeds: published 21 Sep 03:18 (the seed batch), their
+`applicationLink`s (`https://nid.edu/careers/apply/<slug>`) and thumbnails 404, and nid.edu's
+career page lists no openings. They are never fetched or rendered, and no jobs renderer is built
+(CR1). Openings arrive in the shape that needs no code (CR4): a SPECIFIC section titled "Current
+Openings", one LINK block per opening, its text the label as it should read (title, advert number,
+closing date), and either a `url` or the advert PDF as `media`. The fixture's section is empty on
+purpose, and the gate removes an emptied list with its separator. A closed opening is the editor
+removing its block and a rebuild: a static build cannot reliably hide a date that passes between
+deploys. There is no floor on openings: none is a valid state.
+
+**The back link can name Careers.** `UNLISTED_PAGES` (`nav-content.ts`) gains Careers, as the
+landings before it: a footer row is reached from every page, and without it a visitor going Careers
+› IDS would see "Consulting & Entrepreneurship" in IDS's back link. Measured: it reads "Careers".
+
+### Floors, requests
+
+`documentSections.careers: 1` (About). One document, and no HEADs (the hero is refused before any
+request; there are no files): **288 → 289 distinct**, fetched == distinct, the only new URL
+`/public/content/careers`. No `job` item is fetched.
+
+### R, A, C, E, Playwright
+
+**R** (baseline `47c1190`, both built in scratch copies; §100's normalisation). FIXTURE **394 of
+394** existing files identical, LIVE **952 of 952**; the six new files are this page's. The one
+other change is a client chunk renamed (the route-title table, which now holds `/careers`); chunk
+names are normalised, and no payload or DOM differs. The footer's "Careers" row is byte-identical.
+Gate 67 → 67 FIXTURE, 75 → 75 LIVE. LIVE 143s (baseline 145s), floors 73/0, the guard clean.
+
+**A** (FIXTURE): title; back link "Home" (loaded directly); no hero; the standfirst; About with the
+contacts; Important; no band. The page ends About › rule › Important › rule › footer at every width
+(the rules are hidden on phones, as everywhere).
+
+**C** (LIVE): `api=title,intro(heroText),contacts(2 contacts),seo,publishedAt,section:about ·
+static=hero(media rejected: no altText),section:important(no api section titled
+"Important"),section:openings(no api section titled "Current Openings"),backNav · section:about:
+dropped 1 IMAGE block · unused api sections: none`.
+
+**E** (a proxy CMS under `next dev`, altering only `/public/content/careers`, deleted after):
+
+| Mock | Result |
+|---|---|
+| "Current Openings" with two LINK blocks, a url then a PDF | two rows in CMS order, new tab; ↗ on the url, the file glyph and ↗ on the PDF; one HEAD for the PDF per render, never a GET. Logged `section:openings(2 link blocks)` |
+| The same, the PDF 404ing | the PDF's row is dropped, `dropped 1 CMS file that 404 (…)`, one row remains |
+| No "Current Openings" | no section and no separator: About › rule › Important › rule › footer |
+| A CMS section titled "Important" | its text replaces the fixture's; the caution renders once |
+| The caution under another title ("Beware of Fraud") | logged `unused api sections: "Beware of Fraud" (SPECIFIC)`, not rendered; the fixture's caution once |
+
+**Playwright** (FIXTURE and LIVE, 1440 / 1024 / 768 / 390): the contacts in column 4 beside About's
+body at 1440 (x 1086); at 1024 in column 1 under the body, the template's free flow (§74's open
+item); full width under it at 768 and 390. The caution's measure is the body's: about 75 characters
+a line at 1440 and 1024 (684 and 643px), about 90 at 768 (720px), about 45 at 390. No horizontal
+overflow. Tab order: the back link, the two contacts, the footer. Contacts: `careers@nid.edu` once
+and `+91 79 2662 9500` once on the page; the FIXTURE footer adds its own `tel:+917926629500`, the
+LIVE footer none (it drops the CMS's two-number value, §80).
+
+### Backend asks
+
+- **CR1** Unpublish the two `job` seeds (`asst-prof-textile`, `asst-registrar-administration`):
+  their apply links and images 404.
+- **CR2** Confirm the recruitment email: the CMS's `careers@nid.edu` or nid.edu's `recruitment@nid.edu`.
+- **CR3** The fraud caution as a section titled "Important" on `careers`.
+- **CR4** Openings as LINK blocks in a "Current Openings" section, one per opening (url or advert
+  PDF), removed when they close.
+- **CR5** The hero, the About IMAGE block and the thumbnail are seed placeholders: no alt text, files 404.
+
+Known limitations: at 1024 the contacts fall below About's body (free flow). A closed opening stays
+up until the editor removes it and the site rebuilds.

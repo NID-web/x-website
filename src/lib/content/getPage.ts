@@ -58,6 +58,7 @@ import { PEOPLE_GOVERNING_COUNCIL } from "@/lib/content/fixtures/people-governin
 import { PEOPLE_SENATE } from "@/lib/content/fixtures/people-senate";
 import { PEOPLE_STAFF } from "@/lib/content/fixtures/people-staff";
 import { PEOPLE_ALUMNI } from "@/lib/content/fixtures/people-alumni";
+import { CAREERS } from "@/lib/content/fixtures/careers";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
@@ -101,6 +102,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/people/senate": PEOPLE_SENATE,
   "/people/staff": PEOPLE_STAFF,
   "/people/alumni": PEOPLE_ALUMNI,
+  "/careers": CAREERS,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
   "/regulatory/rti": REGULATORY_RTI,
@@ -567,6 +569,21 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     sections: {
       "section-alumni-letter": { textTitle: "Alumni", linkBlocks: true },
       "section-alumni-notable": { structuredKey: "person", unlinked: true, whole: true, requireTitle: "Notable Alumni" },
+    },
+  },
+  // A footer page (§101): heroText the standfirst, About whole (its IMAGE block
+  // has no alt text: logged, dropped). "Important", the fraud caution, is held
+  // on the fixture until the CMS sends a section so titled, which replaces it,
+  // so it renders once; sent under another title it is unused and logged.
+  // "Current Openings" is the CMS's LINK blocks, a list of documents (§76),
+  // and nothing when it sends none. TODO(review): backend — CR2–CR4.
+  "/careers": {
+    slug: "careers",
+    intro: "heroText",
+    sections: {
+      "section-careers-about": { textTitle: "About" },
+      "section-careers-important": { textTitle: "Important" },
+      "section-careers-openings": { textTitle: "Current Openings", linkBlocks: true },
     },
   },
   // The first Regulatory page (STAGE-0-NOTES §86). The standfirst is heroText:
