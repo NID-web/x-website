@@ -56,6 +56,7 @@ import { CONSULTING_IDS } from "@/lib/content/fixtures/consulting-ids";
 import { CONSULTING_CONTINUING_EDUCATION } from "@/lib/content/fixtures/consulting-continuing-education";
 import { PEOPLE_GOVERNING_COUNCIL } from "@/lib/content/fixtures/people-governing-council";
 import { PEOPLE_SENATE } from "@/lib/content/fixtures/people-senate";
+import { PEOPLE_STAFF } from "@/lib/content/fixtures/people-staff";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
@@ -97,6 +98,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/people": PEOPLE,
   "/people/governing-council": PEOPLE_GOVERNING_COUNCIL,
   "/people/senate": PEOPLE_SENATE,
+  "/people/staff": PEOPLE_STAFF,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
   "/regulatory/rti": REGULATORY_RTI,
@@ -539,6 +541,14 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-senate-members": { textTitle: "Members" },
       "section-senate-profiles": { structuredKey: "person" },
     },
+  },
+  // A People child (§99): heroText the standfirst, and its one section, the
+  // STRUCTURED person section, as Senate's cards. TODO(review): backend — the
+  // three groups nid.edu shows arrive grouped, never bucketed here.
+  "/people/staff": {
+    slug: "staff",
+    intro: "heroText",
+    sections: { "section-staff-people": { structuredKey: "person" } },
   },
   // The first Regulatory page (STAGE-0-NOTES §86). The standfirst is heroText:
   // "About" is three narrative paragraphs with no summary among them, so it

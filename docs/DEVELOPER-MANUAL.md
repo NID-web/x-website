@@ -391,7 +391,7 @@ The band (`consultingBand`, from the landing's rail) and `KEEP_UNBUILT_BAND` alr
 
 ### R1g — A People child
 
-The People children (`/people/governing-council` today; Senate, Staff and Alumni next) are secondary pages read from their own CMS documents (STAGE-0-NOTES §95). Faculty is not one of them: it is built by `getFaculty`, not `getPage`. Each is:
+The People children (`/people/governing-council`, `/people/senate` and `/people/staff` today; Alumni next) are secondary pages read from their own CMS documents (STAGE-0-NOTES §95, §96, §99). Faculty is not one of them: it is built by `getFaculty`, not `getPage`. Each is:
 
 1. **Route file** `src/app/[locale]/people/<page>/page.tsx`, a copy of `governing-council/page.tsx`: `backFallback="/people"`, `heroPlaceholder={false}`, and no `clamp` on a list of people (the list is the page). The band is named by the fixture's `backNav`, "More in People". Add the path to `BUILT_ROUTES`.
 2. **Fixture** `src/lib/content/fixtures/people-<page>.ts`: the CMS's words as sent, `parent: PAGE_ID.people`, `backNav` People, `siblingBand: peopleBand(PATH)`. A body whose TEXT blocks carry `<strong>`/`<em>` is built with the adapter's own rules, `joinBlocks(blocks.map((html) => richParagraphs(html).text)).body`, so FIXTURE and LIVE cannot drift. A hero that is byte for byte the landing's reuses `/people/hero-entrance.jpg`.
@@ -410,6 +410,8 @@ A CMS section of `type: "STRUCTURED"` with `structuredContentType.key: "person"`
 4. **Floors**: `documentItems["<slug>"]` at the live count less one. A changed membership should not fail a deploy, but the list vanishing should.
 
 A card links to `/people/faculty/<slug>` only when that member page builds (the faculty index, §83); anyone else's card is unlinked. A section whose CMS items are empty keeps the fixture's people (the per-unit fallback), and below the floor the LIVE build fails.
+
+A page whose only section is the person list (Staff, §99) needs no `clamp`. The rail cannot group a flat list: groups arrive grouped or not at all. Three CMS sections titled by group would be three fixture rail sections bound with `nth`; a `groupBy` on one section needs code (§99).
 
 ---
 

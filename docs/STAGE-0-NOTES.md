@@ -6570,3 +6570,95 @@ over the header's left edge. Its target is `<Main>`, which every page under the 
 renders in place of a bare `<main>` (14 of them). `<Main>` takes `tabIndex={-1}`, so following the
 link moves focus as well as scroll, and draws no focus ring. The global not-found page has no
 header and no skip link, so it keeps its bare `<main>`.
+
+## 99. Staff: Senate's cards as a page's only section
+
+`/people/staff` is a People child on the secondary template, read from the CMS's `staff` document
+(id 750, static). Its one section is a STRUCTURED `person` section, and it takes Senate's mapping
+and layout (§96) with no code change: a route file, a fixture, a config entry, floors.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS `title` |
+| Back link | BackNav "People" → `/people` (`backFallback="/people"`) |
+| Hero | CMS hero[0], `people-staff-hero.jpg`, with alt text: byte for byte `/people`'s photograph, the third People child to reuse it (§95, §96). FIXTURE reuses `/people/hero-entrance.jpg`. TODO(review): same photo; the alt names the page |
+| Standfirst | CMS `heroText` |
+| Staff | CMS STRUCTURED `person` section "Staff" (CURATED): twelve cards, three across with the designation overline (`railThreeUp`), in CMS order, all unlinked |
+| Column 4 | empty: the CMS sends no contacts |
+| Band | `peopleBand(PATH)`: Faculty, Governing Council and NID Senate linked; four rows unlinked |
+
+**Twelve people, not twenty-four.** nid.edu's page (`/people/administration.html`) lists the same
+twelve the CMS sends, by name and slug. Each of its cards links the person's detail page twice,
+from the portrait and from the name, so the page has 24 `detail/` links. That count was briefly
+taken for 24 people. There is no gap in membership: what nid.edu has and the CMS does not is the
+grouping and the order.
+
+| nid.edu group, in nid.edu's order | People |
+|---|---|
+| General Administration | PS Pradeep, Samir More, Sanjay Pandit, Sejal Roy |
+| Academic Administration | Rupesh Kumar Jindal, Dr AP Semwal, Sharath B |
+| Accounts | Viral Rajyaguru, Sanjeev Kumar, Mukund Trivedi, Sagarkumar V Shah, Shailesh Khubchandani |
+
+The CMS sends one flat section, CURATED but alphabetical by slug. The front end never buckets a
+flat list (CLAUDE.md), so the page is one list in CMS order until the CMS sends the groups.
+TODO(review), backend. nid.edu's cards show names only; the designations are the CMS's.
+
+**The section title repeats the page's.** "Staff" under "Staff" renders: a section title is
+mandatory (NID-CONTEXT §8, the CMS must refuse a section with no title), and `/programmes` already
+renders its section "Programmes" the same way. With the groups, the group names would carry the
+headings. TODO(review).
+
+**The cards.** All twelve items send name, designation (`heroText`), and a 300px portrait with the
+name as its alt; all twelve serve. No slug is in the faculty list (the CMS `faculty` document's 93
+slugs, or the fixture's index), so every card is unlinked in both modes and takes no tab stop.
+FIXTURE portraits are 288px copies at `public/people/faculty/<slug>.jpg`, made as Senate's were
+(`sips -z 288 288` of the CMS file, which reproduces Senate's copy of Viral Rajyaguru byte for
+byte): eleven new (252 KB), Viral Rajyaguru's reused. Three designation styles are in use
+("Deputy Registrar - NID Gandhinagar Campus", "Deputy Registrar (Bengaluru Campus)", "Chief
+Administrative Officer"). Rendered as sent; TODO(review), backend.
+
+### What links now
+
+| Where | Before | Now |
+|---|---|---|
+| `/people` rail, "Staff" (both modes) | unlinked row | link |
+| Governing Council's and Senate's bands (both modes) | unlinked row | link |
+| RTI's "On this website" index (both modes, §89) | withheld by the gate | link |
+| The People menu row (FIXTURE) | already `/en/people/staff`, ungated (§34) | resolves, no HTML change |
+
+The CMS footer has no Staff entry, and the LIVE People menu has no children (§95).
+
+### Floors, requests
+
+`documentSections.staff: 1`, `documentItems.staff: 11` (live 12, less §96's margin of one). One
+document and no HEADs: **286 → 287 distinct**, fetched == distinct.
+
+### R, A, C, E, Playwright
+
+**R** (baseline `1f0bb14`). FIXTURE 367 of 388 files identical, LIVE (§73's and §77's rules) 925
+of 946. In both, the fifteen changed files are `/people`'s four, Governing Council's four,
+Senate's four and RTI's three, each changed only by the "Staff" row that now links; the other six
+are Staff's own. Gate 69 → 69 FIXTURE, 77 → 77 LIVE: Staff's four unlinked band rows, and four
+rows elsewhere that now link. LIVE 149s, floors 69/0, the guard clean (160 pages). The payload is
+compared as one tree: a path reference (`$<row>:props:localeCookie`) resolves to the value it
+dedupes, as an outlined row does to the value written inline (§77). Five pages unrelated to this
+change (CEP, IDS, Programmes, Curriculum Objectives, ICIC) differ between the two LIVE builds only
+in that form; their HTML is identical.
+
+**C** (LIVE): `api=title,hero,intro(heroText),seo,publishedAt,section:people(12) ·
+static=contacts(api empty),backNav,siblingBand · unused api sections: none · unlinked 4 rows`.
+
+**E** (a mock CMS under `next dev`, deleted after):
+
+| Mock | Result |
+|---|---|
+| `groupBy` on the section and a group on each item, in nid.edu's order | one list of twelve under "Staff", in the order sent: both fields ignored. **Needs code**: the API section type has no `groupBy`, `railItems` builds a flat list, and the grouped rail renders only from `groupedItems`, which the faculty and discipline paths fill. TODO, not built |
+| Three STRUCTURED sections titled by group | "General Administration" renders (4 cards); the other two are logged as unused api sections. Needs no component code: two more fixture rail sections, bound with `nth` 2 and 3 |
+| 24 items | twenty-four cards, no code change |
+
+**Playwright** (FIXTURE, 1440 / 1024 / 768 / 390): cards per row 3,3,3,3 at 1440 and 2 × 6 below;
+no horizontal overflow; the back link reads "People" when loaded directly. Tab order: the back
+link, the band's three links, then the footer; the cards take none. Contacts: none on the page
+(those in `main` are the footer's).

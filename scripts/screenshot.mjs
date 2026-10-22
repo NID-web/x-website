@@ -103,6 +103,8 @@ const PAGES = [
   { name: "people-governing-council", path: "/en/people/governing-council" },
   // A STRUCTURED person section as cards, three across (§96).
   { name: "people-senate", path: "/en/people/senate" },
+  // Senate's cards as the page's only section (§99).
+  { name: "people-staff", path: "/en/people/staff" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe
