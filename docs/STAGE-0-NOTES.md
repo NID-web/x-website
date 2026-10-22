@@ -6662,3 +6662,165 @@ static=contacts(api empty),backNav,siblingBand · unused api sections: none · u
 no horizontal overflow; the back link reads "People" when loaded directly. Tab order: the back
 link, the band's three links, then the footer; the cards take none. Contacts: none on the page
 (those in `main` are the footer's).
+
+## 100. Alumni: a letter with a filled button, and Notable Alumni as AlumniCard
+
+`/people/alumni` is a People child on the secondary template, read from the CMS's `alumni`
+document (id 753, static). There is no board: the designer's brief is "a simple page with a link to
+the registration form for alumni", so the form is the page's one filled button (B.Des's Apply, §70).
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS `title`, "Alumni". The menu and the `/people` rail say "Notable Alumni"; each keeps its own. TODO(designer) |
+| Back link | BackNav "People" → `/people` (`backFallback="/people"`) |
+| Hero | CMS hero[0], `people-alumni-hero.jpg`, with alt text: byte for byte `/people`'s photograph, the fourth People child to reuse it (§95, §96, §99). FIXTURE reuses `/people/hero-entrance.jpg`. TODO(review), AL5 |
+| Standfirst | CMS `heroText`, "Registration notice for NID graduates." (`intro: "heroText"`: the first TEXT block would be "Dear Graduates,") |
+| Alumni | CMS "Alumni": seven TEXT blocks, one paragraph each, unclamped; its one LINK block is the section's filled button, never in the prose (`linkBlocks`, `filledLinks`) |
+| Notable Alumni | CMS STRUCTURED `person` section "Notable Alumni" (CURATED): one AlumniCard, Sujata Keshavan |
+| Column 4 | the button only: the CMS sends no contacts |
+| Band | `peopleBand(PATH)`: Faculty, Governing Council, NID Senate and Staff linked; three rows unlinked |
+
+**The letter.** Blocks 1–5 come before the LINK block, 6–7 after it. The salutation, "Hope you are
+doing well" and the signature read as an email; rendered as sent, TODO(review), editor. The
+signature is one block with a single `\n` ("Sujitha Nair\nAssistant Registrar (…)"), which the
+prose rules collapse to a space, so name and post render on one line (`format.ts` is unchanged;
+AL6). nid.edu has "Kindly register at:" before the link; the CMS does not, and nothing is added.
+The section title "Alumni" repeats the page's, as Staff's does (§99); AL7.
+
+**The button.** `filledLinks="section-alumni-letter"`: a filled Cta, external, so a new tab and the
+↗ icon. Placed by the template's free flow, as B.Des's Apply: column 4 of the letter's first row at
+1440, column 1 under the letter at 1024 (the open item of §74), under the letter at 768 and 390.
+The URL is the CMS's as sent, ending `/viewform`. Without `/viewform` (the brief's copy) it is a
+404 ("the file you have requested does not exist"); with it, a browser lands on a Google sign-in
+page (AL2). It is an external site link, not a file: no HEAD at build.
+
+**Notable Alumni is AlumniCard,** not Senate's PersonCard. AlumniCard is Home's Notable Alumni tile
+(§39), which shows this person and this sentence. The item's `heroText` is a 100-character bio, not
+a role: PersonCard would set it as the overline, uppercase in `text/quaternary` (below AA by
+design); AlumniCard sets it as a three-line bio in `text/tertiary`. The section is a fixture
+`cards` section whose item hangs off `PAGE_ID.peopleAlumni`, which `CARD_KIND_BY_PARENT` maps to
+`"alumni"`. Three new options on the STRUCTURED rule, all off by default, only this page sets them:
+
+- **`unlinked`**: `toCards` keeps every item by its CMS slug and looks up no route. Without it an
+  item with no route is dropped, and a person has no page under `/people/alumni`. Two lines, in
+  place of a stand-in `slugUnderParent` path. Built: no `/people/alumni/<slug>` href in any HTML
+  or payload (grep: 0 in every `.html` and `.rsc`, both modes; the only `/people/alumni/` strings
+  in the build are Next's own module names for the route), and nothing registered in
+  `BUILT_ROUTES` or `registerBuiltParams`. The FIXTURE portrait is at
+  `public/people/faculty/sujata-keshavan.png` (the CMS's 352px PNG, byte for byte), beside the
+  other person portraits (R1h): a first copy under `public/people/alumni/` was a URL inside this
+  page's route, and the grep found it.
+- **`whole`**: the CMS's list wins whole. A section sent with no items, or not sent, is dropped with
+  its separator, never filled from the fixture: an editor who empties Notable Alumni means it. Log:
+  `section:notable dropped (CMS sends 0 items)`. The per-unit fallback every other list keeps (§96)
+  would show the fixture's card here, and no floor could catch it: `documentItems.alumni` counts
+  both person sections, and Pride of NID's item meets it.
+- **`requireTitle: "Notable Alumni"`**: the rule takes the matched section only under that title
+  (exact, case-insensitive). The rule matches the first `person` section by orderIndex, so a
+  document that loses Notable Alumni hands it Pride of NID: measured before the guard, the page
+  rendered Dr. Lakshmi Murthy under "Pride of NID". With it the section is treated as absent and,
+  with `whole`, dropped: `section:notable dropped (CMS sends no person section titled "Notable
+  Alumni")`. A stand-in for a stable section key (AL4).
+
+**Pride of NID** (the document's third section) is not rendered: it has a designed route of its own,
+`/people/pride-of-nid` (§81's precedent). Logged by the adapter: `unused api sections: "Pride of
+NID" (person)`.
+
+**Notable Alumni from the CMS document, not the taxonomy.** The backend's direction is lists from
+`/public/content-items?contentType=person&taxonomyTermSlug=…`. Today `notable-alumni` returns the
+same one person as the curated section; `pride-of-nid` returns two, one of them the seed
+`sample-notable-alumnus` (no alt text, a photo that 404s, AL3). The curated section costs no
+request and holds no seed. No seed filter exists in `src/`: the seed reaches this page only if an
+editor adds it to the curated section.
+
+### The footer row, and `nid-alumni-data-registration`
+
+The CMS's footer sends "NID Alumni Data Registration" (slug `nid-alumni-data-registration`,
+orderIndex 5), and `getSiteChrome` dropped it: the slug had no route. That document (id 20) is a
+stand-in for the notice `alumni` carries: one sentence, no form link, a hero and an IMAGE block with
+no alt text whose files 404, and contacts (`alumni@nid.edu`, `+91 79 2662 9530`) nid.edu's page
+does not list. `PATH_BY_CMS_SLUG` maps it to `/people/alumni` **for hrefs only**: the page reads
+`alumni` and never fetches id 20 (the fetch ledger has no entry for it). Remove the line when the
+backend retires the stand-in (AL1). The static footer's row (`footer-content.ts`, FIXTURE)
+moves from the dead `/alumni/registration` to `/people/alumni` in the same change.
+
+The rest of `footer-content.ts` is stale in FIXTURE, and is one backlog task, not this change:
+`/integrated-design-services` (built: `/consulting/ids`), `/young-designers`
+(`/study/young-designers`), `/pm-vidyalaxmi` (`/study/pm-vidyalaxmi`), `/right-to-information`
+(`/regulatory/rti`); `/careers`, `/placements`, `/tenders`, `/privacy-policy`, `/terms`,
+`/sitemap` unbuilt; and the contact `cmc@nid.edu`, where sitemap.json and nid.edu say `cmr@nid.edu`.
+
+### What links now
+
+| Where | Before | Now |
+|---|---|---|
+| The footer, every page with one (63 FIXTURE, 153 LIVE) | FIXTURE `/alumni/registration` (404); LIVE no row | "NID Alumni Data Registration" → `/people/alumni` |
+| Home's Notable Alumni tile (both modes) | withheld by the gate | linked, with its hover arrow |
+| `/people` rail, "Notable Alumni" (both modes) | unlinked row | link |
+| Governing Council's, Senate's and Staff's bands (both modes) | unlinked row | link |
+| The People menu row (FIXTURE) | already `/en/people/alumni`, ungated (§34) | resolves, no HTML change |
+
+RTI's "On this website" index lists no alumni page. The LIVE People menu has no children (§95).
+
+### Floors, requests
+
+`documentSections.alumni: 3`, `documentItems.alumni: 1` (live 2 across both person sections, less
+§96's margin of one), and `documentLinkBlocks.alumni: 1`, no margin: the form is the page's one
+action, and a LIVE build without it fails. One document, no HEADs: **287 → 288 distinct**, fetched
+== distinct.
+
+### R, A, C, E, Playwright
+
+**R** (baseline `7f4da94`, both built in scratch copies outside the repo; build id, chunk and media
+names normalised, the payload resolved as one tree, the DOM compared with scripts removed). The
+intended footer edit is applied to one side: in FIXTURE the baseline's `/alumni/registration`
+becomes `/people/alumni`; in LIVE the new row (React key `api.footer.primary.20`) is removed from
+the new build's output. Then FIXTURE **368 of 388** files identical, LIVE **926 of 946**. In both,
+the 20 that differ are Home's, `/people`'s, Governing Council's, Senate's and Staff's four files
+each, each changed only by one href to `/en/people/alumni`: Home's tile gains its link and hover
+arrow, the rail and band rows become links. Gate 69 → 67 FIXTURE, 77 → 75 LIVE (+3 this page's
+unlinked band rows, −5 rows that now link). LIVE 147s (baseline 147s), floors 72/0, the guard clean.
+
+**A** (FIXTURE): title "Alumni"; back link "People"; the hero (1038 × 472 at 1440); the standfirst;
+seven paragraphs; the button (new tab, ↗); Notable Alumni with one card; no Pride of NID; the band.
+
+**C** (LIVE): `api=title,hero,intro(heroText),seo,publishedAt,section:letter + 1 link
+block,section:notable(1) · static=contacts(api empty),backNav,siblingBand · unused api sections:
+"Pride of NID" (person) · unlinked 0 cards, unlinked 3 rows`. The card's portrait is the CMS's file.
+
+**E** (a proxy CMS under `next dev`: the real CMS with `/public/content/alumni` altered, deleted
+after). Its host is not the media host, so heroes and portraits were refused in the mocks; that is
+the proxy, not the page.
+
+| Mock | Result |
+|---|---|
+| No LINK block | `FLOOR NOT MET — document alumni: LINK blocks: expected at least 1, got 0`: **a LIVE build fails**. Under `next dev` the floor only logs, and the button is the fixture's copy of the same URL (`linkBlocks` keeps the fixture's links when the CMS sends none, §74). The letter stays |
+| Notable Alumni with 0 items | the section and its separator go; `section:notable dropped (CMS sends 0 items)`; no floor fails (Pride of NID's item meets the item floor), so a LIVE build ships the page without it, as intended |
+| Notable Alumni section removed | the section goes; `section:notable dropped (CMS sends no person section titled "Notable Alumni")`; Pride of NID logged unused, not rendered. The section floor fails a LIVE build (2 of 3) |
+| Three notable alumni | three cards, three across in columns 2–4 at 1440, stacked at 390; no code change |
+
+**Playwright** (FIXTURE and LIVE, 1440 / 1024 / 768 / 390): the button at column 4 (x 1086, the
+letter's top) at 1440, column 1 below the letter at 1024 and 768, full width at 390; `target=_blank`,
+`rel="noopener noreferrer"`, the ↗ icon at every width. Hover deepens the fill to `accent-strong`.
+Keyboard focus draws a 2px `accent/primary` ring, offset 2px; it fades in over 150ms, because the
+Cta's `transition-colors` includes `outline-color` (every Cta on the site). The card is a 330 / 309 /
+350 / 358px square at column 2, 2, 1 and full width, and takes no tab stop. No horizontal overflow.
+Tab order: the back link ("People" when loaded directly), the form, the band's four links, the
+footer. Contacts: none on the page (those in `main` are the footer's).
+
+### Backend asks
+
+- **AL1** Retire `nid-alumni-data-registration` (id 20), or point the footer's nav item at `alumni`.
+- **AL2** The Alumni Registration Form needs a Google sign-in. Intended? An alumnus without a
+  Google account cannot register.
+- **AL3** Remove the seed `sample-notable-alumnus` from the `pride-of-nid` taxonomy.
+- **AL4** A stable key on sections: both person sections are matched by order (here guarded by title).
+- **AL5** `people-alumni-hero.jpg` is `/people`'s photograph again, and its alt names the page.
+- **AL6** The signature's line break: two TEXT blocks would keep name and post on two lines.
+- **AL7** Section 1's title "Alumni" repeats the page title.
+
+Known limitations: the button's placement at 1024 follows the template's free flow (§74's open
+item). `next dev` shows the fixture's form link if the CMS drops it; only the LIVE floor stops it
+shipping. The title guard is exact: an editor who renames the section drops it, loudly.

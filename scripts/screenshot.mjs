@@ -105,6 +105,8 @@ const PAGES = [
   { name: "people-senate", path: "/en/people/senate" },
   // Senate's cards as the page's only section (§99).
   { name: "people-staff", path: "/en/people/staff" },
+  // A letter with a filled button, and one AlumniCard (§100).
+  { name: "people-alumni", path: "/en/people/alumni" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

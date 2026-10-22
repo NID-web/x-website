@@ -82,6 +82,8 @@ export const CMS_FLOORS = {
     "nid-senate": 2,
     // Staff (§99).
     staff: 1,
+    // The letter, Notable Alumni and Pride of NID (§100).
+    alumni: 3,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page
@@ -98,6 +100,9 @@ export const CMS_FLOORS = {
     "nid-senate": 12,
     // Staff (§99). Live 22 Oct 2026: 12, less the same margin of one.
     staff: 11,
+    // Alumni (§100): Notable Alumni and Pride of NID, live 22 Oct 2026 one
+    // each, so 2, less the margin of one. Counted across both sections.
+    alumni: 1,
   } as Record<string, number>,
 
   /** LINK blocks across a document's sections, where a section is a list of
@@ -111,6 +116,8 @@ export const CMS_FLOORS = {
     "annual-reports": 9,
     "right-to-information": 15,
     "integrated-design-services": 4,
+    // The registration form, the page's one action (§100): no margin.
+    alumni: 1,
   } as Record<string, number>,
 
   /** A programme's discipline records that become cards (getDisciplines.ts):

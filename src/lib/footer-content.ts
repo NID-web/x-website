@@ -52,7 +52,7 @@ export const FOOTER: FooterContent = {
     { labelKey: "ids", href: "/integrated-design-services" },
     { labelKey: "placements", href: "/placements" },
     { labelKey: "youngDesigners", href: "/young-designers" },
-    { labelKey: "alumniReg", href: "/alumni/registration" },
+    { labelKey: "alumniReg", href: "/people/alumni" },
     { labelKey: "tenders", href: "/tenders" },
     { labelKey: "pmVidyalaxmi", href: "/pm-vidyalaxmi" },
   ],

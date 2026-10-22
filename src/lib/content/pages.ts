@@ -24,6 +24,7 @@ export const PAGE_ID = {
   peopleGoverningCouncil: "page-people-governing-council",
   peopleSenate: "page-people-senate",
   peopleStaff: "page-people-staff",
+  peopleAlumni: "page-people-alumni",
   campusAhmedabad: "page-about-campuses-ahmedabad",
   campusGandhinagar: "page-about-campuses-gandhinagar",
   campusBengaluru: "page-about-campuses-bengaluru",
@@ -79,6 +80,7 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.peopleGoverningCouncil]: "/people/governing-council",
   [PAGE_ID.peopleSenate]: "/people/senate",
   [PAGE_ID.peopleStaff]: "/people/staff",
+  [PAGE_ID.peopleAlumni]: "/people/alumni",
   [PAGE_ID.campusAhmedabad]: "/about/campuses/ahmedabad",
   [PAGE_ID.campusGandhinagar]: "/about/campuses/gandhinagar",
   [PAGE_ID.campusBengaluru]: "/about/campuses/bengaluru",
@@ -146,6 +148,8 @@ const CARD_KIND_BY_PARENT: Record<UUID, CardKind> = {
   [PAGE_ID.newsEvents]: "news",
   [PAGE_ID.campuses]: "campus",
   [PAGE_ID.studentAwards]: "alumni",
+  // Alumni's Notable Alumni (STAGE-0-NOTES §100).
+  [PAGE_ID.peopleAlumni]: "alumni",
   // The campus pages' Disciplines: programme pages on the fixture, CMS
   // discipline records with the API (§57).
   [PAGE_ID.programmes]: "thumb",
@@ -166,8 +170,12 @@ export function cardKind(item: Pick<Page, "parent">): CardKind | undefined {
 // Every route below is design/tokens/sitemap.json's, never derived from the
 // slug: `integrated-design-services` is /consulting/ids and `placements` is
 // /industry/placements there. A slug the sitemap does not list stays out of
-// this table (the live navigation's `nid-alumni-data-registration` has no route),
-// and whatever looks it up drops that link and logs it.
+// this table, and whatever looks it up drops that link and logs it. One
+// exception, for hrefs only: the live footer's `nid-alumni-data-registration`
+// is a stand-in document (no form, no alt text, files that 404) for the notice
+// the `alumni` document carries, so its row opens /people/alumni, which reads
+// `alumni` and never fetches it. Remove the line when the backend retires the
+// stand-in (ask AL1, STAGE-0-NOTES §100).
 const PATH_BY_CMS_SLUG: Record<string, string> = {
   "about-nid": "/about",
   history: "/about/history",
@@ -190,6 +198,8 @@ const PATH_BY_CMS_SLUG: Record<string, string> = {
   "governing-council": "/people/governing-council",
   "nid-senate": "/people/senate",
   staff: "/people/staff",
+  alumni: "/people/alumni",
+  "nid-alumni-data-registration": "/people/alumni",
   "research-publications": "/research",
   "innovation-center-natural-fiber": "/research/natural-fiber",
   icic: "/research/icic",

@@ -57,6 +57,7 @@ import { CONSULTING_CONTINUING_EDUCATION } from "@/lib/content/fixtures/consulti
 import { PEOPLE_GOVERNING_COUNCIL } from "@/lib/content/fixtures/people-governing-council";
 import { PEOPLE_SENATE } from "@/lib/content/fixtures/people-senate";
 import { PEOPLE_STAFF } from "@/lib/content/fixtures/people-staff";
+import { PEOPLE_ALUMNI } from "@/lib/content/fixtures/people-alumni";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
@@ -99,6 +100,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/people/governing-council": PEOPLE_GOVERNING_COUNCIL,
   "/people/senate": PEOPLE_SENATE,
   "/people/staff": PEOPLE_STAFF,
+  "/people/alumni": PEOPLE_ALUMNI,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
   "/regulatory/rti": REGULATORY_RTI,
@@ -549,6 +551,23 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
     slug: "staff",
     intro: "heroText",
     sections: { "section-staff-people": { structuredKey: "person" } },
+  },
+  // A People child (§100): heroText the standfirst ("Dear Graduates," would be
+  // the first TEXT block). "Alumni" is the letter, its LINK block — the
+  // registration form — the section's filled button, so never in the prose.
+  // Notable Alumni is the first STRUCTURED person section by orderIndex, as
+  // AlumniCard cards that never link, and only while it is titled so: matched
+  // by order, a document that loses it would hand the rule Pride of NID
+  // (measured, §100). The CMS's list wins whole: sent empty, or not at all,
+  // the section is dropped. Pride of NID is not rendered (unused, logged).
+  // TODO(review): backend — a stable key on the section (ask AL4).
+  "/people/alumni": {
+    slug: "alumni",
+    intro: "heroText",
+    sections: {
+      "section-alumni-letter": { textTitle: "Alumni", linkBlocks: true },
+      "section-alumni-notable": { structuredKey: "person", unlinked: true, whole: true, requireTitle: "Notable Alumni" },
+    },
   },
   // The first Regulatory page (STAGE-0-NOTES §86). The standfirst is heroText:
   // "About" is three narrative paragraphs with no summary among them, so it

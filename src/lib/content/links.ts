@@ -35,6 +35,7 @@ export const BUILT_ROUTES = [
   "/people/governing-council",
   "/people/senate",
   "/people/staff",
+  "/people/alumni",
   "/people/faculty/[slug]",
   "/people/faculty/by/[view]",
   "/programmes",

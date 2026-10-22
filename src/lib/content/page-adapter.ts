@@ -47,6 +47,19 @@ export interface SectionMergeRule {
    *  copies of each record's own CMS photo — never one record's on another.
    *  Applied by getPage (it HEADs the CMS photos); logged one line each (§78). */
   photoFallback?: true;
+  /** Cards that never link (AlumniCard, §100): every item is kept by its CMS
+   *  slug, with no route looked up. Without it, toCards drops an item it cannot
+   *  route — a person has no page under /people/alumni. */
+  unlinked?: true;
+  /** The CMS's list wins whole (§100): a section it sends with no items, or
+   *  does not send, is dropped, never filled from the fixture. For a list an
+   *  editor may empty on purpose. */
+  whole?: true;
+  /** Take the matched section only when its title is this (exact, case-
+   *  insensitive); any other is treated as absent. A stand-in for a stable
+   *  section key (backend ask AL4, §100): the rule matches by order, so a
+   *  document that loses this list would feed it the next one of the same type. */
+  requireTitle?: string;
 }
 
 /** A SPECIFIC section's TEXT blocks feed a fixture `text` section's body.
@@ -513,8 +526,8 @@ export function toPageResponse(
     const thumbRejects: string[] = [];
     const items: Page[] = [];
     for (const item of as.items ?? []) {
-      const path = routeOf(item, parentPath, rule);
-      const slug = path?.startsWith(`${parentPath}/`) ? path.slice(parentPath.length + 1) : "";
+      const path = rule.unlinked ? undefined : routeOf(item, parentPath, rule);
+      const slug = rule.unlinked ? item.slug : path?.startsWith(`${parentPath}/`) ? path.slice(parentPath.length + 1) : "";
       if (!slug || slug.includes("/")) {
         log.notes.push(`${name}: dropped slug ${item.slug} (${path ? `route ${path} is not under ${parentPath}` : "no path"})`);
         continue;
@@ -810,12 +823,25 @@ export function toPageResponse(
 
   /** A fixture rail or cards section from its STRUCTURED section. */
   function structuredSection(fs: Section, rule: SectionMergeRule, name: string): Section {
-    const as = structured(api, rule, consumed);
+    const found = structured(api, rule, consumed);
+    const wanted = rule.requireTitle;
+    const as =
+      typeof found !== "string" && wanted && (found.title ?? "").trim().toLowerCase() !== wanted.toLowerCase()
+        ? `no api section key=${rule.structuredKey} titled "${wanted}"`
+        : found;
     if (typeof as === "string") {
-      log.static.push(`${name}(${as})`);
-      return fs;
+      if (!rule.whole) {
+        log.static.push(`${name}(${as})`);
+        return fs;
+      }
+      log.notes.push(`${name} dropped (CMS sends no ${rule.structuredKey} section${wanted ? ` titled "${wanted}"` : ""})`);
+      return { ...fs, items: [] } as Section;
     }
     consumed.add(as);
+    if (rule.whole && !as.items?.length) {
+      log.notes.push(`${name} dropped (CMS sends 0 items)`);
+      return { ...fs, items: [] } as Section;
+    }
     if (fs.type === "rail") return railItems(fs, as, name, rule.keepTitle);
     if (fs.type !== "cards") {
       log.static.push(`${name}(fixture section is ${fs.type}, not cards)`);
