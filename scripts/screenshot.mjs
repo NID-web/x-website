@@ -113,6 +113,13 @@ const PAGES = [
   { name: "tenders", path: "/en/tenders" },
   // The first fixture-only page: no CMS document (§103).
   { name: "programmes-ctl", path: "/en/programmes/ctl" },
+  // The labs' landing, and four labs: two paragraphs, sub-headings, a list,
+  // and a refused hero with an extension phone (§104).
+  { name: "programmes-resources", path: "/en/programmes/resources" },
+  { name: "programmes-resources-animation-film-design-lab", path: "/en/programmes/resources/animation-film-design-lab" },
+  { name: "programmes-resources-skill-development-lab-ahmedabad", path: "/en/programmes/resources/skill-development-lab-ahmedabad" },
+  { name: "programmes-resources-clay-studio-cintiq-lab-studio", path: "/en/programmes/resources/clay-studio-cintiq-lab-studio" },
+  { name: "programmes-resources-av-lab-nid-bengaluru", path: "/en/programmes/resources/av-lab-nid-bengaluru" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

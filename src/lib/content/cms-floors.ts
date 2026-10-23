@@ -142,6 +142,13 @@ export const CMS_FLOORS = {
    *  rather than shipping a tile with no rows. Live 7 Oct 2026: 6. */
   homeNews: 1,
 
+  /** The labs that build: the `lab_and_facilities` list after WITHHELD_LABS
+   *  (§104). Live 23 Oct 2026: 18, less a margin of one. */
+  labs: 17,
+  /** Each lab document's sections ("About"), for any lab, including one the
+   *  CMS adds (§104). */
+  labSections: 1,
+
   /** The header menu's top-level sections (home document). Live: 7. */
   menuSections: 7,
   /** The footer's link list (home document). Live: 11. */
@@ -167,6 +174,7 @@ const FLOOR_SOURCES: Partial<Record<keyof typeof CMS_FLOORS, string[]>> = {
   menuSections: ["home"],
   footerLinks: ["home"],
   collaborations: ["items:collaboration"],
+  labs: ["items:lab_and_facilities"],
 };
 
 /** The floors counted against the response at a CMS path, named with their

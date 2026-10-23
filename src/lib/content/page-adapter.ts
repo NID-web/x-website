@@ -188,6 +188,11 @@ export interface PageMergeConfig {
    *  draw a photograph in every section its rules feed — anywhere else it would
    *  add photos the designer never drew (§77). */
   sectionImages?: true;
+  /** The CMS's heroes are the page's, whole: a document that sends none, or
+   *  only refused ones, shows none, never the fixture's copy. For pages whose
+   *  document is the source of every field (the labs, §104). Off: a page keeps
+   *  its fixture hero when the CMS has none to give. */
+  wholeHero?: true;
   /** The page field the document's `contacts` feed. `contacts` by default;
    *  `keyInfo` for a page whose rail block beside the hero is the model's
    *  key info rather than a first section's contacts. `sections`: each contact
@@ -202,8 +207,12 @@ export interface PageMergeConfig {
    *  person's own contacts as sent, grouped by role and name in CMS order. The
    *  rest follow `contactsTo`. For a page that must name its officers (Right to
    *  Information, s.4(1)(b)(xvi), §89). Labels are never rewritten and a name
-   *  never moves into a label. Off by default: `personName` is dropped (§81). */
-  namedContacts?: "keyInfo";
+   *  never moves into a label. `nameRow`: only the name goes to key info, one
+   *  row per person (label the CMS's, value the name), and every contact stays
+   *  the page's; both lists are the CMS's whole, empty included — the labs,
+   *  whose rail has a Faculty row the CMS does not send (§104). Off by default:
+   *  `personName` is dropped (§81). */
+  namedContacts?: "keyInfo" | "nameRow";
   /** A template's typed `detail` record ("Campus Detail"), turned into key-info
    *  values and ordinary sections HERE, so nothing past the adapter knows it
    *  exists. */
@@ -328,6 +337,9 @@ export function toPageResponse(
     // that shows (§86).
     if (accepted.length > 1) log.notes.push(`hero: ${accepted.length} accepted, hero[0] renders`);
     if (rejected.length) log.notes.push(`hero: ${rejected.length} rejected (${rejected.join("; ")})`);
+  } else if (config.wholeHero) {
+    page.hero = [];
+    log.api.push(`hero(none${rejected.length ? `: media rejected: ${rejected.join("; ")}` : ""})`);
   } else {
     log.static.push(`hero(${rejected.length ? `media rejected: ${rejected.join("; ")}` : "api empty"})`);
   }
@@ -344,6 +356,8 @@ export function toPageResponse(
     } else log.static.push("intro(api heroText empty)");
   } else if (introSource === "static") {
     log.static.push("intro(config)");
+    // Said, so a summary an editor writes is not mistaken for one that shows.
+    if (api.heroText?.trim()) log.notes.push("dropped heroText");
   } else {
     // The standfirst is the first TEXT block of the first SPECIFIC section. The
     // model has one intro and no slot for the blocks after it, so they are
@@ -420,8 +434,9 @@ export function toPageResponse(
   }
 
   const sent = api.contacts ?? [];
-  const isNamed = (c: (typeof sent)[number]) => Boolean(config.namedContacts && c.personName?.trim());
-  if (config.namedContacts && sent.length) {
+  const railNames = config.namedContacts === "keyInfo";
+  const isNamed = (c: (typeof sent)[number]) => Boolean(railNames && c.personName?.trim());
+  if (railNames && sent.length) {
     const people = new Map<string, LabelValue[]>();
     for (const c of sent.filter(isNamed)) {
       const name = c.personName!.trim();
@@ -436,9 +451,22 @@ export function toPageResponse(
   }
   const contacts = sent.filter((c) => !isNamed(c));
   const contactsTo = config.contactsTo ?? "contacts";
-  if (contactsTo === "sections") {
+  if (config.namedContacts === "nameRow") {
+    // One key-info row per named person, labelled with the CMS's own label;
+    // the contacts themselves stay the page's (column 4). The CMS's lists are
+    // whole, empty included: a lab document that sends no contacts has no
+    // name row and no column 4, never the fixture's (§104).
+    const names = new Map<string, LabelValue>();
+    for (const c of sent) {
+      const name = c.personName?.trim();
+      if (name) names.set(`${c.label}\u0000${name}`, { label: c.label, value: name });
+    }
+    page.keyInfo = [...names.values()];
+    page.contacts = sent.map(({ label, value }) => ({ label, value }));
+    log.api.push(`contacts(${sent.length} contacts, ${names.size} named)`);
+  } else if (contactsTo === "sections") {
     // Matched to the sections below, once they are merged.
-  } else if (contacts.length || (config.namedContacts && sent.length)) {
+  } else if (contacts.length || (railNames && sent.length)) {
     // Nothing is de-duplicated: a repeated number is the CMS's to fix.
     const sentRows = contacts.map(({ label, value }) => ({ label, value }));
     if (contactsTo === "contacts") {

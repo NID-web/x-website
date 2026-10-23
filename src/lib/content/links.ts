@@ -44,6 +44,8 @@ export const BUILT_ROUTES = [
   "/programmes/bdes",
   "/programmes/bdes/[discipline]",
   "/programmes/ctl",
+  "/programmes/resources",
+  "/programmes/resources/[slug]",
   "/programmes/curriculum-objectives",
   "/programmes/fdp",
   "/programmes/international",

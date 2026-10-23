@@ -425,6 +425,12 @@ A page the CMS has no document for (Centre for Teaching and Learning, STAGE-0-NO
 
 **When the document lands:** one `PAGE_CONFIG` entry (its slug, the intro source, a rule per section), the slug in `PATH_BY_CMS_SLUG`, and a `documentSections` floor. Check which shape it came in. With a `heroText` (a summary the editor wrote): `intro: "heroText"` and the section whole (`{ textTitle: "About" }`), and the fixture takes the same shape. Without one: FDP's pattern, the first TEXT block the standfirst (`{ textTitle: "About", afterIntro: true }`). §103 has both for CTL. Rehearse it first: a scratch copy with those lines against a proxy serving the document, and the fixture-only copy against the same proxy, both built LIVE. The output must be identical, with exactly one more request.
 
+### R1k — Add a lab
+
+A lab is a CMS `lab_and_facilities` item (STAGE-0-NOTES §104). Publishing one builds its page at `/programmes/resources/<its CMS slug>` with no code change: `labIndex()` reads the list, registers the slug, and `generateStaticParams` makes the page; its document is merged by the one lab rule (`labConfig`), and the landing lists it.
+
+The only edit is where it sits: add its slug to its group in `LAB_GROUPS` (`src/lib/content/resources.ts`), in nid.edu's order. Without that it builds under Other Resources, logged, with no Faculty row. Optionally add a fixture copy to `FIXTURE_LABS` (`fixtures/resources.ts`) so FIXTURE shows it too, and its nid.edu id to `LEGACY_LAB_IDS` if it had one. A seed or a record that must not build goes in `WITHHELD_LABS`, by slug, never by date. A hero under 400px wide goes in `REFUSED_LAB_HEROES` by media id.
+
 ### R1h — A STRUCTURED person section as cards
 
 A CMS section of `type: "STRUCTURED"` with `structuredContentType.key: "person"` (the Senate's "Senate Members with NID profiles", STAGE-0-NOTES §96) becomes a `rail` of person cards with no per-person fetch: each item already carries its name (`title`), designation (`heroText`) and portrait (`thumbnail`).

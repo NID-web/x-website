@@ -7,6 +7,7 @@
 // derived `path` on every Page in a response (the way MenuNode and breadcrumb
 // entries carry one) so this table can go.
 import type { Page, UUID } from "@/lib/content-model";
+import { labPath } from "@/lib/content/resources";
 
 export const PAGE_ID = {
   about: "page-about",
@@ -37,6 +38,7 @@ export const PAGE_ID = {
   programmePhd: "page-programmes-phd",
   programmeFdp: "page-programmes-fdp",
   programmeCtl: "page-programmes-ctl",
+  programmesResources: "page-programmes-resources",
   programmeInternational: "page-programmes-international",
   consulting: "page-consulting",
   consultingIds: "page-consulting-ids",
@@ -96,6 +98,7 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.programmePhd]: "/programmes/phd",
   [PAGE_ID.programmeFdp]: "/programmes/fdp",
   [PAGE_ID.programmeCtl]: "/programmes/ctl",
+  [PAGE_ID.programmesResources]: "/programmes/resources",
   [PAGE_ID.programmeInternational]: "/programmes/international",
   [PAGE_ID.consulting]: "/consulting",
   [PAGE_ID.consultingIds]: "/consulting/ids",
@@ -122,12 +125,18 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.regulatoryRti]: "/regulatory/rti",
 };
 
+// A lab's page id is its CMS slug under a fixed prefix (§104): the labs come
+// from the CMS list, so no PAGE_ID can name one the CMS adds, and a `Link` to a
+// lab still needs an id. pathOf derives the route from it.
+const LAB_ID = "page-lab-";
+export const labPageId = (slug: string): UUID => `${LAB_ID}${slug}`;
+
 // A page id may carry a fragment: the news-archive id plus "#" and a year is
 // that year's group on the archive, which the listing's Archive row links to.
 // TODO(review): backend — `Link` has no fragment field; this stands in for one.
 export function pathOf(id: UUID): string | undefined {
   const [page, fragment] = id.split("#");
-  const path = PATH[page!];
+  const path = PATH[page!] ?? (page!.startsWith(LAB_ID) ? labPath(page!.slice(LAB_ID.length)) : undefined);
   return path && fragment ? `${path}#${fragment}` : path;
 }
 

@@ -13,12 +13,17 @@ import { noPreviousRoute, normalise, previousRoute, subscribe } from "@/lib/nav-
  */
 export function BackNav({
   fallback,
+  titles,
 }: {
   /** Where the link goes when there is no previous page, or one the site
    *  cannot name (a direct visit, a new tab, an outside referrer). Events use
    *  News & Events, their parent: there is no /events route (STAGE-0-NOTES
    *  §68, §85). Without it, no previous page renders no link, as §45 decided. */
   fallback?: string;
+  /** Names for routes the site-wide table cannot name, by route: a lab page's
+   *  band (§104), whose labs come from the CMS. A lab reached from a band row
+   *  is in that page's own band, so its name is here. */
+  titles?: Readonly<Record<string, string>>;
 } = {}) {
   const here = normalise(usePathname());
   const known = useSyncExternalStore(subscribe, () => previousRoute(here), noPreviousRoute);
@@ -27,7 +32,7 @@ export function BackNav({
   if (known === null) return null;
 
   let route: string | undefined = known ? normalise(known) : undefined;
-  let label = route ? routeTitle(route) : undefined;
+  let label = route ? (routeTitle(route) ?? titles?.[route]) : undefined;
   if ((!route || !label) && fallback) {
     route = normalise(fallback);
     label = routeTitle(route);

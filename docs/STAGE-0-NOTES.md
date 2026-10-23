@@ -7191,3 +7191,177 @@ footer adds its own `tel:+917926629500`, the LIVE footer none (§80).
 - **CTL2** A nav item "Centre for Teaching and Learning" under Programmes (slug
   `centre-for-teaching-and-learning`), so the LIVE menu has the row.
 - **CTL3** (editor) The source's spellings above, and "Bangalore", once the document exists.
+
+## 104. Resources and its 18 labs: CMS-first lab pages, nid.edu's groups, one route
+
+`/programmes/resources` and `/programmes/resources/[slug]` (18 pages) are Programmes children on
+the secondary template. **Placement (decided 7 Oct 2026, the user):** under Programmes, in the
+Programmes menu after Centre for Teaching and Learning, with all 18 lab pages built here (not
+linked out to nid.edu); sitemap.json §03 gains the child and the menu entry, by hand.
+TODO(designer): not in the Figma architecture.
+
+**Launch blocker for this section: RS7.** In a LIVE build the menu is the CMS's, with no Resources
+row, and nothing else links the landing: the menu row shows in FIXTURE only. The `/programmes`
+landing has two fixture-held places outside its rail (Curriculum Objectives' "Read more", and the
+programme cards' section), and neither is about Resources, so no link was added there; the rail
+itself feeds every "More in Programmes" band. Until the CMS nav item lands, Resources is reachable
+in production by URL only.
+
+### The CMS
+
+The labs are the CMS's 20 `lab_and_facilities` items (re-probed 23 Oct 2026, unchanged since 7 Oct):
+18 real labs (ids 872–889, published 21 Sep 03:25–03:26) and two seeds, `photography-studio` and
+`wood-workshop` (ids 31–32, the 03:18 seed batch: no template, generic text, "Contact" labels with
+no person, heroes with no alt text). Each lab document carries nid.edu's title, one hero (the
+card photo, alt = the lab's name), contacts and one "About" section of TEXT blocks. Neither the
+list nor any document says which design faculty a lab belongs to, and the list has no order: the
+six `academic_faculty` documents carry an email and a short name and reference no lab.
+
+**Against nid.edu** (all 18 live pages, by legacy id): the words are the same as the CMS's and the
+content pack's, every lab. Titles match. Where they differ, the CMS wins:
+
+- Ceramic and Glass: the CMS splits one live paragraph at a single `<br>` (7 blocks for 6 `<p>`s).
+- AV Lab: nid.edu's first sub-heading, "Objective", is an `<h3>`; in the CMS it is a plain TEXT
+  block (its second, "AV-Lab Utilization", is `<strong>`) (RS5).
+- Phones: the CMS writes "ext. 125" where nid.edu writes "Ext: 125".
+- Clay Studio's list is nid.edu's `<li>`s as "- " TEXT blocks; it renders as a `<ul>` (§68's rule).
+- Other single `<br>`s are trailing `<br>&nbsp;` spacing, and one mid-sentence wrap on Design
+  Vision Centre the CMS joined.
+
+### The build set, the routes, and getPage
+
+**A lab's route is its CMS slug** under `/programmes/resources`: one rule, no table, so a lab the
+CMS adds builds with no code change. "skill-development-lab-nid-bangalore" beside
+"av-lab-nid-bengaluru" is the CMS's naming. `LEGACY_LAB_IDS` (`resources.ts`) maps nid.edu's lab
+ids (`academics/resource/<id>.html`) to these slugs, for the Academics redirects.
+
+**The labs that build are the CMS list less `WITHHELD_LABS`** (`photography-studio`,
+`wood-workshop`), named, never guessed by publish date (TODO(review), RS1). `labIndex()`
+(`getResources.ts`) reads the list once per build process, registers the slugs with the route
+gate (getPage awaits it, as `facultyIndex`), and is `generateStaticParams`. FIXTURE: the fixture's
+18. A lab no group names builds, and is listed last under Other Resources, logged
+`[cms] /programmes/resources: <slug> has no group, listed under Other Resources`.
+
+**getPage takes a lab path with two fallbacks and no per-lab entry:** `FIXTURES[path] ??
+resourcesFixture(path)` (the landing, built from the list; a lab's fixture copy, or, for a lab the
+CMS added since, an empty page its document fills) and `PAGE_CONFIG[path] ?? labConfig(path)` (one
+rule for every lab document). After the merge, `withLabParts` adds a lab's Faculty row and its band
+from the list. A lab's page id is `page-lab-<slug>` (`labPageId`), which `pathOf` resolves, so a
+`Link` can name a lab no `PAGE_ID` lists. Fixtures: one module (`fixtures/resources.ts`), the 18
+labs generated from the CMS documents, bodies built with `joinBlocks`/`richParagraphs` (§103).
+FIXTURE heroes are JPEG copies of the CMS's PNGs at the same pixel size (1.4 MB for 15).
+
+### A lab page: one rule
+
+| Slot | Source |
+|---|---|
+| Title | CMS `title` |
+| Back link | BackNav, else "Resources" → `/programmes/resources` |
+| Hero | CMS hero[0], whole (`wholeHero`): none sent, none shown; three refused by id (below) |
+| Standfirst | **none** |
+| Key info | "Faculty" → the group's faculty (none for Other Resources), then one row per named person, the CMS's label ("Lab contact") and the name |
+| About | every TEXT block, whole, clamped at 8 lines; `<strong>`-only blocks are bold lines inside it; "- " runs are lists |
+| Column 4 | the CMS's email and phone, whole (`nameRow`) |
+| Band | "More in <group>": the other labs of its group (`siblingParent`); IT Integrated has one row |
+
+**No standfirst.** The CMS's `heroText` is an auto-excerpt of About's block 1: identical to it on 7
+labs, the same text cut at ~280 characters and ending "…" on 10, and "Objective" on AV Lab. As a
+standfirst it would show a truncated sentence that About then repeats; block 1 as the standfirst
+(FDP's pattern) would empty About on the three one-block labs (Toy and Game, Skill Lab Bengaluru,
+Apparel), and the template's page contacts only attach to a section that renders. So About takes
+every block, and heroText is logged `dropped heroText`. When RS4 brings a real one-sentence
+heroText, the labs switch to `intro: "heroText"`, CTL's way (§103).
+
+**`namedContacts: "nameRow"`**, new, off by default: one key-info row per named person, labelled
+with the CMS's own label; the contacts stay the page's (column 4). RTI's `keyInfo` mode moves the
+person's contacts into the rail and replaces the key info wholesale, which would drop the Faculty
+row. With `nameRow` the CMS's contacts are whole, empty included: a lab document that sends none
+has no name row and no column 4, never the fixture's. Two labs send no `personName`: Dyeing
+("Coordinator") and Skill Lab Bengaluru (its label "Skill Development Lab, NI", truncated as
+nid.edu's own sidebar shows it, RS8); they have no name row. Every phone format links:
+`+91 79-26629708` → `tel:+917926629708`, `+91 79 23265 724` → `tel:+917923265724`,
+`+91 80 29723276 ext. 106` → `tel:+918029723276;ext=106` (§79's extension rule).
+
+**`wholeHero`**, new, off by default: the CMS's heroes are the page's, whole; a document that sends
+none, or only refused ones, shows none rather than the fixture's copy. Added for E5 below, where a
+lab whose document drops its hero kept the fixture's photo by the per-unit fallback.
+
+**Three heroes are refused by media id** (`REFUSED_LAB_HEROES`, §77): the card PNGs under 400px
+wide, which the 1038px crop at 1440 enlarges past legibility (AV Lab's 225px reads as blocks):
+`cmuaoouw300007bpdy9eodj2p` (AV Lab, 225 × 168), `cmuaoo7eh000020pdvegir163` (Physical Computing,
+369 × 277), `cmuaon0vl0000rlpd1qhjeipt` (IT Centre, 393 × 295). Those pages close up; a new upload
+has a new id and shows with no code change (RS6). The other 15 render: 546–1600px wide, soft at
+546 in the 2.2:1 crop but legible. Alt text is the lab's name. TODO(review): descriptive alt.
+
+**The back link names the lab you came from.** The site-wide route-title table cannot name a lab
+(the CMS supplies them), so the lab route passes its band's names to BackNav (`backTitles`, new on
+SecondaryTemplate, off by default). A lab reached from a band row is in that page's own band.
+
+### The landing
+
+The title "Resources"; nid.edu's intro as the standfirst (fixture-held, TODO(review), RS3); five
+links sections, two-up from 768 (`twoUpLinks`), one-up at 390, in nid.edu's group order, each
+lab a row labelled with its CMS title; back link "Programmes"; the band "More in Programmes"
+(`programmeDerived`, five rows as on CTL). No hero. The group table (`LAB_GROUPS`) is nid.edu's
+authored structure, held as data with a backend ask (RS2); it is not a client-side sort of CMS
+fields, since the CMS has none to sort by.
+
+### Floors, requests
+
+`labs: 17` (the list after WITHHELD, live 18 less a margin of one) and `labSections: 1` for every
+lab document. **290 → 309 distinct**: the list and 18 documents; no HEADs (lab heroes are not
+HEAD-checked, the refused three are rejected before any request); no seed fetched. LIVE 147s and
+32 rate-limit retries, against the baseline's 178s and 24 the same afternoon: the CMS's limit
+varies more between runs than 19 requests add. Vercel builds on one worker.
+
+### R, A, C, E, Playwright
+
+**R** (baseline `3f0e1c5`, both built in scratch copies; §100's normalisation). FIXTURE: 268 of 412
+existing files differ, every one by the menu's new row in the payload; with that object removed,
+**412 of 412** are identical. LIVE (the menu is the CMS's): **970 of 970** identical, so `nameRow`,
+`wholeHero` and `backTitles` change no page that does not opt in (RTI, IDS, CEP and the rest). 19
+pages are new. Client chunks renamed: the menu's (the Resources row), and the four that bundle
+BackNav (its `titles` prop); no DOM or payload of an existing page differs. Gate 68 → 69 FIXTURE,
+76 → 77 LIVE: the landing's band drops Industry & Online. Floors 74 → 93.
+
+**A** (FIXTURE): the landing (standfirst, five groups in order, 18 linked rows, the band) and the
+labs: Animation Film Design Lab, Skill Lab (Ahmedabad) (sub-headings), Clay Studio (a five-item
+list), AV Lab (no hero, the extension phone), Toy and Game (one block, no "See more" at 1440). With
+a hero and no standfirst the page runs title › hero › rule › About, with no empty slot or stray
+rule; with no hero, title › rule › About.
+
+**C** (LIVE, a lab): `api=title,hero,contacts(2 contacts, 1 named),seo,publishedAt,section:about ·
+static=intro(config),backNav · dropped heroText`; AV Lab: `hero(none: media rejected: rejectMedia
+…)`. The landing has no document and no `[cms]` line.
+
+**E** (a proxy CMS under `next dev`, its media URLs rewritten to itself; deleted after):
+
+| Mock | Result |
+|---|---|
+| E1: a 19th lab in the list, no group | it builds; listed last under Other Resources; logged as above; its key info is its name row only |
+| E2: `photography-studio` un-withheld (a scratch copy) | it builds (200); `wood-workshop`, still withheld, is a 404: WITHHELD is what keeps a seed out |
+| E3: a made-up slug | 404 |
+| E4: Design Vision Centre with no contacts | key info is the Faculty row only; no column 4 |
+| E5: Toy and Game with no hero | none shown (`hero(none)`): first with the fixture's copy by the per-unit fallback, which `wholeHero` closes |
+
+**Playwright** (LIVE, 1440 / 1024 / 768 / 390): contacts in column 4 at 1440, under About below; the
+extension phone one line at 390 (358px); "See more" where About overflows (not Toy and Game at
+1440); no horizontal overflow. The back link reads "Resources" on a lab loaded directly, "Programmes"
+on Resources, and on Ceramic and Glass reached from Design Vision Centre's band, "Design Vision
+Centre". Contacts: every lab shows its email and phone once each; the CMS repeats none.
+
+**Found, not changed here:** a `<strong>` in prose computes to weight 400 on the body's 300, so it
+reads barely heavier than its paragraph; measured the same on Governing Council's names (§95). The
+labs' sub-headings therefore read as plain lines. A fix (a weight for `strong` in Prose) changes
+every page with bold prose; backlog.
+
+### Backend asks
+
+- **RS1** Unpublish the seeds `photography-studio` and `wood-workshop`.
+- **RS2** Relate each lab to its `academic_faculty`, and give the list an order (nid.edu's).
+- **RS3** A `resources` landing document (the intro).
+- **RS4** A real one-sentence heroText per lab (today an excerpt of block 1, cut at ~280 characters).
+- **RS5** AV Lab: "Objective" as a `<strong>` sub-heading, as "AV-Lab Utilization" is.
+- **RS6** Hero photographs at least 1600px wide, with descriptive alt text.
+- **RS7** A nav item "Resources" under Programmes. **The launch blocker for this section.**
+- **RS8** (editor) Skill Lab Bengaluru's contact label is truncated; Dyeing's has no person.

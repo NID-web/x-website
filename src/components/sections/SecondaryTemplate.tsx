@@ -69,6 +69,10 @@ export interface SecondaryLayout {
    *  the back link in the page-utility cell — the faculty directory's view
    *  switcher (§82). Without it, the back link alone, the element it always was. */
   utility?: ReactNode;
+  /** The back link can name the band's pages (BackNav's `titles`): the labs,
+   *  whose names come from the CMS, so the site-wide table has none (§104).
+   *  Off: the element every page has always rendered. */
+  backTitles?: boolean;
   /** A person's square portrait at the top of the key-info column, at the
    *  card's own 144px — a faculty member page (§83), whose records have no
    *  landscape hero. The title names them, so no name beside it. */
@@ -101,6 +105,7 @@ export async function SecondaryTemplate({
   split,
   utility,
   portrait,
+  backTitles = false,
   response: given,
 }: {
   path: string;
@@ -162,7 +167,14 @@ export async function SecondaryTemplate({
             {utility}
           </GridItem>
         ) : backFallback ? (
-          <BackNav fallback={backFallback} />
+          backTitles ? (
+            <BackNav
+              fallback={backFallback}
+              titles={Object.fromEntries(derived.siblingBand.map((item) => [item.href, item.title]))}
+            />
+          ) : (
+            <BackNav fallback={backFallback} />
+          )
         ) : (
           <BackNav />
         )}

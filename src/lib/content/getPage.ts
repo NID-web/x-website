@@ -19,6 +19,8 @@ import { withArchiveYears } from "@/lib/content/getArchive";
 import { withAwardRecords } from "@/lib/content/getAwards";
 import { articleFeed } from "@/lib/content/getArticle";
 import { facultyIndex } from "@/lib/content/getFaculty";
+import { labConfig, labIndex, resourcesFixture, withLabParts } from "@/lib/content/getResources";
+import { labSlugOf } from "@/lib/content/resources";
 import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import {
   detailSections,
@@ -825,24 +827,32 @@ const KEEP_UNBUILT_BAND = new Set([
 // cache(): generateMetadata and the page both call this; one fetch and one log
 // line per render.
 export const getPage = cache(async (path: string): Promise<PageData | null> => {
-  const fixture = FIXTURES[path];
+  // Resources and its labs are not in FIXTURES: the landing is built from the
+  // CMS's lab list, and a lab is its fixture copy or, for one the CMS added
+  // since, an empty page its document fills (§104).
+  const fixture = FIXTURES[path] ?? (await resourcesFixture(path));
   if (!fixture) return null;
-  const config = PAGE_CONFIG[path];
+  // One rule for every lab document, not one entry per lab (§104).
+  const config = PAGE_CONFIG[path] ?? labConfig(path);
   // The article index registers which /about/news-events/[slug] routes exist;
   // the gate below and every card's href read it.
   // The faculty index, likewise: it registers the member pages, so a person
   // card on this page (Director's Message) links exactly those that build (§83).
+  // The lab list, likewise: the landing and every lab's band link the labs
+  // that build (§104).
   const [api] = await Promise.all([
     config ? cmsFetch(`/public/content/${config.slug}`, isPublicContentResponse) : null,
     articleFeed(),
     facultyIndex(),
+    labIndex(),
   ]);
 
   // The gate runs on every page, CMS or not: a fixture links to unbuilt routes
   // just as the API does.
   if (api && config) {
     const source = `/public/content/${config.slug}`;
-    assertFloor(`document ${config.slug}: sections`, CMS_FLOORS.documentSections[config.slug] ?? 0, api.sections.length, source);
+    const sectionFloor = CMS_FLOORS.documentSections[config.slug] ?? (labSlugOf(path) ? CMS_FLOORS.labSections : 0);
+    assertFloor(`document ${config.slug}: sections`, sectionFloor, api.sections.length, source);
     const itemFloor = CMS_FLOORS.documentItems[config.slug];
     if (itemFloor !== undefined) {
       const items = api.sections.reduce((n, s) => n + (s.items?.length ?? 0), 0);
@@ -880,7 +890,7 @@ export const getPage = cache(async (path: string): Promise<PageData | null> => {
         ? await withAwardRecords(built)
         : built;
   const served = await withServedFiles(path, await withProgrammeParts(path, withRecords, api));
-  const page = merged ? await withPhotoFallback(path, served, fixture, config) : served;
+  const page = await withLabParts(path, merged ? await withPhotoFallback(path, served, fixture, config) : served);
   const keepUnbuilt = detailSections(config?.detail);
   if (KEEP_UNBUILT.has(path)) {
     keepUnbuilt.add(SUB_PAGE_RAIL);
