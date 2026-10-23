@@ -88,6 +88,8 @@ export const CMS_FLOORS = {
     careers: 1,
     // About (§102). No floor on notices, as on openings.
     tenders: 1,
+    // About (§106); the page's list is generated, not the document's.
+    sitemap: 1,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page

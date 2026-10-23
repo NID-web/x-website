@@ -7480,3 +7480,113 @@ right page (by its h1) in one hop.
 ### Backend asks
 
 None. Editor: the paragraph above. Domain switch: KMC's host, and the 307 → 308 flip.
+
+## 106. Sitemap: a page generated from the site's own navigation
+
+`/sitemap` is the last Miscellaneous page, Careers' shape (§101): the secondary template, read from
+the CMS's `sitemap` document (id 25, static), no parent, no band. **Its list is generated, never
+hand-written**: nid.edu's sitemap is a hand-kept list that has drifted (it still shows Academics
+and Services). A page built tomorrow appears here with no edit to the sitemap. The CMS footer's
+"Sitemap" row already pointed at `/en/sitemap` and 404ed on every page; it now resolves.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS `title` |
+| Back link | BackNav, else "Home" |
+| Hero | none: `sitemap-hero.jpg` has no alt text and 404s (SM1) |
+| Standfirst | CMS `heroText` |
+| Sections | generated (`getSitemap.ts`): one `links` section per menu section, Resources after Programmes, then Quick Links; two-up |
+| Contacts | CMS `webmaster@nid.edu`, `+91 79 2662 9500`, in column 4 of the **last** section that renders (Quick Links today) |
+| Band | none |
+
+The CMS's "About" (one TEXT block saying what heroText says, and an IMAGE with no alt text) has no
+slot: logged as an unused section (SM2). **The contacts go on the last section**: the template
+gives page contacts to a first *text* section, and this page has none; the two-up `links` layout
+draws a section's own contacts in column 4 (§76). Beside "About NID" they would read as About's;
+beside the last section, a webmaster address reads as help with the site. If that section ever
+drops, they go on the one before it.
+
+### The generator (`src/lib/content/getSitemap.ts`)
+
+A getPage step for `/sitemap` only (the `withArchiveYears` precedent), returning ordinary `links`
+sections: no component reads navigation data. Five sources, in priority order; each destination
+appears once, under the first source that lists it, with that source's label; only built routes
+(`builtHref`) and external links; never the page itself:
+
+1. **The header menu (`MENU_SECTIONS`), in both modes.** The LIVE header is the CMS's (§85), but
+   this is the designed structure, and it lists CTL and Resources, which the CMS menu does not yet:
+   the sitemap is their way in from production until CTL2 and RS7 land.
+2. **Each landing's sub-page rail**, read through getPage, under its landing's menu section.
+   Continuing Education and Director's Message are listed nowhere else.
+3. **`UNLISTED_PAGES`.** A section's landing (Programmes, Study at NID, Research & Publications,
+   Consulting & Entrepreneurship, People: menu titles that are not links) heads its menu section,
+   matched by title; the rest go to Quick Links. Right to Information and Sitemap joined the list,
+   so RTI appears in both modes (the static footer's RTI path is stale, a separate backlog task)
+   and a page reached from either names it in its back link.
+4. **The footer**, as `getSiteChrome` gives it (the CMS's in LIVE), into Quick Links.
+5. **The labs** (`labIndex()`, less WITHHELD), flat, in nid.edu's group order, their own
+   "Resources" section after Programmes.
+
+Other dynamic children (disciplines, faculty members, articles, the three campus pages) are reached
+through their index pages. A section with no row is dropped with its separator: Industry Connect,
+today (its rows are unbuilt, and Shifting Paradigms is listed under Events first). Article rows
+have no PAGE_ID: they are named by `routePageId` (`page-route:<path>`), which `pathOf` resolves,
+as labs are (§104). Labels are the first source's: the menu's "Admission Notifications" stands
+(§73's TODO).
+
+**The rows** (LIVE 70, FIXTURE 69): About NID 9 (Director's Message from the rail), Programmes 9
+(CTL and Resources included), Resources 18, Study at NID 6, Research & Publications 8,
+Consulting & Entrepreneurship 3 (Continuing Education from the rail), Knowledge Management
+Centre 3 (external; "Services" is the same address as Design Classics Collection and is dropped),
+People 6, Events 3 (2 in FIXTURE, which does not build Shifting Paradigms), Quick Links 5 (News &
+Events Archive, Student Awards Gallery, Careers, Tenders, Right to Information).
+
+### Machine sitemap and robots
+
+Neither exists: no `app/sitemap.ts`, no `app/robots.ts`; production answers 404 for `/sitemap.xml`
+and `/robots.txt`. A metadata `app/sitemap.ts` serves `/sitemap.xml` and does not collide with this
+page (`/[locale]/sitemap`). On the "Before launch" list (DEVELOPER-MANUAL): `app/sitemap.ts` from
+the same generator plus every registered dynamic child (articles, faculty members, disciplines,
+labs) with the canonical domain, and `app/robots.ts` pointing at it.
+
+### Floors, requests
+
+`documentSections.sitemap: 1`. One document: **309 → 310 distinct**, fetched == distinct. The footer,
+the lab list and the landings' documents are already in the build.
+
+### R, A, C, E, Playwright
+
+**R** (baseline `e36d0e9`): FIXTURE **526 of 526** and LIVE **1084 of 1084** existing files
+identical; the six new files are this page's. One client chunk renamed: the route-title table,
+which now holds RTI and Sitemap. LIVE 146s (baseline 164s), floors 94/0.
+
+**A / crawl** (`next start`, both modes): every row on `/en/sitemap` resolves. LIVE: 70 rows in 10
+sections, 66 internal answering 200 with no redirect, 4 external (KMC's three, Alpavirama) opening
+in a new tab with ↗. FIXTURE: 69 rows, 65 internal, the same 4 external. No destination twice, no
+link to the page itself. Two-up from 768, one-up at 390, the landing first in each of the six
+sections that have one, no horizontal overflow; the contacts in column 4 of Quick Links at 1440.
+
+**C** (LIVE): `api=title,intro(heroText),contacts(2 contacts),seo,publishedAt · static=hero(media
+rejected: no altText),backNav · unused api sections: "About" (SPECIFIC)`.
+
+**E** (`next dev`, a proxy CMS and a scratch copy of the menu; deleted after):
+
+| Mock | Result |
+|---|---|
+| E1: a 19th lab in the list | listed last under Resources, no code change |
+| E2: a menu row to an unbuilt route | not listed |
+| E3: the CMS footer gains Ahmedabad Campus, a built page no other source lists | listed under Quick Links |
+| E4: every Events row unbuilt | Events and its separator gone (11 rules for 10 sections and the footer); Shifting Paradigms then rises into Industry Connect, its next source |
+
+**Playwright / links:** the back link reads "Home" loaded directly; a lab reached from the sitemap
+reads "Sitemap"; History reached from RTI reads "Right to Information". Tab order: the back link,
+then About NID's rows in order. Contacts: `webmaster@nid.edu` once and `+91 79 2662 9500` once on
+the page.
+
+### Backend asks
+
+- **SM1** The hero, the About IMAGE block and the thumbnail are seed placeholders: no alt text, files 404.
+- **SM2** "About" repeats heroText: keep one.
+- **SM3** Confirm `webmaster@nid.edu` is a live mailbox.

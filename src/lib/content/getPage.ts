@@ -21,6 +21,7 @@ import { articleFeed } from "@/lib/content/getArticle";
 import { facultyIndex } from "@/lib/content/getFaculty";
 import { labConfig, labIndex, resourcesFixture, withLabParts } from "@/lib/content/getResources";
 import { labSlugOf } from "@/lib/content/resources";
+import { SITEMAP_PATH, withSitemapSections } from "@/lib/content/getSitemap";
 import { CMS_FLOORS } from "@/lib/content/cms-floors";
 import {
   detailSections,
@@ -63,6 +64,7 @@ import { PEOPLE_STAFF } from "@/lib/content/fixtures/people-staff";
 import { PEOPLE_ALUMNI } from "@/lib/content/fixtures/people-alumni";
 import { CAREERS } from "@/lib/content/fixtures/careers";
 import { TENDERS } from "@/lib/content/fixtures/tenders";
+import { SITEMAP } from "@/lib/content/fixtures/sitemap";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
@@ -111,6 +113,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/people/alumni": PEOPLE_ALUMNI,
   "/careers": CAREERS,
   "/tenders": TENDERS,
+  "/sitemap": SITEMAP,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
   "/regulatory/rti": REGULATORY_RTI,
@@ -608,6 +611,15 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-tenders-current": { textTitle: "Current Tenders", linkBlocks: true },
     },
   },
+  // A footer page whose list is generated (§106): heroText the standfirst, the
+  // contacts the CMS's. "About" says what heroText says and has no slot: unused,
+  // logged, its IMAGE (no alt text) with it. The sections are getSitemap.ts's.
+  // TODO(review): backend — SM1–SM3.
+  "/sitemap": {
+    slug: "sitemap",
+    intro: "heroText",
+    sections: {},
+  },
   // The first Regulatory page (STAGE-0-NOTES §86). The standfirst is heroText:
   // "About" is three narrative paragraphs with no summary among them, so it
   // renders whole, and "Documents" is a list of documents (§76) — its eight
@@ -890,7 +902,13 @@ export const getPage = cache(async (path: string): Promise<PageData | null> => {
         ? await withAwardRecords(built)
         : built;
   const served = await withServedFiles(path, await withProgrammeParts(path, withRecords, api));
-  const page = await withLabParts(path, merged ? await withPhotoFallback(path, served, fixture, config) : served);
+  const parts = await withLabParts(path, merged ? await withPhotoFallback(path, served, fixture, config) : served);
+  // The Sitemap's sections, generated from the site's navigation; a landing's
+  // rail as it renders, read through this function (§106).
+  const page =
+    path === SITEMAP_PATH
+      ? await withSitemapSections(parts, async (landing) => (await getPage(landing))?.derived.subPageLinks ?? [])
+      : parts;
   const keepUnbuilt = detailSections(config?.detail);
   if (KEEP_UNBUILT.has(path)) {
     keepUnbuilt.add(SUB_PAGE_RAIL);

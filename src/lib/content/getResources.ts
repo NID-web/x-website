@@ -71,6 +71,12 @@ function grouped(labs: readonly LabListing[]): Array<{ group: LabGroup; labs: La
   }));
 }
 
+/** The labs that build, flat, in nid.edu's group order (the landing's order):
+ *  the Sitemap's Resources section (§106). */
+export async function labsInGroupOrder(): Promise<LabListing[]> {
+  return grouped(await labIndex()).flatMap((g) => g.labs);
+}
+
 /** The fixture for a Resources path not in FIXTURES: the landing, built from
  *  the list, or a lab — its fixture copy, or for a lab the CMS added since, an
  *  empty page its document fills. Undefined for any other path, and for a lab

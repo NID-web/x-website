@@ -29,6 +29,7 @@ export const BUILT_ROUTES = [
   "/about/student-awards",
   "/careers",
   "/tenders",
+  "/sitemap",
   "/consulting",
   "/consulting/continuing-education",
   "/consulting/ids",

@@ -28,6 +28,7 @@ export const PAGE_ID = {
   peopleAlumni: "page-people-alumni",
   careers: "page-careers",
   tenders: "page-tenders",
+  sitemap: "page-sitemap",
   campusAhmedabad: "page-about-campuses-ahmedabad",
   campusGandhinagar: "page-about-campuses-gandhinagar",
   campusBengaluru: "page-about-campuses-bengaluru",
@@ -88,6 +89,7 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.peopleAlumni]: "/people/alumni",
   [PAGE_ID.careers]: "/careers",
   [PAGE_ID.tenders]: "/tenders",
+  [PAGE_ID.sitemap]: "/sitemap",
   [PAGE_ID.campusAhmedabad]: "/about/campuses/ahmedabad",
   [PAGE_ID.campusGandhinagar]: "/about/campuses/gandhinagar",
   [PAGE_ID.campusBengaluru]: "/about/campuses/bengaluru",
@@ -131,12 +133,24 @@ const PATH: Record<UUID, string> = {
 const LAB_ID = "page-lab-";
 export const labPageId = (slug: string): UUID => `${LAB_ID}${slug}`;
 
+// A built page with no PAGE_ID (an article at /about/news-events/<slug>) named
+// by its route, so a generated `Link` can point at it: the Sitemap's rows
+// (§106). pathOf returns the route as it is.
+const ROUTE_ID = "page-route:";
+export const routePageId = (path: string): UUID => `${ROUTE_ID}${path}`;
+
 // A page id may carry a fragment: the news-archive id plus "#" and a year is
 // that year's group on the archive, which the listing's Archive row links to.
 // TODO(review): backend — `Link` has no fragment field; this stands in for one.
 export function pathOf(id: UUID): string | undefined {
   const [page, fragment] = id.split("#");
-  const path = PATH[page!] ?? (page!.startsWith(LAB_ID) ? labPath(page!.slice(LAB_ID.length)) : undefined);
+  const path =
+    PATH[page!] ??
+    (page!.startsWith(LAB_ID)
+      ? labPath(page!.slice(LAB_ID.length))
+      : page!.startsWith(ROUTE_ID)
+        ? page!.slice(ROUTE_ID.length)
+        : undefined);
   return path && fragment ? `${path}#${fragment}` : path;
 }
 

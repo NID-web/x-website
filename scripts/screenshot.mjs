@@ -120,6 +120,8 @@ const PAGES = [
   { name: "programmes-resources-skill-development-lab-ahmedabad", path: "/en/programmes/resources/skill-development-lab-ahmedabad" },
   { name: "programmes-resources-clay-studio-cintiq-lab-studio", path: "/en/programmes/resources/clay-studio-cintiq-lab-studio" },
   { name: "programmes-resources-av-lab-nid-bengaluru", path: "/en/programmes/resources/av-lab-nid-bengaluru" },
+  // Generated from the site's navigation (§106).
+  { name: "sitemap", path: "/en/sitemap" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

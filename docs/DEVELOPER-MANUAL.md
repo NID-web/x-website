@@ -196,6 +196,7 @@ The Build Command must be `npm run build` (the Vercel default when `package.json
 
 - Turn `SHOW_IMAGE_PLACEHOLDERS` off (`src/lib/content/placeholders.ts`), or replace every placeholder with a real photo. Until then the Study at NID pages draw a flat box in each image slot the CMS has not filled (STAGE-0-NOTES §77).
 - At the domain switch, flip the legacy redirects (`src/lib/legacy-redirects.ts`, STAGE-0-NOTES §105) from 307 to 308 (`permanent: true`), and decide KMC's host first: `/academics/kmc` is KMC's own URL on nid.edu, and §85 sends every KMC link there.
+- A machine sitemap and robots: `app/sitemap.ts` from the same generator as the Sitemap page (`getSitemap.ts`) plus every registered dynamic child (articles, faculty members, disciplines, labs), with the canonical domain; and `app/robots.ts` pointing at it. Neither exists today (STAGE-0-NOTES §106).
 - Give bold prose a real weight, site-wide. A `<strong>` in a section body computes to 400 on the body's 300 (browser `bolder`), so it reads barely heavier than its paragraph: Governing Council's names (§95), the labs' sub-headings (§104), every CMS `<strong>`. One rule in Prose (or `globals.css`) fixes it, and changes every page with bold prose: one R pass, every such page listed.
 
 **Reading `npm run build` output:** your route must show `○` or `●` (static). If it shows `ƒ` (dynamic), something in your page called `cookies()` or `headers()` and you've made the whole site render per-request. Find it and remove it.
@@ -434,6 +435,10 @@ A page the CMS has no document for (Centre for Teaching and Learning, STAGE-0-NO
 A lab is a CMS `lab_and_facilities` item (STAGE-0-NOTES §104). Publishing one builds its page at `/programmes/resources/<its CMS slug>` with no code change: `labIndex()` reads the list, registers the slug, and `generateStaticParams` makes the page; its document is merged by the one lab rule (`labConfig`), and the landing lists it.
 
 The only edit is where it sits: add its slug to its group in `LAB_GROUPS` (`src/lib/content/resources.ts`), in nid.edu's order. Without that it builds under Other Resources, logged, with no Faculty row. Optionally add a fixture copy to `FIXTURE_LABS` (`fixtures/resources.ts`) so FIXTURE shows it too, and its nid.edu id to `LEGACY_LAB_IDS` if it had one. A seed or a record that must not build goes in `WITHHELD_LABS`, by slug, never by date. A hero under 400px wide goes in `REFUSED_LAB_HEROES` by media id.
+
+### The Sitemap is generated: never edit it by hand
+
+`/sitemap` lists the site from its own navigation data (`src/lib/content/getSitemap.ts`, STAGE-0-NOTES §106): the menu, the landings' rails, `UNLISTED_PAGES`, the footer and the lab list, built routes only. To put a page on it, put the page where visitors find it (a menu row, a landing's rail, the footer); it appears with no edit to the sitemap. A page in none of those is in none of the site's navigation, which is the thing to fix.
 
 ### R1h — A STRUCTURED person section as cards
 
