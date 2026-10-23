@@ -86,6 +86,8 @@ export const CMS_FLOORS = {
     alumni: 3,
     // About (§101). No floor on openings: none is a valid state.
     careers: 1,
+    // About (§102). No floor on notices, as on openings.
+    tenders: 1,
   } as Record<string, number>,
 
   /** Listed records across a document's STRUCTURED sections, where the page

@@ -59,6 +59,7 @@ import { PEOPLE_SENATE } from "@/lib/content/fixtures/people-senate";
 import { PEOPLE_STAFF } from "@/lib/content/fixtures/people-staff";
 import { PEOPLE_ALUMNI } from "@/lib/content/fixtures/people-alumni";
 import { CAREERS } from "@/lib/content/fixtures/careers";
+import { TENDERS } from "@/lib/content/fixtures/tenders";
 import { PEOPLE } from "@/lib/content/fixtures/people";
 import { REGULATORY_NID_ACT } from "@/lib/content/fixtures/regulatory-nid-act";
 import { REGULATORY_ANNUAL_REPORTS } from "@/lib/content/fixtures/regulatory-annual-reports";
@@ -103,6 +104,7 @@ const FIXTURES: Record<string, PageResponse> = {
   "/people/staff": PEOPLE_STAFF,
   "/people/alumni": PEOPLE_ALUMNI,
   "/careers": CAREERS,
+  "/tenders": TENDERS,
   "/regulatory/nid-act": REGULATORY_NID_ACT,
   "/regulatory/annual-reports": REGULATORY_ANNUAL_REPORTS,
   "/regulatory/rti": REGULATORY_RTI,
@@ -584,6 +586,20 @@ const PAGE_CONFIG: Record<string, PageMergeConfig> = {
       "section-careers-about": { textTitle: "About" },
       "section-careers-important": { textTitle: "Important" },
       "section-careers-openings": { textTitle: "Current Openings", linkBlocks: true },
+    },
+  },
+  // A footer page, Careers' shape (§102): heroText the standfirst, About whole
+  // (its IMAGE block has no alt text: logged, dropped), and its LINK blocks its
+  // links: the CPPP portal, when the CMS sends it (TN5). "Current Tenders" is
+  // the CMS's LINK blocks, one per notice document, a list of documents (§76),
+  // and nothing when it sends none. No notice is ever the fixture's.
+  // TODO(review): backend — TN2, TN3 (a launch blocker), TN5.
+  "/tenders": {
+    slug: "tenders",
+    intro: "heroText",
+    sections: {
+      "section-tenders-about": { textTitle: "About", linkBlocks: true },
+      "section-tenders-current": { textTitle: "Current Tenders", linkBlocks: true },
     },
   },
   // The first Regulatory page (STAGE-0-NOTES §86). The standfirst is heroText:

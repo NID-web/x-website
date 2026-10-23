@@ -6931,3 +6931,120 @@ LIVE footer none (it drops the CMS's two-number value, §80).
 
 Known limitations: at 1024 the contacts fall below About's body (free flow). A closed opening stays
 up until the editor removes it and the site rebuilds.
+
+## 102. Tenders: Careers' shape, notices from the CMS only, and a launch blocker
+
+**Launch blocker until TN3 lands: Tenders has no notices until the backend serves them.** nid.edu's
+tender page showed a live notice on 23 Oct 2026 (a structural consultancy for the Gandhinagar indoor
+sports centre, NIT NID/NIQ/07G/26-27, closing 04 Nov 2026 at 17:00); this page shows none. It
+cannot replace nid.edu's until the CMS sends notices.
+
+`/tenders` is the second Miscellaneous page, Careers' shape (§101, R1i): the secondary template
+through a thin route, read from the CMS's `tenders` document (id 21, static), no parent, no band,
+no board. The CMS footer's "Tenders" row already pointed at `/en/tenders` and 404ed on every page;
+it now resolves, with no HTML change.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | CMS `title` |
+| Back link | BackNav, the visitor's previous page, else "Home" → `/` |
+| Hero | none, the closed-up state: `tenders-hero.jpg` has no alt text and 404s (TN6) |
+| Standfirst | CMS `heroText` (the SEO description is the same sentence) |
+| About | CMS "About", its TEXT block; its LINK blocks its links (`linkBlocks`), so a CPPP link the CMS sends renders above the contacts (TN5). Its IMAGE block (`tenders-about.jpg`) has no alt text and 404s: `dropped 1 IMAGE block` |
+| Current Tenders | the CMS's LINK blocks in a section so titled, one per notice document, a list of documents (§76), Careers' openings shape (CR4); today none, so no section and no separator |
+| Column 4 | CMS contacts: "Contact" `procurement@nid.edu`, "Contact" `+91 79 2662 9540` (`tel:+917926629540`) |
+| Band | none; the page ends About › one rule › footer |
+
+**No notice, date, reference number, CPPP link or `admin@nid.edu` is in the fixture**, in either
+mode. Notices close within days, and a stale tender on a government site misleads bidders. On 23 Oct
+nid.edu's own page carried the two notices of 6 Oct (an energy audit, closed 12 Oct, and electrical
+poles, closed 8 Oct) inside HTML comments: its editors unpublish a closed notice by hand. The front
+end does not filter by date: a static build's "today" is the build date, not the visit.
+
+**The notice shape (TN3)** needs no code. One LINK block per document in a SPECIFIC section titled
+"Current Tenders"; the block's text is the label as it should read, naming the notice, its
+reference and its closing time ("Appointment of Structural Engineering Consultancy firm… — NIT
+NID/NIQ/07G/26-27, closes 04 Nov 2026, 17:00 — NIQ"), and the file as `media` (or a `url`). A
+notice with a corrigendum is two rows, each naming its notice. Rows are not grouped per notice:
+NoticesSection (§73) draws a title over a date with no link and has no CMS path, and a `links`
+section per notice has no body slot and needs a fixture section per notice. Grouping is for the
+day notices arrive as `regulatory_document` records (TN7), which needs an adapter.
+
+**`amc-tender` is a seed,** as Careers' jobs were: `regulatory_document` id 66, category "Tender",
+reference NID/AMC/2025-26/01, published in the 21 Sep 03:18 seed batch, no dates, no files, a
+thumbnail that 404s, and never on nid.edu. `nid-act-2014` (id 65) is the same pattern. Neither is
+fetched: the page reads only its document (TN1). `content-items` filters by tag, not by `detail`
+fields, and `taxonomyTermSlug=tender` answers 404 "Unknown taxonomy term".
+
+**The contact conflict.** `procurement@nid.edu` and `+91 79 2662 9540` are the CMS's and appear in
+no other CMS document (all 44 static documents, `contact-details`, `site-config`) or the repo.
+nid.edu says "General Administration, NID Ahmedabad, admin@nid.edu", with no phone, and that is in
+no CMS document. The CMS's render, TODO(review) (TN2).
+
+**CPPP.** `https://eprocure.gov.in/cppp/` answers 200 ("Central Public Procurement Portal"); there
+is no stable per-organisation deep link. It renders only when the CMS sends it, as a LINK block in
+About (TN5). It is a site, not a file: no HEAD.
+
+### Every CMS change reaches the site at the next build (TN4, site-wide)
+
+The site is static (CLAUDE.md, "Rendering"). A change in the CMS (a new page, a fixed typo, an
+unpublished record) reaches visitors only when the site next builds, which today is the next push
+to main. This is true of every page, not only this one. Tenders is where it matters most: a notice
+unpublished at its closing time stays on the site until an unrelated deploy. Backend ask: publishing
+or unpublishing in the CMS triggers a rebuild (a Vercel deploy hook).
+
+### Floors, requests
+
+`documentSections.tenders: 1` (About). No floor on notices: none is a valid state. One document, no
+HEADs (the hero is refused before any request): **289 → 290 distinct**, fetched == distinct, the only
+new URL `/public/content/tenders`. No `amc-tender` or `regulatory_document` request.
+
+### R, A, C, E, Playwright
+
+**R** (baseline `f8a1117`, both built in scratch copies; §100's normalisation). FIXTURE **400 of
+400** existing files identical, LIVE **958 of 958**; the six new files are this page's. One client
+chunk is renamed: the route-title table, which now holds `/tenders` (`UNLISTED_PAGES`). The footer's
+"Tenders" row is byte-identical in all four builds. Gate 67 → 67 FIXTURE, 75 → 75 LIVE. LIVE 148s
+(baseline 162s), floors 74/0, the guard clean.
+
+**A** (FIXTURE): title; back link "Home" (loaded directly); no hero; the standfirst; About with the
+contacts in column 4; no band. The page is About › rule › footer at every width (the rule hidden on
+phones, as everywhere).
+
+**C** (LIVE): `api=title,intro(heroText),contacts(2 contacts),seo,publishedAt,section:about ·
+static=hero(media rejected: no altText),section:current(no api section titled "Current
+Tenders"),backNav · section:about: dropped 1 IMAGE block · unused api sections: none`.
+
+**E** (a proxy CMS under `next dev`, altering only `/public/content/tenders`, deleted after):
+
+| Mock | Result |
+|---|---|
+| "Current Tenders": a notice's NIQ and Corrigendum (PDFs), then a url | three rows in CMS order, new tab, ↗ on all, the file glyph on the two PDFs; one HEAD per PDF per render, none for the url. Logged `section:current(3 link blocks)` |
+| The same, the Corrigendum 404ing | that row dropped, `dropped 1 CMS file that 404 (…)`; the NIQ and the url remain |
+| Real-length labels (169 and 179 characters) | wrap cleanly: 3 lines at 1440 and 768, 4 at 1024, 6 and 7 at 390; no overflow; the file glyph and ↗ centred together on the row (LinkStack's rule) |
+| No "Current Tenders" | no section and no separator: About › rule › footer |
+| About with a CPPP LINK block | About's link, above the contacts: column 4 at 1440, column 1 under the body at 1024 (free flow, §74's open item), full width under it at 768 and 390; new tab, ↗, no HEAD |
+
+**Playwright** (FIXTURE and LIVE, 1440 / 1024 / 768 / 390): contacts in column 4 at 1440 (x 1086),
+under About's body below that; no horizontal overflow. Tab order: the back link, the two contacts,
+the footer. The back link reads "Home" loaded directly, and "Tenders" on IDS reached from Tenders'
+footer. Contacts: `procurement@nid.edu` once and `+91 79 2662 9540` once on the page; the footer
+lists neither.
+
+### Backend asks
+
+- **TN1** Unpublish the `amc-tender` seed (and `nid-act-2014`, the same pattern).
+- **TN2** Confirm the tenders contact: the CMS's `procurement@nid.edu` / `+91 79 2662 9540`, or nid.edu's `admin@nid.edu`.
+- **TN3** Notices on `tenders` as a "Current Tenders" section, one LINK block per document, its
+  label naming the notice, reference and closing time, the PDF as `media` (or a `url`); removed when
+  the notice closes. **A launch blocker.**
+- **TN4** Publishing or unpublishing in the CMS triggers a site rebuild (site-wide, above).
+- **TN5** CPPP as a LINK block in About: `https://eprocure.gov.in/cppp/`.
+- **TN6** The hero, the About IMAGE block and the thumbnail are seed placeholders: no alt text, files 404.
+- **TN7** (later) Notices as `regulatory_document` records: a closing date-time, documents as labelled
+  files with their dates, a "tender" tag, and `detail` in list responses (§81).
+
+Known limitations: no notices until TN3 (the launch blocker); rows are not grouped by notice; at
+1024 the contacts and a CPPP link fall below About's body (free flow).

@@ -402,7 +402,7 @@ Members as text are a stopgap: when the CMS sends person records, the page takes
 
 ### R1i — A footer page (no parent, no band)
 
-A page sitemap.json files under "12 Miscellaneous" (Careers today, STAGE-0-NOTES §101; Tenders, Sitemap, Privacy Policy and Terms next) has no parent page and no landing:
+A page sitemap.json files under "12 Miscellaneous" (Careers and Tenders today, STAGE-0-NOTES §101, §102; Sitemap, Privacy Policy and Terms next) has no parent page and no landing:
 
 1. **Route file** `src/app/[locale]/<page>/page.tsx`, a copy of `careers/page.tsx`: `backFallback="/"` (the link reads "Home", `HOME_NAV`), `heroPlaceholder={false}`. Add the path to `BUILT_ROUTES`.
 2. **Fixture** `src/lib/content/fixtures/<page>.ts`: `parent: null`, `backNav` Home, `siblingBand: []`. With no siblings the template draws no band and no separator for it: the page ends last section › one rule › footer.
@@ -411,6 +411,8 @@ A page sitemap.json files under "12 Miscellaneous" (Careers today, STAGE-0-NOTES
 5. **Floors**: `documentSections`.
 
 The footer's row needs no change: footer links are not gated, so the row already points at the route.
+
+A list that expires (openings, tender notices) is never in the fixture: an empty `links` section with `{ textTitle: "<the CMS section>", linkBlocks: true }` and `documentLists`, which the gate removes, separator and all, while the CMS sends none. No floor on it: none is a valid state.
 
 ### R1h — A STRUCTURED person section as cards
 
