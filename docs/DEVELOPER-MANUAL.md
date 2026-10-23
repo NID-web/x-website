@@ -414,6 +414,17 @@ The footer's row needs no change: footer links are not gated, so the row already
 
 A list that expires (openings, tender notices) is never in the fixture: an empty `links` section with `{ textTitle: "<the CMS section>", linkBlocks: true }` and `documentLists`, which the gate removes, separator and all, while the CMS sends none. No floor on it: none is a valid state.
 
+### R1j — A fixture-only page, and how it becomes CMS-first
+
+A page the CMS has no document for (Centre for Teaching and Learning, STAGE-0-NOTES §103) is a `FIXTURES` entry with **no** `PAGE_CONFIG`: getPage makes no request and serves the fixture in both modes, through the route gate as always.
+
+1. **Probe first.** Try the obvious slugs at `/public/content/<slug>` and search every type at `/public/content-types`; the backend adds documents.
+2. **Fixture**: the source's words verbatim (nid.edu, when that is the source), its own markup deciding the paragraph breaks. A content pack is for words, not breaks. Build every body with the adapter's rules, `joinBlocks(paragraphs.map((p) => richParagraphs(p).text)).body`, so the day the CMS sends the same text nothing changes: a raw `&` is the byte that differs otherwise (§103). Say at the top of the file that it is not in the CMS, and name the backend ask.
+3. **Route, `PAGE_ID`/`PATH`, `BUILT_ROUTES`**, and a way in. In LIVE the header menu is the CMS's, so a `nav-content.ts` row shows in FIXTURE only; if nothing else links the page, put one link on the closest related page whose rule keeps fixture links in LIVE, marked TODO(review).
+4. **No floor and no request** until the document exists.
+
+**When the document lands:** one `PAGE_CONFIG` entry (its slug, the intro source, a rule per section), the slug in `PATH_BY_CMS_SLUG`, and a `documentSections` floor. Check which shape it came in. With a `heroText` (a summary the editor wrote): `intro: "heroText"` and the section whole (`{ textTitle: "About" }`), and the fixture takes the same shape. Without one: FDP's pattern, the first TEXT block the standfirst (`{ textTitle: "About", afterIntro: true }`). §103 has both for CTL. Rehearse it first: a scratch copy with those lines against a proxy serving the document, and the fixture-only copy against the same proxy, both built LIVE. The output must be identical, with exactly one more request.
+
 ### R1h — A STRUCTURED person section as cards
 
 A CMS section of `type: "STRUCTURED"` with `structuredContentType.key: "person"` (the Senate's "Senate Members with NID profiles", STAGE-0-NOTES §96) becomes a `rail` of person cards with no per-person fetch: each item already carries its name (`title`), designation (`heroText`) and portrait (`thumbnail`).

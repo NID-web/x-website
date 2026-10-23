@@ -7048,3 +7048,146 @@ lists neither.
 
 Known limitations: no notices until TN3 (the launch blocker); rows are not grouped by notice; at
 1024 the contacts and a CPPP link fall below About's body (free flow).
+
+## 103. Centre for Teaching and Learning: the first fixture-only page, and how it becomes CMS-first
+
+`/programmes/ctl` is a Programmes child on the secondary template with **no CMS document**. It is
+the first page served by a `FIXTURES` entry with no `PAGE_CONFIG`: getPage makes no request, the
+page is its fixture in both modes, and no `[cms]` line is printed. Re-probed 23 Oct 2026: no
+document at `centre-for-teaching-and-learning`, `ctl`, `teaching-and-learning`,
+`center-for-teaching-and-learning`, `centre-for-teaching-learning` or `academics`, and no CTL
+record in any of the CMS's 22 content types.
+
+**Placement (decided 7 Oct 2026, the user):** under Programmes, in the Programmes menu, after
+Faculty Development Programme; sitemap.json §03 gains the child (with a `note`) and the menu entry,
+by hand. TODO(designer): not in the Figma architecture. The `/programmes` rail is unchanged: it is
+the programmes themselves, and Curriculum Objectives is not in it either.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | "Centre for Teaching and Learning", nid.edu's h1 (2 lines at 1440, 1024 and 390, 1 at 768) |
+| Back link | BackNav, else "Programmes" → `/programmes` (`programmeDerived`) |
+| Hero | none: nid.edu's page has no photograph |
+| Standfirst | nid.edu ¶1, whole (75 words) |
+| About | nid.edu ¶2–¶4, whole, clamped at 8 lines behind "See more". "About" is our title; nid.edu has no section heading. TODO(review) |
+| Column 4 | `teachinglearning@nid.edu`; `+91 79 2662 9500` (`tel:+917926629500`) |
+| Band | "More in Programmes", `programmesBand(path)`: five rows (B.Des, M.Des, Ph.D, FDP, International); Industry & Online is unbuilt and dropped, as on Curriculum Objectives |
+
+**The text is nid.edu's, verbatim, and its `<p>` elements decide the breaks.** The content pack
+(`CONTENT-NIDEDU-ACADEMICS-LABS.md`) has the same 320 words in the same order, but splits them into
+seven paragraphs that do not come from the markup: live ¶2 is one unbroken `<p>` (no `<br>`,
+`white-space: normal`, 270px tall at 1440), and the pack also moved "At CTL in NID Ahmedabad…" from
+the end of ¶1 to the start of its ¶2. The only other `<br>` is a trailing `<br>&nbsp;` closing ¶4, a
+spacing leftover. For every page the pack covers: the pack is for words, nid.edu's markup decides
+paragraph breaks. "@ Connect," opens ¶4; it is not a heading. TODO(review), editor, each kept as
+written: "Bangalore" (the site says Bengaluru), "campuses- Ahmedabad", "teaching- learning",
+"reflect-share- critique", "vis a vis" (twice), "FLGs/SIGs- Faculty Learning Groups/ Subject Interest
+Groups", "COPs- Communities of Practice". The sidebar's NID Press book excerpt (I.S. Mathur's book,
+twice) is not CTL's and is left out.
+
+**The phone is regrouped.** nid.edu writes "+91 79 26629 500": the same number as "+91 79 2662 9500",
+grouped differently (nid.edu's own footer writes it the standard way). It renders as the site
+writes it, `+91 79 2662 9500`, dialling `tel:+917926629500`. The email renders plainly (nid.edu
+obfuscates it as `teachinglearning[at]nid[dot]edu`).
+
+**The standfirst is long, and stays whole for now (open, not a fault).** ¶1 is 75 words: 7 lines
+at 1440 and 1024, 6 at 768, 12 at 390, where the standfirst's own phone clamp shows 7 behind "See
+more". That is one over a rough threshold of six at 1440, and it is nid.edu's ¶1, whole. Not
+clamped at 1440: a new clamp on the shared standfirst for one page is not worth it. The way out is
+the CMS's: CTL1 asks for a one-sentence `heroText` the editor writes (we do not), which becomes the
+standfirst, with ¶1 opening About (below).
+
+### The way in from LIVE: one link of our own on FDP
+
+In a LIVE build the header menu is the CMS's, whole, and its Programmes item has no children, so
+the menu row shows in FIXTURE only; no rail, band or footer row lists CTL. FDP's About therefore
+carries a page link, "Centre for Teaching and Learning", in its column 4 (`programme-fdp.ts`). It
+survives LIVE because FDP's About rule (`afterIntro`, no `linkBlocks`) keeps the fixture's page
+links. TODO(review): nid.edu's FDP page has no such link; it is ours, because a production page with
+no way in is worse than one link on a closely related page. **Choice point:** once CTL2 gives the
+LIVE menu the row, keep it or remove it.
+
+### How it becomes CMS-first
+
+The day `centre-for-teaching-and-learning` exists (CTL1), the page becomes CMS-first with a
+`PAGE_CONFIG` entry, the slug in `PATH_BY_CMS_SLUG`, and a section floor. Step 0 of that day checks
+which shape the document came in:
+
+```ts
+// PATH_BY_CMS_SLUG (pages.ts), and CMS_FLOORS.documentSections (cms-floors.ts), in both shapes
+"centre-for-teaching-and-learning": "/programmes/ctl",
+"centre-for-teaching-and-learning": 1,
+
+// PAGE_CONFIG (getPage.ts), the document WITH a heroText (the ask): the editor's one-sentence
+// summary is the standfirst, and About takes ¶1–¶4, still clamped at 8 lines by the route.
+"/programmes/ctl": {
+  slug: "centre-for-teaching-and-learning",
+  intro: "heroText",
+  sections: { "section-ctl-about": { textTitle: "About" } },
+},
+
+// PAGE_CONFIG, the document WITHOUT a heroText: FDP's pattern, rehearsed below. Block 1 (¶1) is
+// the standfirst, blocks 2–4 About.
+"/programmes/ctl": {
+  slug: "centre-for-teaching-and-learning",
+  sections: { "section-ctl-about": { textTitle: "About", afterIntro: true } },
+},
+```
+
+With a heroText, the fixture takes the same shape the same day (the summary as `intro`, ¶1–¶4 as
+About), so FIXTURE and LIVE stay alike. The heroText variant is not rehearsed: it is the CMS's
+`heroText` path every footer page already uses (§101, §102).
+
+**Rehearsed (E1), the variant without a heroText.** A scratch copy with those lines, against a proxy CMS serving the CTL1 document
+(one "About" section, ¶1–¶4 as TEXT blocks, the two contacts), and the fixture-only copy against the
+same proxy, both built LIVE: **970 of 970 files identical**, and the CMS-first build fetches exactly
+one more URL, the document. Contacts come from the CMS (`contacts(2 contacts)`, §94) and each
+appears once. The first rehearsal differed by one byte: the fixture's About held ¶4's two "&" raw,
+while the adapter's `richParagraphs` writes the body string with `&amp;` (Prose decodes it, so the
+DOM was already identical; the payload was not). The fixture now builds its body with the adapter's
+own rules, `joinBlocks(paragraphs.map((p) => richParagraphs(p).text)).body`, as the People fixtures
+do (R1g). A fixture-only page's prose should always be built that way.
+
+### Floors, requests
+
+None until the document exists. **290 → 290 distinct**: the page makes no request.
+
+### R, A, C, E, Playwright
+
+**R** (baseline `e181ddf`, both built in scratch copies; §100's normalisation). FIXTURE: 265 of 406
+existing files differ, every one by the menu's new row in the payload (`{ href: "/programmes/ctl",
+label: "Centre for Teaching and Learning" }`); with that object removed, **402 of 406** are
+identical, and the four that differ are FDP's, by its new link. LIVE (the menu is the CMS's): **960
+of 964** identical, the four FDP's. One client chunk is renamed in both: the menu and its
+route-title table, which now hold `/programmes/ctl`. Gate 67 → 68 FIXTURE, 75 → 76 LIVE: CTL's band
+drops Industry & Online. LIVE 151s (baseline 147s), floors 74/0, the guard clean.
+
+**A** (FIXTURE): the title (2 lines) beside the back link "Programmes" at 1440; no hero; the
+standfirst; About clamped, "See more" expanding it (`aria-expanded`, "See less") with ¶4 opening
+"@ Connect,"; the contacts in column 4 at 1440 (x 1086), under About below that; the band's five
+rows; the menu's Programmes section with the row after Faculty Development Programme.
+
+**C** (LIVE): no `[cms]` line for the page; `[routes] /programmes/ctl: /programmes/industry-online ×1`
+(the band row the gate drops). No request.
+
+**E**: E1 above. The menu row is the only way in at FIXTURE besides FDP's link, and the page builds
+without either: nothing else links it.
+
+**Playwright** (FIXTURE and LIVE, 1440 / 1024 / 768 / 390): no horizontal overflow. Tab order: the
+back link, About's "See more" (and the standfirst's at 390), the two contacts, the band. The back
+link reads "Programmes" loaded directly; on CTL reached from FDP's link it reads "Faculty
+Development Programme"; on Ph.D reached from CTL's band it reads "Centre for Teaching and Learning".
+Contacts: `teachinglearning@nid.edu` once and `+91 79 2662 9500` once on the page; the FIXTURE
+footer adds its own `tel:+917926629500`, the LIVE footer none (§80).
+
+### Backend asks
+
+- **CTL1** Create document `centre-for-teaching-and-learning`: title "Centre for Teaching and
+  Learning"; a `heroText`, a one-sentence summary the editor writes (the standfirst; ¶1 runs to 7
+  lines at 1440); one section "About" with nid.edu's four paragraphs as TEXT blocks, verbatim;
+  contacts EMAIL `teachinglearning@nid.edu`, PHONE `+91 79 2662 9500`.
+- **CTL2** A nav item "Centre for Teaching and Learning" under Programmes (slug
+  `centre-for-teaching-and-learning`), so the LIVE menu has the row.
+- **CTL3** (editor) The source's spellings above, and "Bangalore", once the document exists.

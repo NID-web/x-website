@@ -111,6 +111,8 @@ const PAGES = [
   { name: "careers", path: "/en/careers" },
   // Careers' shape, notices from the CMS only (§102).
   { name: "tenders", path: "/en/tenders" },
+  // The first fixture-only page: no CMS document (§103).
+  { name: "programmes-ctl", path: "/en/programmes/ctl" },
 ];
 
 // The server's stdout and stderr go to a FILE, never to an unread pipe. A pipe

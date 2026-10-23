@@ -5,10 +5,21 @@
 //
 // The hero is the CMS's fdp-hero-1, byte-identical to the photo the /programmes Ph.D
 // card already uses, so it is that file. The contacts are the rail's key info.
-import type { PageResponse } from "@/lib/content-model";
+import type { Link, PageResponse } from "@/lib/content-model";
 import { PAGE_ID } from "@/lib/content/pages";
 import { mediaAsset } from "@/lib/media";
 import { PUBLISHED, programmeDerived, textSection } from "@/lib/content/fixtures/programme-parts";
+
+// TODO(review): ours, not nid.edu's — nid.edu's FDP page has no such link. The
+// only way into /programmes/ctl in a LIVE build until the CMS menu has the row
+// (backend ask CTL2): it survives LIVE because FDP's About rule keeps the
+// fixture's page links. Keep or remove it once CTL2 lands (§103).
+const CTL_LINK: Link = {
+  id: "link-fdp-ctl",
+  label: "Centre for Teaching and Learning",
+  targetType: "page",
+  page: PAGE_ID.programmeCtl,
+};
 
 export const PROGRAMME_FDP: PageResponse = {
   page: {
@@ -26,13 +37,16 @@ export const PROGRAMME_FDP: PageResponse = {
     intro:
       "The Faculty Development Programme is run through NID's Centre for Teaching and Learning (CTL), established in late 2019 to support, promote, and facilitate an academic ambience for sharing thoughts and innovations in design. CTL operates across NID's three campuses — Ahmedabad, Bengaluru, and Gandhinagar — functioning under the office of the Activity Chairperson, Education.",
     sections: [
-      textSection(
-        PAGE_ID.programmeFdp,
-        "section-fdp-about",
-        1,
-        "About",
-        "CTL's framework rests on progressive pedagogy principles, particularly learning by doing, and operates through three verticals: explore, reflect-share-critique, and connect. Activities include lectures, workshops, and trainings for faculty colleagues, addressing design pedagogy, cognition, and learnability research. The programme recognises design faculty as a dynamic community, facilitating sharing, reflecting on, and researching teaching-learning methods, and establishes Faculty Learning Groups and Subject Interest Groups across campuses. Through its Connect initiative, CTL partners with departments, educational hubs, think tanks, and international MoU partners to foster a design learning culture and develop Communities of Practice.",
-      ),
+      {
+        ...textSection(
+          PAGE_ID.programmeFdp,
+          "section-fdp-about",
+          1,
+          "About",
+          "CTL's framework rests on progressive pedagogy principles, particularly learning by doing, and operates through three verticals: explore, reflect-share-critique, and connect. Activities include lectures, workshops, and trainings for faculty colleagues, addressing design pedagogy, cognition, and learnability research. The programme recognises design faculty as a dynamic community, facilitating sharing, reflecting on, and researching teaching-learning methods, and establishes Faculty Learning Groups and Subject Interest Groups across campuses. Through its Connect initiative, CTL partners with departments, educational hubs, think tanks, and international MoU partners to foster a design learning culture and develop Communities of Practice.",
+        ),
+        links: [CTL_LINK],
+      },
     ],
     contacts: [],
     seoTitle: "Faculty Development Programme | National Institute of Design",

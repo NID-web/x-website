@@ -34,7 +34,7 @@
     },
     {
       "n": "03", "title": "Programmes", "path": "/programmes", "liveLegacy": "/academics/programmes", "template": "primary",
-      "menu": ["Programmes", "Curriculum Objectives", "Bachelor of Design", "Master of Design", "Ph.D", "Faculty Development Programme", "Industry & Online Programmes", "International and Collaborative Programmes"],
+      "menu": ["Programmes", "Curriculum Objectives", "Bachelor of Design", "Master of Design", "Ph.D", "Faculty Development Programme", "Centre for Teaching and Learning", "Industry & Online Programmes", "International and Collaborative Programmes"],
       "children": [
         { "title": "Bachelor of Design (B.Des)", "path": "/programmes/bdes", "board": "617:21881", "disciplines": [
           "Film and Video Communication", "Exhibition Design", "Graphic Design", "Ceramic & Glass Design",
@@ -49,6 +49,7 @@
         ]},
         { "title": "Ph.D", "path": "/programmes/phd" },
         { "title": "Faculty Development Programme", "path": "/programmes/fdp" },
+        { "title": "Centre for Teaching and Learning", "path": "/programmes/ctl", "note": "added 7 Oct 2026 by user decision; not in the Figma architecture" },
         { "title": "Curriculum Objectives", "path": "/programmes/curriculum-objectives" },
         { "title": "Industry & Online Programmes", "path": "/programmes/industry-online", "note": "may be absorbed by Continuing Education Programme" },
         { "title": "International & Collaborative Programmes", "path": "/programmes/international" }

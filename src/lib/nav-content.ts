@@ -53,6 +53,10 @@ export const MENU_SECTIONS: NavSection[] = [
       { label: "Master of Design", href: "/programmes/mdes" },
       { label: "Ph.D", href: "/programmes/phd" },
       { label: "Faculty Development Programme", href: "/programmes/fdp" },
+      // TODO(designer): added 7 Oct 2026 by user decision (STAGE-0-NOTES §103);
+      // not in the Figma architecture. FIXTURE only: the LIVE menu is the
+      // CMS's, which needs a nav item for it (backend ask CTL2).
+      { label: "Centre for Teaching and Learning", href: "/programmes/ctl" },
       { label: "Industry & Online Programmes", href: "/programmes/industry-online" },
       {
         label: "International & Collaborative Programmes",

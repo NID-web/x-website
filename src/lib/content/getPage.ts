@@ -42,6 +42,7 @@ import { BDES_KEY_INFO, PROGRAMME_BDES } from "@/lib/content/fixtures/programme-
 import { PROGRAMME_MDES } from "@/lib/content/fixtures/programme-mdes";
 import { PROGRAMME_PHD } from "@/lib/content/fixtures/programme-phd";
 import { PROGRAMME_FDP } from "@/lib/content/fixtures/programme-fdp";
+import { PROGRAMME_CTL } from "@/lib/content/fixtures/programme-ctl";
 import { PROGRAMME_INTERNATIONAL } from "@/lib/content/fixtures/programme-international";
 import { CURRICULUM_OBJECTIVES } from "@/lib/content/fixtures/programme-curriculum-objectives";
 import { STUDY } from "@/lib/content/fixtures/study";
@@ -86,6 +87,9 @@ const FIXTURES: Record<string, PageResponse> = {
   "/programmes/mdes": PROGRAMME_MDES,
   "/programmes/phd": PROGRAMME_PHD,
   "/programmes/fdp": PROGRAMME_FDP,
+  // No PAGE_CONFIG entry: the CMS has no document yet (§103, CTL1). The page is
+  // this fixture in both modes, with no request.
+  "/programmes/ctl": PROGRAMME_CTL,
   "/programmes/international": PROGRAMME_INTERNATIONAL,
   "/programmes/curriculum-objectives": CURRICULUM_OBJECTIVES,
   "/study": STUDY,
