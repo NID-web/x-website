@@ -19,9 +19,11 @@ export function StatementTile({ tile, t }: { tile: StatementTileData; t: Transla
   return (
     // Full width on tablet and mobile; single-column square on laptop and desktop.
     <Tile as="section" surface="page" square="laptop" padding={false}>
-      <p className="font-primary text-statement text-text-primary text-balance">
+      {/* The home page's one <h1>: every page has exactly one (STAGE-0-NOTES
+          §107). Styled by text-statement alone, as the <p> it replaced. */}
+      <h1 className="font-primary text-statement text-text-primary text-balance">
         {withAccentPeriods(t(tile.textKey))}
-      </p>
+      </h1>
     </Tile>
   );
 }

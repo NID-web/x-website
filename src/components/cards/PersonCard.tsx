@@ -2,7 +2,7 @@
 // (646:47958) as History's Faculty Stalwarts band instances it (NID-CONTEXT
 // §7.7). Director's Message adds the component's overline: the role, over the
 // accent gradient rule (§60). `profile` stays unrendered.
-import { Overline } from "@/components/home/parts";
+import { Overline, TileHeading, type HeadingLevel } from "@/components/home/parts";
 import { TileImage } from "@/components/home/TileImage";
 import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
@@ -31,6 +31,7 @@ export function PersonCard({
   placeholder = true,
   priority = false,
   wrapOverline = false,
+  headingLevel = 3,
 }: {
   person: Person;
   /** Draw `designation` as the overline above the name. Off on History's band,
@@ -46,6 +47,9 @@ export function PersonCard({
   /** Let a long role wrap: the CMS's role lines run to "Activity Chairperson,
    *  Research & Publications", which overflowed a 171px phone card by 192px. */
   wrapOverline?: boolean;
+  /** The name's level: 3 in a band of people under a section title; a page
+   *  whose person sits directly under its <h1> passes 2. */
+  headingLevel?: HeadingLevel;
 }) {
   // The person's page, when it built (a faculty member, §83). The gate
   // registered the built slugs before this renders: every caller's data
@@ -54,7 +58,7 @@ export function PersonCard({
   // Keyed only beside an email; alone it is the element it always was.
   const name = (key?: string) =>
     href ? (
-      <h3 key={key} className="font-primary text-h6 text-text-secondary">
+      <TileHeading key={key} level={headingLevel} className="font-primary text-h6 text-text-secondary">
         {/* The NAME is the link, stretched over the card (MediaCardTile's
             reasoning): the accessible name is the person, the target the
             whole card. Colour-only hover. */}
@@ -70,11 +74,11 @@ export function PersonCard({
         <span className="block h-0 overflow-hidden motion-safe:transition-[height] motion-safe:duration-400 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/person:h-7 group-focus-within/person:h-7">
           <Icon name="arrow-up-right" className="mt-1 size-6 text-icon-quaternary" />
         </span>
-      </h3>
+      </TileHeading>
     ) : (
-      <h3 key={key} className="font-primary text-h6 text-text-secondary">
+      <TileHeading key={key} level={headingLevel} className="font-primary text-h6 text-text-secondary">
         {person.name}
-      </h3>
+      </TileHeading>
     );
   // Label/Micro under the name (the discipline board); only when the person
   // record carries one — no person shown before had an email.

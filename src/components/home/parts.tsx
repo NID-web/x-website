@@ -1,5 +1,18 @@
 import clsx from "clsx";
 
+/** A tile's or card's heading level. Each defaults to the level it has always
+ *  had; a page passes another where its outline needs it — Home one higher
+ *  under its <h1> statement, Director's Message the director's name as an <h2>
+ *  (STAGE-0-NOTES §107). */
+export type HeadingLevel = 2 | 3 | 4 | 5 | 6;
+
+/** A heading at a given level; the classes, and so the look, are the caller's
+ *  alone. */
+export function TileHeading({ level, ...props }: { level: HeadingLevel } & React.ComponentProps<"h2">) {
+  const Tag = `h${level}` as const;
+  return <Tag {...props} />;
+}
+
 export function GradientRule({ className }: { className?: string }) {
   return (
     <span
@@ -32,7 +45,9 @@ export function Overline({
    *  information (an award's name), since quaternary is below AA by design. */
   dark?: boolean;
   hoverDark?: boolean;
-  /** Let a long label wrap. Off by default: a tile's overline is one line. */
+  /** Let a long label wrap — at a word, or inside one longer than the column
+   *  ("INTERDISCIPLINARY" at 320, §107). Off by default: a tile's overline is
+   *  one line. */
   wrap?: boolean;
   /** Trim the line box to cap height and baseline, as the award row's overline
    *  is drawn: its 12px line box on an ~8px cap made each row 4px taller than
@@ -43,7 +58,9 @@ export function Overline({
     <div className="flex items-stretch gap-2">
       <span
         className={clsx(
-          !wrap && "whitespace-nowrap",
+          // `anywhere`, not `break-word`: the span is a flex item, and only
+          // `anywhere` lets its minimum width fall below its longest word.
+          wrap ? "wrap-anywhere" : "whitespace-nowrap",
           "font-primary text-overline uppercase",
           capTrim && "[text-box:trim-both_cap_alphabetic]",
           dark ? "text-text-tertiary" : "text-text-quaternary",

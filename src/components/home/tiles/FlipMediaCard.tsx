@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import clsx from "clsx";
 import { Tile } from "@/components/home/Tile";
-import { Overline } from "@/components/home/parts";
+import { Overline, TileHeading, type HeadingLevel } from "@/components/home/parts";
 import { TileImage } from "@/components/home/TileImage";
 import { Cta } from "@/components/spine/Cta";
 import { Icon } from "@/components/spine/Icon";
@@ -49,6 +49,8 @@ export interface FlipMediaCardProps {
   /** Accessible names for the flip control in each direction. */
   showDetailsLabel: string;
   showCoverLabel: string;
+  /** The title's level; 4 unless the page says otherwise (Home, §107). */
+  headingLevel?: HeadingLevel;
 }
 
 export function FlipMediaCard({
@@ -62,6 +64,7 @@ export function FlipMediaCard({
   ctaExternal,
   showDetailsLabel,
   showCoverLabel,
+  headingLevel = 4,
 }: FlipMediaCardProps) {
   const [flipped, setFlipped] = useState(false);
   const faceId = useId();
@@ -164,9 +167,9 @@ export function FlipMediaCard({
 
           <div className="flex w-full items-start gap-2">
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <h4 className="font-primary text-h5 text-text-primary transition-colors duration-150 ease-in-out group-hover/tile:text-text-secondary">
+              <TileHeading level={headingLevel} className="font-primary text-h5 text-text-primary transition-colors duration-150 ease-in-out group-hover/tile:text-text-secondary">
                 {title}
-              </h4>
+              </TileHeading>
               {date && (
                 <p className="font-primary text-label text-text-tertiary">{date}</p>
               )}

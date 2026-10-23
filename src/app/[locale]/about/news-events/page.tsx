@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import { notFound } from "next/navigation";
 import { PageGrid } from "@/components/layout/PageGrid";
+import { GridItem } from "@/components/layout/GridItem";
 import { BackNav } from "@/components/spine/BackNav";
 import { BrandStrip } from "@/components/spine/BrandStrip";
 import { Footer } from "@/components/spine/Footer";
@@ -47,40 +48,42 @@ export default async function NewsEventsPage() {
   const { page, derived } = response;
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        <Title variant="page">{page.title}</Title>
+        <GridItem as={Main} span={4} subgrid>
+          <Title variant="page">{page.title}</Title>
 
-        <BackNav />
+          <BackNav />
 
-        {page.sections.map((section, i) => (
-          <Fragment key={section.id}>
-            {i > 0 && <Separator />}
-            <SectionRenderer
-              section={section}
-              lead={section.id === FEATURED_SECTION ? "feature" : "wide"}
-              patternSeed={SECTION_PATTERN[section.id]}
-            />
-          </Fragment>
-        ))}
+          {page.sections.map((section, i) => (
+            <Fragment key={section.id}>
+              {i > 0 && <Separator />}
+              <SectionRenderer
+                section={section}
+                lead={section.id === FEATURED_SECTION ? "feature" : "wide"}
+                patternSeed={SECTION_PATTERN[section.id]}
+              />
+            </Fragment>
+          ))}
 
-        {/* The separator belongs to the band: with no siblings neither renders,
-            and the page does not close on two rules in a row. */}
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            <SiblingBand
-              items={derived.siblingBand}
-              parentTitle={derived.backNav?.label ?? page.title}
-            />
-          </>
-        )}
+          {/* The separator belongs to the band: with no siblings neither renders,
+              and the page does not close on two rules in a row. */}
+          {derived.siblingBand.length > 0 && (
+            <>
+              <Separator />
+              <SiblingBand
+                items={derived.siblingBand}
+                parentTitle={derived.backNav?.label ?? page.title}
+              />
+            </>
+          )}
 
-        <Separator />
+          <Separator />
+        </GridItem>
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

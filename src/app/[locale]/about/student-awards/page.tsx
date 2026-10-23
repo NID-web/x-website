@@ -30,39 +30,41 @@ export default async function StudentAwardsPage() {
   const groups = groupedItems[AWARDS_SECTION] ?? [];
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        {/* Before the title in the DOM, as on the archive (STAGE-0-NOTES §66). */}
-        {derived.backNav && (
-          <GridItem span="full-then-1" place="page-utility">
-            <Cta variant="primary" icon="arrow-left" label={derived.backNav.label} href={derived.backNav.href} />
-          </GridItem>
-        )}
+        <GridItem as={Main} span={4} subgrid>
+          {/* Before the title in the DOM, as on the archive (STAGE-0-NOTES §66). */}
+          {derived.backNav && (
+            <GridItem span="full-then-1" place="page-utility">
+              <Cta variant="primary" icon="arrow-left" label={derived.backNav.label} href={derived.backNav.href} />
+            </GridItem>
+          )}
 
-        <Title variant="page">{page.title}</Title>
+          <Title variant="page">{page.title}</Title>
 
-        {groups.map((group, i) => (
-          <RowGroup key={group.label} title={group.label} id={`awards-${i + 1}`}>
-            {group.items.map((item) => (
-              <AwardRow key={item.id} item={item} />
-            ))}
-          </RowGroup>
-        ))}
+          {groups.map((group, i) => (
+            <RowGroup key={group.label} title={group.label} id={`awards-${i + 1}`}>
+              {group.items.map((item) => (
+                <AwardRow key={item.id} item={item} />
+              ))}
+            </RowGroup>
+          ))}
 
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            {/* TODO(review): SiblingBand is two-up from 2 columns; the 1024
-                board stacks these one per row. Shared component, left alone. */}
-            <SiblingBand items={derived.siblingBand} parentTitle={siblingBandParent} pattern={false} />
-          </>
-        )}
+          {derived.siblingBand.length > 0 && (
+            <>
+              <Separator />
+              {/* TODO(review): SiblingBand is two-up from 2 columns; the 1024
+                  board stacks these one per row. Shared component, left alone. */}
+              <SiblingBand items={derived.siblingBand} parentTitle={siblingBandParent} pattern={false} />
+            </>
+          )}
 
-        <Separator />
+          <Separator />
+        </GridItem>
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

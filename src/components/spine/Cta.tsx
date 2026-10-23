@@ -96,7 +96,11 @@ export function Cta({
   const inner = (
     <>
       {lead}
-      <span className={clsx((primary || filled) && "flex-1")}>{label}</span>
+      {/* A full-width row's label breaks inside a word longer than the row —
+          an email address at the panel's 150% text ran up to 76px past its
+          column (STAGE-0-NOTES §107). `anywhere`, since the label is a flex
+          item and `break-word` cannot lower its minimum width. */}
+      <span className={clsx((primary || filled) && "flex-1 wrap-anywhere")}>{label}</span>
       {primary || filled ? (
         arrow && <span className="flex size-6 shrink-0 items-center justify-center">{arrow}</span>
       ) : (

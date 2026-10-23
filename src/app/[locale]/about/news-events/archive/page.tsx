@@ -35,47 +35,49 @@ export default async function NewsArchivePage() {
   const years = groupedItems[ARCHIVE_SECTION] ?? [];
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        {/* Before the title in the DOM: at 2 and 1 columns the boards draw the
-            back link ABOVE it (STAGE-0-NOTES §66). At 3 and 4 the page-utility
-            pin puts it in row 1's last column, so nothing moves visually there.
-            TODO(review): the article, News & Events, Our Themes and Director's
-            Message pages still render it below the title at 2 and 1 columns;
-            they probably should follow this board. */}
-        {derived.backNav && (
-          <GridItem span="full-then-1" place="page-utility">
-            <Cta variant="primary" icon="arrow-left" label={derived.backNav.label} href={derived.backNav.href} />
-          </GridItem>
-        )}
+        <GridItem as={Main} span={4} subgrid>
+          {/* Before the title in the DOM: at 2 and 1 columns the boards draw the
+              back link ABOVE it (STAGE-0-NOTES §66). At 3 and 4 the page-utility
+              pin puts it in row 1's last column, so nothing moves visually there.
+              TODO(review): the article, News & Events, Our Themes and Director's
+              Message pages still render it below the title at 2 and 1 columns;
+              they probably should follow this board. */}
+          {derived.backNav && (
+            <GridItem span="full-then-1" place="page-utility">
+              <Cta variant="primary" icon="arrow-left" label={derived.backNav.label} href={derived.backNav.href} />
+            </GridItem>
+          )}
 
-        <Title variant="page">{page.title}</Title>
+          <Title variant="page">{page.title}</Title>
 
-        {years.map((year, i) => (
-          <Fragment key={year.label}>
-            {i > 0 && <Separator />}
-            <RowGroup title={year.label} id={year.label} anchored>
-              {year.items.map((item) => (
-                <ArchiveRow key={item.id} item={item} locale={locale} />
-              ))}
-            </RowGroup>
-          </Fragment>
-        ))}
+          {years.map((year, i) => (
+            <Fragment key={year.label}>
+              {i > 0 && <Separator />}
+              <RowGroup title={year.label} id={year.label} anchored>
+                {year.items.map((item) => (
+                  <ArchiveRow key={item.id} item={item} locale={locale} />
+                ))}
+              </RowGroup>
+            </Fragment>
+          ))}
 
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            {/* TODO(review): SiblingBand is two-up from 2 columns; the 1024
-                board stacks these one per row. Shared component, left alone. */}
-            <SiblingBand items={derived.siblingBand} parentTitle={siblingBandParent} pattern={false} />
-          </>
-        )}
+          {derived.siblingBand.length > 0 && (
+            <>
+              <Separator />
+              {/* TODO(review): SiblingBand is two-up from 2 columns; the 1024
+                  board stacks these one per row. Shared component, left alone. */}
+              <SiblingBand items={derived.siblingBand} parentTitle={siblingBandParent} pattern={false} />
+            </>
+          )}
 
-        <Separator />
+          <Separator />
+        </GridItem>
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

@@ -138,134 +138,136 @@ export async function SecondaryTemplate({
     .filter(hasContent);
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        {/* The boards' gradient triangle / square behind the H1 is the title
-            wash §44 removed; closed, §56. */}
-        <Title variant="page">{page.title}</Title>
+        <GridItem as={Main} span={4} subgrid>
+          {/* The boards' gradient triangle / square behind the H1 is the title
+              wash §44 removed; closed, §56. */}
+          <Title variant="page">{page.title}</Title>
 
-        {/* BackNav is a client component: a fallback prop that is merely
-            undefined still reaches its serialized props, so a page without one
-            renders the exact element it always did. */}
-        {utility ? (
-          // One cell holds both: two `page-utility` items would overlap. The
-          // back link renders nothing until it knows its target (§45), so
-          // without JavaScript the control alone is there, and works.
-          <GridItem span="full-then-1" place="page-utility" className="flex flex-col gap-6">
-            {/* The back link's row, reserved: BackNav renders nothing until it
-                knows its target (§45), and appearing above the control would
-                move it down a row after hydration. The height is the Cta row's
-                own — its line (or the 24px glyph box, whichever is taller), its
-                pt-2 / pb-1.5 and its 2px rule — so nothing moves (§82). `*:flex`
-                makes BackNav's cell a flex box: in a block cell the Cta's
-                inline-flex row sits in a line box one pixel taller than itself.
-                With JavaScript off the row stays empty. */}
-            <div className="min-h-[calc(max(var(--text-h5--line-height),var(--spacing)*6)+var(--spacing)*3.5+2px)] *:flex">
-              {backFallback ? <BackNav fallback={backFallback} /> : <BackNav />}
-            </div>
-            {utility}
-          </GridItem>
-        ) : backFallback ? (
-          backTitles ? (
-            <BackNav
-              fallback={backFallback}
-              titles={Object.fromEntries(derived.siblingBand.map((item) => [item.href, item.title]))}
-            />
-          ) : (
-            <BackNav fallback={backFallback} />
-          )
-        ) : (
-          <BackNav />
-        )}
-
-        {/* The rail: key info, then the filled buttons (the events rail's
-            order, §68). Without buttons it is the element the campus pages have
-            always rendered. */}
-        {portrait ? (
-          // Director's Message's single portrait (§60): eager, no placeholder.
-          <GridItem span="full-then-1" start={1} className="flex flex-col gap-6">
-            <Portrait photo={portrait} name={page.title} priority />
-            {page.keyInfo.length > 0 && <ContactList contacts={page.keyInfo} />}
-          </GridItem>
-        ) : buttons.length > 0 ? (
-          <GridItem span="full-then-1" start={1} className="flex flex-col gap-6">
-            {page.keyInfo.length > 0 && <ContactList contacts={page.keyInfo} />}
-            {buttons.map((button) => (
-              <Cta key={button.key} variant="filled" label={button.label} href={button.url} external />
-            ))}
-          </GridItem>
-        ) : (
-          page.keyInfo.length > 0 && (
-            <GridItem span="full-then-1" start={1}>
-              <ContactList contacts={page.keyInfo} />
+          {/* BackNav is a client component: a fallback prop that is merely
+              undefined still reaches its serialized props, so a page without one
+              renders the exact element it always did. */}
+          {utility ? (
+            // One cell holds both: two `page-utility` items would overlap. The
+            // back link renders nothing until it knows its target (§45), so
+            // without JavaScript the control alone is there, and works.
+            <GridItem span="full-then-1" place="page-utility" className="flex flex-col gap-6">
+              {/* The back link's row, reserved: BackNav renders nothing until it
+                  knows its target (§45), and appearing above the control would
+                  move it down a row after hydration. The height is the Cta row's
+                  own — its line (or the 24px glyph box, whichever is taller), its
+                  pt-2 / pb-1.5 and its 2px rule — so nothing moves (§82). `*:flex`
+                  makes BackNav's cell a flex box: in a block cell the Cta's
+                  inline-flex row sits in a line box one pixel taller than itself.
+                  With JavaScript off the row stays empty. */}
+              <div className="min-h-[calc(max(var(--text-h5--line-height),var(--spacing)*6)+var(--spacing)*3.5+2px)] *:flex">
+                {backFallback ? <BackNav fallback={backFallback} /> : <BackNav />}
+              </div>
+              {utility}
             </GridItem>
-          )
-        )}
-
-        {/* TODO(review): designer — the B.Des board's hero is 1200:628, its
-            photo's own ratio; PageHero keeps the secondary crop (2.2:1 at 1440). */}
-        <PageHero hero={page.hero} placeholder={heroPlaceholder} />
-
-        {/* TODO(review): designer — the B.Des board sets the standfirst in
-            Body/Large/Bold; Standfirst is Regular from 768 up, as every page. */}
-        {/* Without a title, the element every page has always rendered; an
-            extra child slot would still reach the RSC payload. */}
-        {page.intro &&
-          (introTitle ? (
-            [
-              <Title key="intro-title" variant="section" start={1}>
-                {introTitle}
-              </Title>,
-              <GridItem key="intro" span={2} start={2}>
-                <Standfirst text={page.intro} seeMore={t("seeMore")} />
-              </GridItem>,
-            ]
-          ) : (
-            <GridItem span={2} start={2}>
-              <Standfirst text={page.intro} seeMore={t("seeMore")} />
-            </GridItem>
-          ))}
-
-        {sections.map((section) => {
-          const sectionClamp = clamp[section.id];
-          return (
-            <Fragment key={section.id}>
-              <Separator />
-              <SectionRenderer
-                section={section}
-                clamp={sectionClamp ? { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp: sectionClamp } : undefined}
-                imagePlaceholder={imaged?.has(section.id) ?? false}
-                pattern={false}
-                linksLayout={
-                  documentLists?.has(section.id) ? "documents" : twoUpLinks?.has(section.id) ? "two-up" : undefined
-                }
-                groups={response.groupedItems?.[section.id]}
-                filledLinks={section.id === filledLinks}
-                railThreeUp={railThreeUp}
-                railOverline={railThreeUp}
-                split={section.id === split}
+          ) : backFallback ? (
+            backTitles ? (
+              <BackNav
+                fallback={backFallback}
+                titles={Object.fromEntries(derived.siblingBand.map((item) => [item.href, item.title]))}
               />
-            </Fragment>
-          );
-        })}
+            ) : (
+              <BackNav fallback={backFallback} />
+            )
+          ) : (
+            <BackNav />
+          )}
 
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            <SiblingBand
-              items={derived.siblingBand}
-              parentTitle={siblingParent ?? derived.backNav?.label ?? page.title}
-              title={siblingTitle ? t(siblingTitle) : undefined}
-              pattern={false}
-            />
-          </>
-        )}
+          {/* The rail: key info, then the filled buttons (the events rail's
+              order, §68). Without buttons it is the element the campus pages have
+              always rendered. */}
+          {portrait ? (
+            // Director's Message's single portrait (§60): eager, no placeholder.
+            <GridItem span="full-then-1" start={1} className="flex flex-col gap-6">
+              <Portrait photo={portrait} name={page.title} priority />
+              {page.keyInfo.length > 0 && <ContactList contacts={page.keyInfo} />}
+            </GridItem>
+          ) : buttons.length > 0 ? (
+            <GridItem span="full-then-1" start={1} className="flex flex-col gap-6">
+              {page.keyInfo.length > 0 && <ContactList contacts={page.keyInfo} />}
+              {buttons.map((button) => (
+                <Cta key={button.key} variant="filled" label={button.label} href={button.url} external />
+              ))}
+            </GridItem>
+          ) : (
+            page.keyInfo.length > 0 && (
+              <GridItem span="full-then-1" start={1}>
+                <ContactList contacts={page.keyInfo} />
+              </GridItem>
+            )
+          )}
 
-        <Separator />
+          {/* TODO(review): designer — the B.Des board's hero is 1200:628, its
+              photo's own ratio; PageHero keeps the secondary crop (2.2:1 at 1440). */}
+          <PageHero hero={page.hero} placeholder={heroPlaceholder} />
+
+          {/* TODO(review): designer — the B.Des board sets the standfirst in
+              Body/Large/Bold; Standfirst is Regular from 768 up, as every page. */}
+          {/* Without a title, the element every page has always rendered; an
+              extra child slot would still reach the RSC payload. */}
+          {page.intro &&
+            (introTitle ? (
+              [
+                <Title key="intro-title" variant="section" start={1}>
+                  {introTitle}
+                </Title>,
+                <GridItem key="intro" span={2} start={2}>
+                  <Standfirst text={page.intro} seeMore={t("seeMore")} />
+                </GridItem>,
+              ]
+            ) : (
+              <GridItem span={2} start={2}>
+                <Standfirst text={page.intro} seeMore={t("seeMore")} />
+              </GridItem>
+            ))}
+
+          {sections.map((section) => {
+            const sectionClamp = clamp[section.id];
+            return (
+              <Fragment key={section.id}>
+                <Separator />
+                <SectionRenderer
+                  section={section}
+                  clamp={sectionClamp ? { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp: sectionClamp } : undefined}
+                  imagePlaceholder={imaged?.has(section.id) ?? false}
+                  pattern={false}
+                  linksLayout={
+                    documentLists?.has(section.id) ? "documents" : twoUpLinks?.has(section.id) ? "two-up" : undefined
+                  }
+                  groups={response.groupedItems?.[section.id]}
+                  filledLinks={section.id === filledLinks}
+                  railThreeUp={railThreeUp}
+                  railOverline={railThreeUp}
+                  split={section.id === split}
+                />
+              </Fragment>
+            );
+          })}
+
+          {derived.siblingBand.length > 0 && (
+            <>
+              <Separator />
+              <SiblingBand
+                items={derived.siblingBand}
+                parentTitle={siblingParent ?? derived.backNav?.label ?? page.title}
+                title={siblingTitle ? t(siblingTitle) : undefined}
+                pattern={false}
+              />
+            </>
+          )}
+
+          <Separator />
+        </GridItem>
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

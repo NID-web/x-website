@@ -53,64 +53,69 @@ export default async function DirectorsMessagePage() {
   const sections = page.sections.filter((s) => s.body?.trim());
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        <Title variant="page">{page.title}</Title>
+        <GridItem as={Main} span={4} subgrid>
+          <Title variant="page">{page.title}</Title>
 
-        {/* TODO(review): designer — every other About NID child has "About NID"
-            in column 4 of row 1; this board draws nothing there. Rendered as on
-            the siblings (the session back link, which only appears when the
-            visitor arrived from another page) until the board says otherwise. */}
-        <BackNav />
+          {/* TODO(review): designer — every other About NID child has "About NID"
+              in column 4 of row 1; this board draws nothing there. Rendered as on
+              the siblings (the session back link, which only appears when the
+              visitor arrived from another page) until the board says otherwise. */}
+          <BackNav />
 
-        {/* One subgrid on the page's own tracks, so the essay is a single
-            <article> without a second grid or a second margin (§33, §40). */}
-        <GridItem subgrid span={4} as="article">
-          {director && (
-            <GridItem span={1} start={2}>
-              <PersonCard
-                person={director}
-                priority
-                overline
-                placeholder={false}
+          {/* One subgrid on the page's own tracks, so the essay is a single
+              <article> without a second grid or a second margin (§33, §40). */}
+          <GridItem subgrid span={4} as="article">
+            {director && (
+              <GridItem span={1} start={2}>
+                {/* An <h2>: the name sits directly under the page's <h1>, and an
+                    <h3> there skipped a level (STAGE-0-NOTES §107). */}
+                <PersonCard
+                  person={director}
+                  priority
+                  overline
+                  placeholder={false}
+                  headingLevel={2}
+                />
+              </GridItem>
+            )}
+
+            {sections.map((section) => {
+              const quote = pullQuoteOf(section);
+              return (
+                <Fragment key={section.id}>
+                  {quote && <Blockquote quote={quote} />}
+                  <SectionBody
+                    body={section.body!}
+                    clamp={
+                      CLAMPED.has(section.id)
+                        ? { seeMore: t("seeMore"), seeLess: t("seeLess") }
+                        : undefined
+                    }
+                  />
+                </Fragment>
+              );
+            })}
+          </GridItem>
+
+          {derived.siblingBand.length > 0 && (
+            <>
+              <Separator />
+              <SiblingBand
+                items={derived.siblingBand}
+                parentTitle={derived.backNav?.label ?? page.title}
+                pattern={false}
               />
-            </GridItem>
+            </>
           )}
 
-          {sections.map((section) => {
-            const quote = pullQuoteOf(section);
-            return (
-              <Fragment key={section.id}>
-                {quote && <Blockquote quote={quote} />}
-                <SectionBody
-                  body={section.body!}
-                  clamp={
-                    CLAMPED.has(section.id)
-                      ? { seeMore: t("seeMore"), seeLess: t("seeLess") }
-                      : undefined
-                  }
-                />
-              </Fragment>
-            );
-          })}
+          <Separator />
         </GridItem>
-
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            <SiblingBand
-              items={derived.siblingBand}
-              parentTitle={derived.backNav?.label ?? page.title}
-              pattern={false}
-            />
-          </>
-        )}
-
-        <Separator />
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

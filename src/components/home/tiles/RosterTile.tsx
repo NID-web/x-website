@@ -2,13 +2,22 @@ import { Tile } from "@/components/home/Tile";
 import { TileImage } from "@/components/home/TileImage";
 import { Cta } from "@/components/spine/Cta";
 import type { HomeTile, Translate } from "@/lib/home-content";
+import { TileHeading, type HeadingLevel } from "@/components/home/parts";
 
 type RosterTileData = Extract<HomeTile, { kind: "roster" }>;
 
 /**
  * "Faculty Stalwarts" — row of overlapping circular portraits over heading, body, and CTA.
  */
-export function RosterTile({ tile, t }: { tile: RosterTileData; t: Translate }) {
+export function RosterTile({
+  tile,
+  t,
+  headingLevel = 4,
+}: {
+  tile: RosterTileData;
+  t: Translate;
+  headingLevel?: HeadingLevel;
+}) {
   return (
     <Tile as="section" surface="page" padding={false} className="group items-center gap-4">
       <div className="flex w-full flex-1 flex-col items-center justify-end gap-4">
@@ -33,9 +42,9 @@ export function RosterTile({ tile, t }: { tile: RosterTileData; t: Translate }) 
             />
           ))}
         </div>
-        <h4 className="w-full text-center font-primary text-h3 text-text-primary">
+        <TileHeading level={headingLevel} className="w-full text-center font-primary text-h3 text-text-primary">
           {t(tile.headingKey)}
-        </h4>
+        </TileHeading>
         {tile.bodyKey && (
           <p className="w-full text-center font-primary text-label text-text-tertiary">
             {t(tile.bodyKey)}

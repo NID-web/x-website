@@ -63,72 +63,74 @@ export async function ArticleTemplate({
   );
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        {/* Before the h1, as the archive's (§66). The static HTML carries no
-            label: the trail is per tab, so the link fills in after hydration.
-            One child slot for both, so a page without it (every news article)
-            keeps the exact tree — and useId values — it always had. */}
-        {trailBack ? [<BackNav key="back" fallback={trailBack} />, heading] : heading}
+        <GridItem as={Main} span={4} subgrid>
+          {/* Before the h1, as the archive's (§66). The static HTML carries no
+              label: the trail is per tab, so the link fills in after hydration.
+              One child slot for both, so a page without it (every news article)
+              keeps the exact tree — and useId values — it always had. */}
+          {trailBack ? [<BackNav key="back" fallback={trailBack} />, heading] : heading}
 
-        {/* Always the route's parent, not the session trail BackNav follows:
-            an article is reached from Home, About and its siblings as often as
-            from its listing, and the boards name the parent (A5). */}
-        {derived.backNav && (
-          <GridItem span="full-then-1" place="page-utility">
-            <Cta variant="primary" icon="arrow-left" label={derived.backNav.label} href={derived.backNav.href} />
-          </GridItem>
-        )}
+          {/* Always the route's parent, not the session trail BackNav follows:
+              an article is reached from Home, About and its siblings as often as
+              from its listing, and the boards name the parent (A5). */}
+          {derived.backNav && (
+            <GridItem span="full-then-1" place="page-utility">
+              <Cta variant="primary" icon="arrow-left" label={derived.backNav.label} href={derived.backNav.href} />
+            </GridItem>
+          )}
 
-        {(page.keyInfo.length > 0 || railExtras) && (
-          <GridItem span="full-then-1" start={1} className={railExtras ? "flex flex-col gap-6" : undefined}>
-            {page.keyInfo.length > 0 && <ContactList contacts={page.keyInfo} />}
-            {railLinks.map((link) => (
-              <Cta key={link.key} variant="filled" label={tArticle(link.key)} href={link.url} external />
-            ))}
-            {page.contacts.length > 0 && <ContactList contacts={page.contacts} />}
-          </GridItem>
-        )}
+          {(page.keyInfo.length > 0 || railExtras) && (
+            <GridItem span="full-then-1" start={1} className={railExtras ? "flex flex-col gap-6" : undefined}>
+              {page.keyInfo.length > 0 && <ContactList contacts={page.keyInfo} />}
+              {railLinks.map((link) => (
+                <Cta key={link.key} variant="filled" label={tArticle(link.key)} href={link.url} external />
+              ))}
+              {page.contacts.length > 0 && <ContactList contacts={page.contacts} />}
+            </GridItem>
+          )}
 
-        <PageHero hero={page.hero} placeholder={false} />
+          <PageHero hero={page.hero} placeholder={false} />
 
-        {intro && (
-          <GridItem span={2} start={2}>
-            <Standfirst text={intro} seeMore={t("seeMore")} />
-          </GridItem>
-        )}
+          {intro && (
+            <GridItem span={2} start={2}>
+              <Standfirst text={intro} seeMore={t("seeMore")} />
+            </GridItem>
+          )}
 
-        {sections.map((section) => (
-          <Fragment key={section.id}>
-            {/* TODO(review): designer — the event board draws no separators;
-                every other page, articles included, has them, and it is the
-                same template. One line to drop them for events. */}
-            <Separator />
-            <SectionRenderer
-              section={section}
-              clamp={{ seeMore: t("seeMore"), seeLess: t("seeLess") }}
-              pattern={false}
-            />
-          </Fragment>
-        ))}
+          {sections.map((section) => (
+            <Fragment key={section.id}>
+              {/* TODO(review): designer — the event board draws no separators;
+                  every other page, articles included, has them, and it is the
+                  same template. One line to drop them for events. */}
+              <Separator />
+              <SectionRenderer
+                section={section}
+                clamp={{ seeMore: t("seeMore"), seeLess: t("seeLess") }}
+                pattern={false}
+              />
+            </Fragment>
+          ))}
 
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            <SiblingBand
-              items={derived.siblingBand}
-              parentTitle={derived.backNav?.label ?? page.title}
-              title={siblingTitle ?? tArticle("moreNews")}
-              pattern={false}
-            />
-          </>
-        )}
+          {derived.siblingBand.length > 0 && (
+            <>
+              <Separator />
+              <SiblingBand
+                items={derived.siblingBand}
+                parentTitle={derived.backNav?.label ?? page.title}
+                title={siblingTitle ?? tArticle("moreNews")}
+                pattern={false}
+              />
+            </>
+          )}
 
-        <Separator />
+          <Separator />
+        </GridItem>
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { PageGrid } from "@/components/layout/PageGrid";
+import { GridItem } from "@/components/layout/GridItem";
 import { BackNav } from "@/components/spine/BackNav";
 import { BrandStrip } from "@/components/spine/BrandStrip";
 import { Footer } from "@/components/spine/Footer";
@@ -48,27 +49,29 @@ export default async function OurThemesPage() {
   const t = await getTranslations("OurThemes");
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        <Title variant="page" subtitle={page.intro}>
-          {page.title}
-        </Title>
+        <GridItem as={Main} span={4} subgrid>
+          <Title variant="page" subtitle={page.intro}>
+            {page.title}
+          </Title>
 
-        <BackNav />
+          <BackNav />
 
-        {THEMES.map((theme) => (
-          <ThemeCard
-            key={theme}
-            theme={theme}
-            label={THEME_LABELS[theme]}
-            body={t(BODY_KEY[theme])}
-          />
-        ))}
+          {THEMES.map((theme) => (
+            <ThemeCard
+              key={theme}
+              theme={theme}
+              label={THEME_LABELS[theme]}
+              body={t(BODY_KEY[theme])}
+            />
+          ))}
+        </GridItem>
 
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

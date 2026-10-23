@@ -41,6 +41,61 @@ const LINES = {
 } as const;
 
 export type ClampLines = keyof typeof LINES;
+
+// Copy can rewrap inside a clamped box without the box changing size: the box
+// is N lines tall whatever the copy does. A reader's own styles do exactly that
+// — a text-spacing bookmarklet, an extension like Stylus (which injects outside
+// <head>), a changed class — so every mounted clamp re-measures when a
+// stylesheet or a style/class attribute changes anywhere in the document. One
+// observer for all of them, at most one re-measure per frame (STAGE-0-NOTES
+// §107). Observing the box's paragraphs instead does nothing in Chromium,
+// which clamps their boxes too: 168px, the seven clamped lines, before and
+// after a spacing change. A max-height clamp that leaves an inner box free
+// was measured and rejected: it drops line-clamp's ellipsis, and counts the
+// paragraph gaps that line-clamp does not, changing 28 pages.
+const remeasures = new Set<() => void>();
+let watcher: MutationObserver | null = null;
+let frame = 0;
+
+const isStylesheet = (node: Node) =>
+  node instanceof HTMLStyleElement || (node instanceof HTMLLinkElement && node.rel === "stylesheet");
+
+function changesStyles(record: MutationRecord) {
+  if (record.type === "attributes") return true; // filtered to style/class, and media/href/disabled
+  if (record.type === "characterData") return record.target.parentNode instanceof HTMLStyleElement;
+  return (
+    record.target instanceof HTMLStyleElement ||
+    [...record.addedNodes, ...record.removedNodes].some(isStylesheet)
+  );
+}
+
+function onStyleChange(measure: () => void) {
+  remeasures.add(measure);
+  if (!watcher) {
+    watcher = new MutationObserver((records) => {
+      if (frame || !records.some(changesStyles)) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        for (const remeasure of remeasures) remeasure();
+      });
+    });
+    watcher.observe(document.documentElement, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["style", "class", "media", "href", "disabled"],
+    });
+  }
+  return () => {
+    remeasures.delete(measure);
+    if (remeasures.size) return;
+    watcher?.disconnect();
+    watcher = null;
+    cancelAnimationFrame(frame);
+    frame = 0;
+  };
+}
 /** A named preset or a line count — everything `clamp` accepts. */
 export type Clamp = keyof typeof CLAMP | ClampLines;
 
@@ -79,14 +134,24 @@ export function ClampedProse({
     if (!el || open) return;
     // Clipped means more than half a line hidden: scrollHeight runs a few px
     // over clientHeight even when nothing is cut (measured 4px), and a real
-    // clip hides at least one whole line. The observer fires once on observe
-    // and again on every width change, which moves the line breaks.
-    const observer = new ResizeObserver(() => {
+    // clip hides at least one whole line.
+    const measure = () => {
       const line = parseFloat(getComputedStyle(el).lineHeight) || 24;
       setClips(el.scrollHeight - el.clientHeight > line / 2);
-    });
+    };
+    // The box's own size covers a width change, and the panel's text size,
+    // which changes its line height. fonts.ready covers the web font arriving
+    // after the first measure; onStyleChange a reader's styles (above).
+    const observer = new ResizeObserver(measure);
     observer.observe(el);
-    return () => observer.disconnect();
+    const unwatch = onStyleChange(measure);
+    let live = true;
+    document.fonts.ready.then(() => live && measure());
+    return () => {
+      live = false;
+      observer.disconnect();
+      unwatch();
+    };
   }, [open]);
   const showButton = (reCollapse || !open) && (open || clips);
 
