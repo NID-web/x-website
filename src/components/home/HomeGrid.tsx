@@ -18,6 +18,9 @@ import { SpineTile } from "@/components/home/tiles/SpineTile";
 import { Footer } from "@/components/spine/Footer";
 import { BrandStrip } from "@/components/spine/BrandStrip";
 
+// The statement is Home's <h1> (StatementTile), so every tile heading sits one
+// level higher than the tile's own default: a section-like tile's <h3> is an
+// <h2>, a card's <h4> an <h3>, and the outline never skips a level (§107).
 function renderTile(tile: HomeTile, t: Translate) {
   switch (tile.kind) {
     case "statement":
@@ -25,24 +28,24 @@ function renderTile(tile: HomeTile, t: Translate) {
     case "hero":
       return <HeroTile tile={tile} />;
     case "linkList":
-      return <LinkListTile tile={tile} t={t} />;
+      return <LinkListTile tile={tile} t={t} headingLevel={2} />;
     case "calendar":
     case "news":
       return <ListTile tile={tile} t={t} />;
     case "feature":
-      return <FeatureTile tile={tile} t={t} />;
+      return <FeatureTile tile={tile} t={t} headingLevel={2} />;
     case "portrait":
-      return <PortraitTile tile={tile} t={t} />;
+      return <PortraitTile tile={tile} t={t} headingLevel={3} />;
     case "pattern":
       return <PatternTile seed={tile.seed} />;
     case "mediaCard":
-      return <MediaCardTile tile={tile} t={t} />;
+      return <MediaCardTile tile={tile} t={t} headingLevel={3} />;
     case "quote":
       return <QuoteTile tile={tile} t={t} />;
     case "roster":
-      return <RosterTile tile={tile} t={t} />;
+      return <RosterTile tile={tile} t={t} headingLevel={3} />;
     case "spine":
-      return <SpineTile tile={tile} t={t} />;
+      return <SpineTile tile={tile} t={t} headingLevel={2} />;
     default:
       return null;
   }
@@ -64,7 +67,7 @@ export async function HomeGrid() {
   const t: Translate = (key) => copy[key] ?? raw(key);
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       {/* Craft band, full-bleed directly under the header — outside the
           PageGrid shell on purpose: it runs edge to edge, so a GridItem would
           inset it by the shell margin. Its clearance is two grid row-gaps, not a
@@ -74,17 +77,19 @@ export async function HomeGrid() {
           (docs/STAGE-0-NOTES.md §30). */}
       <BrandStrip />
       <PageGrid>
-        {tiles.map((tile) => (
-          <GridItem key={tile.id} span={SPAN_BY_KIND[tile.kind] ?? 1}>
-            {renderTile(tile, t)}
-          </GridItem>
-        ))}
+        <GridItem as={Main} span={4} subgrid>
+          {tiles.map((tile) => (
+            <GridItem key={tile.id} span={SPAN_BY_KIND[tile.kind] ?? 1}>
+              {renderTile(tile, t)}
+            </GridItem>
+          ))}
+        </GridItem>
         <Footer collaborations="row" />
       </PageGrid>
       {/* The band closes the page as well as opens it — but not identically:
           the opening strip is the export's "Only Pattern" variant, the closing
           one leads with the NID wordmark. */}
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

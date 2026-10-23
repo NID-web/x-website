@@ -60,67 +60,69 @@ export default async function CampusesPage() {
   );
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        {/* The board draws a 150px gradient square behind the H1 (4932:576902):
-            the page-title wash §44 removed on the design owner's call, not a
-            new treatment. Left out, as on Charter (§52). */}
-        <Title variant="page">{page.title}</Title>
+        <GridItem as={Main} span={4} subgrid>
+          {/* The board draws a 150px gradient square behind the H1 (4932:576902):
+              the page-title wash §44 removed on the design owner's call, not a
+              new treatment. Left out, as on Charter (§52). */}
+          <Title variant="page">{page.title}</Title>
 
-        <BackNav />
+          <BackNav />
 
-        {/* 4140:246912: the children in column 1 of row 2, About's rail shape.
-            `start={1}` keeps it out of row 1 beside the title. Empty — and so
-            absent — while the route gate withholds all three unbuilt pages. */}
-        {derived.subPageLinks.length > 0 && (
-          <GridItem span="full-then-1" start={1} as="nav" aria-label={t("subPages")}>
-            <LinkStack links={derived.subPageLinks} twoUp="tablet-only" />
-          </GridItem>
-        )}
+          {/* 4140:246912: the children in column 1 of row 2, About's rail shape.
+              `start={1}` keeps it out of row 1 beside the title. Empty — and so
+              absent — while the route gate withholds all three unbuilt pages. */}
+          {derived.subPageLinks.length > 0 && (
+            <GridItem span="full-then-1" start={1} as="nav" aria-label={t("subPages")}>
+              <LinkStack links={derived.subPageLinks} twoUp="tablet-only" />
+            </GridItem>
+          )}
 
-        <PageHero hero={page.hero} />
+          <PageHero hero={page.hero} />
 
-        {page.intro && (
-          <GridItem span={2} start={2}>
-            <Standfirst text={page.intro} seeMore={t("seeMore")} />
-          </GridItem>
-        )}
+          {page.intro && (
+            <GridItem span={2} start={2}>
+              <Standfirst text={page.intro} seeMore={t("seeMore")} />
+            </GridItem>
+          )}
 
-        {sections.map((section) => {
-          const clamp = CLAMP[section.id];
-          return (
-            <Fragment key={section.id}>
+          {sections.map((section) => {
+            const clamp = CLAMP[section.id];
+            return (
+              <Fragment key={section.id}>
+                <Separator />
+                <SectionRenderer
+                  section={section}
+                  clamp={clamp ? { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp } : undefined}
+                  // Every section draws a campus photograph (4140:246909–11);
+                  // none has an asset yet.
+                  imagePlaceholder
+                  // No craft tile beside them on this board; History's TODO.
+                  pattern={false}
+                />
+              </Fragment>
+            );
+          })}
+
+          {/* The separator belongs to the band (§40). */}
+          {derived.siblingBand.length > 0 && (
+            <>
               <Separator />
-              <SectionRenderer
-                section={section}
-                clamp={clamp ? { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp } : undefined}
-                // Every section draws a campus photograph (4140:246909–11);
-                // none has an asset yet.
-                imagePlaceholder
-                // No craft tile beside them on this board; History's TODO.
+              <SiblingBand
+                items={derived.siblingBand}
+                parentTitle={derived.backNav?.label ?? page.title}
                 pattern={false}
               />
-            </Fragment>
-          );
-        })}
+            </>
+          )}
 
-        {/* The separator belongs to the band (§40). */}
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            <SiblingBand
-              items={derived.siblingBand}
-              parentTitle={derived.backNav?.label ?? page.title}
-              pattern={false}
-            />
-          </>
-        )}
-
-        <Separator />
+          <Separator />
+        </GridItem>
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

@@ -57,60 +57,62 @@ export default async function CharterPage() {
   const clamp = { seeMore: t("seeMore"), seeLess: t("seeLess") };
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        <Title variant="page">{page.title}</Title>
+        <GridItem as={Main} span={4} subgrid>
+          <Title variant="page">{page.title}</Title>
 
-        <BackNav />
+          <BackNav />
 
-        {/* NID-CONTEXT §5.2's row 1: the rail in column 1, the hero across the
-            rest. `start={1}` is load-bearing — without it the rail auto-places
-            into the free cell of ROW 1, beside the page title. */}
-        {page.contacts.length > 0 && (
-          <GridItem span="full-then-1" start={1}>
-            <ContactList contacts={page.contacts} />
-          </GridItem>
-        )}
+          {/* NID-CONTEXT §5.2's row 1: the rail in column 1, the hero across the
+              rest. `start={1}` is load-bearing — without it the rail auto-places
+              into the free cell of ROW 1, beside the page title. */}
+          {page.contacts.length > 0 && (
+            <GridItem span="full-then-1" start={1}>
+              <ContactList contacts={page.contacts} />
+            </GridItem>
+          )}
 
-        <PageHero hero={page.hero} />
+          <PageHero hero={page.hero} />
 
-        {page.intro && (
-          <GridItem span={2} start={2}>
-            <Standfirst text={page.intro} seeMore={t("seeMore")} />
-          </GridItem>
-        )}
+          {page.intro && (
+            <GridItem span={2} start={2}>
+              <Standfirst text={page.intro} seeMore={t("seeMore")} />
+            </GridItem>
+          )}
 
-        {page.sections.map((section) => (
-          <Fragment key={section.id}>
-            <Separator />
-            <SectionRenderer
-              section={section}
-              clamp={section.id === CLAMPED_SECTION ? clamp : undefined}
-              // Both boards draw a section image (4140:246793, 4140:246794) and
-              // neither asset exists yet; same TODO as the hero.
-              imagePlaceholder
-              patternSeed={SECTION_PATTERN[section.id]}
-            />
-          </Fragment>
-        ))}
+          {page.sections.map((section) => (
+            <Fragment key={section.id}>
+              <Separator />
+              <SectionRenderer
+                section={section}
+                clamp={section.id === CLAMPED_SECTION ? clamp : undefined}
+                // Both boards draw a section image (4140:246793, 4140:246794) and
+                // neither asset exists yet; same TODO as the hero.
+                imagePlaceholder
+                patternSeed={SECTION_PATTERN[section.id]}
+              />
+            </Fragment>
+          ))}
 
-        {/* The separator belongs to the band: with no siblings neither renders,
-            and the page does not close on two rules in a row (§40). */}
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            <SiblingBand
-              items={derived.siblingBand}
-              parentTitle={derived.backNav?.label ?? page.title}
-            />
-          </>
-        )}
+          {/* The separator belongs to the band: with no siblings neither renders,
+              and the page does not close on two rules in a row (§40). */}
+          {derived.siblingBand.length > 0 && (
+            <>
+              <Separator />
+              <SiblingBand
+                items={derived.siblingBand}
+                parentTitle={derived.backNav?.label ?? page.title}
+              />
+            </>
+          )}
 
-        <Separator />
+          <Separator />
+        </GridItem>
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

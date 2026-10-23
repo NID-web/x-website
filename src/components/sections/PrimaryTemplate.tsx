@@ -63,78 +63,80 @@ export async function PrimaryTemplate({
   );
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        <Title variant="page">{page.title}</Title>
+        <GridItem as={Main} span={4} subgrid>
+          <Title variant="page">{page.title}</Title>
 
-        <BackNav />
+          <BackNav />
 
-        {derived.subPageLinks.length > 0 && !below && (
-          <GridItem span="full-then-1" start={1} as="nav" aria-label={t("subPages")}>
-            <LinkStack links={derived.subPageLinks} twoUp="tablet-only" />
-          </GridItem>
-        )}
+          {derived.subPageLinks.length > 0 && !below && (
+            <GridItem span="full-then-1" start={1} as="nav" aria-label={t("subPages")}>
+              <LinkStack links={derived.subPageLinks} twoUp="tablet-only" />
+            </GridItem>
+          )}
 
-        {/* Not PageHero: a primary page draws nothing without an asset (no
-            placeholder box), and the rail and standfirst close up. */}
-        {hero && (
-          // Below-intro, column 1 stays empty: with no rail to hold it, the hero
-          // would otherwise flow into column 1.
-          <GridItem span="hero" start={below ? "2-hero" : undefined}>
-            <TileImage
-              media={hero}
-              priority
-              className="relative aspect-[4/3] w-full rounded-tl-hero tablet:aspect-video laptop:aspect-[2/1] desktop:aspect-[2.2/1]"
-              sizes="(min-width: 1280px) 1038px, (min-width: 1024px) 64vw, 96vw"
-            />
-          </GridItem>
-        )}
+          {/* Not PageHero: a primary page draws nothing without an asset (no
+              placeholder box), and the rail and standfirst close up. */}
+          {hero && (
+            // Below-intro, column 1 stays empty: with no rail to hold it, the hero
+            // would otherwise flow into column 1.
+            <GridItem span="hero" start={below ? "2-hero" : undefined}>
+              <TileImage
+                media={hero}
+                priority
+                className="relative aspect-[4/3] w-full rounded-tl-hero tablet:aspect-video laptop:aspect-[2/1] desktop:aspect-[2.2/1]"
+                sizes="(min-width: 1280px) 1038px, (min-width: 1024px) 64vw, 96vw"
+              />
+            </GridItem>
+          )}
 
-        {/* TODO(review): designer — the Programmes board sets the standfirst in
-            Body/Large/Bold; Standfirst is Regular from 768 up (Bold on phones
-            only), as About has always shipped. The template wins. */}
-        {page.intro && (
-          <GridItem span={2} start={2}>
-            <Standfirst text={page.intro} seeMore={t("seeMore")} />
-          </GridItem>
-        )}
-        {/* Beside-hero, the slot holds exactly the element it always did: an
-            extra child, even an empty one, reaches the RSC payload of every
-            primary page (§76). */}
-        {below && derived.subPageLinks.length > 0
-          ? [
-              <Fragment key="contacts">{contactSlot}</Fragment>,
-              <GridItem key="sub-pages" span="hero" start="2-hero" as="nav" aria-label={t("subPages")}>
-                <LinkStack links={derived.subPageLinks} twoUp="three-up" />
-              </GridItem>,
-            ]
-          : contactSlot}
+          {/* TODO(review): designer — the Programmes board sets the standfirst in
+              Body/Large/Bold; Standfirst is Regular from 768 up (Bold on phones
+              only), as About has always shipped. The template wins. */}
+          {page.intro && (
+            <GridItem span={2} start={2}>
+              <Standfirst text={page.intro} seeMore={t("seeMore")} />
+            </GridItem>
+          )}
+          {/* Beside-hero, the slot holds exactly the element it always did: an
+              extra child, even an empty one, reaches the RSC payload of every
+              primary page (§76). */}
+          {below && derived.subPageLinks.length > 0
+            ? [
+                <Fragment key="contacts">{contactSlot}</Fragment>,
+                <GridItem key="sub-pages" span="hero" start="2-hero" as="nav" aria-label={t("subPages")}>
+                  <LinkStack links={derived.subPageLinks} twoUp="three-up" />
+                </GridItem>,
+              ]
+            : contactSlot}
 
-        {/* TODO(review): designer — the Programmes board sets the Curriculum
-            Objectives body in text/secondary; SectionBody uses text/primary
-            for every section body (see its note). The template wins. */}
-        {sections.map((section) => (
-          <Fragment key={section.id}>
-            <Separator />
-            {/* No craft tile beside a section photo: /study's Life at NID, the
-                first primary page with one, draws none. A text section's links
-                go by the utility rule, not into a free cell beside it (§73). */}
-            <SectionRenderer
-              section={section}
-              thumbs={thumbs}
-              thumbMeta={thumbMeta}
-              clamp={clamp[section.id] && { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp: clamp[section.id] }}
-              pattern={false}
-              utilityLinks
-            />
-          </Fragment>
-        ))}
+          {/* TODO(review): designer — the Programmes board sets the Curriculum
+              Objectives body in text/secondary; SectionBody uses text/primary
+              for every section body (see its note). The template wins. */}
+          {sections.map((section) => (
+            <Fragment key={section.id}>
+              <Separator />
+              {/* No craft tile beside a section photo: /study's Life at NID, the
+                  first primary page with one, draws none. A text section's links
+                  go by the utility rule, not into a free cell beside it (§73). */}
+              <SectionRenderer
+                section={section}
+                thumbs={thumbs}
+                thumbMeta={thumbMeta}
+                clamp={clamp[section.id] && { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp: clamp[section.id] }}
+                pattern={false}
+                utilityLinks
+              />
+            </Fragment>
+          ))}
 
-        <Separator />
+          <Separator />
+        </GridItem>
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

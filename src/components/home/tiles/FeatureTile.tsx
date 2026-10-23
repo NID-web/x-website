@@ -2,12 +2,13 @@ import clsx from "clsx";
 import { Tile } from "@/components/home/Tile";
 import { Cta } from "@/components/spine/Cta";
 import type { HomeTile, Translate } from "@/lib/home-content";
+import { TileHeading, type HeadingLevel } from "@/components/home/parts";
 
 type FeatureTileData = Extract<HomeTile, { kind: "feature" }>;
 
-function SerifLockup({ text }: { text: string }) {
+function SerifLockup({ text, level }: { text: string; level: HeadingLevel }) {
   return (
-    <h3 className="font-secondary text-display-serif text-text-primary">
+    <TileHeading level={level} className="font-secondary text-display-serif text-text-primary">
       {text.split(/\s+/).map((word, i) => (
         <span
           key={`${i}-${word}`}
@@ -19,15 +20,23 @@ function SerifLockup({ text }: { text: string }) {
           {word}
         </span>
       ))}
-    </h3>
+    </TileHeading>
   );
 }
 
-export function FeatureTile({ tile, t }: { tile: FeatureTileData; t: Translate }) {
+export function FeatureTile({
+  tile,
+  t,
+  headingLevel = 3,
+}: {
+  tile: FeatureTileData;
+  t: Translate;
+  headingLevel?: HeadingLevel;
+}) {
   return (
     <Tile as="section" surface="page" padding={false}>
       <div className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-full bg-feature-disc p-4 text-center">
-        <SerifLockup text={t(tile.serifKey)} />
+        <SerifLockup text={t(tile.serifKey)} level={headingLevel} />
         {tile.subKey && (
           <p className="text-balance font-primary text-label text-text-tertiary">
             {t(tile.subKey)}

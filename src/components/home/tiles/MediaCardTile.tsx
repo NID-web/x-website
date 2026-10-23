@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { Tile } from "@/components/home/Tile";
 import { FlipMediaCard } from "@/components/home/tiles/FlipMediaCard";
-import { Overline } from "@/components/home/parts";
+import { Overline, TileHeading, type HeadingLevel } from "@/components/home/parts";
 import { PHOTO_SCRIM, PHOTO_TEXT, TileImage } from "@/components/home/TileImage";
 import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
@@ -12,7 +12,15 @@ type MediaCardTileData = Extract<HomeTile, { kind: "mediaCard" }>;
 /**
  * Media card tile supporting overlay, below, and inverse layouts.
  */
-export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Translate }) {
+export function MediaCardTile({
+  tile,
+  t,
+  headingLevel = 4,
+}: {
+  tile: MediaCardTileData;
+  t: Translate;
+  headingLevel?: HeadingLevel;
+}) {
   const isInverse = tile.surface === "inverse";
   const isOverlay = tile.labelPlacement === "overlay";
   const onDark = isInverse || isOverlay;
@@ -38,6 +46,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
           : {})}
         showDetailsLabel={t("cta.showDetails")}
         showCoverLabel={t("cta.showCover")}
+        headingLevel={headingLevel}
       />
     );
   }
@@ -54,7 +63,8 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
           {t(tile.overlineKey)}
         </span>
       )}
-      <h4
+      <TileHeading
+        level={headingLevel}
         className={clsx(
           // Overlay titles are Heading/3 (27/35) in the design, not Heading/5.
           isOverlay ? "font-primary text-h3" : "font-primary text-h5",
@@ -75,7 +85,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         ) : (
           t(tile.titleKey)
         )}
-      </h4>
+      </TileHeading>
       {isOverlay && tile.href && (
         // The arrow's slot opens from nothing on hover, as PortraitTile's does
         // (STAGE-0-NOTES §48): the rest variant has no arrow, so reserving the
@@ -156,7 +166,8 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
         )}
         <div className="flex w-full items-start gap-2">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <h4
+            <TileHeading
+              level={headingLevel}
               className={clsx(
                 "font-primary text-h5 text-text-primary",
                 tile.href &&
@@ -176,7 +187,7 @@ export function MediaCardTile({ tile, t }: { tile: MediaCardTileData; t: Transla
               ) : (
                 t(tile.titleKey)
               )}
-            </h4>
+            </TileHeading>
             {tile.date && (
               <p className="font-primary text-label text-text-tertiary">{tile.date}</p>
             )}

@@ -9,7 +9,10 @@ import { type FooterLink } from "@/lib/footer-content";
 import { getSiteChrome } from "@/lib/content/getSiteChrome";
 
 /**
- * Site footer blocks, rendered directly as GridItems within the PageGrid.
+ * The site footer: one <footer> that is a subgrid row of the page's PageGrid,
+ * a sibling of <Main>, never inside it — a footer nested in <main> is not the
+ * page's contentinfo landmark (STAGE-0-NOTES §107). Its four blocks keep the
+ * page's column tracks.
  */
 // CMS labels arrive under synthetic `api.footer.*` keys (getSiteChrome) and are
 // resolved before next-intl sees them, so every row here still renders a key
@@ -59,7 +62,7 @@ export async function Footer({
   const t: Translate = (key) => copy[key] ?? raw(key);
   const fullRow = collaborations === "row";
   return (
-    <>
+    <GridItem span={4} subgrid as="footer">
       {/* Two link landmarks in the same footer need distinguishing names, or a
           screen reader offers "navigation" twice with nothing to choose by. */}
       <GridItem span={1} as="nav" aria-label={t("primaryNav")}>
@@ -135,6 +138,6 @@ export async function Footer({
           ))}
         </div>
       </GridItem>
-    </>
+    </GridItem>
   );
 }

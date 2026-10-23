@@ -239,10 +239,17 @@
      throughout; that guidance is overridden here on the design owner's call.
      Kept as its own style rather than a local font-size so the responsive
      ramp still comes from one place. Below 1024 it rejoins Heading/1's
-     values, so the scale never grows as the viewport shrinks. */
-  --text-statement: calc(var(--nid-type-home-statement-size) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1));
+     values, so the scale never grows as the viewport shrinks.
+
+     The panel's text size stops at 125% here. At 150% the single word
+     "tomorrow." is wider than its 1-column tile at 1440 and 1024 and runs into
+     the tile beside it, and a word cannot wrap. At 125% it fits at every width
+     (STAGE-0-NOTES §97, §107). */
+  --text-statement: calc(
+    var(--nid-type-home-statement-size) * var(--nid-tile-scale, 1) * min(var(--nid-text-scale, 1), 1.25)
+  );
   --text-statement--line-height: calc(
-    var(--nid-type-home-statement-lh) * var(--nid-tile-scale, 1) * var(--nid-text-scale, 1)
+    var(--nid-type-home-statement-lh) * var(--nid-tile-scale, 1) * min(var(--nid-text-scale, 1), 1.25)
   );
   --text-statement--letter-spacing: var(--nid-type-home-statement-tracking);
   --text-statement--font-weight: var(--nid-weight-heavy);
@@ -570,6 +577,15 @@
   ::selection {
     background-color: var(--nid-accent-subtle);
     color: var(--nid-text-primary);
+  }
+
+  /* A heading word longer than its column breaks instead of running into the
+     next one. Only ever applies to a word that would otherwise overflow, so it
+     changes nothing at 100% text; at the panel's 150% "Entrepreneurship" and
+     "Communication" outgrow a title column (STAGE-0-NOTES §107). Not
+     `hyphens: auto`, which re-breaks lines that already fit. */
+  :where(h1, h2, h3, h4, h5, h6) {
+    overflow-wrap: break-word;
   }
 
   /* Focus is the one place we allow an accent to carry meaning; accent/primary

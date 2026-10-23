@@ -50,12 +50,14 @@ These fail without an error. Most have already gone wrong once.
 - A range's **start** is not its **artboard width**. `tablet` starts at 668 but is drawn at 768; `desktop` starts at 1280 but is drawn at 1440. `GRID["minViewport"]` is the former, `GRID["referenceWidth"]` the latter — don't collapse them (STAGE-0-NOTES §21). The 1-column layout is for phones only; it used to claim everything below 768.
 - Section separators are omitted on phones (1 column) only — the 768 boards draw them. A utility slot (the page's, or a section's links) sits in the last column of the title row at 3–4 columns and leaves the row below that.
 - A page's main content is `<Main>` (`src/components/spine/Main.tsx`), never a bare `<main>`. `<Main>` carries the id the skip link jumps to; a bare one leaves the skip link landing nowhere on that page (STAGE-0-NOTES §98).
+- **The footer is the contentinfo, outside `<Main>`.** A page with the site footer renders `<GridItem as={Main} span={4} subgrid>` and `<Footer />` as siblings inside the one `PageGrid`, with the page's surface on a plain wrapper around them. A `<footer>` nested in `<main>` is not a contentinfo landmark, and nothing visible says so (STAGE-0-NOTES §107).
 - `--nid-grid-shell-width` is `1440px` — the shell's **cap**, not its width. Below 1440 the shell is fluid (viewport minus the page margin), so the token over-reports it; measure a real `[data-nid-shell]` element's rect instead (STAGE-0-NOTES §5, §19). It is declared once in `:root` and never in a media query.
 
 **Content**
 - `Section.type` is a closed set of six: `text` `links` `cards` `files` `rail` `mosaic`. Before adding a seventh, check whether it's `text` with a different field filled.
 - The front end **refuses to render a section with no content** — an empty scaffold reads as neglect, not brevity.
 - `Link.label` never contains an arrow character; arrows are icons in their own slot.
+- **Every page has exactly one `<h1>`** — the home page's is its position statement. A page with none gives a screen reader no title to jump to (STAGE-0-NOTES §107; `npm run verify:a11y` checks every built page).
 - A back-nav link names its destination ("About NID"), never "Back".
 - When `groupBy` is set, the data arrives already grouped — do not sort a flat list into buckets on the client.
 - Page content reaches a page through `getPage()` in `src/lib/content/` and nowhere else. Nothing outside that directory imports a fixture; `npm run lint` enforces it. Page prose lives in the fixture (it is CMS content), `messages/*.json` holds UI strings only.
@@ -98,6 +100,8 @@ npm run verify:tokens    # 667 assertions: 560 semantic + 20 quote-contrast + sc
                          #   (runs verify:parity first, fails fast if that drifts)
 npm run verify:fonts     # every font family (Typekit + body face) loads + Bodoni opsz
 npm run verify:design    # re-checks design/tokens/ itself (python3 design/verify.py)
+npm run verify:a11y      # FIXTURE build → one <h1> per page, one contentinfo, no "See more"
+                         #   clamp hiding lines, the Accessibility panel by keyboard
 npm run screenshot       # FIXTURE build on purpose (the boards are the fixtures) →
                          #   docs/screenshots/<page>-{1440,1024,768,390}.png
 npm run screenshot:live  # LIVE build → docs/screenshots/live/, the CMS's own article

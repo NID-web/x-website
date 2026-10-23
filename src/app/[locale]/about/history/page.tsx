@@ -70,66 +70,68 @@ export default async function HistoryPage() {
   const t = await getTranslations("Page");
 
   return (
-    <Main className="min-h-screen bg-surface-page pb-12 text-text-primary">
+    <div className="min-h-screen bg-surface-page pb-12 text-text-primary">
       <BrandStrip />
       <PageGrid>
-        <Title variant="page">{page.title}</Title>
+        <GridItem as={Main} span={4} subgrid>
+          <Title variant="page">{page.title}</Title>
 
-        <BackNav />
+          <BackNav />
 
-        {/* 4683:398284: the key-info rail, column 1 beside the hero; a band
-            after the title below 3 columns. `start={1}` keeps it out of the
-            free cell of row 1, beside the page title. */}
-        {page.keyInfo.length > 0 && (
-          <GridItem span="full-then-1" start={1}>
-            <ContactList contacts={page.keyInfo} />
-          </GridItem>
-        )}
+          {/* 4683:398284: the key-info rail, column 1 beside the hero; a band
+              after the title below 3 columns. `start={1}` keeps it out of the
+              free cell of row 1, beside the page title. */}
+          {page.keyInfo.length > 0 && (
+            <GridItem span="full-then-1" start={1}>
+              <ContactList contacts={page.keyInfo} />
+            </GridItem>
+          )}
 
-        <PageHero hero={page.hero} />
+          <PageHero hero={page.hero} />
 
-        {page.intro && (
-          <GridItem span={2} start={2}>
-            <Standfirst text={page.intro} seeMore={t("seeMore")} />
-          </GridItem>
-        )}
+          {page.intro && (
+            <GridItem span={2} start={2}>
+              <Standfirst text={page.intro} seeMore={t("seeMore")} />
+            </GridItem>
+          )}
 
-        {page.sections.map((section) => {
-          const clamp = CLAMP[section.id];
-          return (
-            <Fragment key={section.id}>
+          {page.sections.map((section) => {
+            const clamp = CLAMP[section.id];
+            return (
+              <Fragment key={section.id}>
+                <Separator />
+                <SectionRenderer
+                  section={section}
+                  clamp={clamp ? { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp } : undefined}
+                  imagePlaceholder={IMAGED.has(section.id)}
+                  // TODO(review): designer — Charter pairs each section image with
+                  // a craft tile in the rail; History's 1440 board instances none.
+                  // Meant, or not yet drawn? (STAGE-0-NOTES §50 has the rail cell
+                  // existing at 3 columns too.)
+                  pattern={false}
+                />
+              </Fragment>
+            );
+          })}
+
+          {/* The separator belongs to the band (§40). */}
+          {derived.siblingBand.length > 0 && (
+            <>
               <Separator />
-              <SectionRenderer
-                section={section}
-                clamp={clamp ? { seeMore: t("seeMore"), seeLess: t("seeLess"), clamp } : undefined}
-                imagePlaceholder={IMAGED.has(section.id)}
-                // TODO(review): designer — Charter pairs each section image with
-                // a craft tile in the rail; History's 1440 board instances none.
-                // Meant, or not yet drawn? (STAGE-0-NOTES §50 has the rail cell
-                // existing at 3 columns too.)
+              <SiblingBand
+                items={derived.siblingBand}
+                parentTitle={derived.backNav?.label ?? page.title}
+                // No craft tile here either (4315:276234); same TODO as above.
                 pattern={false}
               />
-            </Fragment>
-          );
-        })}
+            </>
+          )}
 
-        {/* The separator belongs to the band (§40). */}
-        {derived.siblingBand.length > 0 && (
-          <>
-            <Separator />
-            <SiblingBand
-              items={derived.siblingBand}
-              parentTitle={derived.backNav?.label ?? page.title}
-              // No craft tile here either (4315:276234); same TODO as above.
-              pattern={false}
-            />
-          </>
-        )}
-
-        <Separator />
+          <Separator />
+        </GridItem>
         <Footer />
       </PageGrid>
       <BrandStrip logo />
-    </Main>
+    </div>
   );
 }

@@ -2,13 +2,22 @@ import { Tile } from "@/components/home/Tile";
 import { Icon } from "@/components/spine/Icon";
 import { SiteLink } from "@/components/spine/SiteLink";
 import type { HomeTile, Translate } from "@/lib/home-content";
+import { TileHeading, type HeadingLevel } from "@/components/home/parts";
 
 type SpineTileData = Extract<HomeTile, { kind: "spine" }>;
 
 /**
  * "Knowledge Management Centre" — a shelf of vertical book spines above a heading.
  */
-export function SpineTile({ tile, t }: { tile: SpineTileData; t: Translate }) {
+export function SpineTile({
+  tile,
+  t,
+  headingLevel = 3,
+}: {
+  tile: SpineTileData;
+  t: Translate;
+  headingLevel?: HeadingLevel;
+}) {
   const heading = t(tile.headingKey);
 
   return (
@@ -32,7 +41,7 @@ export function SpineTile({ tile, t }: { tile: SpineTileData; t: Translate }) {
         ))}
       </div>
 
-      <h3 className="mt-4 font-primary text-h3 text-text-primary">
+      <TileHeading level={headingLevel} className="mt-4 font-primary text-h3 text-text-primary">
         {/* Deliberately NOT the `after:inset-0` whole-tile target the other
             linked tiles use. That overlay would sit on top of the shelf and
             swallow the pointer, so no spine would ever reach its own :hover —
@@ -45,7 +54,7 @@ export function SpineTile({ tile, t }: { tile: SpineTileData; t: Translate }) {
         ) : (
           heading
         )}
-      </h3>
+      </TileHeading>
 
       {tile.href && (
         // The visit arrow, left, in a slot that opens from nothing — the same

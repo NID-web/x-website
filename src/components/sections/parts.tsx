@@ -135,11 +135,16 @@ export function ContactList({ contacts }: { contacts: LabelValue[] }) {
               // — a postal address, an office name — belongs here, and rendering
               // it as an anchor would ship a dead one.
               <>
-                <Overline withRule={false}>{contact.label}</Overline>
+                {/* Wrapping: a label like "Departmental Appellate Authority"
+                    outgrows its column at the panel's 150% text and pushed the
+                    page into a sideways scroll (STAGE-0-NOTES §107). */}
+                <Overline withRule={false} wrap>
+                  {contact.label}
+                </Overline>
                 {/* The library's Information row (Important · Vertical,
                     NID-CONTEXT §7.7): the value is Heading/5, as the campus
                     boards' key info draws it (4119:224223). */}
-                <p className="mt-2 font-primary text-h5 text-text-primary">{contact.value}</p>
+                <p className="mt-2 font-primary text-h5 text-text-primary wrap-break-word">{contact.value}</p>
               </>
             )}
           </li>

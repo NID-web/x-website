@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { Link } from "@/i18n/navigation";
 import { Tile } from "@/components/home/Tile";
 import { Icon } from "@/components/spine/Icon";
-import { Overline } from "@/components/home/parts";
+import { Overline, TileHeading, type HeadingLevel } from "@/components/home/parts";
 import {
   PatternFieldAlumni,
   PatternScatterAlumni,
@@ -18,7 +18,15 @@ const SCATTER = {
   pride: PatternScatterPride,
 } as const;
 
-export function PortraitTile({ tile, t }: { tile: PortraitTileData; t: Translate }) {
+export function PortraitTile({
+  tile,
+  t,
+  headingLevel = 4,
+}: {
+  tile: PortraitTileData;
+  t: Translate;
+  headingLevel?: HeadingLevel;
+}) {
   const Scatter = tile.bed ? SCATTER[tile.bed] : null;
   return (
     <Tile as="section" surface="page" padding={false}>
@@ -67,7 +75,7 @@ export function PortraitTile({ tile, t }: { tile: PortraitTileData; t: Translate
           )}
         />
         <div className="flex flex-col gap-2">
-          <h4 className="font-primary text-h5 text-text-primary">
+          <TileHeading level={headingLevel} className="font-primary text-h5 text-text-primary">
             {tile.href ? (
               <Link
                 href={tile.href}
@@ -78,7 +86,7 @@ export function PortraitTile({ tile, t }: { tile: PortraitTileData; t: Translate
             ) : (
               t(tile.nameKey)
             )}
-          </h4>
+          </TileHeading>
           {tile.bioKey && (
             <p className="font-primary text-label text-text-tertiary">{t(tile.bioKey)}</p>
           )}

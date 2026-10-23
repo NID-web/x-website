@@ -1,5 +1,5 @@
 import { Tile } from "@/components/home/Tile";
-import { GradientWash, Overline } from "@/components/home/parts";
+import { GradientWash, Overline, TileHeading, type HeadingLevel } from "@/components/home/parts";
 import { Icon } from "@/components/spine/Icon";
 import { Link } from "@/i18n/navigation";
 import type { HomeTile, Translate } from "@/lib/home-content";
@@ -9,15 +9,23 @@ type LinkListTileData = Extract<HomeTile, { kind: "linkList" }>;
 /**
  * "Study at NID" — heading over a list of links with labels, subtle underlines, and meta lines.
  */
-export function LinkListTile({ tile, t }: { tile: LinkListTileData; t: Translate }) {
+export function LinkListTile({
+  tile,
+  t,
+  headingLevel = 3,
+}: {
+  tile: LinkListTileData;
+  t: Translate;
+  headingLevel?: HeadingLevel;
+}) {
   return (
     <Tile as="section" surface="page" padding={false} className="justify-center">
       {tile.gradient && <GradientWash />}
       {tile.overlineKey && <Overline>{t(tile.overlineKey)}</Overline>}
       {tile.headingKey && (
-        <h3 className="relative font-primary text-h3 text-text-tertiary">
+        <TileHeading level={headingLevel} className="relative font-primary text-h3 text-text-tertiary">
           {t(tile.headingKey)}
-        </h3>
+        </TileHeading>
       )}
       <ul className="relative mt-3 flex flex-col gap-3">
         {tile.links.map((link) => (

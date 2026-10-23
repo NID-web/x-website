@@ -192,8 +192,12 @@
     "textSmaller": "Text size decrease",
     "links": "Highlight links",
     "images": "Hide images",
-    "cursor": "Default cursor",
+    "cursor": "Large cursor",
     "textSize": "Text size {size}%",
+    "textLargest": "Largest text size",
+    "textSmallest": "Smallest text size",
+    "reset": "Reset",
+    "resetDone": "Accessibility settings reset",
     "skip": "Skip to main content"
   }
 }

@@ -9,6 +9,12 @@ export const MAIN_ID = "main-content";
  * the locale layout renders its main content through this, never a bare
  * <main>, or the skip link lands nowhere on that page.
  *
+ * A page with the site footer renders it as `<GridItem as={Main} span={4}
+ * subgrid>` inside the PageGrid, with <Footer> as its sibling: still one grid,
+ * and the footer outside <main>, where it is the contentinfo landmark. The
+ * page's surface and min-height sit on a plain wrapper around both
+ * (STAGE-0-NOTES §107).
+ *
  * tabIndex -1 so following the link moves focus here, not only the scroll
  * position: a browser that does not move its sequential-focus starting point
  * to a fragment target would otherwise send the next Tab back to the header.

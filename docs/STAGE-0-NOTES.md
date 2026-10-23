@@ -6510,7 +6510,7 @@ like `--nid-tile-scale` in §24) as well as by the tile scale, so a tile still f
 every text size. Measured at 1440: the home statement is 55px at 100%, 68.75px at 125% and
 82.5px at 150%. At 125% (the board's step) every home tile holds its text. At 150% the single
 word "tomorrow." is wider than a 4-column track and runs into the film tile beside it: a word
-cannot wrap. TODO(review): cap the display styles, or accept it at the largest step.
+cannot wrap. Since §107 the statement's scale stops at 125%.
 
 **Dark contrast is a theme.** Yoga · Dark is the board's "closest existing" palette. It paints over
 the visitor's theme without replacing it: `nid-theme` and `nid-appearance` are untouched, and
@@ -6544,8 +6544,8 @@ panel's edge is ThemeMenu's 1px ring rather than a border, so all 352px is conte
 itself is still `rounded-pill`.
 
 **The cursor.** One large arrow, used everywhere, links included: the board draws no large hand.
-Hotspot 13, 9, the arrow's tip in the exported SVG. The label is the board's "Default cursor".
-TODO(review): the control turns on a large cursor, which the label does not say.
+Hotspot 13, 9, the arrow's tip in the exported SVG. The label was the board's "Default cursor",
+which is not what the control turns on; it is "Large cursor" since §107, pending design sign-off.
 
 ## 98. Keyboard focus: the drawer is modal, the theme menu a disclosure, and a skip link
 
@@ -7590,3 +7590,182 @@ the page.
 - **SM1** The hero, the About IMAGE block and the thumbnail are seed placeholders: no alt text, files 404.
 - **SM2** "About" repeats heroText: keep one.
 - **SM3** Confirm `webmaster@nid.edu` is a live mailbox.
+
+## 107. Accessibility pass: one h1, the footer landmark, reflow at 150%, and the panel's Reset
+
+Measured first, on a FIXTURE build of `eb7c6b5`, then fixed. Every figure below is from the
+screenshot page set (49 pages) unless it says otherwise.
+
+### What changed
+
+| Area | Change |
+|---|---|
+| Headings | The home statement is the page's `<h1>` (`StatementTile`), styled by `text-statement` alone as the `<p>` was. Both not-found pages' message is their `<h1>`, classes unchanged |
+| Footer | `<Footer>` is one `<footer>`, a `GridItem` subgrid of the full row. The 12 pages that render it (3 templates, `HomeGrid`, 8 About pages) render their content as `<GridItem as={Main} span={4} subgrid>` beside it in the one `PageGrid`; the page surface and min-height moved from `<Main>` to a plain wrapper. The footer is now the contentinfo landmark, outside `<main>` |
+| Statement at 150% | The panel's text scale stops at 125% for `text-statement` only (`globals.css` `@theme`): "tomorrow." fits its tile at every width |
+| Long words | Headings take `overflow-wrap: break-word` (base layer); a wrapping `Overline` and a full-width `Cta`'s label take `wrap-anywhere`; `ContactList`'s plain-text label wraps and its value breaks |
+| Clamps | `ClampedProse` re-measures on `document.fonts.ready`, and when a stylesheet or a style/class attribute changes anywhere in the document |
+| Heading order | Home's tile headings one level up under the `<h1>` (h3 → h2, h4 → h3), and Director's Message's name an `<h2>` where it was an `<h3>` straight under the `<h1>`: a `headingLevel` prop on the tiles and on `PersonCard`, whose default is each one's old level |
+| Panel | A Reset button, step limits, the "Large cursor" label |
+| Checks | `scripts/verify-a11y.mjs` (`npm run verify:a11y`), with a heading-order check |
+
+### Step 0 measurements
+
+**`<h1>` per page** (89 prerendered): 87 had one; `/en` and the global not-found had none.
+`[locale]/not-found.tsx` had none either, and never renders. Every unknown path tried
+(`/en/does-not-exist`, a missing article, lab or discipline) gets `app/not-found.tsx`.
+TODO(review): keep `[locale]/not-found.tsx`, or route to it; it is not deleted.
+
+**Landmarks** (Chromium's accessibility tree): banner, main, and the footer's two named
+navigations *inside main*. No page had a contentinfo. Out of scope, recorded: the 404 page has no
+banner (no header), and the header has no navigation landmark (its menu is a modal drawer).
+
+**The footer out of `<main>`, measured as two variants** against `eb7c6b5`, full-page pixel
+diffs of 48 pages at 4 widths: a `<footer>` subgrid inside `<main>`, and the shape above. Both
+were identical on 47 pages at every width, and on home at 1440 and 390. On home at 1024 (+297px)
+and 768 (+340px) the footer's first link column used to backfill the empty cell beside the
+last tile row; any wrapper with a box starts it on a row of its own. `display: contents` would
+keep the backfill, but `<main>` needs a box to take the skip link's focus. Accepted. The home
+boards (1024 `4990:368207`, 768 `4997:381054`, §20) draw no footer column there: their footer
+starts on its own row after a full last tile row. The empty cell comes from the tile layout,
+which differs from the board (at 1024 the board's Young Designers tile spans two columns), not
+from the footer. Not changed here.
+
+**Reflow, text spacing, 150% text.** The checker counts text cut by an overflow ancestor (a
+quarter of a line or more, not a glyph's overhang), text past its grid cell, text over text, a
+clamp hiding lines with no "See more", and the page scrolling sideways. Designed truncation is
+counted apart: card line-clamps, the KMC spines' ellipsis, "See more" regions with their button.
+
+| Run | Pages failing before | After | Sideways scroll before | After |
+|---|---|---|---|---|
+| 1440 / 1024 / 768 / 390 | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 | 0 |
+| 640 (1280 at 200%) | 0 | 0 | 0 | 0 |
+| 320 | 4 | 0 | 0 | 0 |
+| Text spacing, 1440 | 0 | 0 | 0 | 0 |
+| Text spacing, 390 | 2 | 0 | 0 | 0 |
+| 150%, 1440 | 14 | 0 | 4 | 0 |
+| 150%, 1024 | 15 | 0 | 1 | 0 |
+| 150%, 768 | 5 | 0 | 0 | 0 |
+| 150%, 390 | 10 | 0 | 5 | 0 |
+
+The causes: the statement (1); `ContactList`'s `nowrap` label, which caused every sideways
+scroll (2); its phone value (3); email addresses in `Cta` rows (4); single long words in
+`text-h2` titles (5) and `text-h6` card titles (6); `PersonCard`'s overline, the one failure at
+320 (7); and `ClampedProse` hiding whole lines with no button (8). Not failures: Student Awards
+under text spacing shows a 3px "spill" that is only `capTrim`'s trimmed line box; the dev-only
+swatch page is excluded.
+
+**Text spacing applied to a settled page** (a bookmarklet, an extension) hid lines on
+Consulting, Natural Fiber and Apparel Design Workshop with no "See more". `ClampedProse`
+measured when its box resized, and a clamped box is N lines tall whatever the copy does, so
+copy rewrapping inside it went unseen. Observing the paragraphs does not help in Chromium,
+which clamps their boxes too (168px, the seven clamped lines, before and after). The
+`fonts.ready` re-measure fixed the late-font case (Railway at 150%, 768).
+
+Two fixes were tried in order:
+
+- **An observed box, rejected.** The clamp as `max-height: N·1lh` with `overflow: hidden` and
+  the ResizeObserver on an unclamped inner wrapper, so any reflow resizes something observed.
+  Pixel R at 100% against the tree without it: 28 of 48 pages changed. It drops line-clamp's
+  ellipsis ("multi-facete…" becomes "multi-faceted", cut mid-line), and `N·1lh` counts the
+  paragraph gaps that line-clamp does not, so multi-paragraph clamps show less (16 to 80px).
+- **Shipped: one shared observer.** A single `MutationObserver` on `documentElement`, subtree:
+  `<style>`/stylesheet `<link>` nodes added, removed or edited, and `style`, `class`, `media`,
+  `href` and `disabled` attributes anywhere. It re-measures every mounted clamp at most once per
+  frame. The whole document, not `<head>`: Stylus injects outside it. The ResizeObserver
+  (width, the panel's text size) and `fonts.ready` stay; the paragraph observation went.
+
+**It settles.** Measured with a counter and timer in a scratch copy of `ClampedProse`, FIXTURE,
+at 1440 and 390 (the same at both). Home mounts no clamp, so the module never loads there and
+nothing re-measures. On Consulting, two clamps:
+
+| Phase | Re-measures | Frames in the phase |
+|---|---|---|
+| Idle 10s after load | 0 | 600 |
+| Hovering every row and link | 2 | 36 |
+| Menu drawer open and closed | 6 | 90 |
+| Accessibility panel open and closed | 2 | 87 |
+| Theme menu open and closed | 4 | 88 |
+| Scrolling the whole page | 2 | 61–73 |
+| Idle 10s after all of that | 0 | 600 |
+| "See more", then 3s | 4 | 183 |
+| "See less", then 3s | 4 (a fresh measure on remount, then the class change) | 183 |
+| Idle 10s after toggling | 0 | 601 |
+
+Each interaction is one to three frames' worth (two clamps each), never one per frame, and
+nothing follows once the page is still: toggling "See more" does not feed back into the
+observer. A re-measure takes 0.0–0.2ms on average and 0.6ms at most; no long task (>50ms) in
+any phase. Navigating client-side from Consulting to Home leaves the shared observer
+disconnected with no clamp registered.
+
+Text spacing, every page of the set, with spacing applied after load and at
+`DOMContentLoaded` (before hydration measures anything), against `eb7c6b5`:
+
+| Run | Pages failing before | After |
+|---|---|---|
+| 1440, after load | 0 | 0 |
+| 1440, before hydration | 0 | 0 |
+| 390, after load | 2 (Consulting, Natural Fiber) | 0 |
+| 390, before hydration | 0 | 0 |
+
+### R
+
+FIXTURE, the working tree against `eb7c6b5`, all 532 `.html`/`.rsc` files. The comparer maps
+the expected changes back to HEAD's shape: the wrapper `div` to `<main>`, the `<main>` and
+`<footer>` subgrids unwrapped, the three `<h1>` to `<p>`, the panel's Reset and `aria-disabled`
+dropped, the cursor label and the four new message keys, and on the home page only, inside
+`<main>`, the tile headings h2 → h3 and h3 → h4 (and the `headingLevel` prop the RSC payload
+carries to `FlipMediaCard`, a client component); on Director's Message only, the name's `<h2>`
+→ `<h3>`. It also drops fixes 4 and 7's own class
+tokens, and renames React `useId` values by first appearance (the `<Main>` subgrid renumbers
+them). It resolves an RSC path reference into a row being walked, as in §99. **532 of 532
+equal.** HEAD against itself: 532 of 532. A planted text change, stray node and lost class were
+all caught. Pixels at 100% text, 48 pages × 4 widths: identical except home at 1024 and 768.
+The heading tags alone, against the build before them: 0px on home and on Director's Message at
+all four widths.
+
+### The panel
+
+- **Reset**, a text button before Close in the title row, always rendered so the row never
+  reflows. It clears `data-a11y`, `data-text-size`, their storage and cookies, and contrast
+  through ThemeProvider, which restores the visitor's theme. It announces "Accessibility
+  settings reset" and stays focused: `aria-disabled` when nothing is set, never `disabled`.
+- **Step limits.** At 150% the increase tile and at 87.5% the decrease tile are
+  `aria-disabled`, drawn in `text-text-tertiary` with no hover fill; a press says "Largest text
+  size" / "Smallest text size" and changes nothing. The size is read from `<html>` on mount,
+  where THEME_SCRIPT put it. Announcements pass through an empty frame, so the same words twice
+  are said twice.
+- **"Large cursor"**, closing §97's TODO. TODO(review): design sign-off on the label.
+
+### axe (`@axe-core/playwright` 4.10, scratch only; WCAG 2.2 AA and best practice)
+
+On `/en`, `/en/about`, Drawing Dialogues, Staff and the Sitemap, light and dark:
+
+| Rule | Before | After |
+|---|---|---|
+| color-contrast | 72 nodes | 72 nodes: all `text-quaternary`, below AA by design (CLAUDE.md) |
+| heading-order | 0 | 0 |
+
+`heading-order` rose to 2 on home once it had an `<h1>` to jump from (its tiles started at
+`<h3>`), and is 0 with the tile headings one level up. axe's `page-has-heading-one` passed HEAD's
+home with no `<h1>` at all; `verify-a11y`'s static check is what catches it. The contentinfo
+rules now apply and pass.
+
+### `npm run verify:a11y`
+
+`scripts/verify-a11y.mjs`, after a FIXTURE build: one `<h1>` on every built page (static HTML);
+one contentinfo in Chromium's accessibility tree on every page with the site footer, found by
+the footer's navigation name rather than a `<footer>` tag, whose absence is what it checks; no
+clamp hiding a line without its "See more", with fonts at their own speed and held back 2.5s,
+at 100% and 150%, and with text spacing applied to a settled page; no heading stepping down
+more than one level, in document order, on every built page; and the panel by keyboard alone,
+as the panel section above describes. Run against `eb7c6b5` as a control, it fails the
+`<h1>` check, three of the four clamp runs (both at 150%, and spacing after load; fonts held
+back at 100% passes there too), and every new panel step.
+
+### Residual TODOs
+
+- Home's empty cell at 1024 and 768 is the tile layout, not the footer.
+- "Large cursor": design sign-off.
+- `[locale]/not-found.tsx` never renders.
+- Out of scope: the 404 has no banner; the header menu has no navigation landmark.

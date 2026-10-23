@@ -19,7 +19,8 @@ export default function GlobalNotFound() {
       {/* Browser extensions (Grammarly) add attributes to <body>; this covers only its own attributes, not its children. */}
       <body suppressHydrationWarning>
         <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-page text-text-primary">
-          <p className="font-body text-body">That page doesn&apos;t exist.</p>
+          {/* The page's one <h1> (STAGE-0-NOTES §107), styled as the <p> it replaced. */}
+          <h1 className="font-body text-body">That page doesn&apos;t exist.</h1>
           <Link href="/en" className="font-body text-body underline">
             National Institute of Design
           </Link>
