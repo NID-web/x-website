@@ -28,14 +28,12 @@ import { facultyIndex } from "@/lib/content/getFaculty";
 import type { PageData } from "@/lib/content/getPage";
 import { PAGE_ID, pageIdOf, pathOf, pathOfCmsSlug } from "@/lib/content/pages";
 import { registerBuiltParams } from "@/lib/content/links";
+import { disciplineBase } from "@/lib/content/discipline-route";
 import { auditSummary, gatePage, logMissingRoutes } from "@/lib/content/route-gate";
 import { routeTitle } from "@/lib/nav-content";
 import { DEMO_DISCIPLINE, DEMO_RESOURCES } from "@/lib/content/fixtures/discipline-afd";
 import { PROGRAMME_BDES } from "@/lib/content/fixtures/programme-bdes";
 
-// TODO(review): the live NID site's discipline URLs
-// (/academics/programmes/bachelor-of-design-bdes/animation-film-design-bdes, the
-// suffix kept) have no redirect here yet.
 // TODO(review): backend — no record ties a lab (Resources) or social links to a
 // discipline, and works carry no film URL; 4 people have no role line (their
 // designation shows) and 2 works have no alt text (dropped).
@@ -46,8 +44,6 @@ export const DISCIPLINE_ROUTE = {
 
 const PROGRAMME_PAGE: Record<ProgrammeLevel, UUID> = { bdes: PAGE_ID.programmeBdes, mdes: PAGE_ID.programmeMdes };
 
-/** The route segment: the CMS slug without its `-bdes` / `-mdes` suffix. */
-export const disciplineBase = (slug: string, level: ProgrammeLevel) => slug.replace(new RegExp(`-${level}$`), "");
 
 /** A discipline card's page, for the programme pages' cards and the band. */
 export function disciplinePath(slug: string, programme: UUID): string | undefined {

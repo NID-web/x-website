@@ -7365,3 +7365,118 @@ every page with bold prose; backlog.
 - **RS6** Hero photographs at least 1600px wide, with descriptive alt text.
 - **RS7** A nav item "Resources" under Programmes. **The launch blocker for this section.**
 - **RS8** (editor) Skill Lab Bengaluru's contact label is truncated; Dyeing's has no person.
+
+## 105. Academics: no page; nid.edu's old Academics URLs redirect to their new homes
+
+**Decided 7 Oct 2026 (the user):** no Academics menu section and no Academics page. The new
+architecture split nid.edu's Academics into Programmes, Study at NID and Research, and that
+stands. So no route is built: every old `/academics…` URL nid.edu serves lands on its new home in
+one hop, so links, bookmarks and search results keep working when this site takes over the domain.
+This is the first slice of the full legacy redirect map; the rest extends the same table.
+
+### What nid.edu serves
+
+Its `sitemap.xml` (23 Oct 2026) lists 58 `/academics` paths, and its menu links `/academics`
+itself: the section landings and Ph.D, 28 discipline paths (8 B.Des, `foundation-programme`, 19
+M.Des), the Resources landing and its 18 lab ids (4, 9–25), five detail pages, and KMC's two.
+**nid.edu serves only the `.html` form:** every `.html` URL answers 200, 53 of the 59 bare forms
+(which its own sitemap lists) answer 404, and six answer 301 to a trailing-slash form
+(`/academics/`). All three forms are in circulation: `.html` in bookmarks and links, bare in search
+indexes from the sitemap.
+
+### The map (`src/lib/legacy-redirects.ts`)
+
+| Legacy | Target | From |
+|---|---|---|
+| `/academics`, `/academics/programmes` | `/programmes` | |
+| `…/bachelor-of-design-bdes`, `…/master-of-design-mdes`, `…/ph-d` | `/programmes/bdes`, `/mdes`, `/phd` | |
+| `/academics/international-programmes` | `/programmes/international` | |
+| `/academics/resource` | `/programmes/resources` | §104 |
+| `/academics/centre-for-teaching-and-learning/detail` | `/programmes/ctl` | §103 |
+| `/academics/nid-press/detail` | `/research/nid-press` | |
+| `/academics/academic-notifications/detail` | `/study/notifications` | |
+| `/academics/curriculum-objectives/detail` | `/programmes/curriculum-objectives` | |
+| 27 disciplines, `…/<legacy slug>` | `/programmes/<level>/<slug less -bdes/-mdes>` | `disciplineBase`, the pages' own rule |
+| `…/bachelor-of-design-bdes/foundation-programme` | `/programmes/bdes` | no page (§72) |
+| 18 lab ids, `/academics/resource/<id>` | `/programmes/resources/<CMS slug>` | `LEGACY_LAB_IDS` (§104) |
+| fallbacks: `…-bdes/:rest*`, `…-mdes/:rest*`, `/academics/resource/:rest*` | the programme page, Resources | an unknown slug or id: one hop, never a 404 |
+
+The discipline legacy slugs are nid.edu's frozen set, typed once from its sitemap; only the targets
+are computed. The rule holds for `lifestyle-accessory-design`, which nid.edu writes with no suffix
+(the CMS's `lifestyle-accessory-design-mdes` routes to the same slug). `disciplineBase` moved to
+`src/lib/content/discipline-route.ts`, a module with no imports, so `next.config.ts` can read it;
+`getDiscipline.ts` imports it from there.
+
+**60 rules × 2 = 120 redirects.** Each rule is two entries: the bare source and `/:locale(en)…`,
+each with `{.html}?` so one source matches both the bare and the `.html` form. The destination
+carries the locale (`/en/…`, or `/:locale/…`): without it the proxy adds the locale as a second hop.
+Explicit rows come before the three fallbacks (first match wins). Measured on `next start`: a
+query string is kept (`/academics/resource/21.html?x=1` → `…/skill-development-lab-ahmedabad?x=1`).
+**A trailing-slash URL takes two hops**: Next's built-in 308 strips the slash, then this 307
+applies. Accepted. With KMC's 10 and Next's one, the build has **131 redirects**. Vercel caps
+configuration redirects (2,048 is the figure recalled; the documentation search did not surface
+it, so confirm before the full legacy map grows); 131 is far inside any such cap, and Bulk
+Redirects is Vercel's route past it.
+
+**307 until the domain switch**, like §85: these targets are days old, and a browser caches a 308
+for good. At cutover they flip to 308 (`permanent: true`), which is also what lets search engines
+transfer the old URLs' standing (DEVELOPER-MANUAL, "Before launch").
+
+### KMC is not matched
+
+`/academics/kmc` is KMC's own URL on nid.edu, and §85 sends every KMC link there; a rule here would
+loop those links. No rule of this map matches it or `/academics/kmc/e-resources`: the only
+fallbacks sit under the B.Des, M.Des and Resources prefixes, and there is no `/academics/:rest*`.
+On this site the `.html` and `/en/` forms answer 404; the bare form gets the proxy's ordinary
+locale 307 to `/en/academics/kmc`, then 404, as any unknown path. §85's `/kmc` rules still answer
+307 to nid.edu. **Open for the domain switch:** whoever hosts KMC decides where `/academics/kmc`
+lives before this site takes over the domain.
+
+### The guard (`scripts/verify-redirects.mjs`, in `npm run build`)
+
+After the build, every redirect to one of this site's pages must land on a page the build made,
+for each locale `src/i18n/routing.ts` names whose home page was built (`/:locale/…` checked in
+each), and no `…/:rest*` fallback may be listed before an explicit rule of its prefix. LIVE: either
+fails the build, naming the rule. FIXTURE: a destination the build did not make is listed, not
+failed: a FIXTURE build makes one discipline (the demo), and is not deployable. Off-site
+destinations (KMC) are not checked. No lint-time version: the map is TypeScript, and a lint script
+cannot import it without a transpile step.
+
+### The Academics paragraph (report only)
+
+nid.edu's Academics intro and `/programmes`' standfirst (the CMS's "About", block 1) share the five
+faculty streams. The intro also has "6th decade of design excellence", the institute's status
+("an autonomous institute under the aegis of the Department of Industrial Policy & Promotion,
+Ministry of Commerce & Industry"), "applied research, service and advanced training",
+"transdisciplinary design projects" and the "hands on–minds on" line. TODO(review), editor: whether
+any of it belongs on `/programmes`; and the department is now DPIIT (Department for Promotion of
+Industry and Internal Trade), as the Governing Council page says. No content moves.
+
+### R, A, B, C, D, Playwright
+
+**R** (baseline `20d765a`): FIXTURE **526 of 526** and LIVE **1084 of 1084** files identical; no
+client chunk changed; `routes-manifest.json` differs only in `redirects`, 11 → 131, the original 11
+first and in order. No new request: 309 fetched, 309 distinct. LIVE 158s (baseline 147s).
+
+**A** (`next start`, LIVE build): **228 of 228** legacy forms (57 paths × bare, `.html`, `/en/`,
+`/en/….html`) answer one 307 with the expected Location, checked against a table written apart from
+the module. Two hops only with a trailing slash (above).
+
+**B**: as above under KMC.
+
+**C**: the 55 distinct targets each answer 200. An unknown B.Des slug, an unknown M.Des slug and
+`/academics/resource/99.html` each take one hop to `/en/programmes/bdes`, `/en/programmes/mdes`,
+`/en/programmes/resources`.
+
+**D** (scratch copies, deleted after): the NID Press row pointed at `/research/nid-press-gone`: the
+LIVE build fails, `verify-redirects: 2 problems`, naming both locale forms of the rule. The three
+fallbacks listed before the explicit rows: the build fails with 92 problems, one per shadowed row
+("… :rest* … is listed before …, which it shadows").
+
+**Playwright**: `/academics.html`, a B.Des discipline (`graphic-design-bdes.html`), an M.Des one
+(`lifestyle-accessory-design.html`), `/academics/resource/21.html` and the CTL path each reach the
+right page (by its h1) in one hop.
+
+### Backend asks
+
+None. Editor: the paragraph above. Domain switch: KMC's host, and the 307 → 308 flip.

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/with-cms-cache.mjs next build && node scripts/verify-built-html.mjs && node scripts/build-summary.mjs",
+    "build": "node scripts/with-cms-cache.mjs next build && node scripts/verify-built-html.mjs && node scripts/verify-redirects.mjs && node scripts/build-summary.mjs",
     "start": "next start",
     "lint": "eslint . && node scripts/lint-tokens.mjs && node scripts/lint-fixtures.mjs && node scripts/lint-routes.mjs && node scripts/lint-notes.mjs",
     "generate:tokens": "python3 design/generate.py && cp design/tokens/themes.css src/styles/themes.css && cp design/tokens/font-manifest.json src/lib/font-manifest.json",

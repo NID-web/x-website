@@ -4,6 +4,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 import { PAGE_TIMEOUT_S, onceAcrossBuild } from "./src/lib/api/build-cache";
 import { routing } from "./src/i18n/routing";
 import { KMC } from "./src/lib/kmc";
+import { academicsRedirects } from "./src/lib/legacy-redirects";
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -115,8 +116,9 @@ function announceMode(phase: string) {
 // (STAGE-0-NOTES §85): /kmc/* opens its page there, redirected before the proxy
 // adds a locale, so each is one hop. 307: a decision of 4 Oct 2026 that could
 // still move (KMC may get its own domain), and a 308 is cached by browsers for
-// good. Nothing else redirects: /events is not a route at all, and event
-// articles live at /about/news-events/[slug].
+// good. /events is not a route at all, and event articles live at
+// /about/news-events/[slug]. The only other redirects are nid.edu's old
+// Academics URLs (src/lib/legacy-redirects.ts, §105).
 const LOCALE = `:locale(${routing.locales.join("|")})`;
 const KMC_TARGETS: [string, string][] = [
   ["/kmc", KMC.landing],
@@ -127,10 +129,13 @@ const KMC_TARGETS: [string, string][] = [
   // specific ones above (first match wins).
   ["/kmc/:rest*", KMC.landing],
 ];
-const REDIRECTS = KMC_TARGETS.flatMap(([source, destination]) => [
-  { source, destination, permanent: false },
-  { source: `/${LOCALE}${source}`, destination, permanent: false },
-]);
+const REDIRECTS = [
+  ...KMC_TARGETS.flatMap(([source, destination]) => [
+    { source, destination, permanent: false },
+    { source: `/${LOCALE}${source}`, destination, permanent: false },
+  ]),
+  ...academicsRedirects(routing.locales, routing.defaultLocale),
+];
 
 // An async default export rather than a top-level `await`: Next loads
 // next.config.ts through require() on some of its own paths, and a
