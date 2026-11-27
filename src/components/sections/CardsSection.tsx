@@ -125,8 +125,8 @@ export function CardsSection({
             <NewsCard item={item} variant="square" />
           ) : kind === "campus" ? (
             <CampusCard item={item} arch={ARCHES[i % ARCHES.length] ?? "top"} />
-          ) : kind === "alumni" ? (
-            <AlumniCard item={item} />
+          ) : kind === "alumni" || kind === "pride" ? (
+            <AlumniCard item={item} bed={kind} />
           ) : kind === "thumb" ? (
             <ThumbCard item={item} meta={thumbMeta} />
           ) : null}

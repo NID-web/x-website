@@ -26,6 +26,7 @@ export const PAGE_ID = {
   peopleSenate: "page-people-senate",
   peopleStaff: "page-people-staff",
   peopleAlumni: "page-people-alumni",
+  peoplePrideOfNid: "page-people-pride-of-nid",
   careers: "page-careers",
   tenders: "page-tenders",
   sitemap: "page-sitemap",
@@ -87,6 +88,7 @@ const PATH: Record<UUID, string> = {
   [PAGE_ID.peopleSenate]: "/people/senate",
   [PAGE_ID.peopleStaff]: "/people/staff",
   [PAGE_ID.peopleAlumni]: "/people/alumni",
+  [PAGE_ID.peoplePrideOfNid]: "/people/pride-of-nid",
   [PAGE_ID.careers]: "/careers",
   [PAGE_ID.tenders]: "/tenders",
   [PAGE_ID.sitemap]: "/sitemap",
@@ -171,7 +173,7 @@ export function pagePath(page: Pick<Page, "slug" | "parent">): string | undefine
 // articles, campuses and award-winning students all arrive as Page and the
 // card is chosen by which page they hang off. Adding NewsArticle, Campus and
 // Person to the union lets the kind come from the record instead.
-export type CardKind = "news" | "campus" | "alumni" | "thumb";
+export type CardKind = "news" | "campus" | "alumni" | "pride" | "thumb";
 
 const CARD_KIND_BY_PARENT: Record<UUID, CardKind> = {
   [PAGE_ID.newsEvents]: "news",
@@ -179,6 +181,9 @@ const CARD_KIND_BY_PARENT: Record<UUID, CardKind> = {
   [PAGE_ID.studentAwards]: "alumni",
   // Alumni's Notable Alumni (STAGE-0-NOTES §100).
   [PAGE_ID.peopleAlumni]: "alumni",
+  // Pride of NID's awardees: AlumniCard on the Pride bed, the home tile's twin
+  // (STAGE-0-NOTES §108).
+  [PAGE_ID.peoplePrideOfNid]: "pride",
   // The campus pages' Disciplines: programme pages on the fixture, CMS
   // discipline records with the API (§57).
   [PAGE_ID.programmes]: "thumb",
