@@ -7769,3 +7769,98 @@ back at 100% passes there too), and every new panel step.
 - "Large cursor": design sign-off.
 - `[locale]/not-found.tsx` never renders.
 - Out of scope: the 404 has no banner; the header menu has no navigation landmark.
+
+## 108. Pride of NID: a fixture-only People child, its awardees on the Pride bed
+
+`/people/pride-of-nid` is a People child on the secondary template with **no CMS document**:
+like CTL (§103), a `FIXTURES` entry with no `PAGE_CONFIG`, so getPage makes no request and the
+page is its fixture in both modes. The words are the content team's `Pride of NID.docx`
+(27 Nov 2026) as written. No board: TODO(designer). The home page's Pride of NID tile has named
+this route since §51, but while it was unbuilt the route gate withheld the link there, on the
+`/people` rail's row and on every People band's row.
+
+### The page
+
+| Slot | Source |
+|---|---|
+| Title | "Pride of NID": the menu's, sitemap.json's and the home tile's name. The document's "Pride of NID Ahmedabad Award" heads the first section |
+| Back link | BackNav "People" → `/people` (`backFallback="/people"`) |
+| Hero | none: the document has no photograph (`heroPlaceholder={false}`) |
+| Standfirst | the document's summary line, as written, title case included. TODO(review), editor |
+| Pride of NID Ahmedabad Award | the document's three opening paragraphs, unclamped |
+| 44th Convocation, 45th Convocation | a `cards` section each: two AlumniCards on the Pride bed, name and headline, never linked |
+| One section per awardee | the role line in bold, then the four-paragraph profile, after its convocation's cards |
+| Column 4 | empty: the document gives no contacts |
+| Band | `peopleBand(PATH)`: "More in People" |
+
+**Left out of the copy:** each profile's word count ("(163 words)") and the subheading "Design
+contributions and professional profiles", both notes to the editor. One mechanical fix: the
+document opens "Pride of NID Ahmedabad Award" with a curly quote and closes it with a straight
+one; both are curly. The names drop "Ms."/"Mr.", as the People cards do. Lakshmi Murthy is "Ms."
+here and "Dr." on the home tile: question 11 to the content team.
+
+### The cards: AlumniCard on the Pride bed
+
+The awardees are Home's portrait-tile pair as a page: Notable Alumni (§100) is AlumniCard on the
+alumni bed, and Pride of NID is the same card on the Pride scatter, the one the home tile draws
+(`PortraitTile`'s `SCATTER`). AlumniCard gains `bed?: "alumni" | "pride"` (default alumni): the
+field is shared, only the scatter behind the portrait changes. `CardKind` gains `"pride"`,
+mapped from `PAGE_ID.peoplePrideOfNid` in `CARD_KIND_BY_PARENT`, and CardsSection passes the kind
+through. The card's line under the name is the document's headline ("Designing Communication for
+Social Change"), clamped at three lines as AlumniCard's bio is.
+
+**The route gate treats `"pride"` as it treats `"alumni"`.** Its cards check skipped AlumniCard
+by kind: a portrait with no destination. Without the same skip for `"pride"` every awardee
+counted as an unlinked card with a missing route.
+
+**Convocations are sections, not groups.** `rail`'s `groupBy` would draw the convocation as a
+group cell in column 1, but its vocabulary (`department`, `letter`, `campus`, `faculty`) is
+content-model.ts, the backend contract, and has no convocation. Two sections draw the same
+heading without touching it.
+
+### Portraits
+
+The document's four images, cropped square from the centre (all are head-and-shoulders,
+centred), as JPEG at quality 85, in `public/people/pride/`:
+
+| File | Source | Size |
+|---|---|---|
+| `lakshmi-murthy.jpg` | image3.png, 330×294 | 294px, 26 KB |
+| `pratap-bose.jpg` | image4.png, 322×327 | 322px, 24 KB |
+| `k-b-jinan.jpg` | image1.png, 200×200 | 200px, 11 KB |
+| `david-abraham.jpg` | image2.jpg, 183×190 | 183px, 10 KB |
+
+The card draws the portrait at 160px from 668 up, so Jinan's and Abraham's are soft at 2x.
+TODO(review): content, larger originals (question 36). The home tile keeps its own photograph of
+Lakshmi Murthy (`/home/pride-murthy.jpg`, a landscape). The alt is the person's name, as on
+every People card.
+
+### How it becomes CMS-first
+
+The CMS has no `pride-of-nid` document. It has a `person_recognition` taxonomy term
+`pride-of-nid` on two records, `lakshmi-murthy` (no bio) and the placeholder
+`sample-notable-alumnus`, and an unused "Pride of NID" STRUCTURED section on `alumni` (§100).
+None is read here. The day a document exists, the page takes CTL's road (§103): a `PAGE_CONFIG`
+entry, the slug in `PATH_BY_CMS_SLUG`, a section floor, and the awardees as person records with
+their profile, read in the fixture's two sections or a grouping the backend sends.
+TODO(review): backend.
+
+### What links now
+
+| Where | Before | Now |
+|---|---|---|
+| Home's Pride of NID tile | withheld: no link, no hover (§48) | links, and opens on hover (§51) |
+| `/people` rail, "Pride of NID" | unlinked row | link |
+| Every People child's band | unlinked row | link |
+
+### Checks
+
+- `npm run lint`: routes 52 → 53, notes §1 … §108, tokens and fixtures clean. `tsc` clean.
+- FIXTURE build: `● /en/people/pride-of-nid`, 88 pages. LIVE build (nidapi.smartdiner.co): 181
+  pages, 249 documents fetched, 0 failed, 94 floors, 0 short; 18 HTTP 429s waited out (the CMS's
+  rate limit, not this page: it fetches nothing).
+- In the browser, FIXTURE `next dev`: one `<h1>`, headings h2 per section and h3 per card name, no
+  horizontal overflow at 1440, 1024, 768 and 390, all four portraits served, no console errors.
+  The `/people` rail's "Pride of NID" row links to the page.
+- `npm run verify:a11y`: 27 passed, 0 failed, on 89 pages including this one (one `<h1>`, no
+  skipped heading level, one contentinfo, no clamp hiding a line).

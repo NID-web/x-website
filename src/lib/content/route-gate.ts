@@ -111,9 +111,10 @@ export function gatePage(
     }
     if (section.type === "cards") {
       for (const item of section.items) {
-        // AlumniCard is a portrait with no destination at all; only cards that
-        // link (news, campus) can be withheld.
-        if (!("parent" in item) || cardKind(item) === "alumni" || cardHref(item)) continue;
+        // AlumniCard (either bed) is a portrait with no destination at all;
+        // only cards that link (news, campus) can be withheld.
+        const kind = "parent" in item ? cardKind(item) : undefined;
+        if (!("parent" in item) || kind === "alumni" || kind === "pride" || cardHref(item)) continue;
         audit.unlinked++;
         const path = pagePath(item);
         if (path) miss(audit, path, true);

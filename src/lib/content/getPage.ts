@@ -59,6 +59,7 @@ import { CONSULTING } from "@/lib/content/fixtures/consulting";
 import { CONSULTING_IDS } from "@/lib/content/fixtures/consulting-ids";
 import { CONSULTING_CONTINUING_EDUCATION } from "@/lib/content/fixtures/consulting-continuing-education";
 import { PEOPLE_GOVERNING_COUNCIL } from "@/lib/content/fixtures/people-governing-council";
+import { PEOPLE_PRIDE_OF_NID } from "@/lib/content/fixtures/people-pride-of-nid";
 import { PEOPLE_SENATE } from "@/lib/content/fixtures/people-senate";
 import { PEOPLE_STAFF } from "@/lib/content/fixtures/people-staff";
 import { PEOPLE_ALUMNI } from "@/lib/content/fixtures/people-alumni";
@@ -109,6 +110,8 @@ const FIXTURES: Record<string, PageResponse> = {
   "/people": PEOPLE,
   "/people/governing-council": PEOPLE_GOVERNING_COUNCIL,
   "/people/senate": PEOPLE_SENATE,
+  // Fixture-only, as CTL (§103): no CMS document, so no PAGE_CONFIG (§108).
+  "/people/pride-of-nid": PEOPLE_PRIDE_OF_NID,
   "/people/staff": PEOPLE_STAFF,
   "/people/alumni": PEOPLE_ALUMNI,
   "/careers": CAREERS,

@@ -403,6 +403,8 @@ The People children (`/people/governing-council`, `/people/senate`, `/people/sta
 3. **`PAGE_CONFIG`** (`getPage.ts`): the CMS slug (map it in `PATH_BY_CMS_SLUG`), `intro: "heroText"` where it is a summary, `textTitle` for each text section.
 4. **Floors** (`cms-floors.ts`): `documentSections`; an item floor once a section lists person records.
 
+A child with no CMS document yet (Pride of NID, STAGE-0-NOTES §108) skips steps 3 and 4: a `FIXTURES` entry alone, as CTL (§103), until the document exists.
+
 Members as text are a stopgap: when the CMS sends person records, the page takes Senate's person-card mapping (R1h). A name in prose is never matched to a faculty page. `peopleBand` and `KEEP_UNBUILT_BAND` already cover all eight children: a new one links in every sibling's band and the `/people` rail with no other change. The People menu row links in FIXTURE only: the LIVE menu is the CMS's, and its People section has no children yet.
 
 ### R1i — A footer page (no parent, no band)

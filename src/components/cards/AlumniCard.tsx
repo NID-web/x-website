@@ -1,19 +1,25 @@
 import { Tile } from "@/components/home/Tile";
 import { TileImage } from "@/components/home/TileImage";
-import { PatternFieldAlumni, PatternScatterAlumni } from "@/components/home/patterns";
+import { PatternFieldAlumni, PatternScatterAlumni, PatternScatterPride } from "@/components/home/patterns";
 import type { Page } from "@/lib/content-model";
+
+// The two portrait beds the home tiles draw (PortraitTile's SCATTER): the field
+// is shared, the scatter behind the portrait differs, Pride's denser.
+const SCATTER = { alumni: PatternScatterAlumni, pride: PatternScatterPride } as const;
 
 /**
  * Notable Alumni card displaying craft patterns, a circular portrait, and bio.
+ * `bed="pride"` is the same card on the Pride of NID tile's scatter.
  */
-export function AlumniCard({ item }: { item: Page }) {
+export function AlumniCard({ item, bed = "alumni" }: { item: Page; bed?: keyof typeof SCATTER }) {
   const photo = item.hero[0];
+  const Scatter = SCATTER[bed];
   return (
     <Tile as="article" surface="page" padding={false}>
       <div className="flex flex-1 items-center">
         <PatternFieldAlumni className="aspect-square w-1/2 shrink-0" />
         <div className="relative flex aspect-square w-1/2 shrink-0 items-center justify-center">
-          <PatternScatterAlumni className="absolute inset-0 size-full" />
+          <Scatter className="absolute inset-0 size-full" />
           {photo ? (
             <TileImage
               media={photo}
